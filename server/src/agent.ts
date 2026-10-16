@@ -126,7 +126,8 @@ export function startTurn(sessionId: number | undefined, text: string): number |
   return id
 }
 
-// 跟进一轮回答：读取输出文件的新增内容并推给页面，直到出现最终结果或 agent 进程已经不在
+// 跟进一轮回答：读取输出文件的新增内容并推给页面，直到 agent 进程退出。
+// 出现 result 不代表结束：agent 有后台任务时会继续等待，任务结束后接着回答
 function follow(id: number, state: TurnState) {
   running = { sessionId: id, text: '' }
   emit(id, { type: 'status', running: true })
@@ -200,7 +201,7 @@ function follow(id: number, state: TurnState) {
   const replaced = processStartTime(state.pid) !== state.startedAt
   const timer = setInterval(() => {
     readNew()
-    if (!result && !replaced && isRunning(state.pid)) {
+    if (!replaced && isRunning(state.pid)) {
       return
     }
     clearInterval(timer)
