@@ -1,9 +1,13 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { requireOwner } from './access.js'
 import { liveState, recoverInterruptedTurns, startTurn, subscribe } from './agent.js'
+import { codeDir } from './paths.js'
 import { listSessions, readTranscript, sessionExists } from './sessions.js'
 
 recoverInterruptedTurns()
@@ -71,10 +75,22 @@ app.get('/api/sessions/:id/stream', (c) => {
   })
 })
 
+// 正式版由后端提供前端构建出的页面；开发时页面由 Vite 提供，没有 web/dist
+const webDist = path.join(codeDir, 'web', 'dist')
+if (existsSync(webDist)) {
+  // 文件名带内容哈希的资源可以长期缓存，index.html 每次都要重新取，才能拿到新版本
+  const setCache = (file: string, c: Context) =>
+    c.header('Cache-Control', file.includes('/assets/') ? 'public, max-age=31536000, immutable' : 'no-cache')
+  app.use('*', serveStatic({ root: webDist, onFound: setCache }))
+  // 单页应用：接口以外找不到的路径都返回 index.html
+  const index = serveStatic({ path: path.join(webDist, 'index.html'), onFound: setCache })
+  app.use('*', (c, next) => (c.req.path.startsWith('/api/') ? next() : index(c, next)))
+}
+
 serve({
   fetch: app.fetch,
   hostname: '127.0.0.1',
-  port: 3000
+  port: Number(process.env.PORT ?? 3000)
 }, (info) => {
   console.log(`Server is running on http://localhost:${info.port}`)
 })
