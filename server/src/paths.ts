@@ -8,7 +8,7 @@ if (!root) {
 
 export const rootDir = path.resolve(root)
 export const libraryDir = path.join(rootDir, 'Library')
-// 代码仓库：agent 在这里改代码
-export const repoDir = path.join(rootDir, 'binOS')
+// main 分支的克隆，session 的初始目录；改动在它旁边的 worktree 里进行
+export const repoDir = path.join(rootDir, 'System', 'source', 'main')
 // 当前运行的代码：开发时是仓库，正式版是 System/builds 下的某个版本
 export const codeDir = path.resolve(import.meta.dirname, '../..')
