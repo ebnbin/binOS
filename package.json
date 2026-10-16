@@ -2,6 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node scripts/dev.ts",
     "deploy": "node scripts/deploy.ts deploy",
     "rollback": "node scripts/deploy.ts rollback",
     "services": "node scripts/services.ts"
