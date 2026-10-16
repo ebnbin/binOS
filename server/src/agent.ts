@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import {
   closeSync,
@@ -12,7 +12,8 @@ import {
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
-import { libraryDir, repoDir } from './paths.js'
+import { claudeConfigDir, repoDir } from './paths.js'
+import { processStartTime } from './process.js'
 import {
   appendEntry,
   createSession,
@@ -36,7 +37,7 @@ const outputPath = (id: number) => path.join(turnDir(id), 'claude-output.jsonl')
 const errorsPath = (id: number) => path.join(turnDir(id), 'claude-errors.log')
 const statePath = (id: number) => path.join(turnDir(id), 'state.json')
 
-// 进程号可能被系统重新分配给别的程序，所以同时记下进程的启动时间，两者都对得上才是同一个进程
+// agent 进程的身份：进程号加上启动时间
 type TurnState = {
   pid: number
   startedAt: string
@@ -305,14 +306,6 @@ export function resumeTurns() {
   }
 }
 
-function processStartTime(pid: number): string | undefined {
-  try {
-    return execFileSync('ps', ['-o', 'lstart=', '-p', String(pid)], { encoding: 'utf8' }).trim() || undefined
-  } catch {
-    return undefined
-  }
-}
-
 function isRunning(pid: number) {
   try {
     process.kill(pid, 0)
@@ -330,6 +323,6 @@ function agentEnv() {
       env[key] = value
     }
   }
-  env.CLAUDE_CONFIG_DIR = path.join(libraryDir, 'claude')
+  env.CLAUDE_CONFIG_DIR = claudeConfigDir
   return env
 }

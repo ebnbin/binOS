@@ -7,9 +7,11 @@ import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { requireOwner } from './access.js'
 import { liveState, resumeTurns, runningSessionId, startTurn, stopTurn, subscribe } from './agent.js'
+import { acquireRootLock } from './lock.js'
 import { codeDir } from './paths.js'
 import { listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 
+acquireRootLock()
 resumeTurns()
 
 const app = new Hono()

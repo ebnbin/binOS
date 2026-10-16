@@ -1,20 +1,25 @@
 import type { MiddlewareHandler } from 'hono'
 import { Jwt } from 'hono/utils/jwt'
 import { config } from './config.js'
+import { isTestInstance } from './paths.js'
 
-// 只放行经过 Cloudflare Access 登录、且邮箱是主人的请求
+// 只放行经过 Cloudflare Access 登录、且邮箱是 ownerEmail 的请求。测试实例只能从本机访问，不校验
 export const requireOwner: MiddlewareHandler = async (c, next) => {
+  if (isTestInstance) {
+    return next()
+  }
   const token = c.req.header('Cf-Access-Jwt-Assertion')
   if (!token) {
     return c.text('Unauthorized', 401)
   }
+  const { access, ownerEmail } = config()
   try {
     const payload = await Jwt.verifyWithJwks(token, {
-      jwks_uri: `${config.access.teamDomain}/cdn-cgi/access/certs`,
+      jwks_uri: `${access.teamDomain}/cdn-cgi/access/certs`,
       allowedAlgorithms: ['RS256'],
-      verification: { iss: config.access.teamDomain, aud: config.access.aud },
+      verification: { iss: access.teamDomain, aud: access.aud },
     })
-    if (payload.email !== config.ownerEmail) {
+    if (payload.email !== ownerEmail) {
       return c.text('Forbidden', 403)
     }
   } catch {
