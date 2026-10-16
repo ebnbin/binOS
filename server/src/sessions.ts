@@ -25,7 +25,7 @@ export type SessionInfo = {
 }
 
 const sessionsDir = path.join(libraryDir, 'agent', 'sessions')
-const sessionDir = (id: number) => path.join(sessionsDir, String(id))
+export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
 const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
 const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
 

@@ -6,11 +6,11 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { requireOwner } from './access.js'
-import { liveState, recoverInterruptedTurns, startTurn, subscribe } from './agent.js'
+import { liveState, resumeTurns, startTurn, subscribe } from './agent.js'
 import { codeDir } from './paths.js'
 import { listSessions, readTranscript, sessionExists } from './sessions.js'
 
-recoverInterruptedTurns()
+resumeTurns()
 
 const app = new Hono()
 
