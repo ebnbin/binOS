@@ -6,9 +6,9 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { requireOwner } from './access.js'
-import { liveState, resumeTurns, startTurn, stopTurn, subscribe } from './agent.js'
+import { liveState, resumeTurns, runningSessionId, startTurn, stopTurn, subscribe } from './agent.js'
 import { codeDir } from './paths.js'
-import { listSessions, readTranscript, sessionExists } from './sessions.js'
+import { listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 
 resumeTurns()
 
@@ -42,7 +42,14 @@ function start(c: Context, sessionId: number | undefined, text: string | undefin
   return c.json({ id })
 }
 
-app.get('/api/sessions', (c) => c.json({ ids: listSessions() }))
+// 所有 session 的概要，新的在前
+app.get('/api/sessions', (c) => {
+  const runningId = runningSessionId()
+  const sessions = listSessions()
+    .filter(sessionExists)
+    .map((id) => ({ ...sessionSummary(id), running: id === runningId }))
+  return c.json({ sessions })
+})
 
 app.post('/api/sessions', async (c) => start(c, undefined, await readText(c)))
 
