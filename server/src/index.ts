@@ -6,7 +6,7 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { requireOwner } from './access.js'
-import { liveState, resumeTurns, startTurn, subscribe } from './agent.js'
+import { liveState, resumeTurns, startTurn, stopTurn, subscribe } from './agent.js'
 import { codeDir } from './paths.js'
 import { listSessions, readTranscript, sessionExists } from './sessions.js'
 
@@ -52,6 +52,16 @@ app.post('/api/sessions/:id/messages', async (c) => {
     return c.text('Not Found', 404)
   }
   return start(c, id, await readText(c))
+})
+
+app.post('/api/sessions/:id/stop', (c) => {
+  if (c.req.header('Content-Type') !== 'application/json') {
+    return c.text('Unsupported Media Type', 415)
+  }
+  if (!stopTurn(Number(c.req.param('id')))) {
+    return c.text('Not Found', 404)
+  }
+  return c.json({ ok: true })
 })
 
 // 先补发第 from 条及之后的条目，再推送实时事件

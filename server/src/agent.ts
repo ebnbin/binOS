@@ -22,12 +22,12 @@ import {
   sessionDir,
   writeSessionInfo,
 } from './sessions.js'
-import type { Entry } from './sessions.js'
+import type { ContentBlock, Entry, EntryFields } from './sessions.js'
 
-// 推给页面的事件：新写入的条目、正在生成的文字、是否有回答在进行
+// 推给页面的事件：新写入的条目、这一轮到目前为止的进展、是否有回答在进行
 export type LiveEvent =
   | { type: 'entry'; index: number; entry: Entry }
-  | { type: 'partial'; text: string }
+  | { type: 'progress'; blocks: ContentBlock[] }
   | { type: 'status'; running: boolean }
 
 // 回答进行期间的 turn/ 目录：agent 的输出直接写进文件，后端重启后能接着读
@@ -42,10 +42,15 @@ type TurnState = {
   startedAt: string
 }
 
+// 停止时记录的内容，与 Claude Code 一致
+const interruptedText = '[Request interrupted by user]'
+// 进展里的工具输出只推送开头一段，完整内容在这一轮结束后写进 transcript
+const progressOutputLimit = 4000
+
 const listeners = new Map<number, Set<(event: LiveEvent) => void>>()
 
 // 同一时间只有一个回答在进行
-let running: { sessionId: number; text: string } | undefined
+let running: { sessionId: number; pid: number; blocks: ContentBlock[]; stopped: boolean } | undefined
 
 export function subscribe(sessionId: number, listener: (event: LiveEvent) => void) {
   const set = listeners.get(sessionId) ?? new Set()
@@ -63,7 +68,7 @@ export function liveState(sessionId: number): LiveEvent[] {
   }
   return [
     { type: 'status', running: true },
-    { type: 'partial', text: running.text },
+    { type: 'progress', blocks: running.blocks },
   ]
 }
 
@@ -73,7 +78,7 @@ function emit(sessionId: number, event: LiveEvent) {
   }
 }
 
-function append(sessionId: number, fields: Parameters<typeof appendEntry>[1]) {
+function append(sessionId: number, fields: EntryFields) {
   const { entry, index } = appendEntry(sessionId, fields)
   emit(sessionId, { type: 'entry', index, entry })
 }
@@ -126,22 +131,49 @@ export function startTurn(sessionId: number | undefined, text: string): number |
   return id
 }
 
+// 停止正在进行的回答：结束 agent 所在的整个进程组，包括它在后台启动的任务
+export function stopTurn(sessionId: number): boolean {
+  if (running?.sessionId !== sessionId) {
+    return false
+  }
+  running.stopped = true
+  try {
+    process.kill(-running.pid, 'SIGTERM')
+  } catch {
+    // 已经结束了
+  }
+  return true
+}
+
 // 跟进一轮回答：读取输出文件的新增内容并推给页面，直到 agent 进程退出。
 // 出现 result 不代表结束：agent 有后台任务时会继续等待，任务结束后接着回答
 function follow(id: number, state: TurnState) {
-  running = { sessionId: id, text: '' }
+  const turn = { sessionId: id, pid: state.pid, blocks: [] as ContentBlock[], stopped: false }
+  running = turn
   emit(id, { type: 'status', running: true })
 
-  // 已完成的文字块，以及正在生成的那一块
-  const blocks: string[] = []
+  // 已完成的条目（结束时按顺序写进 transcript），以及正在生成的文字、刚开始还没拿到参数的工具调用
+  const entries: EntryFields[] = []
   let partial = ''
+  let startingTool: { id: string; name: string } | undefined
   let result: { is_error?: boolean; result?: string } | undefined
   let offset = 0
   let pending = Buffer.alloc(0)
 
   const showProgress = () => {
-    running!.text = [...blocks, partial].filter(Boolean).join('\n\n')
-    emit(id, { type: 'partial', text: running!.text })
+    const blocks: ContentBlock[] = entries.flatMap((entry) =>
+      (entry.message!.content as ContentBlock[]).map((block) =>
+        block.type === 'tool_result' ? { ...block, content: block.content.slice(0, progressOutputLimit) } : block,
+      ),
+    )
+    if (startingTool) {
+      blocks.push({ type: 'tool_use', ...startingTool, input: {} })
+    }
+    if (partial) {
+      blocks.push({ type: 'text', text: partial })
+    }
+    turn.blocks = blocks
+    emit(id, { type: 'progress', blocks })
   }
 
   const handleLine = (line: string) => {
@@ -159,6 +191,9 @@ function follow(id: number, state: TurnState) {
       const event = data.event
       if (event.type === 'content_block_start' && event.content_block.type === 'text') {
         partial = ''
+      } else if (event.type === 'content_block_start' && event.content_block.type === 'tool_use') {
+        startingTool = { id: event.content_block.id, name: event.content_block.name }
+        showProgress()
       } else if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
         partial += event.delta.text
         showProgress()
@@ -166,8 +201,25 @@ function follow(id: number, state: TurnState) {
     } else if (data.type === 'assistant') {
       for (const block of data.message.content) {
         if (block.type === 'text') {
-          blocks.push(block.text)
+          entries.push({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: block.text }] } })
           partial = ''
+        } else if (block.type === 'tool_use') {
+          const { id: toolId, name, input } = block
+          entries.push({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'tool_use', id: toolId, name, input }] } })
+          startingTool = undefined
+        }
+      }
+      showProgress()
+    } else if (data.type === 'user') {
+      for (const block of data.message.content) {
+        if (block.type === 'tool_result') {
+          entries.push({
+            type: 'user',
+            message: {
+              role: 'user',
+              content: [{ type: 'tool_result', tool_use_id: block.tool_use_id, content: resultText(block.content), is_error: block.is_error }],
+            },
+          })
         }
       }
       showProgress()
@@ -206,27 +258,42 @@ function follow(id: number, state: TurnState) {
     }
     clearInterval(timer)
     readNew()
-    if (result && !result.is_error) {
-      append(id, {
-        type: 'assistant',
-        message: { role: 'assistant', content: blocks.map((text) => ({ type: 'text', text })) },
-      })
-    } else {
-      const errors = readFileSync(errorsPath(id), 'utf8').trim()
-      append(id, { type: 'system', subtype: 'error', content: result?.result ?? (errors || 'agent 异常结束') })
-    }
+    const errors = readFileSync(errorsPath(id), 'utf8').trim()
     rmSync(turnDir(id), { recursive: true, force: true })
     running = undefined
     emit(id, { type: 'status', running: false })
+
+    for (const entry of entries) {
+      append(id, entry)
+    }
+    if (turn.stopped) {
+      if (partial) {
+        append(id, { type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: partial }] } })
+      }
+      append(id, { type: 'user', message: { role: 'user', content: [{ type: 'text', text: interruptedText }] } })
+    } else if (!result || result.is_error) {
+      append(id, { type: 'system', subtype: 'error', content: result?.result ?? (errors || 'agent 异常结束') })
+    }
   }, 200)
 }
 
-// 后端启动时：接上还在进行的回答；没有 turn/ 但最后一条还是用户消息的，说明 agent 没能启动
+// 工具结果可能是文字，也可能是内容块数组（比如带图片），只保留其中的文字
+function resultText(content: unknown): string {
+  if (typeof content === 'string') {
+    return content
+  }
+  if (Array.isArray(content)) {
+    return content.map((block) => (block.type === 'text' ? block.text : `[${block.type}]`)).join('\n')
+  }
+  return ''
+}
+
+// 后端启动时：接上还在进行的回答；没有 turn/ 但最后一条还是用户发来的消息，说明 agent 没能启动
 export function resumeTurns() {
   for (const id of listSessions()) {
     if (existsSync(statePath(id))) {
       follow(id, JSON.parse(readFileSync(statePath(id), 'utf8')))
-    } else if (readTranscript(id).at(-1)?.type === 'user') {
+    } else if (typeof readTranscript(id).at(-1)?.message?.content === 'string') {
       rmSync(turnDir(id), { recursive: true, force: true })
       appendEntry(id, { type: 'system', subtype: 'error', content: '回答被中断：agent 没能启动' })
     }

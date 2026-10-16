@@ -1,18 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import './App.css'
-
-// 与后端 transcript.jsonl 的条目一致
-type Entry = {
-  type: 'user' | 'assistant' | 'system'
-  uuid: string
-  message?: { role: string; content: string | { type: string; text?: string }[] }
-  content?: string
-}
+import { Transcript } from './Transcript.tsx'
+import type { Block, Entry } from './Transcript.tsx'
 
 type LiveEvent =
   | { type: 'entry'; index: number; entry: Entry }
-  | { type: 'partial'; text: string }
+  | { type: 'progress'; blocks: Block[] }
   | { type: 'status'; running: boolean }
 
 // 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
@@ -23,7 +17,8 @@ function App() {
   const [sessionId, setSessionId] = useState<number | null | undefined>(undefined)
   const [entries, setEntries] = useState<Entry[]>([])
   const [running, setRunning] = useState(false)
-  const [partial, setPartial] = useState('')
+  // 正在进行的这一轮到目前为止的进展
+  const [progress, setProgress] = useState<Block[] | null>(null)
   const [notice, setNotice] = useState('')
   const [input, setInput] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
@@ -39,7 +34,7 @@ function App() {
   function newSession() {
     setSessionId(null)
     setEntries([])
-    setPartial('')
+    setProgress(null)
     setNotice('')
   }
 
@@ -60,12 +55,12 @@ function App() {
             count += 1
             setEntries((prev) => [...prev, event.entry])
           }
-        } else if (event.type === 'partial') {
-          setPartial(event.text)
+        } else if (event.type === 'progress') {
+          setProgress(event.blocks)
         } else {
           setRunning(event.running)
           if (!event.running) {
-            setPartial('')
+            setProgress(null)
           }
         }
       }
@@ -84,7 +79,7 @@ function App() {
   useEffect(() => {
     const list = listRef.current
     list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
-  }, [entries, partial, running])
+  }, [entries, progress, running])
 
   async function send() {
     const text = input.trim()
@@ -107,6 +102,14 @@ function App() {
     setSessionId(id)
   }
 
+  async function stop() {
+    await fetch(`/api/sessions/${sessionId}/stop`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    }).catch(() => undefined)
+  }
+
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (enterSends && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault()
@@ -126,12 +129,8 @@ function App() {
         {entries.length === 0 && !running && (
           <p className="empty">对 binOS 的 agent 说点什么</p>
         )}
-        {entries.map((entry) => (
-          <div key={entry.uuid} className={`message ${entry.type}`}>
-            {entryText(entry)}
-          </div>
-        ))}
-        {running && <div className="message assistant pending">{partial || '正在处理…'}</div>}
+        <Transcript entries={entries} progress={progress} />
+        {running && !progress?.length && <div className="message assistant pending">正在处理…</div>}
         {notice && <div className="message system">{notice}</div>}
       </div>
       <form
@@ -149,24 +148,18 @@ function App() {
           rows={1}
           disabled={running}
         />
-        <button type="submit" disabled={running || !input.trim()}>
-          发送
-        </button>
+        {running ? (
+          <button type="button" className="stop" onClick={stop}>
+            停止
+          </button>
+        ) : (
+          <button type="submit" disabled={!input.trim()}>
+            发送
+          </button>
+        )}
       </form>
     </div>
   )
-}
-
-function entryText(entry: Entry): string {
-  if (entry.type === 'system') {
-    return entry.content ?? ''
-  }
-  const content = entry.message?.content
-  if (typeof content === 'string') {
-    return content
-  }
-  const text = (content ?? []).map((block) => block.text ?? '').filter(Boolean).join('\n\n')
-  return text || '（没有文字回复）'
 }
 
 export default App

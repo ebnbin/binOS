@@ -121,3 +121,67 @@
   opacity: 0.4;
   cursor: default;
 }
+
+.notice {
+  align-self: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tool {
+  align-self: flex-start;
+  max-width: 100%;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.tool summary {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tool summary::-webkit-details-marker {
+  display: none;
+}
+
+.tool-icon {
+  width: 1em;
+  text-align: center;
+}
+
+.tool.error .tool-icon {
+  color: var(--error);
+}
+
+.tool-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tool-summary {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: ui-monospace, monospace;
+}
+
+.tool pre {
+  margin: 6px 0 0 24px;
+  padding: 8px 10px;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.composer button.stop {
+  background: var(--error);
+}
