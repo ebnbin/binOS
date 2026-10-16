@@ -50,8 +50,9 @@ const progressOutputLimit = 4000
 
 const listeners = new Map<number, Set<(event: LiveEvent) => void>>()
 
-// 同一时间只有一个回答在进行
-let running: { sessionId: number; pid: number; blocks: ContentBlock[]; stopped: boolean } | undefined
+// 正在进行的回答，按 session 编号：每个 session 同一时间最多一个，不同 session 可以同时进行
+type Turn = { pid: number; blocks: ContentBlock[]; stopped: boolean }
+const turns = new Map<number, Turn>()
 
 export function subscribe(sessionId: number, listener: (event: LiveEvent) => void) {
   const set = listeners.get(sessionId) ?? new Set()
@@ -62,19 +63,19 @@ export function subscribe(sessionId: number, listener: (event: LiveEvent) => voi
   }
 }
 
-// 当前状态：页面连上时先拿到这个
-// 正在回答的 session 编号，没有时为 undefined
-export function runningSessionId(): number | undefined {
-  return running?.sessionId
+export function isAnswering(sessionId: number): boolean {
+  return turns.has(sessionId)
 }
 
+// 当前状态：页面连上时先拿到这个
 export function liveState(sessionId: number): LiveEvent[] {
-  if (running?.sessionId !== sessionId) {
+  const turn = turns.get(sessionId)
+  if (!turn) {
     return [{ type: 'status', running: false }]
   }
   return [
     { type: 'status', running: true },
-    { type: 'progress', blocks: running.blocks },
+    { type: 'progress', blocks: turn.blocks },
   ]
 }
 
@@ -89,9 +90,9 @@ function append(sessionId: number, fields: EntryFields) {
   emit(sessionId, { type: 'entry', index, entry })
 }
 
-// 开始一轮回答，返回 session 编号；已有回答在进行时返回 undefined。sessionId 为空时新建 session
+// 开始一轮回答，返回 session 编号；这个 session 已有回答在进行时返回 undefined。sessionId 为空时新建 session
 export function startTurn(sessionId: number | undefined, text: string): number | undefined {
-  if (running) {
+  if (sessionId !== undefined && turns.has(sessionId)) {
     return undefined
   }
   const id = sessionId ?? createSession({ claudeSessionId: randomUUID() })
@@ -139,12 +140,13 @@ export function startTurn(sessionId: number | undefined, text: string): number |
 
 // 停止正在进行的回答：结束 agent 所在的整个进程组，包括它在后台启动的任务
 export function stopTurn(sessionId: number): boolean {
-  if (running?.sessionId !== sessionId) {
+  const turn = turns.get(sessionId)
+  if (!turn) {
     return false
   }
-  running.stopped = true
+  turn.stopped = true
   try {
-    process.kill(-running.pid, 'SIGTERM')
+    process.kill(-turn.pid, 'SIGTERM')
   } catch {
     // 已经结束了
   }
@@ -154,8 +156,8 @@ export function stopTurn(sessionId: number): boolean {
 // 跟进一轮回答：读取输出文件的新增内容并推给页面，直到 agent 进程退出。
 // 出现 result 不代表结束：agent 有后台任务时会继续等待，任务结束后接着回答
 function follow(id: number, state: TurnState) {
-  const turn = { sessionId: id, pid: state.pid, blocks: [] as ContentBlock[], stopped: false }
-  running = turn
+  const turn: Turn = { pid: state.pid, blocks: [], stopped: false }
+  turns.set(id, turn)
   emit(id, { type: 'status', running: true })
 
   // 已完成的条目（结束时按顺序写进 transcript），以及正在生成的文字、刚开始还没拿到参数的工具调用
@@ -259,14 +261,14 @@ function follow(id: number, state: TurnState) {
   const replaced = processStartTime(state.pid) !== state.startedAt
   const timer = setInterval(() => {
     readNew()
-    if (!replaced && isRunning(state.pid)) {
+    if (!replaced && processAlive(state.pid)) {
       return
     }
     clearInterval(timer)
     readNew()
     const errors = readFileSync(errorsPath(id), 'utf8').trim()
     rmSync(turnDir(id), { recursive: true, force: true })
-    running = undefined
+    turns.delete(id)
     emit(id, { type: 'status', running: false })
 
     for (const entry of entries) {
@@ -306,7 +308,7 @@ export function resumeTurns() {
   }
 }
 
-function isRunning(pid: number) {
+function processAlive(pid: number) {
   try {
     process.kill(pid, 0)
     return true

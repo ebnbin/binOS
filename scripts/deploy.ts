@@ -1,12 +1,13 @@
 // 上线与回退：
-//   BINOS_ROOT=<根目录> npm run deploy    构建当前提交（HEAD），切换为正式运行的版本
+//   BINOS_ROOT=<根目录> npm run deploy    构建当前提交（HEAD），切换为正式运行的版本；已在运行就什么都不做
 //   BINOS_ROOT=<根目录> npm run rollback  切回上一个版本
-// 切换后重启正式版并检查，不正常就切回原来的版本
+// 切换后重启正式版并检查，不正常就切回原来的版本。同一时间只有一个上线或回退在进行
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
+import { processStartTime } from '../server/src/process.ts'
 import { serverLabel, serverPort } from './server.ts'
 
 const root = process.env.BINOS_ROOT
@@ -16,31 +17,81 @@ if (!root) {
 const repoDir = path.resolve(import.meta.dirname, '..')
 const buildsDir = path.join(path.resolve(root), 'System', 'builds')
 const serverLog = path.join(path.resolve(root), 'Library', 'logs', 'server.log')
+const lockPath = path.join(buildsDir, '.deploy.lock')
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim()
 const run = (command: string, args: string[], cwd: string) => execFileSync(command, args, { cwd, stdio: 'inherit' })
 const short = (commit: string) => commit.slice(0, 7)
+const say = (message: string) => console.log(`${new Date().toISOString()} ${message}`)
 
 const command = process.argv[2]
+if (command !== 'deploy' && command !== 'rollback') {
+  throw new Error('用法：node scripts/deploy.ts deploy | rollback')
+}
+if (!acquireLock()) {
+  process.exit(0)
+}
 if (command === 'deploy') {
   const commit = git('rev-parse', 'HEAD')
+  // 定时任务每分钟执行一次，已经在运行时不输出，免得日志里每分钟多一行
+  if (linkTarget('current') === commit) {
+    if (process.stdout.isTTY) {
+      say(`已经在运行 ${short(commit)}`)
+    }
+    process.exit(0)
+  }
   if (git('status', '--porcelain')) {
-    console.log('注意：工作区有未提交的改动，不包含在这次构建里')
+    say('注意：工作区有未提交的改动，不包含在这次构建里')
   }
   if (existsSync(path.join(buildsDir, commit))) {
-    console.log(`${short(commit)} 已经构建过，直接切换`)
+    say(`${short(commit)} 已经构建过，直接切换`)
   } else {
+    say(`构建 ${short(commit)}`)
     build(commit)
   }
   await switchTo(commit)
-} else if (command === 'rollback') {
+} else {
   const previous = linkTarget('previous')
   if (!previous) {
     throw new Error('没有可以回退的版本')
   }
   await switchTo(previous)
-} else {
-  throw new Error('用法：node scripts/deploy.ts deploy | rollback')
+}
+
+// 已有上线或回退在进行时返回 false；记录的进程已经不在时，锁已经无效，接管它
+function acquireLock(): boolean {
+  mkdirSync(buildsDir, { recursive: true })
+  const own = { pid: process.pid, startedAt: processStartTime(process.pid) }
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      writeFileSync(lockPath, JSON.stringify(own) + '\n', { flag: 'wx' })
+      process.on('exit', () => {
+        if (readLock()?.pid === own.pid) {
+          rmSync(lockPath, { force: true })
+        }
+      })
+      return true
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
+        throw err
+      }
+    }
+    const holder = readLock()
+    if (holder && processStartTime(holder.pid) === holder.startedAt) {
+      say(`已有上线或回退在进行（进程 ${holder.pid}），这次跳过`)
+      return false
+    }
+    rmSync(lockPath, { force: true })
+  }
+  throw new Error(`无法获取 ${lockPath}`)
+}
+
+function readLock(): { pid: number; startedAt: string } | undefined {
+  try {
+    return JSON.parse(readFileSync(lockPath, 'utf8'))
+  } catch {
+    return undefined
+  }
 }
 
 function build(commit: string) {
@@ -73,19 +124,19 @@ function build(commit: string) {
 async function switchTo(commit: string) {
   const old = linkTarget('current')
   if (old === commit) {
-    console.log(`已经在运行 ${short(commit)}`)
+    say(`已经在运行 ${short(commit)}`)
     return
   }
   if (await activate(commit)) {
     if (old) {
       link(old, 'previous')
     }
-    console.log(`✓ 正在运行 ${short(commit)}`)
+    say(`✓ 正在运行 ${short(commit)}`)
     return
   }
-  console.log(`✗ ${short(commit)} 没有正常运行，日志见 ${serverLog}`)
+  say(`✗ ${short(commit)} 没有正常运行，日志见 ${serverLog}`)
   if (old) {
-    console.log((await activate(old)) ? `已切回 ${short(old)}` : `切回 ${short(old)} 后仍不正常，需要人工处理`)
+    say((await activate(old)) ? `已切回 ${short(old)}` : `切回 ${short(old)} 后仍不正常，需要人工处理`)
   }
   process.exitCode = 1
 }

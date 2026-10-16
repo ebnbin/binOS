@@ -1,4 +1,4 @@
-// 生成并加载 binOS 的 launchd 服务（正式版后端、Cloudflare Tunnel）：BINOS_ROOT=<根目录> npm run services
+// 生成并加载 binOS 的 launchd 服务（正式版后端、Cloudflare Tunnel、自动上线）：BINOS_ROOT=<根目录> npm run services
 // 根目录搬家或换宿主后重新执行一次
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -11,6 +11,7 @@ if (!root) {
   throw new Error('BINOS_ROOT is not set')
 }
 const rootDir = path.resolve(root)
+const mainDir = path.join(rootDir, 'System', 'source', 'main')
 const logsDir = path.join(rootDir, 'Library', 'logs')
 const agentsDir = path.join(os.homedir(), 'Library', 'LaunchAgents')
 const domain = `gui/${os.userInfo().uid}`
@@ -27,6 +28,9 @@ type Service = {
   program: string[]
   env: Record<string, string>
   log: string
+  workingDirectory?: string
+  // 定时运行的间隔（秒）；不设置时常驻运行，退出后自动拉起
+  interval?: number
 }
 
 const services: Service[] = [
@@ -47,6 +51,21 @@ const services: Service[] = [
     ],
     env: { HOME: os.homedir(), PATH },
     log: 'tunnel.log',
+  },
+  {
+    label: 'app.binos.deployer',
+    // 每分钟把 main/ 更新到 GitHub 上最新的 main，再运行更新后的上线脚本：每个版本由它自己的脚本上线，
+    // 坏掉的上线脚本只影响它自己，修复它的版本照样能上线
+    program: [
+      '/bin/sh',
+      '-c',
+      `${which('git')} fetch -q origin && ${which('git')} merge -q --ff-only origin/main && ` +
+        `exec ${which('node')} scripts/deploy.ts deploy`,
+    ],
+    env: { HOME: os.homedir(), PATH, BINOS_ROOT: rootDir },
+    log: 'deploy.log',
+    workingDirectory: mainDir,
+    interval: 60,
   },
 ]
 
@@ -77,11 +96,10 @@ ${service.program.map((arg) => `    <string>${xml(arg)}</string>`).join('\n')}
 ${Object.entries(service.env).map(([key, value]) => `    <key>${xml(key)}</key>\n    <string>${xml(value)}</string>`).join('\n')}
   </dict>
   <key>WorkingDirectory</key>
-  <string>${xml(rootDir)}</string>
+  <string>${xml(service.workingDirectory ?? rootDir)}</string>
   <key>RunAtLoad</key>
   <true/>
-  <key>KeepAlive</key>
-  <true/>
+${service.interval ? `  <key>StartInterval</key>\n  <integer>${service.interval}</integer>` : '  <key>KeepAlive</key>\n  <true/>'}
   <!-- 不设置时 launchd 会把它当后台任务压低优先级，它启动的 agent 也会变慢 -->
   <key>ProcessType</key>
   <string>Interactive</string>

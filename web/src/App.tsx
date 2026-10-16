@@ -102,7 +102,7 @@ function App() {
       body: JSON.stringify({ text }),
     }).catch(() => undefined)
     if (!res?.ok) {
-      setNotice(res?.status === 409 ? 'agent 正在处理另一条消息' : `发送失败（${res?.status ?? '网络错误'}）`)
+      setNotice(res?.status === 409 ? '这个 session 正在回答' : `发送失败（${res?.status ?? '网络错误'}）`)
       return
     }
     setInput('')
