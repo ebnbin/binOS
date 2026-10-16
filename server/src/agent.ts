@@ -62,6 +62,11 @@ export function subscribe(sessionId: number, listener: (event: LiveEvent) => voi
 }
 
 // 当前状态：页面连上时先拿到这个
+// 正在回答的 session 编号，没有时为 undefined
+export function runningSessionId(): number | undefined {
+  return running?.sessionId
+}
+
 export function liveState(sessionId: number): LiveEvent[] {
   if (running?.sessionId !== sessionId) {
     return [{ type: 'status', running: false }]

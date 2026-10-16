@@ -46,6 +46,21 @@ export function listSessions(): number[] {
     .sort((a, b) => b - a)
 }
 
+export type SessionSummary = {
+  id: number
+  // 第一条用户消息
+  title: string
+  // 最后一个条目的时间
+  updatedAt: string | null
+}
+
+export function sessionSummary(id: number): SessionSummary {
+  const transcript = readTranscript(id)
+  const first = transcript.find((entry) => entry.type === 'user')?.message?.content
+  const title = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
+  return { id, title: title.slice(0, 200), updatedAt: transcript.at(-1)?.timestamp ?? null }
+}
+
 export function sessionExists(id: number): boolean {
   return existsSync(infoPath(id))
 }

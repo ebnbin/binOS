@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import './App.css'
+import { SessionList } from './SessionList.tsx'
 import { Transcript } from './Transcript.tsx'
 import type { Block, Entry } from './Transcript.tsx'
 
@@ -21,20 +22,27 @@ function App() {
   const [progress, setProgress] = useState<Block[] | null>(null)
   const [notice, setNotice] = useState('')
   const [input, setInput] = useState('')
+  const [showList, setShowList] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
 
   // 打开页面时进入最近的 session
   useEffect(() => {
     fetch('/api/sessions')
       .then((res) => res.json())
-      .then(({ ids }) => setSessionId(ids[0] ?? null))
+      .then(({ sessions }) => setSessionId(sessions[0]?.id ?? null))
       .catch(() => setSessionId(null))
   }, [])
 
-  function newSession() {
-    setSessionId(null)
+  // 切换到另一个 session，null 为新对话
+  function openSession(id: number | null) {
+    setShowList(false)
+    if (id === sessionId) {
+      return
+    }
+    setSessionId(id)
     setEntries([])
     setProgress(null)
+    setRunning(false)
     setNotice('')
   }
 
@@ -79,7 +87,7 @@ function App() {
   useEffect(() => {
     const list = listRef.current
     list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
-  }, [entries, progress, running])
+  }, [entries, progress, running, showList])
 
   async function send() {
     const text = input.trim()
@@ -121,43 +129,56 @@ function App() {
     <div className="app">
       <header className="header">
         <span>binOS</span>
-        <button type="button" onClick={newSession} disabled={running || !sessionId}>
-          新对话
-        </button>
+        <div className="header-actions">
+          <button type="button" onClick={() => setShowList(!showList)}>
+            {showList ? '返回' : '列表'}
+          </button>
+          <button type="button" onClick={() => openSession(null)} disabled={!showList && !sessionId}>
+            新对话
+          </button>
+        </div>
       </header>
-      <div className="messages" ref={listRef}>
-        {entries.length === 0 && !running && (
-          <p className="empty">对 binOS 的 agent 说点什么</p>
-        )}
-        <Transcript entries={entries} progress={progress} />
-        {running && !progress?.length && <div className="message assistant pending">正在处理…</div>}
-        {notice && <div className="message system">{notice}</div>}
-      </div>
-      <form
-        className="composer"
-        onSubmit={(event) => {
-          event.preventDefault()
-          send()
-        }}
-      >
-        <textarea
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="输入消息"
-          rows={1}
-          disabled={running}
-        />
-        {running ? (
-          <button type="button" className="stop" onClick={stop}>
-            停止
-          </button>
-        ) : (
-          <button type="submit" disabled={!input.trim()}>
-            发送
-          </button>
-        )}
-      </form>
+      {showList ? (
+        <div className="messages">
+          <SessionList current={sessionId} onSelect={openSession} />
+        </div>
+      ) : (
+          <>
+          <div className="messages" ref={listRef}>
+            {entries.length === 0 && !running && (
+              <p className="empty">对 binOS 的 agent 说点什么</p>
+            )}
+            <Transcript entries={entries} progress={progress} />
+            {running && !progress?.length && <div className="message assistant pending">正在处理…</div>}
+            {notice && <div className="message system">{notice}</div>}
+          </div>
+          <form
+            className="composer"
+            onSubmit={(event) => {
+              event.preventDefault()
+              send()
+            }}
+          >
+            <textarea
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="输入消息"
+              rows={1}
+              disabled={running}
+            />
+            {running ? (
+              <button type="button" className="stop" onClick={stop}>
+                停止
+              </button>
+            ) : (
+              <button type="submit" disabled={!input.trim()}>
+                发送
+              </button>
+            )}
+          </form>
+          </>
+      )}
     </div>
   )
 }
