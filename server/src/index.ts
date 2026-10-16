@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
@@ -13,6 +13,12 @@ import { listSessions, readTranscript, sessionExists } from './sessions.js'
 recoverInterruptedTurns()
 
 const app = new Hono()
+
+// 当前运行的版本：正式版的构建里有 VERSION 文件，开发时没有。
+// 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
+const versionFile = path.join(codeDir, 'VERSION')
+const version = existsSync(versionFile) ? readFileSync(versionFile, 'utf8').trim() : 'dev'
+app.get('/api/health', (c) => c.json({ version }))
 
 app.use('/api/*', requireOwner)
 

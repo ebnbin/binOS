@@ -2,7 +2,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "node scripts/deploy.ts",
+    "deploy": "node scripts/deploy.ts deploy",
+    "rollback": "node scripts/deploy.ts rollback",
     "services": "node scripts/services.ts"
   }
 }

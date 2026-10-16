@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { serverLabel, serverPort } from './server.ts'
 
 const root = process.env.BINOS_ROOT
 if (!root) {
@@ -14,7 +15,6 @@ const logsDir = path.join(rootDir, 'Library', 'logs')
 const agentsDir = path.join(os.homedir(), 'Library', 'LaunchAgents')
 const domain = `gui/${os.userInfo().uid}`
 
-const port = 24667
 const tunnelTokenItem = 'binOS cloudflared tunnel'
 
 // 用 Homebrew 的固定链接路径，brew 升级后仍然有效
@@ -31,9 +31,9 @@ type Service = {
 
 const services: Service[] = [
   {
-    label: 'app.binos.server',
+    label: serverLabel,
     program: [which('node'), path.join(rootDir, 'System', 'builds', 'current', 'server', 'dist', 'index.js')],
-    env: { HOME: os.homedir(), PATH, BINOS_ROOT: rootDir, PORT: String(port) },
+    env: { HOME: os.homedir(), PATH, BINOS_ROOT: rootDir, PORT: String(serverPort) },
     log: 'server.log',
   },
   {
