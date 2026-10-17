@@ -148,7 +148,7 @@ function App() {
             {entries.length === 0 && !running && (
               <p className="empty">对 binOS 的 agent 说点什么</p>
             )}
-            <Transcript entries={entries} progress={progress} />
+            {sessionId != null && <Transcript sessionId={sessionId} entries={entries} progress={progress} />}
             {running && !progress?.length && <div className="message assistant pending">正在处理…</div>}
             {notice && <div className="message system">{notice}</div>}
           </div>

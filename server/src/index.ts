@@ -9,7 +9,7 @@ import { requireOwner } from './access.js'
 import { isAnswering, liveState, resumeTurns, startTurn, stopTurn, subscribe } from './agent.js'
 import { acquireRootLock } from './lock.js'
 import { codeDir } from './paths.js'
-import { listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
+import { imagesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 
 acquireRootLock()
 resumeTurns()
@@ -70,6 +70,19 @@ app.post('/api/sessions/:id/stop', (c) => {
     return c.text('Not Found', 404)
   }
   return c.json({ ok: true })
+})
+
+// session 里保存的图片。文件名由后端生成，内容不会变
+const imageTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
+app.get('/api/sessions/:id/images/:file', (c) => {
+  const id = Number(c.req.param('id'))
+  const match = /^[\w-]+\.(\w+)$/.exec(c.req.param('file'))
+  const type = match && imageTypes[match[1]]
+  const file = path.join(imagesDir(id), c.req.param('file'))
+  if (!sessionExists(id) || !type || !existsSync(file)) {
+    return c.text('Not Found', 404)
+  }
+  return c.body(readFileSync(file), 200, { 'Content-Type': type, 'Cache-Control': 'private, max-age=31536000, immutable' })
 })
 
 // 先补发第 from 条及之后的条目，再推送实时事件
