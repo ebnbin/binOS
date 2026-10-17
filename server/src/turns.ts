@@ -18,7 +18,8 @@ import {
   writeSessionInfo,
 } from './sessions.js'
 import { interruptedText } from './types.js'
-import type { ContentBlock, EntryFields, LiveEvent } from './types.js'
+import type { Attachment, ContentBlock, EntryFields, LiveEvent } from './types.js'
+import { moveUploads, promptWithAttachments } from './uploads.js'
 
 // 回答期间的 turn/ 目录：agent 的输出和进程身份写在这里，后端重启后能接着读
 const turnDir = (id: number) => path.join(sessionDir(id), 'turn')
@@ -52,7 +53,7 @@ function append(sessionId: number, fields: EntryFields) {
 }
 
 // 这个 session 已有回答在进行时返回 undefined
-export function startTurn(sessionId: number | undefined, text: string): number | undefined {
+export function startTurn(sessionId: number | undefined, text: string, attachments: Attachment[]): number | undefined {
   if (sessionId !== undefined && turns.has(sessionId)) {
     return undefined
   }
@@ -65,10 +66,11 @@ export function startTurn(sessionId: number | undefined, text: string): number |
     writeSessionInfo(id, { claudeSessionId })
   }
 
-  append(id, { type: 'user', message: { role: 'user', content: text } })
+  moveUploads(id, attachments)
+  append(id, { type: 'user', message: { role: 'user', content: text }, ...(attachments.length > 0 && { attachments }) })
   mkdirSync(turnDir(id), { recursive: true })
   const pid = spawnClaude({
-    prompt: text,
+    prompt: promptWithAttachments(id, text, attachments),
     claudeSessionId,
     resume: established,
     outputPath: outputPath(id),

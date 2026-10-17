@@ -81,7 +81,9 @@ export function appendEntry(id: number, fields: EntryFields): { entry: Entry; in
 
 export function sessionSummary(id: number): Omit<SessionSummary, 'running'> {
   const transcript = readTranscript(id)
-  const first = transcript.find((entry) => entry.type === 'user')?.message?.content
-  const title = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
+  const firstEntry = transcript.find((entry) => entry.type === 'user')
+  const first = firstEntry?.message?.content
+  const text = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
+  const title = text.trim() || firstEntry?.attachments?.[0]?.name || ''
   return { id, title: title.slice(0, 200), updatedAt: transcript.at(-1)?.timestamp ?? null }
 }

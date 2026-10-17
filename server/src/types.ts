@@ -11,8 +11,11 @@ export type ToolResultBlock = {
 }
 export type ContentBlock = TextBlock | ToolUseBlock | ToolResultBlock
 
+// 用户发消息时附上的文件。file 是 session 的 files/ 里的文件名，name 是原来的文件名
+export type Attachment = { file: string; name: string }
+
 // transcript.jsonl 的每一行是一个条目，字段沿用 Claude Code 会话记录的命名，sessionId 是 binOS 的 session 编号。
-// 用户发来的消息 content 是字符串，其余是内容块数组
+// 用户发来的消息 content 是字符串，附件在 attachments 里；其余是内容块数组
 export type Entry = {
   type: 'user' | 'assistant' | 'system'
   uuid: string
@@ -23,15 +26,16 @@ export type Entry = {
     role: 'user' | 'assistant'
     content: string | ContentBlock[]
   }
+  attachments?: Attachment[]
   subtype?: string
   content?: string
 }
 
-export type EntryFields = Pick<Entry, 'type' | 'message' | 'subtype' | 'content'>
+export type EntryFields = Pick<Entry, 'type' | 'message' | 'attachments' | 'subtype' | 'content'>
 
 export type SessionSummary = {
   id: number
-  // 第一条用户消息
+  // 第一条用户消息，没写字时是第一个附件的文件名
   title: string
   updatedAt: string | null
   running: boolean
