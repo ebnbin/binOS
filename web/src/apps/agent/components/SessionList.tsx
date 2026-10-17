@@ -2,7 +2,6 @@ import type { SessionSummary } from '@binos/server/apps/agent/types'
 import { SquarePen } from 'lucide-react'
 import { formatTime } from '../time.ts'
 import styles from './SessionList.module.css'
-import { BrandMark } from '../../../ui/BrandMark.tsx'
 
 export function SessionList({
   sessions,
@@ -18,8 +17,7 @@ export function SessionList({
   return (
     <div className={styles.pane}>
       <header className={styles.brand}>
-        <BrandMark />
-        <span className={styles.wordmark}>binOS</span>
+        <span className={styles.wordmark}>Agent</span>
       </header>
       <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
         <SquarePen size={16} strokeWidth={1.75} />

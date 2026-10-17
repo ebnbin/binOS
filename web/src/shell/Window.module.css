@@ -1,0 +1,95 @@
+.window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 12px 40px -12px rgb(0 0 0 / 35%);
+}
+
+.window[data-focused='true'] {
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 24px 64px -16px rgb(0 0 0 / 50%);
+}
+
+.window[data-maximized='true'] {
+  border-radius: 0;
+}
+
+.window[hidden] {
+  display: none;
+}
+
+.titleBar {
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--sidebar);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lights {
+  display: flex;
+  gap: 8px;
+}
+
+.lights button {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.window[data-focused='true'] .close {
+  background: #ff5f57;
+}
+
+.window[data-focused='true'] .minimize {
+  background: #febc2e;
+}
+
+.window[data-focused='true'] .maximize {
+  background: #28c840;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  /* 和左边三个按钮一样宽，标题才居中 */
+  margin-right: 52px;
+  overflow: hidden;
+  text-align: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.window[data-focused='true'] .title {
+  color: var(--text);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+}
+
+.resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+  touch-action: none;
+}
