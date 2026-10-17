@@ -74,7 +74,7 @@ export function Transcript({
             {item.text}
           </div>
         ) : (
-          <Markdown key={item.key} text={item.text} />
+          <Markdown key={item.key} sessionId={sessionId} text={item.text} />
         )
       case 'stopped':
         return (

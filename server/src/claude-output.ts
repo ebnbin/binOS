@@ -1,3 +1,4 @@
+import { attachReplyImages } from './reply-images.js'
 import type { ContentBlock, EntryFields, ImageBlock, TextBlock } from './types.js'
 
 // 进展里的工具输出只推送开头一段，完整内容在这一轮结束后写进 transcript
@@ -41,7 +42,7 @@ export class ClaudeOutput {
       case 'assistant':
         for (const block of data.message.content) {
           if (block.type === 'text') {
-            this.addEntry('assistant', { type: 'text', text: block.text })
+            this.addEntry('assistant', { type: 'text', text: attachReplyImages(block.text, this.saveFile) })
             this.partial = ''
           } else if (block.type === 'tool_use') {
             const { id, name, input } = block
