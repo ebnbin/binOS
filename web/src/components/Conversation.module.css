@@ -1,0 +1,80 @@
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100%;
+  max-width: 736px;
+  margin: 0 auto;
+  padding: 12px 28px 40px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 18px;
+  padding-bottom: 40px;
+  text-align: center;
+  animation: rise 0.5s var(--ease) both;
+}
+
+.empty h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.empty p {
+  margin: -8px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.pending {
+  width: fit-content;
+  font-size: 14px;
+  background: linear-gradient(90deg, var(--muted) 35%, var(--text) 50%, var(--muted) 65%) 0 0 / 300% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 2.2s linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .column {
+    gap: 18px;
+    padding: 18px 18px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty,
+  .pending {
+    animation: none;
+  }
+}

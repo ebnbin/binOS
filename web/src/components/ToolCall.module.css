@@ -1,0 +1,136 @@
+.group {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.call + .call {
+  border-top: 1px solid var(--hairline);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 38px;
+  padding: 0 12px 0 13px;
+  font-size: 13.5px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s;
+}
+
+.row::-webkit-details-marker {
+  display: none;
+}
+
+.row:hover {
+  background: var(--hover);
+}
+
+.row:focus-visible {
+  outline-offset: -2px;
+}
+
+.status {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--muted);
+}
+
+[data-status='error'] .status {
+  color: var(--danger);
+}
+
+.name {
+  flex: none;
+  font-weight: 550;
+}
+
+.summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+[data-status='error'] .summary {
+  color: var(--danger);
+}
+
+.chevron {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.2s var(--ease);
+}
+
+.call[open] .chevron {
+  transform: rotate(90deg);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 12px 12px 39px;
+}
+
+.pre {
+  max-height: 280px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--code);
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.output {
+  color: var(--text);
+}
+
+[data-status='error'] .output {
+  color: var(--danger);
+}
+
+.image {
+  display: block;
+  width: fit-content;
+}
+
+.image img {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+  .row {
+    height: 42px;
+  }
+
+  .summary {
+    font-size: 12px;
+  }
+
+  .body {
+    padding-left: 12px;
+  }
+}
