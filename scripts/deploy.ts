@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
@@ -52,25 +52,27 @@ if (command === 'deploy') {
   await switchTo(previous)
 }
 
+// 在临时目录里构建完整的仓库，版本目录里只放运行需要的部分：server 和它的生产依赖、页面的构建产物
 function build(commit: string) {
   const buildDir = path.join(buildsDir, commit)
-  const tmp = `${buildDir}.tmp`
-  rmSync(tmp, { recursive: true, force: true })
-  mkdirSync(tmp, { recursive: true })
+  const staging = `${buildDir}.tmp`
+  const source = path.join(staging, 'source')
+  const output = path.join(staging, 'build')
+  rmSync(staging, { recursive: true, force: true })
+  mkdirSync(source, { recursive: true })
   try {
     // 只取这个提交里的代码，不混入工作区里未提交的改动
-    const archive = path.join(tmp, 'source.tar')
+    const archive = path.join(staging, 'source.tar')
     git('archive', '--output', archive, commit)
-    run('tar', ['-xf', archive, '-C', tmp], tmp)
-    rmSync(archive)
-    run('npm', ['ci'], tmp)
-    run('npm', ['run', 'build'], tmp)
-    run('npm', ['prune', '--omit=dev'], tmp)
-    writeFileSync(path.join(tmp, 'VERSION'), commit + '\n')
-    renameSync(tmp, buildDir)
-  } catch (err) {
-    rmSync(tmp, { recursive: true, force: true })
-    throw err
+    run('tar', ['-xf', archive, '-C', source], source)
+    run('pnpm', ['install', '--frozen-lockfile'], source)
+    run('pnpm', ['build'], source)
+    run('pnpm', ['--filter', '@binos/server', '--prod', 'deploy', path.join(output, 'server')], source)
+    cpSync(path.join(source, 'web', 'dist'), path.join(output, 'web', 'dist'), { recursive: true })
+    writeFileSync(path.join(output, 'VERSION'), commit + '\n')
+    renameSync(output, buildDir)
+  } finally {
+    rmSync(staging, { recursive: true, force: true })
   }
 }
 

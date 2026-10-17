@@ -2,6 +2,9 @@
   "name": "@binos/server",
   "private": true,
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "exports": {
     "./api": "./src/api.ts",
     "./types": "./src/types.ts"
