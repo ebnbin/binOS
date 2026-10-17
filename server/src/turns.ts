@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import path from 'node:path'
 import { spawnClaude } from './claude.js'
 import { ClaudeOutput } from './claude-output.js'
-import { emit } from './events.js'
+import { emit, notifySessionChanged } from './events.js'
 import { LineReader } from './line-reader.js'
 import { isAlive, isRunning, processStartTime } from './process.js'
 import type { ProcessIdentity } from './process.js'
@@ -78,11 +78,13 @@ export function startTurn(sessionId: number | undefined, text: string): number |
   if (!pid || !startedAt) {
     rmSync(turnDir(id), { recursive: true, force: true })
     append(id, { type: 'system', subtype: 'error', content: 'agent 启动失败' })
+    notifySessionChanged(id)
     return id
   }
   const agent: ProcessIdentity = { pid, startedAt }
   writeFileSync(statePath(id), JSON.stringify(agent) + '\n')
   follow(id, agent)
+  notifySessionChanged(id)
   return id
 }
 
@@ -160,5 +162,6 @@ function follow(id: number, agent: ProcessIdentity) {
     } else if (!output.result || output.result.is_error) {
       append(id, { type: 'system', subtype: 'error', content: output.result?.result ?? (errors || 'agent 异常结束') })
     }
+    notifySessionChanged(id)
   }, pollInterval)
 }

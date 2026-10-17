@@ -43,5 +43,8 @@ export type LiveEvent =
   | { type: 'progress'; blocks: ContentBlock[] }
   | { type: 'status'; running: boolean }
 
+// /api/events 推送的全局通知
+export type ChangeEvent = { type: 'session'; id: number }
+
 // 停止时记录的内容，与 Claude Code 一致
 export const interruptedText = '[Request interrupted by user]'

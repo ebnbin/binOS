@@ -1,0 +1,30 @@
+.status {
+  position: absolute;
+  top: calc(64px + env(safe-area-inset-top));
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -6px);
+  transition:
+    opacity 0.2s,
+    transform 0.2s var(--ease);
+}
+
+.status[data-visible='true'] {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  /* 上线时后端重启会断开一两秒，短暂的断开不提示 */
+  transition-delay: 1.5s;
+}

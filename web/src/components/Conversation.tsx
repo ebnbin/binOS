@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { sendMessage, stopSession } from '../api.ts'
 import { useSession } from '../useSession.ts'
 import { Alert } from './Alert.tsx'
@@ -13,11 +13,9 @@ const stickThreshold = 80
 export function Conversation({
   sessionId,
   onCreated,
-  onRunningChange,
 }: {
   sessionId: number | null
   onCreated: (id: number) => void
-  onRunningChange: () => void
 }) {
   const { entries, progress, running } = useSession(sessionId)
   const [notice, setNotice] = useState('')
@@ -30,10 +28,6 @@ export function Conversation({
       el.scrollTop = el.scrollHeight
     }
   }, [entries, progress, running, notice])
-
-  useEffect(() => {
-    onRunningChange()
-  }, [running, onRunningChange])
 
   function stop() {
     if (sessionId !== null) {

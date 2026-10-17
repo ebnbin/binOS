@@ -28,6 +28,10 @@ export async function stopSession(sessionId: number) {
   await sessions[':id'].stop.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }
 
+export function eventsUrl() {
+  return client.api.events.$url().href
+}
+
 export function streamUrl(sessionId: number, from: number) {
   const url = sessions[':id'].stream.$url({ param: { id: String(sessionId) } })
   url.searchParams.set('from', String(from))
