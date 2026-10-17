@@ -20,6 +20,10 @@
   border-radius: 0;
 }
 
+.window[data-maximized='true'] .titleBar {
+  display: none;
+}
+
 .window[hidden] {
   display: none;
 }
