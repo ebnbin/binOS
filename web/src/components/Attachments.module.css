@@ -85,7 +85,7 @@
   inset: -8px;
 }
 
-@media (max-width: 760px) {
+@media (width < 600px) {
   .sent {
     max-width: 86%;
   }

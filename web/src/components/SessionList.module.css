@@ -1,8 +1,8 @@
-.sidebar {
+.pane {
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 272px;
-  flex: none;
+  height: 100%;
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   background: var(--sidebar);
@@ -33,18 +33,16 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+  color: inherit;
   font-size: 14px;
   font-weight: 500;
+  text-decoration: none;
   box-shadow: 0 1px 1px rgb(0 0 0 / 2%);
   transition: border-color 0.15s;
 }
 
-.newButton:hover:not(:disabled) {
+.newButton:hover {
   border-color: color-mix(in srgb, var(--muted) 60%, transparent);
-}
-
-.newButton:disabled {
-  color: var(--muted);
 }
 
 .label {
@@ -75,13 +73,12 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
   height: 36px;
   padding: 0 12px;
   border-radius: 8px;
   color: var(--text-2);
   font-size: 14px;
-  text-align: left;
+  text-decoration: none;
   transition: background-color 0.15s;
 }
 
@@ -137,48 +134,59 @@
   color: var(--muted);
 }
 
-.scrim {
-  display: none;
-}
-
-@media (max-width: 760px) {
-  .sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 20;
-    width: min(84vw, 320px);
-    box-shadow: 0 0 40px rgb(0 0 0 / 18%);
-    transform: translateX(-100%);
-    visibility: hidden;
-    transition:
-      transform 0.32s var(--ease),
-      visibility 0s 0.32s;
+/* 一列时列表是占满全屏的首页：标题更大、行更高，新对话按钮浮在底部，单手也够得着 */
+@media (width < 960px) {
+  .pane {
+    border-right: 0;
+    background: var(--bg);
   }
 
-  .sidebar[data-open='true'] {
-    transform: none;
-    visibility: visible;
-    transition: transform 0.32s var(--ease);
+  .brand {
+    height: 64px;
+    padding: 0 20px;
   }
 
-  .scrim {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-    background: var(--scrim);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.32s var(--ease);
+  .brand svg {
+    width: 30px;
+    height: 30px;
   }
 
-  .scrim[data-open='true'] {
-    opacity: 1;
-    pointer-events: auto;
+  .wordmark {
+    font-size: 26px;
+    font-weight: 700;
+  }
+
+  .label {
+    padding: 8px 20px;
+  }
+
+  .list {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
 
   .item {
-    height: 42px;
-    font-size: 15px;
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .time {
+    font-size: 13px;
+  }
+
+  .newButton {
+    position: absolute;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    left: 50%;
+    z-index: 1;
+    height: 48px;
+    margin: 0;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--on-ink);
+    font-size: 16px;
+    box-shadow: var(--shadow);
+    transform: translateX(-50%);
   }
 }

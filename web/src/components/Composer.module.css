@@ -101,7 +101,7 @@
   background: currentColor;
 }
 
-@media (max-width: 760px) {
+@media (width < 600px) {
   .dock {
     padding: 0 10px max(10px, env(safe-area-inset-bottom));
   }

@@ -31,11 +31,11 @@
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
-.bar .mobileOnly {
+.bar .singleColumnOnly {
   display: none;
 }
 
-@media (max-width: 760px) {
+@media (width < 960px) {
   .bar {
     box-sizing: content-box;
     height: 52px;
@@ -47,7 +47,11 @@
     justify-content: center;
   }
 
-  .bar .mobileOnly {
+  .bar .singleColumnOnly {
     display: grid;
+  }
+
+  .bar span.singleColumnOnly {
+    display: inline;
   }
 }
