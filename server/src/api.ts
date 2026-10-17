@@ -3,13 +3,14 @@ import path from 'node:path'
 import { Hono } from 'hono'
 import type { MiddlewareHandler } from 'hono'
 import { streamSSE } from 'hono/streaming'
+import type { SSEStreamingApi } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { requireOwner } from './access.js'
-import { subscribe } from './events.js'
+import { onSessionChanged, subscribe } from './events.js'
 import { codeDir } from './paths.js'
 import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
-import type { LiveEvent, SessionSummary } from './types.js'
+import type { ChangeEvent, LiveEvent, SessionSummary } from './types.js'
 
 // VERSION 由上线脚本写进构建目录，开发时没有
 const versionFile = path.join(codeDir, 'VERSION')
@@ -21,6 +22,17 @@ const requireJson: MiddlewareHandler = async (c, next) => {
     return c.text('Unsupported Media Type', 415)
   }
   await next()
+}
+
+// 连接建立时立刻发出：只写响应头不会真的发出去。retry 让浏览器断线后 1 秒就重连，上线时后端重启不会断开太久
+const connectedPreamble = 'retry: 1000\n\n'
+
+// 定时发 ping：Cloudflare 会断开长时间没有数据的连接，页面也靠它发现已经断掉却没有报错的连接
+async function keepAlive(stream: SSEStreamingApi) {
+  while (!stream.aborted) {
+    await stream.sleep(15000)
+    await stream.writeSSE({ event: 'ping', data: '' })
+  }
 }
 
 const sessionParam = validator('param', (value: Record<string, string>, c) => {
@@ -91,21 +103,25 @@ export const api = new Hono()
           id: event.type === 'entry' ? String(event.index + 1) : undefined,
         })
       // 读取记录、补发、开始监听之间没有等待，不会漏掉或重复条目
-      await stream.write(': connected\n\n')
+      await stream.write(connectedPreamble)
       readTranscript(id).forEach((entry, index) => {
         if (index >= from) {
           send({ type: 'entry', index, entry })
         }
       })
       liveState(id).forEach(send)
-      const unsubscribe = subscribe(id, send)
-      stream.onAbort(unsubscribe)
-      // Cloudflare 会断开长时间没有数据的连接
-      while (!stream.aborted) {
-        await stream.sleep(15000)
-        await stream.write(': ping\n\n')
-      }
+      stream.onAbort(subscribe(id, send))
+      await keepAlive(stream)
     })
   })
+  // 页面只连这一条全局通知，收到后重新读取对应的数据；断线重连后页面会全部重新读取，这里不补发
+  .get('/events', (c) =>
+    streamSSE(c, async (stream) => {
+      await stream.write(connectedPreamble)
+      const send = (event: ChangeEvent) => void stream.writeSSE({ data: JSON.stringify(event) })
+      stream.onAbort(onSessionChanged((id) => send({ type: 'session', id })))
+      await keepAlive(stream)
+    }),
+  )
 
 export type AppType = typeof api

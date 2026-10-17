@@ -22,3 +22,17 @@ export function emit(sessionId: number, event: LiveEvent) {
     listener(event)
   }
 }
+
+// 对话列表的变化：新建、开始回答、回答结束。只通知是哪个 session，页面收到后重新读取列表
+const changeListeners = new Set<(sessionId: number) => void>()
+
+export function onSessionChanged(listener: (sessionId: number) => void): () => void {
+  changeListeners.add(listener)
+  return () => changeListeners.delete(listener)
+}
+
+export function notifySessionChanged(sessionId: number) {
+  for (const listener of changeListeners) {
+    listener(sessionId)
+  }
+}

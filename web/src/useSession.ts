@@ -1,6 +1,7 @@
 import type { ContentBlock, Entry, LiveEvent } from '@binos/server/types'
 import { useEffect, useState } from 'react'
 import { streamUrl } from './api.ts'
+import { connectEventSource } from './eventSource.ts'
 
 export type SessionState = {
   entries: Entry[]
@@ -17,14 +18,11 @@ export function useSession(sessionId: number | null): SessionState {
     if (sessionId === null) {
       return
     }
-    // 断线时浏览器自己重连，用 Last-Event-ID 接着补发；连接被拒绝（比如登录过期）时浏览器不再重连，隔一会儿从 count 重新连接
+    // 浏览器自己重连时用 Last-Event-ID 接着补发；由 connectEventSource 重连时从已收到的条数接着补发
     let count = 0
-    let source: EventSource | undefined
-    let retry: number | undefined
-    const connect = () => {
-      source = new EventSource(streamUrl(sessionId, count))
-      source.onmessage = (message) => {
-        const event: LiveEvent = JSON.parse(message.data)
+    return connectEventSource(() => streamUrl(sessionId, count), {
+      onMessage: (data) => {
+        const event: LiveEvent = JSON.parse(data)
         if (event.type === 'entry') {
           if (event.index === count) {
             count += 1
@@ -35,18 +33,8 @@ export function useSession(sessionId: number | null): SessionState {
         } else {
           setState((prev) => ({ ...prev, running: event.running, progress: event.running ? prev.progress : null }))
         }
-      }
-      source.onerror = () => {
-        if (source?.readyState === EventSource.CLOSED) {
-          retry = window.setTimeout(connect, 3000)
-        }
-      }
-    }
-    connect()
-    return () => {
-      source?.close()
-      window.clearTimeout(retry)
-    }
+      },
+    })
   }, [sessionId])
 
   return state

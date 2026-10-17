@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react'
 import styles from './App.module.css'
+import { ConnectionStatus } from './components/ConnectionStatus.tsx'
 import { Conversation } from './components/Conversation.tsx'
 import { Sidebar } from './components/Sidebar.tsx'
 import { TopBar } from './components/TopBar.tsx'
 import { useSessions } from './useSessions.ts'
 
 export function App() {
-  const { sessions, failed, refresh } = useSessions()
+  const { sessions, failed } = useSessions()
   // undefined：还在读取；null：新对话，还没有 session
   const [sessionId, setSessionId] = useState<number | null | undefined>(undefined)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -37,15 +38,12 @@ export function App() {
       />
       <main className={styles.main}>
         <TopBar title={title} sessionId={sessionId} onMenu={() => setDrawerOpen(true)} onNew={() => openSession(null)} />
+        <ConnectionStatus />
         {sessionId !== undefined && (
           <Conversation
             key={sessionId ?? 'new'}
             sessionId={sessionId}
-            onCreated={(id) => {
-              setSessionId(id)
-              refresh()
-            }}
-            onRunningChange={refresh}
+            onCreated={setSessionId}
           />
         )}
       </main>
