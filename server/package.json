@@ -7,7 +7,9 @@
   ],
   "exports": {
     "./api": "./src/api.ts",
-    "./types": "./src/types.ts"
+    "./types": "./src/types.ts",
+    "./apps/agent/api": "./src/apps/agent/api.ts",
+    "./apps/agent/types": "./src/apps/agent/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -7,7 +7,7 @@ import type { Context } from 'hono'
 import { api } from './api.js'
 import { codeDir, libraryDir } from './paths.js'
 import { acquireProcessLock } from './process.js'
-import { resumeTurns } from './turns.js'
+import { resumeTurns } from './apps/agent/turns.js'
 
 // 一个根目录的数据只能由一个后端读写：两个后端会同时跟进同一轮回答，重复写入记录
 const holder = acquireProcessLock(path.join(libraryDir, 'server.lock'))

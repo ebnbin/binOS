@@ -1,0 +1,59 @@
+/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页 */
+.app {
+  container: agent / inline-size;
+  height: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  height: 100%;
+}
+
+.listPane {
+  min-height: 0;
+}
+
+.conversationPane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-right: env(safe-area-inset-right);
+}
+
+.missing {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.missing p {
+  margin: 0;
+}
+
+.missing button {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+@container agent (width < 960px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* 隐藏的一页叠在下面，保留滚动位置：返回列表时还在原来的位置 */
+  .listPane,
+  .conversationPane {
+    grid-area: 1 / 1;
+  }
+
+  .layout[data-view='list'] .conversationPane,
+  .layout[data-view='conversation'] .listPane {
+    visibility: hidden;
+  }
+}

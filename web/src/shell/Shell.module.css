@@ -1,0 +1,3 @@
+.shell {
+  height: var(--viewport-height, 100dvh);
+}

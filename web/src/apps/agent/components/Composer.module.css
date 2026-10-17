@@ -1,0 +1,112 @@
+.dock {
+  flex: none;
+  padding: 0 28px max(20px, env(safe-area-inset-bottom));
+}
+
+.card {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 12px 12px 10px 18px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: text;
+  transition: border-color 0.15s;
+}
+
+.card:focus-within {
+  border-color: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+
+.card.dragging {
+  border-color: var(--text-2);
+  border-style: dashed;
+}
+
+.attachments {
+  padding: 4px 0 10px;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  min-height: 26px;
+  max-height: 200px;
+  field-sizing: content;
+  padding: 2px 0 0;
+  border: 0;
+  outline: none;
+  background: none;
+  resize: none;
+}
+
+.input::placeholder {
+  color: var(--muted);
+}
+
+.input:disabled {
+  cursor: default;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.attach {
+  margin: -2px 0 -2px -10px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  user-select: none;
+}
+
+.action {
+  display: grid;
+  margin-left: auto;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  transition:
+    opacity 0.15s,
+    transform 0.15s var(--ease);
+}
+
+.action:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.action:disabled {
+  opacity: 0.22;
+}
+
+.busy {
+  background: var(--bubble);
+}
+
+.stopIcon {
+  width: 11px;
+  height: 11px;
+  border-radius: 2.5px;
+  background: currentColor;
+}
+
+@container agent (width < 600px) {
+  .dock {
+    padding: 0 10px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .card {
+    padding: 10px 10px 8px 16px;
+  }
+}
