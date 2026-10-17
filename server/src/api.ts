@@ -6,9 +6,10 @@ import { streamSSE } from 'hono/streaming'
 import type { SSEStreamingApi } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { requireOwner } from './access.js'
-import { onSessionChanged, subscribe } from './events.js'
+import { onChange, subscribe } from './events.js'
 import { codeDir } from './paths.js'
 import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
+import { applyChanges, parseChanges, readState } from './state.js'
 import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
 import type { Attachment, ChangeEvent, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
@@ -54,6 +55,14 @@ const messageBody = validator('json', (value, c) => {
   return { text: body.text, attachments }
 })
 
+const stateBody = validator('json', (value, c) => {
+  const changes = parseChanges((value as { changes?: unknown } | null)?.changes)
+  if (!changes) {
+    return c.text('Bad Request', 400)
+  }
+  return { changes }
+})
+
 // 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
 const inlineTypes: Record<string, string> = {
   png: 'image/png',
@@ -79,6 +88,8 @@ export const api = new Hono()
   // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
   .get('/health', (c) => c.json({ version }))
   .use(requireOwner, requirePreflight)
+  .get('/state', (c) => c.json(readState()))
+  .post('/state', stateBody, (c) => c.json({ version: applyChanges(c.req.valid('json').changes) }, 200))
   .get('/sessions', (c) => {
     const sessions: SessionSummary[] = listSessions().map((id) => ({ ...sessionSummary(id), running: isAnswering(id) }))
     return c.json({ sessions })
@@ -160,12 +171,12 @@ export const api = new Hono()
       await keepAlive(stream)
     })
   })
-  // 页面只连这一条全局通知，收到后重新读取对应的数据；断线重连后页面会全部重新读取，这里不补发
+  // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
   .get('/events', (c) =>
     streamSSE(c, async (stream) => {
       await stream.write(connectedPreamble)
       const send = (event: ChangeEvent) => void stream.writeSSE({ data: JSON.stringify(event) })
-      stream.onAbort(onSessionChanged((id) => send({ type: 'session', id })))
+      stream.onAbort(onChange(send))
       await keepAlive(stream)
     }),
   )

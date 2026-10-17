@@ -9,6 +9,7 @@ export function rootLayout(root: string) {
     buildsDir: path.join(rootDir, 'System', 'builds'),
     libraryDir,
     logsDir: path.join(libraryDir, 'logs'),
+    statePath: path.join(libraryDir, 'state.json'),
     sessionsDir: path.join(libraryDir, 'agent', 'sessions'),
     uploadsDir: path.join(libraryDir, 'agent', 'uploads'),
     claudeConfigDir: path.join(libraryDir, 'claude'),
