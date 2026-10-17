@@ -17,13 +17,14 @@ import { processStartTime } from './process.js'
 import {
   appendEntry,
   createSession,
+  filesDir,
   listSessions,
   readSessionInfo,
   readTranscript,
   sessionDir,
   writeSessionInfo,
 } from './sessions.js'
-import type { ContentBlock, Entry, EntryFields } from './sessions.js'
+import type { ContentBlock, Entry, EntryFields, ImageBlock, TextBlock } from './sessions.js'
 
 // 推给页面的事件：新写入的条目、这一轮到目前为止的进展、是否有回答在进行
 export type LiveEvent =
@@ -47,6 +48,13 @@ type TurnState = {
 const interruptedText = '[Request interrupted by user]'
 // 进展里的工具输出只推送开头一段，完整内容在这一轮结束后写进 transcript
 const progressOutputLimit = 4000
+// Claude 支持的图片格式和保存时用的扩展名
+const imageExtensions: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+}
 
 const listeners = new Map<number, Set<(event: LiveEvent) => void>>()
 
@@ -171,7 +179,14 @@ function follow(id: number, state: TurnState) {
   const showProgress = () => {
     const blocks: ContentBlock[] = entries.flatMap((entry) =>
       (entry.message!.content as ContentBlock[]).map((block) =>
-        block.type === 'tool_result' ? { ...block, content: block.content.slice(0, progressOutputLimit) } : block,
+        block.type === 'tool_result'
+          ? {
+              ...block,
+              content: block.content.map((part) =>
+                part.type === 'text' ? { ...part, text: part.text.slice(0, progressOutputLimit) } : part,
+              ),
+            }
+          : block,
       ),
     )
     if (startingTool) {
@@ -225,7 +240,7 @@ function follow(id: number, state: TurnState) {
             type: 'user',
             message: {
               role: 'user',
-              content: [{ type: 'tool_result', tool_use_id: block.tool_use_id, content: resultText(block.content), is_error: block.is_error }],
+              content: [{ type: 'tool_result', tool_use_id: block.tool_use_id, content: resultContent(id, block.tool_use_id, block.content), is_error: block.is_error }],
             },
           })
         }
@@ -285,15 +300,28 @@ function follow(id: number, state: TurnState) {
   }, 200)
 }
 
-// 工具结果可能是文字，也可能是内容块数组（比如带图片），只保留其中的文字
-function resultText(content: unknown): string {
+// 工具结果可能是文字，也可能是内容块数组。图片存成文件，按工具调用和位置命名，重新读取输出时覆盖同一个文件；
+// 其他类型的块只记下类型
+function resultContent(sessionId: number, toolUseId: string, content: unknown): (TextBlock | ImageBlock)[] {
   if (typeof content === 'string') {
-    return content
+    return [{ type: 'text', text: content }]
   }
-  if (Array.isArray(content)) {
-    return content.map((block) => (block.type === 'text' ? block.text : `[${block.type}]`)).join('\n')
+  if (!Array.isArray(content)) {
+    return []
   }
-  return ''
+  return content.map((block, index): TextBlock | ImageBlock => {
+    if (block.type === 'text') {
+      return { type: 'text', text: block.text }
+    }
+    const extension = block.type === 'image' && block.source?.type === 'base64' && imageExtensions[block.source.media_type]
+    if (!extension) {
+      return { type: 'text', text: `[${block.type}]` }
+    }
+    const file = `${toolUseId}-${index}.${extension}`
+    mkdirSync(filesDir(sessionId), { recursive: true })
+    writeFileSync(path.join(filesDir(sessionId), file), Buffer.from(block.source.data, 'base64'))
+    return { type: 'image', file }
+  })
 }
 
 // 后端启动时：接上还在进行的回答；没有 turn/ 但最后一条还是用户发来的消息，说明 agent 没能启动

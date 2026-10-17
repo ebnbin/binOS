@@ -4,10 +4,13 @@ import path from 'node:path'
 import { libraryDir } from './paths.js'
 
 // 消息内容块，与 Claude 的 Messages API 一致：工具调用在 assistant 消息里，工具结果在 user 消息里
+export type TextBlock = { type: 'text'; text: string }
+// 图片存成 session 目录下 files/ 里的文件，file 是文件名
+export type ImageBlock = { type: 'image'; file: string }
 export type ContentBlock =
-  | { type: 'text'; text: string }
+  | TextBlock
   | { type: 'tool_use'; id: string; name: string; input: unknown }
-  | { type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }
+  | { type: 'tool_result'; tool_use_id: string; content: (TextBlock | ImageBlock)[]; is_error?: boolean }
 
 // transcript.jsonl 的每一行是一个条目，字段沿用 Claude Code 会话记录的命名，sessionId 是 binOS 的 session 编号
 export type Entry = {
@@ -32,6 +35,8 @@ export type SessionInfo = {
 
 const sessionsDir = path.join(libraryDir, 'agent', 'sessions')
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
+// 对话中涉及的文件
+export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
 const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
 const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
 
