@@ -1,10 +1,26 @@
 {
+  "name": "binos",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "server",
+    "web"
+  ],
   "scripts": {
     "dev": "node scripts/dev.ts",
+    "build": "npm run build --workspaces",
+    "typecheck": "tsc -b",
+    "lint": "oxlint --deny-warnings",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run lint && npm test",
     "deploy": "node scripts/deploy.ts deploy",
     "rollback": "node scripts/deploy.ts rollback",
     "services": "node scripts/services.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "oxlint": "^1.88.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }
