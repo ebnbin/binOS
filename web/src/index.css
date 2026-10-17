@@ -74,6 +74,12 @@ body,
   margin: 0;
 }
 
+/* 滚动都发生在各自的区域里，整个页面不跟着回弹 */
+html {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   background: var(--bg);
   color: var(--text);

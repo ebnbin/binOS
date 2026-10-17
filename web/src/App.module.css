@@ -2,7 +2,7 @@
 .shell {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);
-  height: 100dvh;
+  height: var(--viewport-height, 100dvh);
 }
 
 .listPane {

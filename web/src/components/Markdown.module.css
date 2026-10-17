@@ -50,8 +50,10 @@
   transition: text-decoration-color 0.15s;
 }
 
-.markdown a:hover {
-  text-decoration-color: currentColor;
+@media (hover: hover) {
+  .markdown a:hover {
+    text-decoration-color: currentColor;
+  }
 }
 
 .markdown :is(ul, ol) {
