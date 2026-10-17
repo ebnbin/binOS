@@ -24,7 +24,7 @@
   background: var(--hairline);
 }
 
-@media (max-width: 760px) {
+@media (width < 600px) {
   .user {
     max-width: 86%;
   }

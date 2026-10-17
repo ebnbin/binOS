@@ -121,7 +121,7 @@
   border-radius: 8px;
 }
 
-@media (max-width: 760px) {
+@media (width < 600px) {
   .row {
     height: 42px;
   }

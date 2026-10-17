@@ -65,7 +65,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@media (width < 600px) {
   .column {
     gap: 18px;
     padding: 18px 18px 28px;
