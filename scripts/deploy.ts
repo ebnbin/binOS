@@ -5,9 +5,10 @@ import path from 'node:path'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
 import { acquireProcessLock } from '../server/src/process.ts'
 import { buildCommit, isHealthy } from './build.ts'
+import { closeFinishedPreviews } from './previews.ts'
 import { serverLabel, serverPort } from './server.ts'
 
-const { buildsDir, logsDir } = rootLayout(rootFromEnv())
+const { buildsDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 const serverLog = path.join(logsDir, 'server.log')
 
@@ -25,6 +26,8 @@ if (holder) {
   process.exit(0)
 }
 if (command === 'deploy') {
+  // 定时任务每分钟执行一次，顺带清理已合并或关闭的 PR 的预览；清理出错不影响上线
+  await closeFinishedPreviews(previewsDir, repoDir, say).catch((err: unknown) => say(`清理预览出错：${String(err)}`))
   const commit = git('rev-parse', 'HEAD')
   // 定时任务每分钟执行一次，已经在运行时不输出，免得日志里每分钟多一行
   if (linkTarget('current') === commit) {

@@ -1,128 +1,80 @@
-import { execFileSync, spawn } from 'node:child_process'
-import { closeSync, existsSync, openSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { existsSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { setTimeout as sleep } from 'node:timers/promises'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
-import { previewInfoPath, previewUrl } from '../server/src/preview-info.ts'
+import { previewDirName, previewInfoPath, previewUrl } from '../server/src/preview-info.ts'
 import type { PreviewInfo } from '../server/src/preview-info.ts'
-import { acquireProcessLock, isAlive, isRunning } from '../server/src/process.ts'
-import type { ProcessIdentity } from '../server/src/process.ts'
+import { acquireProcessLock } from '../server/src/process.ts'
 import { buildCommit, isHealthy } from './build.ts'
 import { freePort } from './net.ts'
+import { previewPaths, readJson, runningPreviewServer, startPreviewServer, stopPreviewServer } from './previews.ts'
 
+// 把当前分支的 PR 构建成预览；PR 合并或关闭后由上线脚本删除
 const { previewsDir, claudeConfigDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim()
 const short = (commit: string) => commit.slice(0, 7)
 
-const command = process.argv[2] ?? 'start'
-if (command !== 'start' && command !== 'stop') {
-  throw new Error('用法：pnpm preview [start | stop]')
-}
 const branch = git('branch', '--show-current')
-if (!/^[a-z0-9-]+$/.test(branch) || branch === 'main') {
-  throw new Error(`分支 ${branch || '（detached HEAD）'} 不能预览，只预览 worktree 里的改动分支`)
+let pr: { number: number; state: string; headRefOid: string }
+try {
+  pr = JSON.parse(
+    execFileSync('gh', ['pr', 'view', branch, '--json', 'number,state,headRefOid'], {
+      cwd: repoDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }),
+  )
+} catch {
+  throw new Error(`分支 ${branch || '（detached HEAD）'} 还没有 PR，先推送并开 PR`)
 }
-// 预览目录同时是预览实例的根目录：构建按提交放在里面，数据在它的 Library/ 里
-const previewDir = path.join(previewsDir, branch)
-const infoPath = previewInfoPath(previewsDir, branch)
-const serverLock = path.join(rootLayout(previewDir).libraryDir, 'server.lock')
-const serverLog = path.join(previewDir, 'server.log')
+if (pr.state !== 'OPEN') {
+  throw new Error(`PR #${pr.number} 已经合并或关闭`)
+}
+// 预览和 PR 里的代码一致：只预览已经推送到 PR 的提交
+const commit = git('rev-parse', 'HEAD')
+if (commit !== pr.headRefOid) {
+  throw new Error(`本地 HEAD ${short(commit)} 和 PR #${pr.number} 最新的提交 ${short(pr.headRefOid)} 不一致，先推送`)
+}
+if (git('status', '--porcelain')) {
+  console.log('注意：工作区有未提交的改动，不包含在预览里')
+}
 
-const holder = acquireProcessLock(path.join(previewDir, '.preview.lock'))
+const paths = previewPaths(previewsDir, pr.number)
+const infoPath = previewInfoPath(previewsDir, previewDirName(pr.number))
+const holder = acquireProcessLock(paths.lock)
 if (holder) {
-  throw new Error(`${branch} 的预览正在由进程 ${holder.pid} 更新`)
+  throw new Error(`PR #${pr.number} 的预览正在由进程 ${holder.pid} 更新`)
 }
 
-if (command === 'stop') {
-  await stopServer()
-  rmSync(previewDir, { recursive: true, force: true })
-  console.log(`已停止并删除 ${branch} 的预览`)
-} else {
-  await start()
+if (readJson<PreviewInfo>(infoPath)?.commit === commit && runningPreviewServer(paths.serverLock)) {
+  console.log(`PR #${pr.number} 的预览已经是 ${short(commit)}：${previewUrl(pr.number)}`)
+  process.exit(0)
 }
-
-async function start() {
-  const commit = git('rev-parse', 'HEAD')
-  if (git('status', '--porcelain')) {
-    console.log('注意：工作区有未提交的改动，不包含在预览里')
-  }
-  if (readJson<PreviewInfo>(infoPath)?.commit === commit && runningServer()) {
-    console.log(`预览已经是 ${short(commit)}：${previewUrl(branch)}`)
-    return
-  }
-  const buildDir = path.join(previewDir, commit)
-  if (!existsSync(buildDir)) {
-    console.log(`构建 ${short(commit)}`)
-    buildCommit(repoDir, commit, buildDir)
-  }
-  await stopServer()
-  const port = await freePort()
-  writeFileSync(infoPath, JSON.stringify({ port, commit } satisfies PreviewInfo) + '\n')
-  startServer(buildDir, port)
-  if (!(await isHealthy(port, commit))) {
-    console.log(`✗ ${short(commit)} 的预览没有正常启动，日志见 ${serverLog}`)
-    process.exitCode = 1
-    return
-  }
-  for (const entry of readdirSync(previewDir)) {
-    if (/^[0-9a-f]{40}$/.test(entry) && entry !== commit) {
-      rmSync(path.join(previewDir, entry), { recursive: true, force: true })
-    }
-  }
-  console.log(`✓ 预览 ${short(commit)}：${previewUrl(branch)}`)
+const buildDir = path.join(paths.dir, commit)
+if (!existsSync(buildDir)) {
+  console.log(`构建 ${short(commit)}`)
+  buildCommit(repoDir, commit, buildDir)
 }
-
-// 预览实例是测试实例：数据在预览目录里，借用正式版的 Claude Code 登录，agent 在这个 worktree 里工作。
-// 自成一个进程组，启动它的 agent 和 session 结束后仍在运行
-function startServer(buildDir: string, port: number) {
-  const log = openSync(serverLog, 'a')
-  try {
-    const child = spawn(process.execPath, [path.join(buildDir, 'server', 'dist', 'index.js')], {
-      cwd: previewDir,
-      detached: true,
-      stdio: ['ignore', log, log],
-      env: {
-        ...process.env,
-        // 去掉包管理器运行脚本时临时加入的目录
-        PATH: process.env.PATH!.split(':').filter((dir) => !dir.includes('node_modules')).join(':'),
-        BINOS_ROOT: previewDir,
-        BINOS_TEST_INSTANCE: '1',
-        BINOS_CLAUDE_CONFIG_DIR: process.env.BINOS_CLAUDE_CONFIG_DIR ?? claudeConfigDir,
-        BINOS_REPO_DIR: repoDir,
-        PORT: String(port),
-      },
-    })
-    child.unref()
-  } finally {
-    closeSync(log)
+await stopPreviewServer(paths.serverLock)
+const port = await freePort()
+writeFileSync(infoPath, JSON.stringify({ port, commit } satisfies PreviewInfo) + '\n')
+startPreviewServer({
+  dir: paths.dir,
+  buildDir,
+  serverLog: paths.serverLog,
+  port,
+  repoDir,
+  claudeConfigDir: process.env.BINOS_CLAUDE_CONFIG_DIR ?? claudeConfigDir,
+})
+if (!(await isHealthy(port, commit))) {
+  console.log(`✗ ${short(commit)} 的预览没有正常启动，日志见 ${paths.serverLog}`)
+  process.exit(1)
+}
+for (const entry of readdirSync(paths.dir)) {
+  if (/^[0-9a-f]{40}$/.test(entry) && entry !== commit) {
+    rmSync(path.join(paths.dir, entry), { recursive: true, force: true })
   }
 }
-
-function runningServer(): ProcessIdentity | undefined {
-  const server = readJson<ProcessIdentity>(serverLock)
-  return server && isRunning(server) ? server : undefined
-}
-
-async function stopServer() {
-  const server = runningServer()
-  if (!server) {
-    return
-  }
-  process.kill(server.pid, 'SIGTERM')
-  for (let i = 0; i < 100 && isAlive(server.pid); i++) {
-    await sleep(100)
-  }
-  if (isAlive(server.pid)) {
-    throw new Error(`预览实例（进程 ${server.pid}）10 秒内没有退出`)
-  }
-}
-
-function readJson<T>(file: string): T | undefined {
-  try {
-    return JSON.parse(readFileSync(file, 'utf8')) as T
-  } catch {
-    return undefined
-  }
-}
+console.log(`✓ PR #${pr.number} 的预览 ${short(commit)}：${previewUrl(pr.number)}`)
