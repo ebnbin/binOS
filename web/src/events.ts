@@ -45,7 +45,9 @@ function start() {
     },
     onMessage: (data) => {
       const event: ChangeEvent = JSON.parse(data)
-      listeners.forEach((listener) => listener(event.id))
+      if (event.type === 'session') {
+        listeners.forEach((listener) => listener(event.id))
+      }
     },
     onConnectedChange: (value) => {
       connected = value

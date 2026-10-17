@@ -1,4 +1,4 @@
-import type { LiveEvent } from './types.js'
+import type { ChangeEvent, LiveEvent } from './types.js'
 
 const listeners = new Map<number, Set<(event: LiveEvent) => void>>()
 
@@ -23,16 +23,16 @@ export function emit(sessionId: number, event: LiveEvent) {
   }
 }
 
-// 对话列表的变化：新建、开始回答、回答结束。只通知是哪个 session，页面收到后重新读取列表
-const changeListeners = new Set<(sessionId: number) => void>()
+// 页面通过 /api/events 收到的全局通知
+const changeListeners = new Set<(event: ChangeEvent) => void>()
 
-export function onSessionChanged(listener: (sessionId: number) => void): () => void {
+export function onChange(listener: (event: ChangeEvent) => void): () => void {
   changeListeners.add(listener)
   return () => changeListeners.delete(listener)
 }
 
-export function notifySessionChanged(sessionId: number) {
+export function notifyChange(event: ChangeEvent) {
   for (const listener of changeListeners) {
-    listener(sessionId)
+    listener(event)
   }
 }
