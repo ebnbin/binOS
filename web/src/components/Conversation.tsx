@@ -1,5 +1,6 @@
+import type { Attachment } from '@binos/server/types'
 import { useLayoutEffect, useRef, useState } from 'react'
-import { sendMessage, stopSession } from '../api.ts'
+import { maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { useSession } from '../useSession.ts'
 import { Alert } from './Alert.tsx'
 import { Composer } from './Composer.tsx'
@@ -35,10 +36,24 @@ export function Conversation({
     }
   }
 
-  async function send(text: string) {
+  async function send(text: string, files: File[]) {
     setNotice('')
     stick.current = true
-    const result = await sendMessage(sessionId, text)
+    const tooLarge = files.find((file) => file.size > maxUploadBytes)
+    if (tooLarge) {
+      setNotice(`${tooLarge.name} 太大，附件最大 ${maxUploadBytes / 1024 / 1024} MB`)
+      return false
+    }
+    const uploads = await Promise.all(files.map(uploadFile))
+    const attachments: Attachment[] = []
+    for (const upload of uploads) {
+      if ('error' in upload) {
+        setNotice(upload.error)
+        return false
+      }
+      attachments.push(upload)
+    }
+    const result = await sendMessage(sessionId, text, attachments)
     if ('error' in result) {
       setNotice(result.error)
       return false

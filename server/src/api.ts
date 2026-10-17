@@ -10,15 +10,16 @@ import { onSessionChanged, subscribe } from './events.js'
 import { codeDir } from './paths.js'
 import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
-import type { ChangeEvent, LiveEvent, SessionSummary } from './types.js'
+import type { Attachment, ChangeEvent, LiveEvent, SessionSummary } from './types.js'
+import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
 // VERSION 由上线脚本写进构建目录，开发时没有
 const versionFile = path.join(codeDir, 'VERSION')
 const version = existsSync(versionFile) ? readFileSync(versionFile, 'utf8').trim() : 'dev'
 
-// 写操作只接受 JSON：浏览器跨站提交 JSON 需要预检，其他网站无法借你的登录状态发起请求
-const requireJson: MiddlewareHandler = async (c, next) => {
-  if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && !/^application\/json(;|$)/.test(c.req.header('Content-Type') ?? '')) {
+// 写操作只接受 JSON 和上传文件用的 octet-stream：浏览器跨站提交这两种都需要预检，其他网站无法借你的登录状态发起请求
+const requirePreflight: MiddlewareHandler = async (c, next) => {
+  if (c.req.method !== 'GET' && c.req.method !== 'HEAD' && !/^application\/(json|octet-stream)(;|$)/.test(c.req.header('Content-Type') ?? '')) {
     return c.text('Unsupported Media Type', 415)
   }
   await next()
@@ -43,19 +44,33 @@ const sessionParam = validator('param', (value: Record<string, string>, c) => {
   return { id }
 })
 
-const messageBody = validator('json', (value: { text: string }, c) => {
-  const text = (value as { text?: unknown } | null)?.text
-  if (typeof text !== 'string' || !text.trim()) {
+// attachments 的 file 是上传后拿到的文件名；有附件时可以不写字
+const messageBody = validator('json', (value, c) => {
+  const body = value as { text?: unknown; attachments?: unknown } | null
+  const attachments = parseAttachments(body?.attachments)
+  if (typeof body?.text !== 'string' || !attachments || (!body.text.trim() && !attachments.length)) {
     return c.text('Bad Request', 400)
   }
-  return { text }
+  return { text: body.text, attachments }
 })
 
-// 文件名由后端生成，内容不会变，可以长期缓存
-const fileTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
+// 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
+const inlineTypes: Record<string, string> = {
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  pdf: 'application/pdf',
+  txt: 'text/plain; charset=utf-8',
+  md: 'text/plain; charset=utf-8',
+  log: 'text/plain; charset=utf-8',
+  csv: 'text/plain; charset=utf-8',
+  json: 'text/plain; charset=utf-8',
+}
 
-function start(sessionId: number | undefined, text: string) {
-  const id = startTurn(sessionId, text)
+function start(sessionId: number | undefined, text: string, attachments: Attachment[]) {
+  const id = startTurn(sessionId, text, attachments)
   return id === undefined ? ({ error: 'busy' } as const) : { id }
 }
 
@@ -63,17 +78,40 @@ export const api = new Hono()
   .basePath('/api')
   // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
   .get('/health', (c) => c.json({ version }))
-  .use(requireOwner, requireJson)
+  .use(requireOwner, requirePreflight)
   .get('/sessions', (c) => {
     const sessions: SessionSummary[] = listSessions().map((id) => ({ ...sessionSummary(id), running: isAnswering(id) }))
     return c.json({ sessions })
   })
+  // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
+  .post('/uploads', async (c) => {
+    const body = c.req.raw.body
+    if (!body || c.req.header('Content-Type') !== 'application/octet-stream') {
+      return c.text('Bad Request', 400)
+    }
+    let name = ''
+    try {
+      name = decodeURIComponent(c.req.header('X-File-Name') ?? '')
+    } catch {
+      // 文件名解不开就当没有
+    }
+    try {
+      return c.json({ file: await saveUpload(body, name) }, 200)
+    } catch (error) {
+      if (error instanceof UploadTooLarge) {
+        return c.text('Payload Too Large', 413)
+      }
+      throw error
+    }
+  })
   .post('/sessions', messageBody, (c) => {
-    const result = start(undefined, c.req.valid('json').text)
+    const { text, attachments } = c.req.valid('json')
+    const result = start(undefined, text, attachments)
     return 'id' in result ? c.json(result, 200) : c.json(result, 409)
   })
   .post('/sessions/:id/messages', sessionParam, messageBody, (c) => {
-    const result = start(c.req.valid('param').id, c.req.valid('json').text)
+    const { text, attachments } = c.req.valid('json')
+    const result = start(c.req.valid('param').id, text, attachments)
     return 'id' in result ? c.json(result, 200) : c.json(result, 409)
   })
   .post('/sessions/:id/stop', sessionParam, (c) => {
@@ -82,15 +120,23 @@ export const api = new Hono()
     }
     return c.json({ ok: true }, 200)
   })
+  // 文件名由后端生成，内容不会变，可以长期缓存。name 是下载时用的文件名
   .get('/sessions/:id/files/:file', sessionParam, (c) => {
-    const name = c.req.param('file')
-    const match = /^[\w-]+\.(\w+)$/.exec(name)
-    const type = match && fileTypes[match[1]]
-    const file = path.join(filesDir(c.req.valid('param').id), name)
-    if (!type || !existsSync(file)) {
+    const file = c.req.param('file')
+    const match = /^[\w-]+(?:\.(\w+))?$/.exec(file)
+    const filePath = path.join(filesDir(c.req.valid('param').id), file)
+    if (!match || !existsSync(filePath)) {
       return c.text('Not Found', 404)
     }
-    return c.body(readFileSync(file), 200, { 'Content-Type': type, 'Cache-Control': 'private, max-age=31536000, immutable' })
+    const inline = match[1] && inlineTypes[match[1].toLowerCase()]
+    const name = c.req.query('name')
+    const disposition = (inline ? 'inline' : 'attachment') + (name ? `; filename*=UTF-8''${encodeURIComponent(name)}` : '')
+    return c.body(readFileSync(filePath), 200, {
+      'Content-Type': inline || 'application/octet-stream',
+      'Content-Disposition': disposition,
+      'X-Content-Type-Options': 'nosniff',
+      'Cache-Control': 'private, max-age=31536000, immutable',
+    })
   })
   // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
   .get('/sessions/:id/stream', sessionParam, (c) => {

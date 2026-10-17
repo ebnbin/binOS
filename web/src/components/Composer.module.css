@@ -19,6 +19,15 @@
   border-color: color-mix(in srgb, var(--muted) 55%, transparent);
 }
 
+.card.dragging {
+  border-color: var(--text-2);
+  border-style: dashed;
+}
+
+.attachments {
+  padding: 4px 0 10px;
+}
+
 .input {
   display: block;
   width: 100%;
@@ -48,8 +57,11 @@
   margin-top: 6px;
 }
 
+.attach {
+  margin: -2px 0 -2px -10px;
+}
+
 .hint {
-  margin-right: auto;
   font-size: 12px;
   color: var(--muted);
   user-select: none;
@@ -57,6 +69,7 @@
 
 .action {
   display: grid;
+  margin-left: auto;
   place-items: center;
   width: 34px;
   height: 34px;
@@ -75,6 +88,10 @@
 
 .action:disabled {
   opacity: 0.22;
+}
+
+.busy {
+  background: var(--bubble);
 }
 
 .stopIcon {

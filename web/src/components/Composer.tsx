@@ -1,10 +1,18 @@
-import { ArrowUp } from 'lucide-react'
-import { useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { ArrowUp, Paperclip } from 'lucide-react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
+import { PendingAttachments } from './Attachments.tsx'
+import type { PendingFile } from './Attachments.tsx'
 import styles from './Composer.module.css'
+import { IconButton } from './ui/IconButton.tsx'
+import { Spinner } from './ui/Spinner.tsx'
 
 // 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
 const enterSends = !window.matchMedia('(pointer: coarse)').matches
+
+let nextKey = 0
+
+const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
 export function Composer({
   running,
@@ -12,16 +20,76 @@ export function Composer({
   onStop,
 }: {
   running: boolean
-  onSend: (text: string) => Promise<boolean>
+  onSend: (text: string, files: File[]) => Promise<boolean>
   onStop: () => void
 }) {
   const [input, setInput] = useState('')
+  const [pending, setPending] = useState<PendingFile[]>([])
+  const [sending, setSending] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const canSend = !running && !sending && (input.trim() !== '' || pending.length > 0)
+
+  function addFiles(files: File[]) {
+    if (!sending) {
+      const added = files.map((file) => ({
+        key: nextKey++,
+        file,
+        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      }))
+      setPending((prev) => [...prev, ...added])
+    }
+  }
+
+  function clearPending(keep: (item: PendingFile) => boolean = () => false) {
+    pending.filter((item) => !keep(item) && item.preview).forEach((item) => URL.revokeObjectURL(item.preview!))
+    setPending(pending.filter(keep))
+  }
+
+  // 切到别的 session 时释放还没发出的预览
+  const pendingRef = useRef(pending)
+  useEffect(() => {
+    pendingRef.current = pending
+  }, [pending])
+  useEffect(
+    () => () => pendingRef.current.forEach((item) => item.preview && URL.revokeObjectURL(item.preview)),
+    [],
+  )
+
+  // 文件拖到页面哪里都能放下，不让浏览器直接打开它
+  const onWindowDrop = useEffectEvent((files: File[]) => addFiles(files))
+  useEffect(() => {
+    const onDragOver = (event: globalThis.DragEvent) => {
+      if (hasFiles(event)) {
+        event.preventDefault()
+      }
+    }
+    const onDrop = (event: globalThis.DragEvent) => {
+      if (hasFiles(event)) {
+        event.preventDefault()
+        setDragging(false)
+        onWindowDrop([...(event.dataTransfer?.files ?? [])])
+      }
+    }
+    window.addEventListener('dragover', onDragOver)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragover', onDragOver)
+      window.removeEventListener('drop', onDrop)
+    }
+  }, [])
 
   async function send() {
-    const text = input.trim()
-    if (text && !running && (await onSend(text))) {
+    if (!canSend) {
+      return
+    }
+    setSending(true)
+    const ok = await onSend(input.trim(), pending.map((item) => item.file))
+    setSending(false)
+    if (ok) {
       setInput('')
+      clearPending()
     }
   }
 
@@ -32,10 +100,31 @@ export function Composer({
     }
   }
 
+  // 粘贴截图之类的文件时当作附件；复制的是文字时照常粘贴文字
+  function onPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const files = [...event.clipboardData.files]
+    if (files.length && !event.clipboardData.types.includes('text/plain')) {
+      event.preventDefault()
+      addFiles(files)
+    }
+  }
+
+  function onDragOver(event: DragEvent) {
+    if (hasFiles(event)) {
+      setDragging(true)
+    }
+  }
+
+  function onDragLeave(event: DragEvent) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setDragging(false)
+    }
+  }
+
   return (
     <div className={styles.dock}>
       <form
-        className={styles.card}
+        className={`${styles.card} ${dragging ? styles.dragging : ''}`}
         onSubmit={(event) => {
           event.preventDefault()
           void send()
@@ -45,26 +134,59 @@ export function Composer({
             textareaRef.current?.focus()
           }
         }}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
       >
+        {pending.length > 0 && (
+          <div className={styles.attachments}>
+            <PendingAttachments
+              files={pending}
+              onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)}
+            />
+          </div>
+        )}
         <textarea
           ref={textareaRef}
           className={styles.input}
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={onKeyDown}
+          onPaste={onPaste}
           placeholder={running ? '正在回答…' : '输入消息'}
           rows={1}
-          disabled={running}
+          disabled={running || sending}
           autoFocus={enterSends}
         />
         <div className={styles.bar}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(event) => {
+              addFiles([...(event.target.files ?? [])])
+              // 清掉选择，移除后还能再选同一个文件
+              event.target.value = ''
+            }}
+          />
+          <IconButton
+            icon={Paperclip}
+            label={enterSends ? '添加附件（也可以粘贴或拖进来）' : '添加附件'}
+            className={styles.attach}
+            disabled={sending}
+            onClick={() => fileInputRef.current?.click()}
+          />
           {enterSends && <span className={styles.hint}>Enter 发送，Shift + Enter 换行</span>}
           {running ? (
             <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
               <span className={styles.stopIcon} />
             </button>
+          ) : sending ? (
+            <span className={`${styles.action} ${styles.busy}`}>
+              <Spinner />
+            </span>
           ) : (
-            <button type="submit" className={styles.action} disabled={!input.trim()} aria-label="发送" title="发送">
+            <button type="submit" className={styles.action} disabled={!canSend} aria-label="发送" title="发送">
               <ArrowUp size={17} strokeWidth={2.2} />
             </button>
           )}

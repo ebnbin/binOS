@@ -10,6 +10,7 @@ export function rootLayout(root: string) {
     libraryDir,
     logsDir: path.join(libraryDir, 'logs'),
     sessionsDir: path.join(libraryDir, 'agent', 'sessions'),
+    uploadsDir: path.join(libraryDir, 'agent', 'uploads'),
     claudeConfigDir: path.join(libraryDir, 'claude'),
   }
 }

@@ -1,6 +1,7 @@
 import { interruptedText } from '@binos/server/types'
-import type { ContentBlock, Entry, ToolResultBlock, ToolUseBlock } from '@binos/server/types'
+import type { Attachment, ContentBlock, Entry, ToolResultBlock, ToolUseBlock } from '@binos/server/types'
 import { Alert } from './Alert.tsx'
+import { AttachmentList } from './Attachments.tsx'
 import { Markdown } from './Markdown.tsx'
 import { ToolGroup } from './ToolCall.tsx'
 import type { ToolCallItem } from './ToolCall.tsx'
@@ -8,6 +9,7 @@ import styles from './Transcript.module.css'
 
 type Item =
   | { kind: 'text'; key: string; role: 'user' | 'assistant'; text: string }
+  | { kind: 'attachments'; key: string; attachments: Attachment[] }
   | { kind: 'stopped'; key: string }
   | { kind: 'alert'; key: string; text: string }
   | { kind: 'tools'; key: string; calls: ToolCallItem[] }
@@ -50,6 +52,9 @@ function buildItems(entries: Entry[], progress: ContentBlock[] | null): Item[] {
     if (entry.type === 'system') {
       items.push({ kind: 'alert', key: entry.uuid, text: entry.content ?? '' })
     } else {
+      if (entry.attachments?.length) {
+        items.push({ kind: 'attachments', key: `${entry.uuid}-attachments`, attachments: entry.attachments })
+      }
       blocksOf(entry).forEach((block, i) => addBlock(block, `${entry.uuid}-${i}`, entry.type as 'user' | 'assistant', false))
     }
   }
@@ -76,6 +81,8 @@ export function Transcript({
         ) : (
           <Markdown key={item.key} sessionId={sessionId} text={item.text} />
         )
+      case 'attachments':
+        return <AttachmentList key={item.key} sessionId={sessionId} attachments={item.attachments} />
       case 'stopped':
         return (
           <div key={item.key} className={styles.divider}>
