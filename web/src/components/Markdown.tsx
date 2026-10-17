@@ -4,14 +4,18 @@ import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { fileUrl } from '../api.ts'
+import { HtmlFrame } from './HtmlFrame.tsx'
 import styles from './Markdown.module.css'
 
 const remarkPlugins = [remarkGfm]
 
-// 后端把回复引用的本机图片存进 session 后，引用会改成存下的文件名
-const sessionFile = /^[\w-]+\.(png|jpg|gif|webp)$/
+// 后端把回复引用的本机图片和网页存进 session 后，引用会改成存下的文件名
+const sessionFile = /^[\w-]+\.(png|jpg|gif|webp|html)$/
 
 function MarkdownImage({ sessionId, src, alt }: { sessionId: number; src: unknown; alt: string | undefined }) {
+  if (typeof src === 'string' && sessionFile.test(src) && src.endsWith('.html')) {
+    return <HtmlFrame sessionId={sessionId} file={src} title={alt || '网页'} />
+  }
   const url = typeof src !== 'string' ? undefined : sessionFile.test(src) ? fileUrl(sessionId, src) : /^https?:\/\//.test(src) ? src : undefined
   if (!url) {
     return (
