@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { Minimize2, Minus, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { apps, findApp } from '../apps/index.ts'
 import { useConnected } from '../events.ts'
 import { useStateList } from '../state.ts'
@@ -8,9 +9,8 @@ import { clampFrame, placeFrame } from './layout.ts'
 import type { Area, Focus, Frame } from './layout.ts'
 import type { OpenWindow } from './Shell.tsx'
 import { AppWindow } from './Window.tsx'
-import { focusWindow, framePrefix, openApp } from './windows.ts'
+import { closeWindow, focusWindow, framePrefix, minimizeWindow, openApp, setFrame } from './windows.ts'
 
-const menuBarHeight = 28
 // 最大化时留出 Dock 的位置
 const dockSpace = 84
 
@@ -21,6 +21,22 @@ function useClock() {
     return () => window.clearInterval(timer)
   }, [])
   return now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+}
+
+// 装成 app 后菜单栏和浏览器的窗口按钮一样高，由 CSS 决定，这里量出来给窗口布局用
+function useHeight() {
+  const ref = useRef<HTMLElement>(null)
+  const [height, setHeight] = useState(28)
+  useEffect(() => {
+    const element = ref.current
+    if (!element) {
+      return
+    }
+    const observer = new ResizeObserver(() => setHeight(element.offsetHeight))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return [ref, height] as const
 }
 
 export function Desktop({
@@ -37,18 +53,35 @@ export function Desktop({
   const frames = new Map(useStateList(framePrefix).map(([key, value]) => [key.slice(framePrefix.length), value as Frame]))
   const connected = useConnected()
   const clock = useClock()
+  const [menuBar, menuBarHeight] = useHeight()
   const area: Area = { top: menuBarHeight, width: size.width, height: size.height - menuBarHeight }
   const maximizedFrame: Frame = { x: 0, y: menuBarHeight, w: size.width, h: size.height - menuBarHeight - dockSpace, minimized: false, maximized: true }
   const focused = windows.find((item) => item.id === focus.focused)
   const focusedApp = focused && findApp(focused.window.app)
+  const focusedFrame = focused && frames.get(focused.id)
+  // 最大化的窗口不显示标题栏，聚焦时它的按钮放在菜单栏上
+  const maximized = focused && focusedFrame?.maximized ? { id: focused.id, frame: focusedFrame } : null
 
   return (
     <div className={styles.desktop}>
-      <header className={styles.menuBar}>
+      <header ref={menuBar} className={styles.menuBar}>
         <BrandMark size={16} />
         <span className={styles.wordmark}>binOS</span>
         <span className={styles.current}>{focusedApp?.name ?? '桌面'}</span>
         <span className={styles.spacer} />
+        {maximized && (
+          <span className={styles.controls}>
+            <button type="button" aria-label="最小化" title="最小化" onClick={() => minimizeWindow(maximized.id, 'desktop')}>
+              <Minus size={14} />
+            </button>
+            <button type="button" aria-label="还原" title="还原" onClick={() => setFrame(maximized.id, { ...maximized.frame, maximized: false })}>
+              <Minimize2 size={14} />
+            </button>
+            <button type="button" aria-label="关闭" title="关闭" onClick={() => closeWindow(maximized.id)}>
+              <X size={14} />
+            </button>
+          </span>
+        )}
         <span className={styles.connection} data-connected={connected} title={connected ? '已连接' : '连接已断开'} />
         <span className={styles.clock}>{clock}</span>
       </header>

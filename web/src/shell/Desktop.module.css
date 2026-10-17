@@ -20,8 +20,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 28px;
-  padding: 0 14px;
+  /* 装成 app 后浏览器的窗口按钮浮在菜单栏上，titlebar-area 是剩下的区域 */
+  height: max(28px, env(titlebar-area-height, 0px));
+  padding: 0 calc(100% - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100%) + 14px) 0
+    calc(env(titlebar-area-x, 0px) + 14px);
   background: color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -29,6 +31,11 @@
   font-size: 13px;
   user-select: none;
   -webkit-user-select: none;
+  app-region: drag;
+}
+
+.menuBar button {
+  app-region: no-drag;
 }
 
 .wordmark {
@@ -43,6 +50,27 @@
 
 .spacer {
   flex: 1;
+}
+
+.controls {
+  display: flex;
+  gap: 2px;
+  margin-right: 6px;
+}
+
+.controls button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border-radius: 6px;
+  color: var(--text-2);
+}
+
+@media (hover: hover) {
+  .controls button:hover {
+    background: var(--hover);
+  }
 }
 
 .connection {

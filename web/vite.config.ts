@@ -37,6 +37,8 @@ function appFiles(): Plugin {
     lang: 'zh-CN',
     start_url: '/',
     scope: '/',
+    // 桌面上装成 app 后去掉浏览器的标题栏，由菜单栏占据窗口顶部
+    display_override: ['window-controls-overlay'],
     display: 'standalone',
     background_color: '#f8f7f4',
     theme_color: '#f8f7f4',
