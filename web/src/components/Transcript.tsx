@@ -1,6 +1,7 @@
 import { interruptedText } from '@binos/server/types'
 import type { ContentBlock, Entry, ToolResultBlock, ToolUseBlock } from '@binos/server/types'
 import { Alert } from './Alert.tsx'
+import { Markdown } from './Markdown.tsx'
 import { ToolGroup } from './ToolCall.tsx'
 import type { ToolCallItem } from './ToolCall.tsx'
 import styles from './Transcript.module.css'
@@ -68,10 +69,12 @@ export function Transcript({
   return buildItems(entries, progress).map((item) => {
     switch (item.kind) {
       case 'text':
-        return (
-          <div key={item.key} className={item.role === 'user' ? styles.user : styles.assistant}>
+        return item.role === 'user' ? (
+          <div key={item.key} className={styles.user}>
             {item.text}
           </div>
+        ) : (
+          <Markdown key={item.key} text={item.text} />
         )
       case 'stopped':
         return (
