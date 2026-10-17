@@ -3,7 +3,7 @@ import { Jwt } from 'hono/utils/jwt'
 import { config } from './config.js'
 import { isTestInstance } from './paths.js'
 
-// 测试实例前面没有 Cloudflare Access，不校验
+// 测试实例只监听本机，前面没有 Cloudflare Access，不校验；预览也是测试实例，经正式版转发时已由正式版校验
 export const requireOwner: MiddlewareHandler = async (c, next) => {
   if (isTestInstance) {
     return next()

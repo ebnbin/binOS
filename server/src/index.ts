@@ -6,6 +6,7 @@ import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { api } from './api.js'
 import { codeDir, libraryDir } from './paths.js'
+import { previewProxy } from './previews.js'
 import { acquireProcessLock } from './process.js'
 import { resumeTurns } from './apps/agent/turns.js'
 
@@ -16,7 +17,7 @@ if (holder) {
 }
 resumeTurns()
 
-const app = new Hono().route('/', api)
+const app = new Hono().use(previewProxy).route('/', api)
 
 // 开发时页面由 Vite 提供，没有 web/dist
 const webDist = path.join(codeDir, 'web', 'dist')

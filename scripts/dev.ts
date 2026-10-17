@@ -1,8 +1,8 @@
 import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
-import net from 'node:net'
 import path from 'node:path'
 import { rootLayout } from '../server/src/layout.ts'
+import { freePort } from './net.ts'
 
 const worktreeDir = path.resolve(import.meta.dirname, '..')
 const rootDir = path.join(worktreeDir, '.test-instance')
@@ -48,14 +48,3 @@ for (const child of children) {
 }
 process.on('SIGINT', stop)
 process.on('SIGTERM', stop)
-
-function freePort(): Promise<number> {
-  return new Promise((resolve, reject) => {
-    const server = net.createServer()
-    server.on('error', reject)
-    server.listen(0, '127.0.0.1', () => {
-      const { port } = server.address() as net.AddressInfo
-      server.close(() => resolve(port))
-    })
-  })
-}
