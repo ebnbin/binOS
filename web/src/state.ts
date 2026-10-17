@@ -49,6 +49,10 @@ export function useStateLoaded(): boolean {
   return useSyncExternalStore(subscribe, () => store.loaded)
 }
 
+export function useStateValue(key: string): JsonValue {
+  return useSyncExternalStore(subscribe, () => store.get(key))
+}
+
 export function useStateList(prefix: string): [string, JsonValue][] {
   return useSyncExternalStore(subscribe, () => store.list(prefix))
 }

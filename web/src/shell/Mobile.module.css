@@ -1,0 +1,144 @@
+.mobile {
+  --home-bar: calc(22px + env(safe-area-inset-bottom));
+
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.home {
+  height: 100%;
+  padding: env(safe-area-inset-top) 20px 0;
+}
+
+.home[hidden],
+.screen[hidden] {
+  display: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 64px;
+}
+
+.wordmark {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 0;
+  padding-top: 16px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--hairline), 0 2px 6px rgb(0 0 0 / 10%);
+}
+
+.screen {
+  position: absolute;
+  inset: 0 0 var(--home-bar);
+}
+
+.homeBar {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  height: var(--home-bar);
+  padding-bottom: env(safe-area-inset-bottom);
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.homeBar span {
+  width: 120px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--text);
+  opacity: 0.6;
+}
+
+.switcher {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: calc(24px + env(safe-area-inset-top)) 20px calc(var(--home-bar) + 16px);
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.empty {
+  margin: auto;
+  color: var(--muted);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.cardBody {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  text-align: left;
+}
+
+.cardBody .icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  box-shadow: 0 0 0 1px var(--hairline);
+}
+
+.cardTitle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+
+.cardClose {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-right: 6px;
+  color: var(--muted);
+}
