@@ -1,0 +1,12 @@
+.shell {
+  display: flex;
+  height: 100dvh;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  padding-right: env(safe-area-inset-right);
+}

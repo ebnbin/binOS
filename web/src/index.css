@@ -1,35 +1,69 @@
 :root {
-  color-scheme: light dark;
-  --bg: #f7f7f8;
+  color-scheme: light;
+  --bg: #f8f7f4;
+  --sidebar: #f1efeb;
   --surface: #ffffff;
-  --text: #1c1c1e;
-  --muted: #8e8e93;
-  --border: #e3e3e8;
-  --accent: #2f6fed;
-  --on-accent: #ffffff;
-  --error: #d93025;
-  --error-bg: #fdecea;
+  --text: #24221e;
+  --text-2: #5f5b54;
+  --muted: #959087;
+  --border: #e7e4de;
+  --hairline: rgb(36 34 30 / 7%);
+  --hover: rgb(36 34 30 / 5%);
+  --bubble: #edebe6;
+  --code: #f6f5f2;
+  --ink: #24221e;
+  --on-ink: #ffffff;
+  --danger: #c8442f;
+  --danger-bg: #fbefec;
+  --live: #d4862b;
+  --scrim: rgb(20 18 15 / 32%);
+  --shadow: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px rgb(36 34 30 / 10%);
 
-  font-family: system-ui, -apple-system, 'PingFang SC', sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
+  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+  --mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111113;
-    --surface: #1d1d20;
-    --text: #ececf0;
-    --muted: #8e8e96;
-    --border: #2e2e33;
-    --accent: #4a84f5;
-    --error: #ff6b5e;
-    --error-bg: #3a1f1d;
+    color-scheme: dark;
+    --bg: #1b1a18;
+    --sidebar: #161513;
+    --surface: #23221f;
+    --text: #ecebe7;
+    --text-2: #b6b2aa;
+    --muted: #7f7a71;
+    --border: #33312d;
+    --hairline: rgb(255 255 255 / 6%);
+    --hover: rgb(255 255 255 / 5%);
+    --bubble: #2c2a27;
+    --code: #1f1e1b;
+    --ink: #ecebe7;
+    --on-ink: #1b1a18;
+    --danger: #f0806b;
+    --danger-bg: #33201b;
+    --live: #e8a24f;
+    --scrim: rgb(0 0 0 / 50%);
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px rgb(0 0 0 / 50%);
   }
 }
 
-* {
+/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
+@media (pointer: coarse) {
+  :root {
+    font-size: 16px;
+  }
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -43,4 +77,30 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
+}
+
+button,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--live) 28%, transparent);
 }

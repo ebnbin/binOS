@@ -1,0 +1,37 @@
+.user {
+  align-self: flex-end;
+  max-width: 78%;
+  padding: 9px 16px;
+  border-radius: 20px 20px 6px 20px;
+  background: var(--bubble);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.assistant {
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--hairline);
+}
+
+@media (max-width: 760px) {
+  .user {
+    max-width: 86%;
+  }
+}
