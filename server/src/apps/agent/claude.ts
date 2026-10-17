@@ -22,6 +22,7 @@ export function spawnClaude(options: {
         '--output-format', 'stream-json',
         '--verbose',
         '--include-partial-messages',
+        '--chrome',
         '--append-system-prompt', replyFilesPrompt,
         options.resume ? '--resume' : '--session-id', options.claudeSessionId,
       ],
