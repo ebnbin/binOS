@@ -10,7 +10,8 @@
     "test": "vitest run",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "services": "node scripts/services.ts",
-    "deployed": "node scripts/deployed.ts"
+    "deployed": "node scripts/deployed.ts",
+    "preview": "node scripts/preview.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
