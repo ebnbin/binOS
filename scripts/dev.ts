@@ -4,13 +4,13 @@ import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
 import net from 'node:net'
 import path from 'node:path'
+import { rootLayout } from '../server/src/layout.ts'
 
 const worktreeDir = path.resolve(import.meta.dirname, '..')
 const rootDir = path.join(worktreeDir, '.test-instance')
 
 const claudeConfigDir =
-  process.env.BINOS_CLAUDE_CONFIG_DIR ??
-  (process.env.BINOS_ROOT && path.join(process.env.BINOS_ROOT, 'Library', 'claude'))
+  process.env.BINOS_CLAUDE_CONFIG_DIR ?? (process.env.BINOS_ROOT && rootLayout(process.env.BINOS_ROOT).claudeConfigDir)
 if (!claudeConfigDir) {
   throw new Error('需要 BINOS_ROOT（正式版的根目录）或 BINOS_CLAUDE_CONFIG_DIR，用来借用 Claude Code 的登录')
 }
@@ -20,8 +20,8 @@ const serverPort = await freePort()
 const webPort = await freePort()
 
 const children = [
-  spawn('npm', ['run', 'dev'], {
-    cwd: path.join(worktreeDir, 'server'),
+  spawn('npm', ['run', 'dev', '-w', '@binos/server'], {
+    cwd: worktreeDir,
     stdio: 'inherit',
     env: {
       ...process.env,
@@ -31,8 +31,8 @@ const children = [
       PORT: String(serverPort),
     },
   }),
-  spawn('npm', ['run', 'dev', '--', '--port', String(webPort), '--strictPort'], {
-    cwd: path.join(worktreeDir, 'web'),
+  spawn('npm', ['run', 'dev', '-w', '@binos/web', '--', '--port', String(webPort), '--strictPort'], {
+    cwd: worktreeDir,
     stdio: 'inherit',
     env: { ...process.env, BINOS_SERVER_PORT: String(serverPort) },
   }),

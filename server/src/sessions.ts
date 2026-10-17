@@ -1,41 +1,16 @@
 import { randomUUID } from 'node:crypto'
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { libraryDir } from './paths.js'
+import { sessionsDir } from './paths.js'
+import type { Entry, EntryFields, SessionSummary } from './types.js'
 
-// 消息内容块，与 Claude 的 Messages API 一致：工具调用在 assistant 消息里，工具结果在 user 消息里
-export type TextBlock = { type: 'text'; text: string }
-// 图片存成 session 目录下 files/ 里的文件，file 是文件名
-export type ImageBlock = { type: 'image'; file: string }
-export type ContentBlock =
-  | TextBlock
-  | { type: 'tool_use'; id: string; name: string; input: unknown }
-  | { type: 'tool_result'; tool_use_id: string; content: (TextBlock | ImageBlock)[]; is_error?: boolean }
-
-// transcript.jsonl 的每一行是一个条目，字段沿用 Claude Code 会话记录的命名，sessionId 是 binOS 的 session 编号
-export type Entry = {
-  type: 'user' | 'assistant' | 'system'
-  uuid: string
-  parentUuid: string | null
-  sessionId: number
-  timestamp: string
-  message?: {
-    role: 'user' | 'assistant'
-    content: string | ContentBlock[]
-  }
-  subtype?: string
-  content?: string
-}
-
-export type EntryFields = Pick<Entry, 'type' | 'message' | 'subtype' | 'content'>
-
+// 每个 session 是 sessions/<编号>/ 目录：session.json、transcript.jsonl、files/（对话中涉及的文件）
 export type SessionInfo = {
+  // 对应的 Claude Code 会话
   claudeSessionId: string
 }
 
-const sessionsDir = path.join(libraryDir, 'agent', 'sessions')
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
-// 对话中涉及的文件
 export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
 const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
 const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
@@ -48,26 +23,12 @@ export function listSessions(): number[] {
   return readdirSync(sessionsDir)
     .filter((name) => /^\d+$/.test(name))
     .map(Number)
+    .filter(sessionExists)
     .sort((a, b) => b - a)
 }
 
-export type SessionSummary = {
-  id: number
-  // 第一条用户消息
-  title: string
-  // 最后一个条目的时间
-  updatedAt: string | null
-}
-
-export function sessionSummary(id: number): SessionSummary {
-  const transcript = readTranscript(id)
-  const first = transcript.find((entry) => entry.type === 'user')?.message?.content
-  const title = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
-  return { id, title: title.slice(0, 200), updatedAt: transcript.at(-1)?.timestamp ?? null }
-}
-
 export function sessionExists(id: number): boolean {
-  return existsSync(infoPath(id))
+  return Number.isSafeInteger(id) && id > 0 && existsSync(infoPath(id))
 }
 
 export function createSession(info: SessionInfo): number {
@@ -95,18 +56,36 @@ export function readTranscript(id: number): Entry[] {
     .map((line) => JSON.parse(line))
 }
 
+// 每个 session 的条数和最后一个条目，追加时不用重读整个 transcript。只有这个后端写 transcript（根目录锁保证）
+const tails = new Map<number, { count: number; lastUuid: string | null }>()
+
 // 追加一个条目，返回它和它在 transcript 中的位置
 export function appendEntry(id: number, fields: EntryFields): { entry: Entry; index: number } {
-  const transcript = readTranscript(id)
+  let tail = tails.get(id)
+  if (!tail) {
+    const transcript = readTranscript(id)
+    tail = { count: transcript.length, lastUuid: transcript.at(-1)?.uuid ?? null }
+    tails.set(id, tail)
+  }
   const { type, ...rest } = fields
   const entry: Entry = {
     type,
     uuid: randomUUID(),
-    parentUuid: transcript.at(-1)?.uuid ?? null,
+    parentUuid: tail.lastUuid,
     sessionId: id,
     timestamp: new Date().toISOString(),
     ...rest,
   }
   appendFileSync(transcriptPath(id), JSON.stringify(entry) + '\n')
-  return { entry, index: transcript.length }
+  const index = tail.count
+  tail.count += 1
+  tail.lastUuid = entry.uuid
+  return { entry, index }
+}
+
+export function sessionSummary(id: number): Omit<SessionSummary, 'running'> {
+  const transcript = readTranscript(id)
+  const first = transcript.find((entry) => entry.type === 'user')?.message?.content
+  const title = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
+  return { id, title: title.slice(0, 200), updatedAt: transcript.at(-1)?.timestamp ?? null }
 }

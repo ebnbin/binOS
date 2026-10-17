@@ -1,186 +1,47 @@
-import { useEffect, useRef, useState } from 'react'
-import type { KeyboardEvent } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
-import { SessionList } from './SessionList.tsx'
-import { Transcript } from './Transcript.tsx'
-import type { Block, Entry } from './Transcript.tsx'
+import { listSessions } from './api.ts'
+import { Conversation } from './components/Conversation.tsx'
+import { Header } from './components/Header.tsx'
+import { SessionList } from './components/SessionList.tsx'
 
-type LiveEvent =
-  | { type: 'entry'; index: number; entry: Entry }
-  | { type: 'progress'; blocks: Block[] }
-  | { type: 'status'; running: boolean }
-
-// 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
-const enterSends = !window.matchMedia('(pointer: coarse)').matches
-
-function App() {
+export function App() {
   // undefined：还在读取；null：新对话，还没有 session
   const [sessionId, setSessionId] = useState<number | null | undefined>(undefined)
-  const [entries, setEntries] = useState<Entry[]>([])
-  const [running, setRunning] = useState(false)
-  // 正在进行的这一轮到目前为止的进展
-  const [progress, setProgress] = useState<Block[] | null>(null)
-  const [notice, setNotice] = useState('')
-  const [input, setInput] = useState('')
   const [showList, setShowList] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
 
   // 打开页面时进入最近的 session
   useEffect(() => {
-    fetch('/api/sessions')
-      .then((res) => res.json())
-      .then(({ sessions }) => setSessionId(sessions[0]?.id ?? null))
+    listSessions()
+      .then((sessions) => setSessionId(sessions[0]?.id ?? null))
       .catch(() => setSessionId(null))
   }, [])
 
   // 切换到另一个 session，null 为新对话
   function openSession(id: number | null) {
     setShowList(false)
-    if (id === sessionId) {
-      return
-    }
     setSessionId(id)
-    setEntries([])
-    setProgress(null)
-    setRunning(false)
-    setNotice('')
-  }
-
-  // 连上当前 session 的实时推送，断开后从已有的条数接着连
-  useEffect(() => {
-    if (sessionId == null) {
-      return
-    }
-    let count = 0
-    let source: EventSource | undefined
-    let retry: number | undefined
-    const connect = () => {
-      source = new EventSource(`/api/sessions/${sessionId}/stream?from=${count}`)
-      source.onmessage = (message) => {
-        const event: LiveEvent = JSON.parse(message.data)
-        if (event.type === 'entry') {
-          if (event.index === count) {
-            count += 1
-            setEntries((prev) => [...prev, event.entry])
-          }
-        } else if (event.type === 'progress') {
-          setProgress(event.blocks)
-        } else {
-          setRunning(event.running)
-          if (!event.running) {
-            setProgress(null)
-          }
-        }
-      }
-      source.onerror = () => {
-        source?.close()
-        retry = window.setTimeout(connect, 3000)
-      }
-    }
-    connect()
-    return () => {
-      source?.close()
-      window.clearTimeout(retry)
-    }
-  }, [sessionId])
-
-  useEffect(() => {
-    const list = listRef.current
-    list?.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
-  }, [entries, progress, running, showList])
-
-  async function send() {
-    const text = input.trim()
-    if (!text || running || sessionId === undefined) {
-      return
-    }
-    setNotice('')
-    const url = sessionId === null ? '/api/sessions' : `/api/sessions/${sessionId}/messages`
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    }).catch(() => undefined)
-    if (!res?.ok) {
-      setNotice(res?.status === 409 ? '这个 session 正在回答' : `发送失败（${res?.status ?? '网络错误'}）`)
-      return
-    }
-    setInput('')
-    const { id } = await res.json()
-    setSessionId(id)
-  }
-
-  async function stop() {
-    await fetch(`/api/sessions/${sessionId}/stop`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-    }).catch(() => undefined)
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (enterSends && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
-      event.preventDefault()
-      send()
-    }
   }
 
   return (
     <div className="app">
-      <header className="header">
-        <span>binOS</span>
-        <div className="header-actions">
-          <button type="button" onClick={() => setShowList(!showList)}>
-            {showList ? '返回' : '列表'}
-          </button>
-          <button type="button" onClick={() => openSession(null)} disabled={!showList && !sessionId}>
-            新对话
-          </button>
-        </div>
-      </header>
-      {showList ? (
+      <Header
+        showList={showList}
+        onToggleList={() => setShowList(!showList)}
+        onNew={() => openSession(null)}
+        canStartNew={showList || sessionId != null}
+      />
+      {showList && (
         <div className="messages">
-          <SessionList current={sessionId} onSelect={openSession} />
+          <SessionList current={sessionId ?? null} onSelect={openSession} />
         </div>
-      ) : (
-          <>
-          <div className="messages" ref={listRef}>
-            {entries.length === 0 && !running && (
-              <p className="empty">对 binOS 的 agent 说点什么</p>
-            )}
-            {sessionId != null && <Transcript sessionId={sessionId} entries={entries} progress={progress} />}
-            {running && !progress?.length && <div className="message assistant pending">正在处理…</div>}
-            {notice && <div className="message system">{notice}</div>}
-          </div>
-          <form
-            className="composer"
-            onSubmit={(event) => {
-              event.preventDefault()
-              send()
-            }}
-          >
-            <textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={onKeyDown}
-              placeholder="输入消息"
-              rows={1}
-              disabled={running}
-            />
-            {running ? (
-              <button type="button" className="stop" onClick={stop}>
-                停止
-              </button>
-            ) : (
-              <button type="submit" disabled={!input.trim()}>
-                发送
-              </button>
-            )}
-          </form>
-          </>
+      )}
+      {/* 看列表时对话只是隐藏，输入到一半的内容和实时推送的连接都保留；换 session 时重新挂载，对话的状态随之清空 */}
+      {sessionId !== undefined && (
+        <div className="conversation" hidden={showList}>
+          <Conversation key={sessionId ?? 'new'} sessionId={sessionId} onCreated={setSessionId} />
+        </div>
       )}
     </div>
   )
 }
-
-export default App

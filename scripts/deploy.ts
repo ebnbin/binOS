@@ -3,21 +3,17 @@
 //   BINOS_ROOT=<根目录> npm run rollback  切回上一个版本
 // 切换后重启正式版并检查，不正常就切回原来的版本。同一时间只有一个上线或回退在进行
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdirSync, readFileSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { processStartTime } from '../server/src/process.ts'
+import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
+import { acquireProcessLock } from '../server/src/process.ts'
 import { serverLabel, serverPort } from './server.ts'
 
-const root = process.env.BINOS_ROOT
-if (!root) {
-  throw new Error('BINOS_ROOT is not set')
-}
+const { buildsDir, logsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
-const buildsDir = path.join(path.resolve(root), 'System', 'builds')
-const serverLog = path.join(path.resolve(root), 'Library', 'logs', 'server.log')
-const lockPath = path.join(buildsDir, '.deploy.lock')
+const serverLog = path.join(logsDir, 'server.log')
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim()
 const run = (command: string, args: string[], cwd: string) => execFileSync(command, args, { cwd, stdio: 'inherit' })
@@ -28,7 +24,10 @@ const command = process.argv[2]
 if (command !== 'deploy' && command !== 'rollback') {
   throw new Error('用法：node scripts/deploy.ts deploy | rollback')
 }
-if (!acquireLock()) {
+// 同一时间只有一个上线或回退在进行
+const holder = acquireProcessLock(path.join(buildsDir, '.deploy.lock'))
+if (holder) {
+  say(`已有上线或回退在进行（进程 ${holder.pid}），这次跳过`)
   process.exit(0)
 }
 if (command === 'deploy') {
@@ -58,42 +57,6 @@ if (command === 'deploy') {
   await switchTo(previous)
 }
 
-// 已有上线或回退在进行时返回 false；记录的进程已经不在时，锁已经无效，接管它
-function acquireLock(): boolean {
-  mkdirSync(buildsDir, { recursive: true })
-  const own = { pid: process.pid, startedAt: processStartTime(process.pid) }
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      writeFileSync(lockPath, JSON.stringify(own) + '\n', { flag: 'wx' })
-      process.on('exit', () => {
-        if (readLock()?.pid === own.pid) {
-          rmSync(lockPath, { force: true })
-        }
-      })
-      return true
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
-        throw err
-      }
-    }
-    const holder = readLock()
-    if (holder && processStartTime(holder.pid) === holder.startedAt) {
-      say(`已有上线或回退在进行（进程 ${holder.pid}），这次跳过`)
-      return false
-    }
-    rmSync(lockPath, { force: true })
-  }
-  throw new Error(`无法获取 ${lockPath}`)
-}
-
-function readLock(): { pid: number; startedAt: string } | undefined {
-  try {
-    return JSON.parse(readFileSync(lockPath, 'utf8'))
-  } catch {
-    return undefined
-  }
-}
-
 function build(commit: string) {
   const buildDir = path.join(buildsDir, commit)
   const tmp = `${buildDir}.tmp`
@@ -105,13 +68,10 @@ function build(commit: string) {
     git('archive', '--output', archive, commit)
     run('tar', ['-xf', archive, '-C', tmp], tmp)
     rmSync(archive)
-    for (const dir of ['web', 'server']) {
-      run('npm', ['ci'], path.join(tmp, dir))
-      run('npm', ['run', 'build'], path.join(tmp, dir))
-    }
+    run('npm', ['ci'], tmp)
+    run('npm', ['run', 'build'], tmp)
     // 运行时只需要前端构建出的页面和后端的正式依赖
-    rmSync(path.join(tmp, 'web', 'node_modules'), { recursive: true, force: true })
-    run('npm', ['prune', '--omit=dev'], path.join(tmp, 'server'))
+    run('npm', ['prune', '--omit=dev'], tmp)
     writeFileSync(path.join(tmp, 'VERSION'), commit + '\n')
     renameSync(tmp, buildDir)
   } catch (err) {
@@ -153,7 +113,7 @@ async function isHealthy(commit: string) {
   for (let i = 0; i < 60; i++) {
     await sleep(500)
     try {
-      const health = await (await fetch(`${base}/api/health`)).json()
+      const health = (await (await fetch(`${base}/api/health`)).json()) as { version?: string }
       const page = await fetch(`${base}/`)
       if (health.version === commit && page.ok && (await page.text()).includes('id="root"')) {
         return true

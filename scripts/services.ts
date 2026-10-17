@@ -4,15 +4,10 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
 import { serverLabel, serverPort } from './server.ts'
 
-const root = process.env.BINOS_ROOT
-if (!root) {
-  throw new Error('BINOS_ROOT is not set')
-}
-const rootDir = path.resolve(root)
-const mainDir = path.join(rootDir, 'System', 'source', 'main')
-const logsDir = path.join(rootDir, 'Library', 'logs')
+const { rootDir, mainDir, buildsDir, logsDir } = rootLayout(rootFromEnv())
 const agentsDir = path.join(os.homedir(), 'Library', 'LaunchAgents')
 const domain = `gui/${os.userInfo().uid}`
 
@@ -36,7 +31,7 @@ type Service = {
 const services: Service[] = [
   {
     label: serverLabel,
-    program: [which('node'), path.join(rootDir, 'System', 'builds', 'current', 'server', 'dist', 'index.js')],
+    program: [which('node'), path.join(buildsDir, 'current', 'server', 'dist', 'index.js')],
     env: { HOME: os.homedir(), PATH, BINOS_ROOT: rootDir, PORT: String(serverPort) },
     log: 'server.log',
   },
