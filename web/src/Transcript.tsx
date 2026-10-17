@@ -76,7 +76,7 @@ function ToolCall({ sessionId, use, result, live }: { sessionId: number; use: To
         if (part.type === 'text') {
           return <pre key={i} className="tool-output">{truncate(part.text)}</pre>
         }
-        const src = `/api/sessions/${sessionId}/images/${part.file}`
+        const src = `/api/sessions/${sessionId}/files/${part.file}`
         return (
           <a key={i} className="tool-image" href={src} target="_blank" rel="noreferrer">
             <img src={src} alt="" />

@@ -17,7 +17,7 @@ import { processStartTime } from './process.js'
 import {
   appendEntry,
   createSession,
-  imagesDir,
+  filesDir,
   listSessions,
   readSessionInfo,
   readTranscript,
@@ -318,8 +318,8 @@ function resultContent(sessionId: number, toolUseId: string, content: unknown): 
       return { type: 'text', text: `[${block.type}]` }
     }
     const file = `${toolUseId}-${index}.${extension}`
-    mkdirSync(imagesDir(sessionId), { recursive: true })
-    writeFileSync(path.join(imagesDir(sessionId), file), Buffer.from(block.source.data, 'base64'))
+    mkdirSync(filesDir(sessionId), { recursive: true })
+    writeFileSync(path.join(filesDir(sessionId), file), Buffer.from(block.source.data, 'base64'))
     return { type: 'image', file }
   })
 }

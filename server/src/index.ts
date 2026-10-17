@@ -9,7 +9,7 @@ import { requireOwner } from './access.js'
 import { isAnswering, liveState, resumeTurns, startTurn, stopTurn, subscribe } from './agent.js'
 import { acquireRootLock } from './lock.js'
 import { codeDir } from './paths.js'
-import { imagesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
+import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
 
 acquireRootLock()
 resumeTurns()
@@ -72,13 +72,13 @@ app.post('/api/sessions/:id/stop', (c) => {
   return c.json({ ok: true })
 })
 
-// session 里保存的图片。文件名由后端生成，内容不会变
-const imageTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
-app.get('/api/sessions/:id/images/:file', (c) => {
+// session 里保存的文件。文件名由后端生成，内容不会变；只提供下表里的类型
+const fileTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
+app.get('/api/sessions/:id/files/:file', (c) => {
   const id = Number(c.req.param('id'))
   const match = /^[\w-]+\.(\w+)$/.exec(c.req.param('file'))
-  const type = match && imageTypes[match[1]]
-  const file = path.join(imagesDir(id), c.req.param('file'))
+  const type = match && fileTypes[match[1]]
+  const file = path.join(filesDir(id), c.req.param('file'))
   if (!sessionExists(id) || !type || !existsSync(file)) {
     return c.text('Not Found', 404)
   }

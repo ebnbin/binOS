@@ -5,7 +5,7 @@ import { libraryDir } from './paths.js'
 
 // 消息内容块，与 Claude 的 Messages API 一致：工具调用在 assistant 消息里，工具结果在 user 消息里
 export type TextBlock = { type: 'text'; text: string }
-// 图片存成 session 目录下 images/ 里的文件，file 是文件名
+// 图片存成 session 目录下 files/ 里的文件，file 是文件名
 export type ImageBlock = { type: 'image'; file: string }
 export type ContentBlock =
   | TextBlock
@@ -35,7 +35,8 @@ export type SessionInfo = {
 
 const sessionsDir = path.join(libraryDir, 'agent', 'sessions')
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
-export const imagesDir = (id: number) => path.join(sessionDir(id), 'images')
+// 对话中涉及的文件
+export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
 const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
 const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
 
