@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { closeSync, openSync } from 'node:fs'
 import { claudeConfigDir, repoDir } from './paths.js'
-import { replyImagesPrompt } from './reply-images.js'
+import { replyFilesPrompt } from './reply-files.js'
 
 // 输出直接写进文件，自成一个进程组：后端重启时 launchd 结束的是后端所在的进程组，agent 不受影响，后端重启后接着读文件
 export function spawnClaude(options: {
@@ -22,7 +22,7 @@ export function spawnClaude(options: {
         '--output-format', 'stream-json',
         '--verbose',
         '--include-partial-messages',
-        '--append-system-prompt', replyImagesPrompt,
+        '--append-system-prompt', replyFilesPrompt,
         options.resume ? '--resume' : '--session-id', options.claudeSessionId,
       ],
       { cwd: repoDir, env: agentEnv(), stdio: ['ignore', stdout, stderr], detached: true },
