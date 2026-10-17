@@ -1,6 +1,6 @@
 import { closeSync, fstatSync, openSync, readSync } from 'node:fs'
 
-// 读取一个不断增长的文件里新增的完整行。按字节读取，一行完整了才返回，避免把多字节字符或半行内容拆开
+// 按字节读取，一行完整了才解码，避免拆开多字节字符
 export class LineReader {
   private readonly path: string
   private offset = 0

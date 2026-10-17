@@ -1,5 +1,4 @@
-// 生成并加载 binOS 的 launchd 服务（正式版后端、Cloudflare Tunnel、自动上线）：BINOS_ROOT=<根目录> npm run services
-// 根目录搬家或换宿主后重新执行一次
+// 根目录搬家或换宿主后重新运行一次
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
@@ -24,7 +23,6 @@ type Service = {
   env: Record<string, string>
   log: string
   workingDirectory?: string
-  // 定时运行的间隔（秒）；不设置时常驻运行，退出后自动拉起
   interval?: number
 }
 

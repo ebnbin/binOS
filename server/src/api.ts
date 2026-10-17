@@ -11,7 +11,7 @@ import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary }
 import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
 import type { LiveEvent, SessionSummary } from './types.js'
 
-// 当前运行的版本：正式版的构建里有 VERSION 文件，开发时没有
+// VERSION 由上线脚本写进构建目录，开发时没有
 const versionFile = path.join(codeDir, 'VERSION')
 const version = existsSync(versionFile) ? readFileSync(versionFile, 'utf8').trim() : 'dev'
 
@@ -23,7 +23,6 @@ const requireJson: MiddlewareHandler = async (c, next) => {
   await next()
 }
 
-// 路径里的 session 编号，不存在时返回 404
 const sessionParam = validator('param', (value: Record<string, string>, c) => {
   const id = Number(value.id)
   if (!sessionExists(id)) {
@@ -40,10 +39,9 @@ const messageBody = validator('json', (value: { text: string }, c) => {
   return { text }
 })
 
-// session 的 files/ 里可以提供的文件类型。文件名由后端生成，内容不会变
+// 文件名由后端生成，内容不会变，可以长期缓存
 const fileTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp' }
 
-// 开始一轮回答，sessionId 为空时新建 session
 function start(sessionId: number | undefined, text: string) {
   const id = startTurn(sessionId, text)
   return id === undefined ? ({ error: 'busy' } as const) : { id }
@@ -54,7 +52,6 @@ export const api = new Hono()
   // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
   .get('/health', (c) => c.json({ version }))
   .use(requireOwner, requireJson)
-  // 所有 session 的概要，新的在前
   .get('/sessions', (c) => {
     const sessions: SessionSummary[] = listSessions().map((id) => ({ ...sessionSummary(id), running: isAnswering(id) }))
     return c.json({ sessions })
@@ -83,8 +80,7 @@ export const api = new Hono()
     }
     return c.body(readFileSync(file), 200, { 'Content-Type': type, 'Cache-Control': 'private, max-age=31536000, immutable' })
   })
-  // 实时推送：先补发条目，再推送实时事件。条目的事件 id 是到它为止的条数，
-  // 浏览器断线重连时带上 Last-Event-ID，从那之后接着补发；也可以用 from 参数指定
+  // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
   .get('/sessions/:id/stream', sessionParam, (c) => {
     const id = c.req.valid('param').id
     const from = Number(c.req.header('Last-Event-ID') ?? c.req.query('from') ?? 0) || 0

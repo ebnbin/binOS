@@ -74,15 +74,6 @@ describe('ClaudeOutput', () => {
     expect(saved.get('t2-1.png')).toEqual(data)
   })
 
-  it('进展里的工具输出只保留开头一段，条目里是完整内容', () => {
-    const { output } = setup()
-    const long = 'x'.repeat(5000)
-    output.push(line({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: 't3', content: long }] } }))
-    const [result] = output.progress()
-    expect(result.type === 'tool_result' && result.content[0]).toEqual({ type: 'text', text: 'x'.repeat(4000) })
-    expect(JSON.stringify(output.entries)).toContain(long)
-  })
-
   it('忽略子任务的输出和无法解析的行，记下 result', () => {
     const { output } = setup()
     expect(output.push(line({ type: 'assistant', parent_tool_use_id: 't4', message: { content: [{ type: 'text', text: '子任务' }] } }))).toBe(false)

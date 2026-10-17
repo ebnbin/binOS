@@ -1,8 +1,6 @@
-// 前后端共用的数据类型：transcript 的条目，以及推给页面的实时事件
-
 // 消息内容块，与 Claude 的 Messages API 一致：工具调用在 assistant 消息里，工具结果在 user 消息里
 export type TextBlock = { type: 'text'; text: string }
-// 图片是 session 的 files/ 里的文件，file 是文件名
+// file 是 session 的 files/ 里的文件名
 export type ImageBlock = { type: 'image'; file: string }
 export type ToolUseBlock = { type: 'tool_use'; id: string; name: string; input: unknown }
 export type ToolResultBlock = {
@@ -35,13 +33,11 @@ export type SessionSummary = {
   id: number
   // 第一条用户消息
   title: string
-  // 最后一个条目的时间
   updatedAt: string | null
-  // 是否有回答在进行
   running: boolean
 }
 
-// 推给页面的事件：新写入的条目（index 是它在 transcript 中的位置）、这一轮到目前为止的进展、是否有回答在进行
+// index 是条目在 transcript 中的位置
 export type LiveEvent =
   | { type: 'entry'; index: number; entry: Entry }
   | { type: 'progress'; blocks: ContentBlock[] }

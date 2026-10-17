@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-// 一个进程的身份：进程号可能被系统重新分配给别的程序，所以同时记录启动时间，两者都对得上才是同一个进程
+// 进程号可能被系统重新分配给别的程序，加上启动时间才能确认是同一个进程
 export type ProcessIdentity = {
   pid: number
   startedAt: string
@@ -24,7 +24,7 @@ export function isRunning(identity: ProcessIdentity): boolean {
   return processStartTime(identity.pid) === identity.startedAt
 }
 
-// 只看进程号是否存在，开销小，适合频繁检查一个已经核对过身份的进程
+// 不调用 ps，开销小，适合频繁检查一个已经核对过身份的进程
 export function isAlive(pid: number): boolean {
   try {
     process.kill(pid, 0)
@@ -34,8 +34,7 @@ export function isAlive(pid: number): boolean {
   }
 }
 
-// 用文件做的进程锁：文件里记录持有者，持有者退出时删除。拿到锁返回 undefined；
-// 已被仍在运行的进程持有时返回持有者；持有者已经不在（没有正常退出）时接管
+// 拿到锁返回 undefined，否则返回仍在运行的持有者；持有者没有正常退出时接管
 export function acquireProcessLock(lockPath: string): ProcessIdentity | undefined {
   mkdirSync(path.dirname(lockPath), { recursive: true })
   const own = currentProcess()

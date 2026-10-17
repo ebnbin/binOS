@@ -4,7 +4,6 @@ import { useSession } from '../useSession.ts'
 import { Composer } from './Composer.tsx'
 import { Transcript } from './Transcript.tsx'
 
-// 一个 session 的对话。sessionId 为 null 时是新对话，发出第一条消息后由 onCreated 告知新 session 的编号
 export function Conversation({ sessionId, onCreated }: { sessionId: number | null; onCreated: (id: number) => void }) {
   const { entries, progress, running } = useSession(sessionId)
   const [notice, setNotice] = useState('')

@@ -20,14 +20,12 @@ import {
 import { interruptedText } from './types.js'
 import type { ContentBlock, EntryFields, LiveEvent } from './types.js'
 
-// 一轮回答：用户发来一条消息，agent 回答直到进程退出。每个 session 同一时间最多一轮，不同 session 可以同时进行。
-// 回答期间的 turn/ 目录：agent 的输出直接写进文件，state.json 记录 agent 进程，后端重启后能接着读
+// 回答期间的 turn/ 目录：agent 的输出和进程身份写在这里，后端重启后能接着读
 const turnDir = (id: number) => path.join(sessionDir(id), 'turn')
 const outputPath = (id: number) => path.join(turnDir(id), 'claude-output.jsonl')
 const errorsPath = (id: number) => path.join(turnDir(id), 'claude-errors.log')
 const statePath = (id: number) => path.join(turnDir(id), 'state.json')
 
-// 检查 agent 新输出的间隔
 const pollInterval = 200
 
 type Turn = { pid: number; blocks: ContentBlock[]; stopped: boolean }
@@ -37,7 +35,6 @@ export function isAnswering(sessionId: number): boolean {
   return turns.has(sessionId)
 }
 
-// 当前状态：页面连上时先拿到这个
 export function liveState(sessionId: number): LiveEvent[] {
   const turn = turns.get(sessionId)
   if (!turn) {
@@ -54,7 +51,7 @@ function append(sessionId: number, fields: EntryFields) {
   emit(sessionId, { type: 'entry', index, entry })
 }
 
-// 开始一轮回答，返回 session 编号；这个 session 已有回答在进行时返回 undefined。sessionId 为空时新建 session
+// 这个 session 已有回答在进行时返回 undefined
 export function startTurn(sessionId: number | undefined, text: string): number | undefined {
   if (sessionId !== undefined && turns.has(sessionId)) {
     return undefined
@@ -89,7 +86,7 @@ export function startTurn(sessionId: number | undefined, text: string): number |
   return id
 }
 
-// 停止正在进行的回答：结束 agent 所在的整个进程组，包括它在后台启动的任务
+// 结束整个进程组，包括 agent 在后台启动的任务
 export function stopTurn(sessionId: number): boolean {
   const turn = turns.get(sessionId)
   if (!turn) {
@@ -104,7 +101,7 @@ export function stopTurn(sessionId: number): boolean {
   return true
 }
 
-// 后端启动时：接上还在进行的回答；没有 turn/ 但最后一条还是用户发来的消息，说明 agent 没能启动
+// 没有 turn/ 但最后一条还是用户发来的消息，说明 agent 没能启动
 export function resumeTurns() {
   for (const id of listSessions()) {
     if (existsSync(statePath(id))) {
@@ -116,8 +113,7 @@ export function resumeTurns() {
   }
 }
 
-// 跟进一轮回答：读取 agent 输出的新内容并推给页面，直到 agent 进程退出，再把这一轮写进 transcript。
-// 出现 result 不代表结束：agent 有后台任务时会继续等待，任务结束后接着回答
+// 以 agent 进程退出为结束，而不是 result：agent 有后台任务时会等任务结束后接着回答
 function follow(id: number, agent: ProcessIdentity) {
   const turn: Turn = { pid: agent.pid, blocks: [], stopped: false }
   turns.set(id, turn)

@@ -4,9 +4,7 @@ import { listSessions } from '../api.ts'
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short' })
 
-// 所有 session，新的在前；点一个进入它
 export function SessionList({ current, onSelect }: { current: number | null; onSelect: (id: number) => void }) {
-  // undefined：还在读取
   const [sessions, setSessions] = useState<SessionSummary[] | undefined>(undefined)
   const [error, setError] = useState(false)
 

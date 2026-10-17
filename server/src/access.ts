@@ -3,7 +3,7 @@ import { Jwt } from 'hono/utils/jwt'
 import { config } from './config.js'
 import { isTestInstance } from './paths.js'
 
-// 只放行经过 Cloudflare Access 登录、且邮箱是 ownerEmail 的请求。测试实例只能从本机访问，不校验
+// 测试实例前面没有 Cloudflare Access，不校验
 export const requireOwner: MiddlewareHandler = async (c, next) => {
   if (isTestInstance) {
     return next()

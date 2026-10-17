@@ -1,4 +1,3 @@
-// 顶栏：切换 session 列表，开始新对话
 export function Header({
   showList,
   onToggleList,

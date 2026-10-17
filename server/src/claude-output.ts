@@ -2,7 +2,6 @@ import type { ContentBlock, EntryFields, ImageBlock, TextBlock } from './types.j
 
 // 进展里的工具输出只推送开头一段，完整内容在这一轮结束后写进 transcript
 const progressOutputLimit = 4000
-// Claude 支持的图片格式和保存时用的扩展名
 const imageExtensions: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -12,16 +11,11 @@ const imageExtensions: Record<string, string> = {
 
 export type ClaudeResult = { is_error?: boolean; result?: string }
 
-// 把 claude --output-format stream-json 的输出逐行转成 transcript 条目和这一轮的进展。
-// 只处理主对话，子任务的输出不算在这一轮的回答里。工具结果里的图片交给 saveFile 存成文件
+// 把 claude --output-format stream-json 的输出逐行转成 transcript 条目和这一轮的进展
 export class ClaudeOutput {
-  // 已完成的条目，这一轮结束时按顺序写进 transcript
   readonly entries: EntryFields[] = []
-  // 正在生成的文字
   partial = ''
-  // 最后的 result 消息；出现它不代表结束，agent 有后台任务时会继续回答
   result: ClaudeResult | undefined
-  // 刚开始、还没拿到参数的工具调用
   private startingTool: { id: string; name: string } | undefined
   private readonly saveFile: (name: string, data: Buffer) => void
 
@@ -29,7 +23,7 @@ export class ClaudeOutput {
     this.saveFile = saveFile
   }
 
-  // 处理一行输出，返回这一轮的进展是否有变化
+  // 返回这一轮的进展是否有变化
   push(line: string): boolean {
     let data
     try {
@@ -37,6 +31,7 @@ export class ClaudeOutput {
     } catch {
       return false
     }
+    // 子任务的输出不算在这一轮的回答里
     if (data.parent_tool_use_id) {
       return false
     }
@@ -75,7 +70,6 @@ export class ClaudeOutput {
     }
   }
 
-  // 这一轮到目前为止的进展：已完成的内容块，加上刚开始的工具调用和正在生成的文字
   progress(): ContentBlock[] {
     const blocks = this.entries.flatMap((entry) =>
       (entry.message!.content as ContentBlock[]).map((block): ContentBlock => {
@@ -117,8 +111,7 @@ export class ClaudeOutput {
     this.entries.push({ type, message: { role: type, content: [block] } })
   }
 
-  // 工具结果可能是文字，也可能是内容块数组。图片按工具调用和位置命名，重新读取同一份输出时覆盖同一个文件；
-  // 其他类型的块只记下类型
+  // 图片按工具调用和位置命名：后端重启后重新读取同一份输出时，覆盖同一个文件
   private resultContent(toolUseId: string, content: unknown): (TextBlock | ImageBlock)[] {
     if (typeof content === 'string') {
       return [{ type: 'text', text: content }]
