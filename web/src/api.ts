@@ -5,6 +5,11 @@ import { hc } from 'hono/client'
 const client = hc<AppType>(window.location.origin)
 const sessions = client.api.sessions
 
+export async function getVersion(): Promise<string | undefined> {
+  const res = await client.api.health.$get().catch(() => undefined)
+  return res?.ok ? (await res.json()).version : undefined
+}
+
 export async function listSessions() {
   const res = await sessions.$get()
   if (!res.ok) {

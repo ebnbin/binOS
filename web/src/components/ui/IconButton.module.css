@@ -9,7 +9,13 @@
   transition: background-color 0.15s;
 }
 
-.button:hover:not(:disabled) {
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    background: var(--hover);
+  }
+}
+
+.button:active:not(:disabled) {
   background: var(--hover);
 }
 

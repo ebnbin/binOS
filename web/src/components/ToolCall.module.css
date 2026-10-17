@@ -26,8 +26,10 @@
   display: none;
 }
 
-.row:hover {
-  background: var(--hover);
+@media (hover: hover) {
+  .row:hover {
+    background: var(--hover);
+  }
 }
 
 .row:focus-visible {

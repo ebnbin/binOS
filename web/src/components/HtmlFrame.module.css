@@ -49,9 +49,11 @@
   transition: background 0.15s;
 }
 
-.bar .action:hover {
-  background: var(--hover);
-  color: var(--text);
+@media (hover: hover) {
+  .bar .action:hover {
+    background: var(--hover);
+    color: var(--text);
+  }
 }
 
 /* 网页大多默认白底黑字，不跟随 binOS 的深色模式 */

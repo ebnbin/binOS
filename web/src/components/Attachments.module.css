@@ -56,8 +56,10 @@
   text-decoration: none;
 }
 
-.link:hover .card {
-  background: var(--hover);
+@media (hover: hover) {
+  .link:hover .card {
+    background: var(--hover);
+  }
 }
 
 .pending {

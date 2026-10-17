@@ -1,9 +1,12 @@
+import { Resvg } from '@resvg/resvg-js'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
+import type { Plugin } from 'vite'
+import { logoSvg } from './src/logo.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), appFiles()],
   server: {
     proxy: {
       '/api': {
@@ -22,3 +25,54 @@ export default defineConfig({
     },
   },
 })
+
+// 图标和 manifest 都由 src/logo.ts 生成：开发时直接提供，构建时输出到 dist
+function appFiles(): Plugin {
+  const png = (rounded: boolean, size: number) =>
+    new Resvg(logoSvg({ ink: '#000', on: '#fff', rounded }), { fitTo: { mode: 'width', value: size } }).render().asPng()
+  const manifest = {
+    id: '/',
+    name: 'binOS',
+    short_name: 'binOS',
+    lang: 'zh-CN',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    background_color: '#f8f7f4',
+    theme_color: '#f8f7f4',
+    icons: [
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { src: '/icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
+  }
+  let files: Map<string, { type: string; body: string | Uint8Array }> | undefined
+  const generate = () =>
+    (files ??= new Map<string, { type: string; body: string | Uint8Array }>([
+      ['favicon.svg', { type: 'image/svg+xml', body: logoSvg({ ink: '#000', on: '#fff', rounded: true, dark: true }) }],
+      // 系统会给这两种加圆角，所以是全方形；apple-touch-icon 的透明部分会变成黑色
+      ['apple-touch-icon.png', { type: 'image/png', body: png(false, 180) }],
+      ['icon-maskable.png', { type: 'image/png', body: png(false, 512) }],
+      ['icon-192.png', { type: 'image/png', body: png(true, 192) }],
+      ['icon-512.png', { type: 'image/png', body: png(true, 512) }],
+      ['manifest.webmanifest', { type: 'application/manifest+json', body: JSON.stringify(manifest) }],
+    ]))
+  return {
+    name: 'binos-app-files',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const file = generate().get(req.url?.split('?')[0].slice(1) ?? '')
+        if (!file) {
+          return next()
+        }
+        res.setHeader('Content-Type', file.type)
+        res.end(file.body)
+      })
+    },
+    generateBundle() {
+      for (const [fileName, { body }] of generate()) {
+        this.emitFile({ type: 'asset', fileName, source: body })
+      }
+    },
+  }
+}

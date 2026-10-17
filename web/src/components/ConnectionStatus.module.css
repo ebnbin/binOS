@@ -15,16 +15,32 @@
   font-size: 13px;
   white-space: nowrap;
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden;
   transform: translate(-50%, -6px);
   transition:
     opacity 0.2s,
+    visibility 0.2s,
     transform 0.2s var(--ease);
 }
 
 .status[data-visible='true'] {
   opacity: 1;
+  visibility: visible;
   transform: translate(-50%, 0);
   /* 上线时后端重启会断开一两秒，短暂的断开不提示 */
   transition-delay: 1.5s;
+}
+
+.status[data-urgent='true'] {
+  transition-delay: 0s;
+}
+
+.reload {
+  margin: -2px -8px -2px 2px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 12px;
+  font-weight: 500;
 }

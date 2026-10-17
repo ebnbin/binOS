@@ -41,8 +41,10 @@
   transition: border-color 0.15s;
 }
 
-.newButton:hover {
-  border-color: color-mix(in srgb, var(--muted) 60%, transparent);
+@media (hover: hover) {
+  .newButton:hover {
+    border-color: color-mix(in srgb, var(--muted) 60%, transparent);
+  }
 }
 
 .label {
@@ -82,7 +84,13 @@
   transition: background-color 0.15s;
 }
 
-.item:hover {
+@media (hover: hover) {
+  .item:hover {
+    background: var(--hover);
+  }
+}
+
+.item:active {
   background: var(--hover);
 }
 
