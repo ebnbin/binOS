@@ -3,8 +3,8 @@ import { useSyncExternalStore } from 'react'
 import { eventsUrl, getVersion } from './api.ts'
 import { connectEventSource } from './eventSource.ts'
 
-// 整个页面只连一条全局通知。重连后订阅者收到 null，表示期间可能漏了通知，应全部重新读取
-type Listener = (sessionId: number | null) => void
+// 整个页面只连一条全局通知。每次连上时订阅者收到 null，表示之前可能漏了通知，应全部重新读取
+type Listener = (event: ChangeEvent | null) => void
 
 const listeners = new Set<Listener>()
 const connectionListeners = new Set<() => void>()
@@ -34,20 +34,14 @@ function start() {
     return
   }
   started = true
-  let opened = false
   connectEventSource(eventsUrl, {
     onOpen: () => {
       void checkVersion()
-      if (opened) {
-        listeners.forEach((listener) => listener(null))
-      }
-      opened = true
+      listeners.forEach((listener) => listener(null))
     },
     onMessage: (data) => {
       const event: ChangeEvent = JSON.parse(data)
-      if (event.type === 'session') {
-        listeners.forEach((listener) => listener(event.id))
-      }
+      listeners.forEach((listener) => listener(event))
     },
     onConnectedChange: (value) => {
       connected = value
@@ -56,7 +50,7 @@ function start() {
   })
 }
 
-export function onSessionChanged(listener: Listener): () => void {
+export function onChange(listener: Listener): () => void {
   listeners.add(listener)
   start()
   return () => listeners.delete(listener)

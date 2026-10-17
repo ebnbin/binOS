@@ -1,0 +1,94 @@
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sent {
+  align-self: flex-end;
+  justify-content: flex-end;
+  max-width: 78%;
+}
+
+.thumb {
+  display: block;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--code);
+}
+
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+  height: 64px;
+  padding: 0 14px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.card svg {
+  flex: none;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .link:hover .card {
+    background: var(--hover);
+  }
+}
+
+.pending {
+  position: relative;
+}
+
+.remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* 触屏上按钮太小不好点，扩大可点区域 */
+.remove::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+@container agent (width < 600px) {
+  .sent {
+    max-width: 86%;
+  }
+}
