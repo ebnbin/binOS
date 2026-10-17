@@ -8,12 +8,6 @@
   overflow-wrap: anywhere;
 }
 
-.assistant {
-  line-height: 1.75;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
 .divider {
   display: flex;
   align-items: center;

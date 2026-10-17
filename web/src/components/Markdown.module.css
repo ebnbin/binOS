@@ -1,0 +1,158 @@
+.markdown {
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.markdown > :first-child {
+  margin-top: 0;
+}
+
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown :is(p, ul, ol, blockquote, pre, .tableWrap, hr) {
+  margin: 0 0 14px;
+}
+
+.markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin: 26px 0 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.markdown h1 {
+  font-size: 1.4em;
+}
+
+.markdown h2 {
+  font-size: 1.22em;
+}
+
+.markdown h3 {
+  font-size: 1.08em;
+}
+
+.markdown :is(h4, h5, h6) {
+  font-size: 1em;
+}
+
+.markdown strong {
+  font-weight: 600;
+}
+
+.markdown a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+
+.markdown a:hover {
+  text-decoration-color: currentColor;
+}
+
+.markdown :is(ul, ol) {
+  padding-left: 1.5em;
+}
+
+.markdown li + li,
+.markdown li > :is(ul, ol) {
+  margin-top: 4px;
+}
+
+.markdown li > :is(ul, ol) {
+  margin-bottom: 0;
+}
+
+.markdown li::marker {
+  color: var(--muted);
+}
+
+.markdown li > p {
+  margin: 0;
+}
+
+.markdown input[type='checkbox'] {
+  margin: 0 6px 0 0;
+  vertical-align: -1px;
+  accent-color: var(--ink);
+}
+
+.markdown :global(.contains-task-list) {
+  padding-left: 0.4em;
+  list-style: none;
+}
+
+.markdown blockquote {
+  padding-left: 14px;
+  border-left: 3px solid var(--border);
+  color: var(--text-2);
+}
+
+.markdown hr {
+  height: 1px;
+  border: 0;
+  background: var(--hairline);
+}
+
+.markdown code {
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--bubble);
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+.markdown pre {
+  overflow-x: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--code);
+  line-height: 1.6;
+}
+
+.markdown pre code {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 12.5px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93em;
+  line-height: 1.55;
+}
+
+.markdown :is(th, td) {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown th {
+  background: var(--code);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.markdown tr + tr td,
+.markdown thead + tbody td {
+  border-top: 1px solid var(--hairline);
+}
+
+.markdown img {
+  max-width: 100%;
+  border-radius: 8px;
+}
