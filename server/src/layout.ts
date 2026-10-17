@@ -7,6 +7,7 @@ export function rootLayout(root: string) {
     rootDir,
     mainDir: path.join(rootDir, 'System', 'source', 'main'),
     buildsDir: path.join(rootDir, 'System', 'builds'),
+    previewsDir: path.join(rootDir, 'System', 'previews'),
     libraryDir,
     logsDir: path.join(libraryDir, 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
