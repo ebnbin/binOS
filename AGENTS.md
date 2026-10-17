@@ -17,7 +17,7 @@ binOS 是运行在 macOS 上、通过浏览器使用的个人操作系统。用�
 2. 在 worktree 根目录 `pnpm install` 安装依赖，完成改动后运行 `pnpm check`（类型检查、lint 和测试），再用 `pnpm dev` 启动测试实例验证。测试实例的数据在 worktree 里，和正式版互不影响
 3. 提交、推送、开 PR，在描述里写明验证的方式和结果，把链接发给用户
 4. 用户明确说合并后，才合并 PR
-5. 合并后，binOS 会在一分钟内自动上线 main 的最新版本。确认正式版 `/api/health` 返回的版本包含这次合并的提交。上线失败时线上会自动切回原版本，原因见 `Library/logs/deploy.log` 和 `Library/logs/server.log`
+5. 合并后，binOS 会在一分钟内自动上线 main 的最新版本。运行 `pnpm deployed` 等待并确认正式版包含这次合并的提交。上线失败时线上会自动切回原版本，`pnpm deployed` 会输出 `deploy.log` 里的原因，详细日志见 `Library/logs/server.log`
 6. 删除这次的 worktree 和本地分支
 
 ## 约定
