@@ -2,13 +2,12 @@ import { interruptedText } from '@binos/server/types'
 import type { ContentBlock, Entry, ToolResultBlock } from '@binos/server/types'
 import { ToolCall } from './ToolCall.tsx'
 
-// 用户发来的消息 content 是字符串，统一成内容块
 function blocksOf(entry: Entry): ContentBlock[] {
   const content = entry.message?.content
   return typeof content === 'string' ? [{ type: 'text', text: content }] : (content ?? [])
 }
 
-// 已写入的条目，加上正在进行的这一轮的进展。工具调用和它的结果在不同的条目里，按 id 对应起来
+// 工具调用和它的结果在不同的条目里，按 id 对应起来
 export function Transcript({
   sessionId,
   entries,

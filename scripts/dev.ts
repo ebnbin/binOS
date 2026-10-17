@@ -1,5 +1,3 @@
-// 用这个 worktree 的代码启动一个测试实例：npm run dev
-// 数据放在 .test-instance/ 下，端口自动分配；agent 借用正式版的 Claude Code 配置
 import { spawn } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
 import net from 'node:net'
@@ -40,7 +38,6 @@ const children = [
 
 console.log(`测试实例：页面 http://localhost:${webPort}，接口 http://127.0.0.1:${serverPort}/api，数据 ${rootDir}`)
 
-// 任何一个退出或收到结束信号，就把两个都结束
 const stop = () => {
   for (const child of children) {
     child.kill('SIGTERM')

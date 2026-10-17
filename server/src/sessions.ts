@@ -4,9 +4,7 @@ import path from 'node:path'
 import { sessionsDir } from './paths.js'
 import type { Entry, EntryFields, SessionSummary } from './types.js'
 
-// 每个 session 是 sessions/<编号>/ 目录：session.json、transcript.jsonl、files/（对话中涉及的文件）
 export type SessionInfo = {
-  // 对应的 Claude Code 会话
   claudeSessionId: string
 }
 
@@ -15,7 +13,6 @@ export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
 const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
 const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
 
-// 所有 session 的编号，新的在前
 export function listSessions(): number[] {
   if (!existsSync(sessionsDir)) {
     return []
@@ -56,10 +53,9 @@ export function readTranscript(id: number): Entry[] {
     .map((line) => JSON.parse(line))
 }
 
-// 每个 session 的条数和最后一个条目，追加时不用重读整个 transcript。只有这个后端写 transcript（根目录锁保证）
+// 追加时不用重读整个 transcript。只有这个后端写 transcript（根目录锁保证），所以缓存不会过期
 const tails = new Map<number, { count: number; lastUuid: string | null }>()
 
-// 追加一个条目，返回它和它在 transcript 中的位置
 export function appendEntry(id: number, fields: EntryFields): { entry: Entry; index: number } {
   let tail = tails.get(id)
   if (!tail) {

@@ -4,7 +4,6 @@ import type { KeyboardEvent } from 'react'
 // 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
 const enterSends = !window.matchMedia('(pointer: coarse)').matches
 
-// 输入框：回答进行中只能停止。onSend 返回是否发送成功，成功才清空输入
 export function Composer({
   running,
   onSend,

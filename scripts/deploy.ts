@@ -1,7 +1,3 @@
-// 上线与回退：
-//   BINOS_ROOT=<根目录> npm run deploy    构建当前提交（HEAD），切换为正式运行的版本；已在运行就什么都不做
-//   BINOS_ROOT=<根目录> npm run rollback  切回上一个版本
-// 切换后重启正式版并检查，不正常就切回原来的版本。同一时间只有一个上线或回退在进行
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readlinkSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
@@ -24,7 +20,6 @@ const command = process.argv[2]
 if (command !== 'deploy' && command !== 'rollback') {
   throw new Error('用法：node scripts/deploy.ts deploy | rollback')
 }
-// 同一时间只有一个上线或回退在进行
 const holder = acquireProcessLock(path.join(buildsDir, '.deploy.lock'))
 if (holder) {
   say(`已有上线或回退在进行（进程 ${holder.pid}），这次跳过`)
@@ -63,14 +58,13 @@ function build(commit: string) {
   rmSync(tmp, { recursive: true, force: true })
   mkdirSync(tmp, { recursive: true })
   try {
-    // 只取这个提交里的代码，工作区里未提交的改动不会混进来
+    // 只取这个提交里的代码，不混入工作区里未提交的改动
     const archive = path.join(tmp, 'source.tar')
     git('archive', '--output', archive, commit)
     run('tar', ['-xf', archive, '-C', tmp], tmp)
     rmSync(archive)
     run('npm', ['ci'], tmp)
     run('npm', ['run', 'build'], tmp)
-    // 运行时只需要前端构建出的页面和后端的正式依赖
     run('npm', ['prune', '--omit=dev'], tmp)
     writeFileSync(path.join(tmp, 'VERSION'), commit + '\n')
     renameSync(tmp, buildDir)
@@ -80,7 +74,6 @@ function build(commit: string) {
   }
 }
 
-// 切换到这个版本；成功后原来的版本记为 previous，失败就切回原来的版本
 async function switchTo(commit: string) {
   const old = linkTarget('current')
   if (old === commit) {
@@ -107,7 +100,6 @@ async function activate(commit: string) {
   return isHealthy(commit)
 }
 
-// 运行的版本对得上、首页能打开才算正常；最多等 30 秒
 async function isHealthy(commit: string) {
   const base = `http://127.0.0.1:${serverPort}`
   for (let i = 0; i < 60; i++) {

@@ -4,7 +4,6 @@ import { fileUrl } from '../api.ts'
 const outputLimit = 4000
 const statusIcons = { running: '…', done: '✓', error: '✗', stopped: '–' }
 
-// 一次工具调用：折叠时显示名称和一行说明，展开后显示参数和结果
 export function ToolCall({
   sessionId,
   use,
@@ -41,7 +40,6 @@ export function ToolCall({
   )
 }
 
-// 一行说明这次调用做了什么：命令、文件路径、搜索内容等
 const summaryKeys: Record<string, string> = {
   Bash: 'command',
   Read: 'file_path',
