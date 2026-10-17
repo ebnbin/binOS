@@ -33,6 +33,17 @@
   cursor: default;
 }
 
+.conversation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.conversation[hidden] {
+  display: none;
+}
+
 .messages {
   flex: 1;
   overflow-y: auto;

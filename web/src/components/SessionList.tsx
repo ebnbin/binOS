@@ -1,24 +1,18 @@
+import type { SessionSummary } from '@binos/server/types'
 import { useEffect, useState } from 'react'
-
-type Session = {
-  id: number
-  title: string
-  updatedAt: string | null
-  running: boolean
-}
+import { listSessions } from '../api.ts'
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'short' })
 
 // 所有 session，新的在前；点一个进入它
-export function SessionList({ current, onSelect }: { current: number | null | undefined; onSelect: (id: number) => void }) {
+export function SessionList({ current, onSelect }: { current: number | null; onSelect: (id: number) => void }) {
   // undefined：还在读取
-  const [sessions, setSessions] = useState<Session[] | undefined>(undefined)
+  const [sessions, setSessions] = useState<SessionSummary[] | undefined>(undefined)
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    fetch('/api/sessions')
-      .then((res) => res.json())
-      .then(({ sessions }) => setSessions(sessions))
+    listSessions()
+      .then(setSessions)
       .catch(() => setError(true))
   }, [])
 
