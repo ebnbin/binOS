@@ -18,7 +18,7 @@ const serverPort = await freePort()
 const webPort = await freePort()
 
 const children = [
-  spawn('npm', ['run', 'dev', '-w', '@binos/server'], {
+  spawn('pnpm', ['--filter', '@binos/server', 'dev'], {
     cwd: worktreeDir,
     stdio: 'inherit',
     env: {
@@ -29,7 +29,7 @@ const children = [
       PORT: String(serverPort),
     },
   }),
-  spawn('npm', ['run', 'dev', '-w', '@binos/web', '--', '--port', String(webPort), '--strictPort'], {
+  spawn('pnpm', ['--filter', '@binos/web', 'dev', '--port', String(webPort), '--strictPort'], {
     cwd: worktreeDir,
     stdio: 'inherit',
     env: { ...process.env, BINOS_SERVER_PORT: String(serverPort) },

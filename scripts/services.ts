@@ -14,7 +14,7 @@ const tunnelTokenItem = 'binOS cloudflared tunnel'
 
 // 用 Homebrew 的固定链接路径，brew 升级后仍然有效
 const which = (command: string) => execFileSync('which', [command], { encoding: 'utf8' }).trim()
-// launchd 默认的 PATH 很短，找不到 claude、git、npm；沿用安装时的 PATH，去掉 npm 运行脚本时临时加入的目录
+// launchd 默认的 PATH 很短，找不到 claude、git、pnpm；沿用安装时的 PATH，去掉包管理器运行脚本时临时加入的目录
 const PATH = process.env.PATH!.split(':').filter((dir) => !dir.includes('node_modules')).join(':')
 
 type Service = {
