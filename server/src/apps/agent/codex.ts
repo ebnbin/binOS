@@ -29,13 +29,15 @@ export function codexCatalog(): Promise<CodexCatalog> {
   return cached.catalog
 }
 
-// 起一个临时的 app-server，问完就结束
-async function readCatalog(): Promise<CodexCatalog> {
+type Request = <T>(method: string, params: unknown) => Promise<T | undefined>
+
+// 起一个临时的 app-server，问完就结束；codex 没装、出错或超时时返回 fallback
+export async function askCodex<T>(ask: (request: Request) => Promise<T>, fallback: T): Promise<T> {
   const server = spawn('codex', ['app-server'], { stdio: ['pipe', 'pipe', 'ignore'], env: { ...process.env, CODEX_HOME: codexHome } })
   const waiting = new Map<number, (result: unknown) => void>()
   let nextId = 0
-  const request = <T>(method: string, params: unknown) =>
-    new Promise<T | undefined>((resolve) => {
+  const request: Request = <R>(method: string, params: unknown) =>
+    new Promise<R | undefined>((resolve) => {
       const id = ++nextId
       waiting.set(id, resolve as (result: unknown) => void)
       server.stdin.write(JSON.stringify({ id, method, params }) + '\n')
@@ -50,15 +52,26 @@ async function readCatalog(): Promise<CodexCatalog> {
       // 不认识的行
     }
   })
-  const unavailable: CodexCatalog = { available: false, models: [] }
-  const failed = new Promise<CodexCatalog>((resolve) => {
-    server.on('error', () => resolve(unavailable))
-    server.on('exit', () => resolve(unavailable))
-    setTimeout(() => resolve(unavailable), timeout).unref()
+  const failed = new Promise<T>((resolve) => {
+    server.on('error', () => resolve(fallback))
+    server.on('exit', () => resolve(fallback))
+    setTimeout(() => resolve(fallback), timeout).unref()
   })
-  const ask = async (): Promise<CodexCatalog> => {
+  const run = async () => {
     await request('initialize', { clientInfo: { name: 'binos', title: 'binOS', version: '1' }, capabilities: null })
     server.stdin.write(JSON.stringify({ method: 'initialized' }) + '\n')
+    return ask(request)
+  }
+  try {
+    return await Promise.race([run(), failed])
+  } finally {
+    server.kill()
+  }
+}
+
+function readCatalog(): Promise<CodexCatalog> {
+  const unavailable: CodexCatalog = { available: false, models: [] }
+  return askCodex(async (request) => {
     const account = await request<{ account: unknown }>('account/read', {})
     if (!account?.account) {
       return unavailable
@@ -78,12 +91,7 @@ async function readCatalog(): Promise<CodexCatalog> {
       }))
     const limits = rateLimits?.rateLimits && codexLimits(rateLimits.rateLimits, new Date().toISOString())
     return { available: true, models, ...(limits && { limits }) }
-  }
-  try {
-    return await Promise.race([ask(), failed])
-  } finally {
-    server.kill()
-  }
+  }, unavailable)
 }
 
 // usedPercent 是 0 到 100；按窗口长短对应到 5 小时和 7 天。只看 codex 自己的额度，别的（比如某个模型单独的）不管

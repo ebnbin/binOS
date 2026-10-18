@@ -35,6 +35,12 @@ export async function sendMessage(
   return { error: res?.status === 503 ? '消息没能交给 agent，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }
 
+// 各个 agent 的账号、登录凭证和用量；读不到时返回 undefined
+export async function agentAccounts() {
+  const res = await client.accounts.$get().catch(() => undefined)
+  return res?.ok ? (await res.json()).accounts : undefined
+}
+
 // 读不到时当作不能用
 export async function codexCatalog() {
   const res = await client.codex.$get().catch(() => undefined)

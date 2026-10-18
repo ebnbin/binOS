@@ -43,3 +43,29 @@
 .dot[data-connected='true'] {
   background: #34c759;
 }
+
+.links {
+  padding: 0 20px 16px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 14px;
+  text-align: left;
+}
+
+.linkHint {
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.link svg {
+  color: var(--muted);
+}

@@ -1,0 +1,156 @@
+.page {
+  height: 100%;
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--bg);
+}
+
+.bar h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.failed {
+  padding: 20px;
+  color: var(--danger);
+}
+
+.section {
+  padding: 8px 20px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.status {
+  color: var(--danger);
+  font-size: 12.5px;
+}
+
+.status[data-ok='true'] {
+  color: #34c759;
+}
+
+.version {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.list {
+  margin: 4px 0 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.row dt {
+  flex-shrink: 0;
+  color: var(--text-2);
+}
+
+.row dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.row dd > span {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+[data-expired='true'] {
+  color: var(--danger);
+}
+
+.note {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.row dd > .quota {
+  width: min(220px, 100%);
+  align-items: stretch;
+  gap: 5px;
+}
+
+.quotaLine {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--hover);
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ink);
+}
+
+.meter[data-level='warning'] span {
+  background: var(--live);
+}
+
+.meter[data-level='danger'] span {
+  background: var(--danger);
+}
