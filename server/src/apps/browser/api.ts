@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
-import { dispatchInput, navigate, runAction, setViewport, subscribe } from './browser.js'
+import { dispatchInput, navigate, reconnect, runAction, setViewport, subscribe } from './browser.js'
 import type { InputEvent, TabAction, Viewport } from './types.js'
 
 const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
@@ -83,7 +83,7 @@ const actionBody = validator('json', (value, c) => {
 })
 
 export const browserApi = new Hono()
-  // 先发当前状态和最后一帧，之后有变化时推送
+  // 先发连接状态、标签页状态和最后一帧，之后有变化时推送
   .get('/stream', (c) =>
     streamSSE(c, async (stream) => {
       await stream.write(connectedPreamble)
@@ -91,6 +91,11 @@ export const browserApi = new Hono()
       await keepAlive(stream)
     }),
   )
+  // 连接断开或被拒绝后，由用户手动重新连接，免得反复在 Mac 上弹窗
+  .post('/connect', async (c) => {
+    await reconnect()
+    return c.json({ ok: true }, 200)
+  })
   .post('/viewport', viewportBody, async (c) => {
     await setViewport(c.req.valid('json'))
     return c.json({ ok: true }, 200)

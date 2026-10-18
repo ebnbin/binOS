@@ -6,8 +6,14 @@ export type TabState = {
   canGoForward: boolean
 }
 
+// waiting：等用户在 Mac 上的 Chrome 里允许连接；unavailable：连不上，reason 是原因
+export type Connection = { status: 'idle' | 'waiting' | 'connected' } | { status: 'unavailable'; reason: string }
+
 // width、height 是页面的 CSS 像素尺寸，data 是 base64 的 JPEG
-export type BrowserEvent = { type: 'state'; state: TabState } | { type: 'frame'; data: string; width: number; height: number }
+export type BrowserEvent =
+  | { type: 'connection'; connection: Connection }
+  | { type: 'state'; state: TabState }
+  | { type: 'frame'; data: string; width: number; height: number }
 
 // 坐标都是页面的 CSS 像素。modifiers 按 CDP 的约定：Alt 1、Ctrl 2、Meta 4、Shift 8
 export type InputEvent =

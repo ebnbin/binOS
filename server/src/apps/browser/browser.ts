@@ -1,87 +1,173 @@
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { browserDir } from '../../paths.js'
-import { launchChrome } from './chrome.js'
+import { ChromeUnavailable, connectChrome } from './chrome.js'
 import type { CdpEvent, Chrome } from './chrome.js'
-import type { BrowserEvent, InputEvent, TabAction, TabState, Viewport } from './types.js'
+import type { BrowserEvent, Connection, InputEvent, TabAction, TabState, Viewport } from './types.js'
 
-// 只有一个标签页，所有打开浏览器的窗口看的都是它
+// binOS 在用户的 Chrome 里开一个专用窗口，只有一个标签页，所有打开浏览器 app 的窗口看的都是它
 type Tab = { chrome: Chrome; targetId: string; sessionId: string }
-type TargetInfo = { targetId: string; type: string; url: string; title: string }
+type TargetInfo = { targetId: string; type: string; url: string; title: string; openerId?: string }
 type History = { currentIndex: number; entries: { id: number; url: string; title: string }[] }
 
 type Viewer = (event: BrowserEvent) => Promise<void>
+type Frame = Extract<BrowserEvent, { type: 'frame' }>
 
-const viewers = new Set<Viewer>()
+// 值是发画面用的函数：上一帧还没发完时只留最新的一帧，网速跟不上时少发几帧，不在后端堆积
+const viewers = new Map<Viewer, (frame: Frame) => void>()
+let connection: Connection = { status: 'idle' }
+let chrome: Promise<Chrome> | undefined
 let tab: Promise<Tab> | undefined
+// 当前的标签页，Chrome 的事件交给它
+let current: Tab | undefined
 let state: TabState = { url: '', title: '', loading: false, canGoBack: false, canGoForward: false }
 // 页面不变时 Chrome 不发新画面，新打开的窗口先显示这一帧
-let lastFrame: BrowserEvent | undefined
+let lastFrame: Frame | undefined
 let viewport: Viewport = { width: 1280, height: 800, scale: 1 }
 // Chrome 实际是否在推送画面；调整按顺序执行，前一个完成后再开始下一个
 let screencasting = false
 let screencastTask = Promise.resolve()
+// 画面最多每秒 30 帧。Chrome 不等确认就会接着发，在这里限速，只发每个间隔里最新的一帧
+const frameInterval = 1000 / 30
+let lastFrameSent = 0
+let frameTimer: NodeJS.Timeout | undefined
 
-// 第一次用到时启动 Chrome；Chrome 退出后，下一次用到时重新启动
+// 记下 binOS 的标签页，后端重启后接着用同一个窗口
+const targetFile = path.join(browserDir, 'target-id')
+
+function setConnection(next: Connection) {
+  connection = next
+  broadcast({ type: 'connection', connection })
+}
+
+function forgetTab() {
+  tab = undefined
+  current = undefined
+  screencasting = false
+}
+
+// 每次连接都要用户在 Mac 上允许，所以只连一次，断开后等下一次用到时再连
+function connect(): Promise<Chrome> {
+  if (!chrome) {
+    setConnection({ status: 'waiting' })
+    chrome = connectChrome().then(
+      (connected) => {
+        setConnection({ status: 'connected' })
+        connected.onEvent(handleEvent)
+        connected.onClose(() => {
+          chrome = undefined
+          forgetTab()
+          setConnection({ status: 'unavailable', reason: '和 Chrome 的连接已断开' })
+        })
+        return connected
+      },
+      (error: unknown) => {
+        chrome = undefined
+        setConnection({ status: 'unavailable', reason: error instanceof ChromeUnavailable ? error.message : String(error) })
+        throw error
+      },
+    )
+  }
+  return chrome
+}
+
 function openTab(): Promise<Tab> {
-  tab ??= launch().catch((error: unknown) => {
-    tab = undefined
+  tab ??= createTab().catch((error: unknown) => {
+    forgetTab()
     throw error
   })
   return tab
 }
 
-async function launch(): Promise<Tab> {
-  const profileDir = path.join(browserDir, 'profile')
-  mkdirSync(profileDir, { recursive: true })
-  const chrome = launchChrome(profileDir)
-  chrome.onExit(() => {
-    tab = undefined
-    screencasting = false
-  })
-  const { userAgent } = await chrome.send<{ userAgent: string }>('Browser.getVersion')
-  await chrome.send('Target.setDiscoverTargets', { discover: true })
-  const { targetInfos } = await chrome.send<{ targetInfos: TargetInfo[] }>('Target.getTargets')
-  const targetId =
-    targetInfos.find((info) => info.type === 'page')?.targetId ??
-    (await chrome.send<{ targetId: string }>('Target.createTarget', { url: 'about:blank' })).targetId
-  updateState({ url: 'about:blank', title: '', loading: false })
-  const { sessionId } = await chrome.send<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true })
-  const opened: Tab = { chrome, targetId, sessionId }
-  chrome.onEvent((event) => handleEvent(opened, event))
-  await Promise.all([
-    chrome.send('Page.enable', {}, sessionId),
-    // 网站会拒绝或区别对待带 HeadlessChrome 的 User-Agent
-    chrome.send(
-      'Emulation.setUserAgentOverride',
-      { userAgent: userAgent.replace('HeadlessChrome', 'Chrome'), acceptLanguage: 'zh-CN,zh;q=0.9,en;q=0.8' },
-      sessionId,
-    ),
-    // 让页面认为自己有焦点，输入框才显示光标、响应 focus
-    chrome.send('Emulation.setFocusEmulationEnabled', { enabled: true }, sessionId),
-    applyViewport(opened),
-  ])
+function savedTargetId() {
+  try {
+    return readFileSync(targetFile, 'utf8').trim()
+  } catch {
+    return undefined
+  }
+}
+
+async function createTab(): Promise<Tab> {
+  const browser = await connect()
+  await browser.send('Target.setDiscoverTargets', { discover: true })
+  const { targetInfos } = await browser.send<{ targetInfos: TargetInfo[] }>('Target.getTargets')
+  const saved = savedTargetId()
+  let targetId = targetInfos.find((info) => info.type === 'page' && info.targetId === saved)?.targetId
+  if (!targetId) {
+    ;({ targetId } = await browser.send<{ targetId: string }>('Target.createTarget', {
+      url: 'about:blank',
+      newWindow: true,
+      background: true,
+    }))
+    mkdirSync(browserDir, { recursive: true })
+    writeFileSync(targetFile, targetId)
+  }
+  const { sessionId } = await browser.send<{ sessionId: string }>('Target.attachToTarget', { targetId, flatten: true })
+  const opened: Tab = { chrome: browser, targetId, sessionId }
+  // 准备期间就要处理事件：开始推送后的画面要及时确认，Chrome 才会接着发
+  current = opened
+  await Promise.all([browser.send('Page.enable', {}, sessionId), keepRendering(opened)])
   await refresh(opened)
   await syncScreencast(opened)
   return opened
 }
 
+// 让页面始终认为自己在前台、有焦点，输入框才显示光标、响应 focus
+async function keepRendering(target: Tab) {
+  await Promise.all([
+    target.chrome.send('Emulation.setFocusEmulationEnabled', { enabled: true }, target.sessionId),
+    target.chrome.send('Page.setWebLifecycleState', { state: 'active' }, target.sessionId),
+  ])
+}
+
+// 画面就是窗口里网页的部分，按视口调整窗口的大小。最小化的窗口不再渲染，所以只是推到屏幕左下角外面，
+// macOS 会留一角在屏幕上。被遮挡或锁屏时仍然渲染
+async function placeWindow(target: Tab) {
+  const { windowId, bounds } = await target.chrome.send<{ windowId: number; bounds: { windowState: string } }>(
+    'Browser.getWindowForTarget',
+    { targetId: target.targetId },
+  )
+  if (bounds.windowState !== 'normal') {
+    await target.chrome.send('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } })
+  }
+  // 标签栏、地址栏等占的尺寸
+  const { result } = await target.chrome.send<{ result: { value: [number, number] } }>(
+    'Runtime.evaluate',
+    { expression: '[outerWidth - innerWidth, outerHeight - innerHeight]', returnByValue: true },
+    target.sessionId,
+  )
+  const [frameWidth, frameHeight] = result.value
+  await target.chrome.send('Browser.setWindowBounds', {
+    windowId,
+    bounds: { left: -100000, top: 100000, width: viewport.width + frameWidth, height: viewport.height + frameHeight },
+  })
+}
+
 const redirected = new Set<string>()
 
-function handleEvent(current: Tab, { method, params, sessionId }: CdpEvent) {
+function handleEvent({ method, params, sessionId }: CdpEvent) {
+  if (!current) {
+    return
+  }
+  const target = current
+  if (method === 'Target.targetDestroyed' && params.targetId === target.targetId) {
+    // 用户在 Mac 上关掉了这个窗口，下次用到时重新开一个
+    forgetTab()
+    return
+  }
   if (method === 'Target.targetInfoChanged') {
     const info = params.targetInfo as TargetInfo
-    if (info.targetId === current.targetId) {
+    if (info.targetId === target.targetId) {
       updateState({ url: info.url, title: info.title })
-    } else if (info.type === 'page' && info.url && info.url !== 'about:blank' && !redirected.has(info.targetId)) {
-      // 在新标签页打开的链接改在当前页打开
+    } else if (info.openerId === target.targetId && info.type === 'page' && info.url && info.url !== 'about:blank' && !redirected.has(info.targetId)) {
+      // 从这个标签页打开的新标签页改在当前页打开
       redirected.add(info.targetId)
-      void current.chrome.send('Target.closeTarget', { targetId: info.targetId }).catch(() => {})
-      void current.chrome.send('Page.navigate', { url: info.url }, current.sessionId).catch(() => {})
+      void target.chrome.send('Target.closeTarget', { targetId: info.targetId }).catch(() => {})
+      void target.chrome.send('Page.navigate', { url: info.url }, target.sessionId).catch(() => {})
     }
     return
   }
-  if (sessionId !== current.sessionId) {
+  if (sessionId !== target.sessionId) {
     return
   }
   switch (method) {
@@ -91,52 +177,79 @@ function handleEvent(current: Tab, { method, params, sessionId }: CdpEvent) {
         metadata: { deviceWidth: number; deviceHeight: number }
         sessionId: number
       }
-      const frame: BrowserEvent = { type: 'frame', data, width: metadata.deviceWidth, height: metadata.deviceHeight }
-      lastFrame = frame
-      // 发出去之后再要下一帧，网速跟不上时少发几帧，不在后端堆积
-      void broadcast(frame).then(() =>
-        current.chrome.send('Page.screencastFrameAck', { sessionId: frameId }, current.sessionId).catch(() => {}),
+      lastFrame = { type: 'frame', data, width: metadata.deviceWidth, height: metadata.deviceHeight }
+      frameTimer ??= setTimeout(
+        () => {
+          frameTimer = undefined
+          lastFrameSent = Date.now()
+          viewers.forEach((push) => lastFrame && push(lastFrame))
+        },
+        Math.max(0, lastFrameSent + frameInterval - Date.now()),
       )
+      void target.chrome.send('Page.screencastFrameAck', { sessionId: frameId }, target.sessionId).catch(() => {})
       break
     }
     case 'Page.frameStartedLoading':
     case 'Page.frameStoppedLoading':
-      if (params.frameId === current.targetId) {
+      if (params.frameId === target.targetId) {
         updateState({ loading: method === 'Page.frameStartedLoading' })
-        void refresh(current).catch(() => {})
+        void refresh(target).catch(() => {})
       }
       break
     case 'Page.frameNavigated':
     case 'Page.navigatedWithinDocument':
-      void refresh(current).catch(() => {})
+      void refresh(target).catch(() => {})
       break
   }
 }
 
-async function broadcast(event: BrowserEvent) {
-  await Promise.all([...viewers].map((send) => send(event).catch(() => {})))
+function broadcast(event: BrowserEvent) {
+  viewers.forEach((_, send) => void send(event).catch(() => {}))
+}
+
+function frameSender(send: Viewer) {
+  let sending = false
+  let next: Frame | undefined
+  const push = (frame: Frame) => {
+    if (sending) {
+      next = frame
+      return
+    }
+    sending = true
+    void send(frame)
+      .catch(() => {})
+      .finally(() => {
+        sending = false
+        const queued = next
+        next = undefined
+        if (queued) {
+          push(queued)
+        }
+      })
+  }
+  return push
 }
 
 function updateState(changes: Partial<TabState>) {
   const next = { ...state, ...changes }
   if ((Object.keys(next) as (keyof TabState)[]).some((key) => next[key] !== state[key])) {
     state = next
-    void broadcast({ type: 'state', state })
+    broadcast({ type: 'state', state })
   }
 }
 
-async function history(current: Tab) {
-  return await current.chrome.send<History>('Page.getNavigationHistory', {}, current.sessionId)
+async function history(target: Tab) {
+  return await target.chrome.send<History>('Page.getNavigationHistory', {}, target.sessionId)
 }
 
 // targetInfoChanged 不一定带上加载完成后的标题，导航和加载结束时再读一次。只采用最后一次读取的结果
 let refreshes = 0
 
-async function refresh(current: Tab) {
+async function refresh(target: Tab) {
   const id = ++refreshes
   const [{ currentIndex, entries }, { targetInfo }] = await Promise.all([
-    history(current),
-    current.chrome.send<{ targetInfo: TargetInfo }>('Target.getTargetInfo', { targetId: current.targetId }),
+    history(target),
+    target.chrome.send<{ targetInfo: TargetInfo }>('Target.getTargetInfo', { targetId: target.targetId }),
   ])
   if (id === refreshes) {
     updateState({
@@ -148,25 +261,16 @@ async function refresh(current: Tab) {
   }
 }
 
-async function applyViewport(current: Tab) {
-  const { width, height, scale } = viewport
-  await current.chrome.send(
-    'Emulation.setDeviceMetricsOverride',
-    { width, height, deviceScaleFactor: scale, mobile: false },
-    current.sessionId,
-  )
-  await syncScreencast(current, true)
-}
-
-// 有人在看时推送画面，没人看时停止。restart：视口变了，按新尺寸重新开始
-function syncScreencast(current: Tab, restart = false) {
+// 有人在看时推送画面，没人看时停止。restart：视口变了，按新尺寸重新开始。开始时把窗口调整到视口的大小
+function syncScreencast(target: Tab, restart = false) {
   const task = screencastTask.then(async () => {
-    const send = (method: string, params?: Record<string, unknown>) => current.chrome.send(method, params, current.sessionId)
+    const send = (method: string, params?: Record<string, unknown>) => target.chrome.send(method, params, target.sessionId)
     if (screencasting && (restart || !viewers.size)) {
       screencasting = false
       await send('Page.stopScreencast')
     }
     if (!screencasting && viewers.size) {
+      await placeWindow(target)
       const { width, height, scale } = viewport
       await send('Page.startScreencast', {
         format: 'jpeg',
@@ -183,23 +287,33 @@ function syncScreencast(current: Tab, restart = false) {
 
 // send 返回的 Promise 在画面发出后完成。返回取消订阅的函数
 export function subscribe(send: Viewer): () => void {
-  viewers.add(send)
+  const push = frameSender(send)
+  viewers.set(send, push)
+  void send({ type: 'connection', connection }).catch(() => {})
   void send({ type: 'state', state }).catch(() => {})
   if (lastFrame) {
-    void send(lastFrame).catch(() => {})
+    push(lastFrame)
   }
-  void openTab()
-    .then((current) => syncScreencast(current))
-    .catch((error: unknown) => console.error('浏览器启动失败', error))
+  void reconnect()
   return () => {
     viewers.delete(send)
-    void tab?.then((current) => syncScreencast(current)).catch(() => {})
+    void tab?.then((opened) => syncScreencast(opened)).catch(() => {})
   }
 }
 
+// 连不上的原因已经通过 connection 告诉页面
+export async function reconnect() {
+  await openTab()
+    .then((opened) => syncScreencast(opened))
+    .catch(() => {})
+}
+
+// 只记下尺寸，不为此连接 Chrome：连接要用户在 Mac 上允许
 export async function setViewport(next: Viewport) {
   viewport = next
-  await applyViewport(await openTab())
+  if (tab) {
+    await syncScreencast(await tab, true)
+  }
 }
 
 // 不像网址的输入当作搜索
@@ -215,19 +329,19 @@ export function toUrl(input: string): string {
 }
 
 export async function navigate(input: string) {
-  const current = await openTab()
-  await current.chrome.send('Page.navigate', { url: toUrl(input) }, current.sessionId)
+  const opened = await openTab()
+  await opened.chrome.send('Page.navigate', { url: toUrl(input) }, opened.sessionId)
 }
 
 export async function runAction(action: TabAction) {
-  const current = await openTab()
-  const page = (method: string, params?: Record<string, unknown>) => current.chrome.send(method, params, current.sessionId)
+  const opened = await openTab()
+  const page = (method: string, params?: Record<string, unknown>) => opened.chrome.send(method, params, opened.sessionId)
   if (action === 'reload') {
     await page('Page.reload')
   } else if (action === 'stop') {
     await page('Page.stopLoading')
   } else {
-    const { currentIndex, entries } = await history(current)
+    const { currentIndex, entries } = await history(opened)
     const entry = entries[currentIndex + (action === 'back' ? -1 : 1)]
     if (entry) {
       await page('Page.navigateToHistoryEntry', { entryId: entry.id })
@@ -235,12 +349,12 @@ export async function runAction(action: TabAction) {
   }
 }
 
-// macOS 上的 headless Chrome 不会把 ⌘ 快捷键当作编辑命令，要明确告诉它。粘贴由页面把剪贴板内容作为文字发过来
+// macOS 上的 Chrome 不会把发来的 ⌘ 快捷键当作编辑命令，要明确告诉它。粘贴由页面把剪贴板内容作为文字发过来
 const editCommands: Record<string, string> = { a: 'selectAll', c: 'copy', x: 'cut', z: 'undo' }
 
 export async function dispatchInput(events: InputEvent[]) {
-  const current = await openTab()
-  const input = (method: string, params: Record<string, unknown>) => current.chrome.send(method, params, current.sessionId)
+  const opened = await openTab()
+  const input = (method: string, params: Record<string, unknown>) => opened.chrome.send(method, params, opened.sessionId)
   for (const event of events) {
     switch (event.type) {
       case 'mouse':

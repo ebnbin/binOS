@@ -6,7 +6,12 @@ const client = hc<BrowserApi>(`${window.location.origin}/api/apps/browser`)
 
 export const streamUrl = () => client.stream.$url().href
 
-// 浏览器的操作失败了也没有可以补救的，下一次操作会重新启动它
+// 操作失败了也没有可以补救的；连不上 Chrome 的原因由 stream 推送
+// 写操作都要带上 JSON 的 Content-Type，后端以此拒绝跨站请求
+export async function reconnect() {
+  await client.connect.$post({}, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
+}
+
 export async function setViewport(viewport: Viewport) {
   await client.viewport.$post({ json: viewport }).catch(() => undefined)
 }

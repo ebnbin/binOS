@@ -1,9 +1,9 @@
-import type { BrowserEvent, TabState } from '@binos/server/apps/browser/types'
+import type { BrowserEvent, Connection, TabState } from '@binos/server/apps/browser/types'
 import type { RefObject } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { connectEventSource } from '../../eventSource.ts'
 import { useElementSize } from '../../ui/useElementSize.ts'
-import { setViewport, streamUrl } from './api.ts'
+import { reconnect, setViewport, streamUrl } from './api.ts'
 import { createInputQueue, modifiers, mouseButton } from './input.ts'
 import styles from './Screen.module.css'
 
@@ -16,6 +16,7 @@ export function Screen({ onState, keyboardRef }: { onState: (state: TabState) =>
   const [ref, size] = useElementSize<HTMLDivElement>()
   const send = useMemo(() => createInputQueue(), [])
   const [connected, setConnected] = useState(false)
+  const [chrome, setChrome] = useState<Connection>({ status: 'idle' })
   const [hasFrame, setHasFrame] = useState(false)
 
   // 视口跟随窗口尺寸；重连后再设置一次，后端可能已经重启
@@ -58,7 +59,9 @@ export function Screen({ onState, keyboardRef }: { onState: (state: TabState) =>
     return connectEventSource(streamUrl, {
       onMessage: (data) => {
         const event: BrowserEvent = JSON.parse(data)
-        if (event.type === 'state') {
+        if (event.type === 'connection') {
+          setChrome(event.connection)
+        } else if (event.type === 'state') {
           onState(event.state)
         } else {
           void draw(event)
@@ -215,7 +218,25 @@ export function Screen({ onState, keyboardRef }: { onState: (state: TabState) =>
         autoComplete="off"
         spellCheck={false}
       />
-      {!hasFrame && <div className={styles.message}>{connected ? '正在打开浏览器…' : '正在连接…'}</div>}
+      {(!connected || chrome.status !== 'connected' || !hasFrame) && (
+        <div className={styles.message}>
+          {!connected ? (
+            <p>正在连接 binOS…</p>
+          ) : chrome.status === 'unavailable' ? (
+            <>
+              <p>连不上 Mac 上的 Chrome：{chrome.reason}</p>
+              <p className={styles.hint}>确认 Chrome 正在运行，并且在 chrome://inspect/#remote-debugging 里开启了远程调试</p>
+              <button type="button" onClick={() => void reconnect()}>
+                重新连接
+              </button>
+            </>
+          ) : chrome.status === 'connected' ? (
+            <p>正在打开页面…</p>
+          ) : (
+            <p>请在 Mac 上的 Chrome 里允许 binOS 连接</p>
+          )}
+        </div>
+      )}
     </div>
   )
 }
