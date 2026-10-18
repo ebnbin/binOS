@@ -1,19 +1,61 @@
+/* 纯黑的外框：每一边取安全区域和最小边框中较大的，中间是一块圆角的屏幕，app 只在屏幕里显示。
+   控制栏也在外框里，放在安全区域以内 */
 .shell {
+  --bezel: 8px;
+  --radius: 12px;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   height: var(--viewport-height, 100dvh);
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
-  background: var(--sidebar);
+  padding:
+    max(env(safe-area-inset-top), env(titlebar-area-height, 0px), var(--bezel))
+    max(env(safe-area-inset-right), var(--bezel))
+    env(safe-area-inset-bottom)
+    max(env(safe-area-inset-left), var(--bezel));
+  background: #000;
 }
 
+@media (pointer: coarse) {
+  .shell {
+    --bezel: 6px;
+    --radius: 22px;
+  }
+}
+
+.shell[data-bar='left'],
+.shell[data-bar='right'] {
+  flex-direction: row;
+  padding-bottom: max(env(safe-area-inset-bottom), var(--bezel));
+}
+
+.shell[data-bar='left'] {
+  padding-left: env(safe-area-inset-left);
+}
+
+.shell[data-bar='right'] {
+  padding-right: env(safe-area-inset-right);
+}
+
+.shell[data-bar='hidden'] {
+  padding-bottom: var(--bezel);
+}
+
+/* 装成 app 后，浏览器的窗口按钮浮在顶部这一条上，可以拖动窗口 */
 .titleBar {
-  flex: none;
+  position: absolute;
+  inset: 0 0 auto;
   height: env(titlebar-area-height, 0px);
   app-region: drag;
 }
 
-.main {
+.screen {
   position: relative;
   flex: 1;
+  min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
 }

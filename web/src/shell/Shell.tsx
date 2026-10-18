@@ -3,6 +3,7 @@ import { apps, findApp } from '../apps/index.ts'
 import { useStateList, useStateLoaded, useStateValue } from '../state.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
 import type { HistoryState } from './AppHost.tsx'
+import { useBarPlacement } from './bar-placement.ts'
 import { ConnectionStatus } from './ConnectionStatus.tsx'
 import { Desktop } from './Desktop.tsx'
 import styles from './Shell.module.css'
@@ -39,6 +40,7 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
+  const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
 
@@ -130,10 +132,9 @@ export function Shell() {
   })
 
   return (
-    <div className={styles.shell}>
-      {/* 桌面上装成 app 后，浏览器的窗口按钮浮在这里，可以拖动窗口 */}
+    <div className={styles.shell} data-bar={placement}>
       <div className={styles.titleBar} />
-      <div ref={main} className={styles.main}>
+      <div ref={main} className={styles.screen}>
         {loaded && size && (
           <>
             <Workspace
@@ -151,19 +152,22 @@ export function Shell() {
           </>
         )}
       </div>
-      <TaskBar
-        windows={windows}
-        panes={panes}
-        focused={focused}
-        home={home}
-        layout={layout}
-        allowed={allowed}
-        portrait={portrait}
-        onHome={() => setView((prev) => ({ ...prev, home: !home }))}
-        onShow={show}
-        onLayout={chooseLayout}
-        onClose={close}
-      />
+      {placement !== 'hidden' && (
+        <TaskBar
+          placement={placement}
+          windows={windows}
+          panes={panes}
+          focused={focused}
+          home={home}
+          layout={layout}
+          allowed={allowed}
+          portrait={portrait}
+          onHome={() => setView((prev) => ({ ...prev, home: !home }))}
+          onShow={show}
+          onLayout={chooseLayout}
+          onClose={close}
+        />
+      )}
       <ConnectionStatus />
     </div>
   )

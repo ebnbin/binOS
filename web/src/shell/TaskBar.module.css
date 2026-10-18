@@ -1,19 +1,32 @@
+/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
 .bar {
   display: flex;
+  align-items: center;
   justify-content: center;
   flex: none;
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-  background: var(--sidebar);
-  border-top: 1px solid var(--hairline);
+  padding: 6px 0;
+}
+
+.bar[data-placement='left'],
+.bar[data-placement='right'] {
+  padding: 0 6px;
+}
+
+.bar[data-placement='left'] {
+  order: -1;
 }
 
 .dock {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
+  max-height: 100%;
+}
+
+.bar[data-placement='left'] .dock,
+.bar[data-placement='right'] .dock {
+  flex-direction: column;
 }
 
 .item {
@@ -23,24 +36,24 @@
   flex: none;
   width: 40px;
   height: 40px;
-  border-radius: 11px;
-  color: var(--text-2);
-  transition: background-color 0.15s;
+  border-radius: 12px;
+  color: rgb(255 255 255 / 62%);
+  transition: background-color 0.15s, color 0.15s;
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: var(--hover);
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
   }
 }
 
 .item[aria-pressed='true'] {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--hairline), 0 1px 3px rgb(0 0 0 / 8%);
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
 }
 
-/* 正在显示的 app 下面有个点 */
+/* 正在显示的 app 旁边有个点 */
 .item[data-visible='true']::after {
   content: '';
   position: absolute;
@@ -48,7 +61,21 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: var(--text-2);
+  background: rgb(255 255 255 / 70%);
+}
+
+.bar[data-placement='left'] .item[data-visible='true']::after,
+.bar[data-placement='right'] .item[data-visible='true']::after {
+  top: 18px;
+  bottom: auto;
+}
+
+.bar[data-placement='left'] .item[data-visible='true']::after {
+  right: 2px;
+}
+
+.bar[data-placement='right'] .item[data-visible='true']::after {
+  left: 2px;
 }
 
 .separator {
@@ -56,7 +83,14 @@
   width: 1px;
   height: 22px;
   margin: 0 6px;
-  background: var(--border);
+  background: rgb(255 255 255 / 18%);
+}
+
+.bar[data-placement='left'] .separator,
+.bar[data-placement='right'] .separator {
+  width: 22px;
+  height: 1px;
+  margin: 6px 0;
 }
 
 .glyph {
@@ -75,5 +109,64 @@
 .glyph i {
   border-radius: 2px;
   background: currentColor;
-  opacity: 0.75;
+  opacity: 0.85;
+}
+
+.picker {
+  position: relative;
+}
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #1f1f21;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 10%), 0 12px 30px rgb(0 0 0 / 50%);
+  transform: translateX(-50%);
+}
+
+.bar[data-placement='left'] .popover,
+.bar[data-placement='right'] .popover {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  flex-direction: column;
+  transform: translateY(-50%);
+}
+
+.bar[data-placement='left'] .popover {
+  left: calc(100% + 10px);
+}
+
+.bar[data-placement='right'] .popover {
+  right: calc(100% + 10px);
+}
+
+.popover button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: rgb(255 255 255 / 70%);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .popover button:hover {
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
+  }
+}
+
+.popover button[aria-pressed='true'] {
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
 }
