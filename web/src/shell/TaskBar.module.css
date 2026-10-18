@@ -1,0 +1,201 @@
+/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px 0;
+}
+
+.bar[data-placement='left'],
+.bar[data-placement='right'] {
+  padding: 0 6px;
+}
+
+.bar[data-placement='left'] {
+  order: -1;
+}
+
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
+.apps {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.bar[data-placement='left'] .apps,
+.bar[data-placement='right'] .apps {
+  flex-direction: column;
+}
+
+.bar[data-placement='left'] .dock,
+.bar[data-placement='right'] .dock {
+  flex-direction: column;
+}
+
+.item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: rgb(255 255 255 / 62%);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+@media (hover: hover) {
+  .item:hover {
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
+  }
+}
+
+.item[aria-pressed='true'] {
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+}
+
+/* 正在显示的 app 旁边有个点 */
+.item[data-visible='true']::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 70%);
+}
+
+.bar[data-placement='left'] .item[data-visible='true']::after,
+.bar[data-placement='right'] .item[data-visible='true']::after {
+  top: 18px;
+  bottom: auto;
+}
+
+.bar[data-placement='left'] .item[data-visible='true']::after {
+  right: 2px;
+}
+
+.bar[data-placement='right'] .item[data-visible='true']::after {
+  left: 2px;
+}
+
+.separator {
+  flex: none;
+  width: 1px;
+  height: 22px;
+  margin: 0 6px;
+  background: rgb(255 255 255 / 18%);
+}
+
+.bar[data-placement='left'] .separator,
+.bar[data-placement='right'] .separator {
+  width: 22px;
+  height: 1px;
+  margin: 6px 0;
+}
+
+.glyph {
+  display: flex;
+  gap: 2px;
+  width: 22px;
+  height: 16px;
+}
+
+.glyph[data-portrait='true'] {
+  flex-direction: column;
+  width: 16px;
+  height: 20px;
+}
+
+.glyph i {
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.glyph i[data-active='false'] {
+  opacity: 0.3;
+}
+
+.glyph i[data-active='true'] {
+  opacity: 1;
+  background: #fff;
+}
+
+.picker {
+  position: relative;
+}
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 14px;
+  background: #1f1f21;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 10%), 0 12px 30px rgb(0 0 0 / 50%);
+  transform: translateX(-50%);
+}
+
+.bar[data-placement='left'] .popover,
+.bar[data-placement='right'] .popover {
+  bottom: auto;
+  top: 50%;
+  left: auto;
+  flex-direction: column;
+  transform: translateY(-50%);
+}
+
+.bar[data-placement='left'] .popover {
+  left: calc(100% + 10px);
+}
+
+.bar[data-placement='right'] .popover {
+  right: calc(100% + 10px);
+}
+
+.popover button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  color: rgb(255 255 255 / 70%);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .popover button:hover {
+    background: rgb(255 255 255 / 8%);
+    color: #fff;
+  }
+}
+
+.popover button[aria-pressed='true'] {
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+}

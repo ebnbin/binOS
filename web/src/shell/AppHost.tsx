@@ -1,7 +1,7 @@
-import { Component, Suspense, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { Suspense, useMemo } from 'react'
 import { findApp } from '../apps/index.ts'
 import type { AppContext } from '../apps/types.ts'
+import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
 import styles from './AppHost.module.css'
 import { setRoute } from './windows.ts'
 import type { WindowState } from './windows.ts'
@@ -14,7 +14,6 @@ const historyState = () => window.history.state as HistoryState
 
 // 一个窗口里的 app。出错时只影响这个窗口
 export function AppHost({ id, window: win, onTitle }: { id: string; window: WindowState; onTitle: (id: string, title: string) => void }) {
-  const [attempt, setAttempt] = useState(0)
   const { route } = win
   const ctx = useMemo<AppContext>(() => {
     const navigate: AppContext['navigate'] = (next, { replace = false } = {}) => {
@@ -40,32 +39,19 @@ export function AppHost({ id, window: win, onTitle }: { id: string; window: Wind
     return <div className={styles.message}>找不到 app「{win.app}」</div>
   }
   return (
-    <ErrorBoundary key={attempt} onRetry={() => setAttempt(attempt + 1)}>
+    <ErrorBoundary
+      fallback={(retry) => (
+        <div className={styles.message}>
+          <p>这个 app 出错了</p>
+          <button type="button" onClick={retry}>
+            重新打开
+          </button>
+        </div>
+      )}
+    >
       <Suspense>
         <App ctx={ctx} />
       </Suspense>
     </ErrorBoundary>
   )
-}
-
-class ErrorBoundary extends Component<{ children: ReactNode; onRetry: () => void }, { failed: boolean }> {
-  state = { failed: false }
-
-  static getDerivedStateFromError() {
-    return { failed: true }
-  }
-
-  render() {
-    if (!this.state.failed) {
-      return this.props.children
-    }
-    return (
-      <div className={styles.message}>
-        <p>这个 app 出错了</p>
-        <button type="button" onClick={this.props.onRetry}>
-          重新打开
-        </button>
-      </div>
-    )
-  }
 }

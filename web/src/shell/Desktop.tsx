@@ -1,130 +1,86 @@
-import { Minimize2, Minus, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { apps, findApp } from '../apps/index.ts'
-import { useConnected } from '../events.ts'
-import { useStateList } from '../state.ts'
-import { BrandMark } from '../ui/BrandMark.tsx'
+import { Suspense } from 'react'
+import type { CSSProperties } from 'react'
+import { findApp } from '../apps/index.ts'
+import { useStateValue } from '../state.ts'
+import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
 import styles from './Desktop.module.css'
-import { clampFrame, placeFrame } from './layout.ts'
-import type { Area, Focus, Frame } from './layout.ts'
-import type { OpenWindow } from './Shell.tsx'
-import { AppWindow } from './Window.tsx'
-import { closeWindow, focusWindow, framePrefix, minimizeWindow, openApp, setFrame } from './windows.ts'
+import { desktopKey, itemSize, readDesktop } from './desktop-items.ts'
+import type { DesktopItem } from './desktop-items.ts'
+import { column, desktopColumns, packColumn, splitColumns } from './layout.ts'
 
-// 最大化时留出 Dock 的位置
-const dockSpace = 84
+// 一栏 360 时的格子：两边 16，格子 70，间隔 16
+const cell = 70
+const gap = 16
+const margin = (column.min - cell * 4 - gap * 3) / 2
 
-function useClock() {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 10_000)
-    return () => window.clearInterval(timer)
-  }, [])
-  return now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-}
+export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string, route?: string) => void }) {
+  const items = readDesktop(useStateValue(desktopKey))
+  const { count, columnWidth, scale } = desktopColumns(width)
+  const sizes = items.map(itemSize)
+  const starts = splitColumns(sizes, count)
+  const columns = starts.map((start, index) => {
+    const end = starts[index + 1] ?? items.length
+    return { items: items.slice(start, end), ...packColumn(sizes.slice(start, end)) }
+  })
 
-// 装成 app 后菜单栏和浏览器的窗口按钮一样高，由 CSS 决定，这里量出来给窗口布局用
-function useHeight() {
-  const ref = useRef<HTMLElement>(null)
-  const [height, setHeight] = useState(28)
-  useEffect(() => {
-    const element = ref.current
-    if (!element) {
-      return
-    }
-    const observer = new ResizeObserver(() => setHeight(element.offsetHeight))
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-  return [ref, height] as const
-}
-
-export function Desktop({
-  windows,
-  focus,
-  size,
-  onTitle,
-}: {
-  windows: OpenWindow[]
-  focus: Focus
-  size: { width: number; height: number }
-  onTitle: (id: string, title: string) => void
-}) {
-  const frames = new Map(useStateList(framePrefix).map(([key, value]) => [key.slice(framePrefix.length), value as Frame]))
-  const connected = useConnected()
-  const clock = useClock()
-  const [menuBar, menuBarHeight] = useHeight()
-  const area: Area = { top: menuBarHeight, width: size.width, height: size.height - menuBarHeight }
-  const maximizedFrame: Frame = { x: 0, y: menuBarHeight, w: size.width, h: size.height - menuBarHeight - dockSpace, minimized: false, maximized: true }
-  const focused = windows.find((item) => item.id === focus.focused)
-  const focusedApp = focused && findApp(focused.window.app)
-  const focusedFrame = focused && frames.get(focused.id)
-  // 最大化的窗口不显示标题栏，聚焦时它的按钮放在菜单栏上
-  const maximized = focused && focusedFrame?.maximized ? { id: focused.id, frame: focusedFrame } : null
+  const vars = {
+    '--column': `${columnWidth}px`,
+    '--count': count,
+    '--cell': `${cell * scale}px`,
+    '--gap': `${gap * scale}px`,
+    '--margin': `${margin * scale}px`,
+  } as CSSProperties
 
   return (
-    <div className={styles.desktop}>
-      <header ref={menuBar} className={styles.menuBar}>
-        <BrandMark size={16} />
-        <span className={styles.wordmark}>binOS</span>
-        <span className={styles.current}>{focusedApp?.name ?? '桌面'}</span>
-        <span className={styles.spacer} />
-        {maximized && (
-          <span className={styles.controls}>
-            <button type="button" aria-label="最小化" title="最小化" onClick={() => minimizeWindow(maximized.id, 'desktop')}>
-              <Minus size={14} />
-            </button>
-            <button type="button" aria-label="还原" title="还原" onClick={() => setFrame(maximized.id, { ...maximized.frame, maximized: false })}>
-              <Minimize2 size={14} />
-            </button>
-            <button type="button" aria-label="关闭" title="关闭" onClick={() => closeWindow(maximized.id)}>
-              <X size={14} />
-            </button>
-          </span>
-        )}
-        <span className={styles.connection} data-connected={connected} title={connected ? '已连接' : '连接已断开'} />
-        <span className={styles.clock}>{clock}</span>
-      </header>
-      {/* 点到空白处时取消聚焦 */}
-      <div className={styles.wallpaper} onPointerDown={() => focus.focused && focusWindow(null, 'desktop')} />
-      {focus.stack.map((id, index) => {
-        const item = windows.find((win) => win.id === id)
-        if (!item) {
-          return null
-        }
-        const stored = frames.get(id) ?? placeFrame(findApp(item.window.app)?.defaultSize ?? { width: 640, height: 480 }, area, index)
-        const frame = stored.maximized ? maximizedFrame : clampFrame(stored, area)
-        return (
-          <AppWindow
-            key={id}
-            item={item}
-            frame={frame}
-            stored={stored}
-            area={area}
-            z={index + 1}
-            focused={focus.focused === id}
-            onTitle={onTitle}
-          />
-        )
-      })}
-      <nav className={styles.dock}>
-        {apps.map((app) => {
-          const running = windows.some((item) => item.window.app === app.id)
-          return (
-            <button
-              key={app.id}
-              type="button"
-              className={styles.dockItem}
-              title={app.name}
-              aria-label={app.name}
-              data-running={running}
-              onClick={() => openApp(app.id, 'desktop', area)}
-            >
-              <app.icon size={24} strokeWidth={1.75} />
-            </button>
-          )
-        })}
-      </nav>
+    <div className={styles.desktop} style={vars}>
+      <div className={styles.columns}>
+        {columns.map((column, index) => (
+          <div key={index} className={styles.grid} style={{ gridTemplateRows: `repeat(${column.rows}, var(--cell))` }}>
+            {column.items.map((item, itemIndex) => {
+              const place = column.placements[itemIndex]
+              return (
+                <Item
+                  key={itemIndex}
+                  item={item}
+                  style={{ gridArea: `${place.row + 1} / ${place.column + 1} / span ${place.height} / span ${place.width}` }}
+                  onOpen={onOpen}
+                />
+              )
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function Item({ item, style, onOpen }: { item: DesktopItem; style: CSSProperties; onOpen: (app: string, route?: string) => void }) {
+  const app = findApp(item.app)
+  if (!app) {
+    return null
+  }
+  if (!('widget' in item)) {
+    return (
+      <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
+        <span className={styles.glyph}>
+          <app.icon strokeWidth={1.75} />
+        </span>
+        <span className={styles.label}>{app.name}</span>
+      </button>
+    )
+  }
+  const Widget = app.widgets?.[item.widget]?.component
+  if (!Widget) {
+    return null
+  }
+  return (
+    // 点 widget 的空白处打开 app，widget 里的按钮自己处理点击
+    <div className={styles.widget} style={style} onClick={() => onOpen(app.id)}>
+      <ErrorBoundary fallback={() => <span className={styles.failed}>{app.name} 出错了</span>}>
+        <Suspense>
+          <Widget size={item.size} open={(route) => onOpen(app.id, route)} />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   )
 }

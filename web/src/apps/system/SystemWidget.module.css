@@ -1,0 +1,46 @@
+.widget {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.time {
+  font-size: 34px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.widget[data-size='2x2'] .time {
+  font-size: 28px;
+}
+
+.date {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+}
+
+.dot[data-connected='true'] {
+  background: #34c759;
+}
+
+.version {
+  font-family: var(--mono);
+}
