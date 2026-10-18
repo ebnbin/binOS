@@ -3,10 +3,11 @@ import { findApp, useApps } from '../apps/index.ts'
 import type { AppManifest } from '../apps/types.ts'
 import { useStateList, useStateLoaded, useStateValue } from '../state.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
-import type { HistoryState } from './AppHost.tsx'
 import { useBarPlacement } from './bar-placement.ts'
 import { ConnectionStatus } from './ConnectionStatus.tsx'
 import { Desktop } from './Desktop.tsx'
+import { restoreRoute } from './history.ts'
+import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
 import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, normalizeWorkspace, place, relayout } from './layout.ts'
 import type { LayoutId } from './layout.ts'
@@ -126,6 +127,7 @@ export function Shell() {
     const onPopState = () => {
       const state = window.history.state as HistoryState
       if (state && ids.includes(state.window)) {
+        restoreRoute(state.window, state.route)
         setRoute(state.window, state.route)
         show(state.window)
       }
