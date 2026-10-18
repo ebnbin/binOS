@@ -13,12 +13,14 @@ export async function listSessions() {
   return (await res.json()).sessions
 }
 
+// 正在回答时交给 agent，interrupt 时先打断正在做的事
 export async function sendMessage(
   sessionId: number | null,
   text: string,
   attachments: Attachment[],
+  interrupt = false,
 ): Promise<{ id: number } | { error: string }> {
-  const json = { text, attachments }
+  const json = { text, attachments, interrupt }
   const res = await (sessionId === null
     ? sessions.$post({ json })
     : sessions[':id'].messages.$post({ param: { id: String(sessionId) }, json })
@@ -26,7 +28,7 @@ export async function sendMessage(
   if (res?.status === 200) {
     return await res.json()
   }
-  return { error: res?.status === 409 ? '这个 session 正在回答' : `发送失败（${res?.status ?? '网络错误'}）` }
+  return { error: res?.status === 503 ? '消息没能交给 agent，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }
 
 // 和后端一致

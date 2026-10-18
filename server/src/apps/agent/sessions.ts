@@ -25,6 +25,8 @@ export type SessionInfo = {
   createdAt: string
   updatedAt: string
   turns: number
+  // 最后一轮还没结束：之后的 user 是插话，不算新的一轮
+  inTurn: boolean
   agent?: { provider: 'claude'; sessionId: string }
   outcome?: 'stopped' | 'error'
   context?: Context
@@ -75,7 +77,7 @@ export function readTranscript(id: number): TranscriptRecord[] {
 }
 
 function emptyInfo(): SessionInfo {
-  return { transcriptSize: 0, count: 0, title: '', createdAt: '', updatedAt: '', turns: 0 }
+  return { transcriptSize: 0, count: 0, title: '', createdAt: '', updatedAt: '', turns: 0, inTurn: false }
 }
 
 function apply(info: SessionInfo, record: TranscriptRecord) {
@@ -87,13 +89,17 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
       if (info.turns === 0) {
         info.title = (record.text.trim() || record.attachments?.[0]?.name || '').slice(0, 200)
       }
-      info.turns += 1
-      delete info.outcome
+      if (!info.inTurn) {
+        info.turns += 1
+        info.inTurn = true
+        delete info.outcome
+      }
       break
     case 'agent':
       info.agent = { provider: record.provider, sessionId: record.sessionId }
       break
     case 'result':
+      info.inTurn = false
       if (record.outcome) {
         info.outcome = record.outcome
       }

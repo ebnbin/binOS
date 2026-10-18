@@ -55,6 +55,16 @@ describe('ClaudeOutput', () => {
     expect(parsed.current().tasks).toEqual({})
   })
 
+  it('被打断时没写完的文字在 result 时记下；之后插的话让它接着答', () => {
+    const { output: parsed } = run([textDelta('写到一')])
+    const { records } = parsed.push(JSON.stringify({ type: 'result', is_error: true }), 2)
+    expect(records).toMatchObject([{ type: 'text', text: '写到一', offset: 2 }])
+    expect(parsed.answered).toBe(true)
+    parsed.push(textDelta('hi'), 3)
+    expect(parsed.answered).toBe(false)
+    expect(parsed.current().text).toBe('hi')
+  })
+
   it('重读时已经记下的行只恢复状态，不再产生记录', () => {
     const { records } = run(output, 3, 's1')
     expect(records.map((record) => record.type === 'tool_use' ? record.id : record.type)).toEqual(['t2', 't3', 'tool_result'])
