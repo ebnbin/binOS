@@ -106,3 +106,9 @@ export type LiveEvent =
   | { type: 'file'; path: string; name: string }
   | { type: 'status'; status: Status | null }
   | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
+
+// 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
+// Claude 每次请求后报告，存在系统状态的 agent/limits 里
+export type QuotaWindow = { utilization: number; resetsAt: number }
+export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
+export const limitsKey = 'agent/limits'

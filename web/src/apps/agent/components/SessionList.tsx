@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { editSession, listSessions } from '../api.ts'
 import { formatTime } from '../time.ts'
+import { Quota } from './Quota.tsx'
 import styles from './SessionList.module.css'
 
 // 输入停下这么久才去搜
@@ -26,6 +27,7 @@ export function SessionList({
     <div className={styles.pane}>
       <header className={styles.brand}>
         <span className={styles.wordmark}>Agent</span>
+        <Quota />
       </header>
       <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
         <SquarePen size={16} strokeWidth={1.75} />

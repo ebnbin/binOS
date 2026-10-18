@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { snapshotFiles } from './reply-files.js'
-import type { Live, LiveEvent, Status, TaskProgress, Tokens, TranscriptRecord } from './types.js'
+import type { Limits, Live, LiveEvent, QuotaWindow, Status, TaskProgress, Tokens, TranscriptRecord } from './types.js'
 
 // 工具结果的文字只留末尾这么多：出错时要看的报错一般在最后
 const outputLimit = 64 * 1024
@@ -64,6 +64,7 @@ type Line = {
   is_error?: boolean
   result?: string
   modelUsage?: Record<string, ModelUsage>
+  rate_limit_info?: { status?: string; unifiedWindows?: Record<string, { utilization?: number; resetsAt?: number } | undefined> }
 }
 
 type ToolResult = Extract<TranscriptRecord, { type: 'tool_result' }>
@@ -108,8 +109,8 @@ export class ClaudeOutput {
     return this.live
   }
 
-  // offset 是这一行在输出文件里的结束位置
-  push(text: string, offset: number): { records: TranscriptRecord[]; events: LiveEvent[] } {
+  // offset 是这一行在输出文件里的结束位置；limits 是这一行报告的订阅额度
+  push(text: string, offset: number): { records: TranscriptRecord[]; events: LiveEvent[]; limits?: Limits } {
     const records: TranscriptRecord[] = []
     const events: LiveEvent[] = []
     let line: Line
@@ -119,6 +120,10 @@ export class ClaudeOutput {
       return { records, events }
     }
     const fresh = offset > this.recorded
+    if (line.type === 'rate_limit_event') {
+      const limits = limitsOf(line)
+      return fresh && limits ? { records, events, limits } : { records, events }
+    }
     const parent = line.parent_tool_use_id ?? undefined
     const time = line.timestamp ?? new Date().toISOString()
     const record = (fields: TranscriptRecord) => {
@@ -417,4 +422,21 @@ export class ClaudeOutput {
       ...(images.length > 0 && { images }),
     }
   }
+}
+
+function windowOf(line: Line, name: string): QuotaWindow | undefined {
+  const window = line.rate_limit_info?.unifiedWindows?.[name]
+  return typeof window?.utilization === 'number' && typeof window.resetsAt === 'number'
+    ? { utilization: window.utilization, resetsAt: window.resetsAt }
+    : undefined
+}
+
+function limitsOf(line: Line): Limits | undefined {
+  const status = line.rate_limit_info?.status
+  if (!status) {
+    return undefined
+  }
+  const fiveHour = windowOf(line, 'five_hour')
+  const sevenDay = windowOf(line, 'seven_day')
+  return { status, ...(fiveHour && { fiveHour }), ...(sevenDay && { sevenDay }), updatedAt: line.timestamp ?? new Date().toISOString() }
 }
