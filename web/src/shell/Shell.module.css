@@ -1,12 +1,10 @@
 /* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
    除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
-   iOS 26 起状态栏的颜色取自盖住页面顶边的固定定位元素：顶边正中往里 4px 处是 Shell 自己的黑色背景，
-   状态栏就是纯黑；没有这样的元素时，iOS 会在页面顶部一截加毛玻璃 */
+   不能是固定定位：iOS 会从盖住页面顶边的固定定位元素取色给状态栏，见 status-bar.ts */
 .shell {
   --radius: 12px;
 
-  position: fixed;
-  inset: 0 0 auto;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: var(--viewport-height, 100dvh);
