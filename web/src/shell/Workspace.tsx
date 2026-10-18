@@ -1,4 +1,4 @@
-import { apps } from '../apps/index.ts'
+import { useApps } from '../apps/index.ts'
 import { AppHost } from './AppHost.tsx'
 import type { OpenWindow } from './Shell.tsx'
 import { layouts, paneGap } from './layout.ts'
@@ -25,6 +25,7 @@ export function Workspace({
   onPick: (app: string, slot: number) => void
   onTitle: (id: string, title: string) => void
 }) {
+  const apps = useApps()
   const tracks = layouts[layout].map((part) => `minmax(0, ${part}fr)`).join(' ')
   // 行和列都要指定，只指定一个时，前面的位置空着会被自动排到下一行
   const position = (slot: number) => ({ gridArea: portrait ? `${slot + 1} / 1` : `1 / ${slot + 1}` })

@@ -1,10 +1,12 @@
-import { CalendarDays, CloudSun, Folder, Gauge, Music, NotebookPen, Puzzle, Sparkles, Swords } from 'lucide-react'
-import { lazy } from 'react'
+import { CalendarDays, CloudSun, Folder, Gauge, Music, NotebookPen, Sparkles } from 'lucide-react'
+import { lazy, useMemo } from 'react'
+import { useStateValue } from '../state.ts'
 import { externalApp } from './external/index.ts'
+import { externalAppsKey, readExternalApps } from './external/list.ts'
 import { placeholderApp } from './placeholder/index.ts'
 import type { AppManifest } from './types.ts'
 
-export const apps: AppManifest[] = [
+const systemApps: AppManifest[] = [
   {
     id: 'agent',
     name: 'Agent',
@@ -31,8 +33,9 @@ export const apps: AppManifest[] = [
       },
     },
   },
-  externalApp('puzzles', 'Puzzles', Puzzle, 'https://puzzles.ebnbin.dev/'),
-  externalApp('warmoji', 'WarMoji', Swords, 'https://warmoji.ebnbin.dev/'),
+]
+
+const placeholderApps: AppManifest[] = [
   placeholderApp('notes', '笔记', NotebookPen),
   placeholderApp('calendar', '日历', CalendarDays),
   placeholderApp('weather', '天气', CloudSun),
@@ -40,4 +43,10 @@ export const apps: AppManifest[] = [
   placeholderApp('files', '文件', Folder),
 ]
 
-export const findApp = (id: string) => apps.find((app) => app.id === id)
+// 内置的 app 加上系统状态里的外部 app，按这个顺序排列
+export function useApps(): AppManifest[] {
+  const value = useStateValue(externalAppsKey)
+  return useMemo(() => [...systemApps, ...readExternalApps(value).map(externalApp), ...placeholderApps], [value])
+}
+
+export const findApp = (apps: AppManifest[], id: string) => apps.find((app) => app.id === id)

@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import type { CSSProperties } from 'react'
-import { findApp } from '../apps/index.ts'
+import { findApp, useApps } from '../apps/index.ts'
+import type { AppManifest } from '../apps/types.ts'
 import { useStateValue } from '../state.ts'
 import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
 import styles from './Desktop.module.css'
@@ -14,7 +15,8 @@ const gap = 16
 const margin = (column.min - cell * 4 - gap * 3) / 2
 
 export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string, route?: string) => void }) {
-  const items = readDesktop(useStateValue(desktopKey))
+  const apps = useApps()
+  const items = readDesktop(useStateValue(desktopKey), apps)
   const { count, columnWidth, scale } = desktopColumns(width)
   const sizes = items.map(itemSize)
   const starts = splitColumns(sizes, count)
@@ -42,6 +44,7 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
                 <Item
                   key={itemIndex}
                   item={item}
+                  apps={apps}
                   style={{ gridArea: `${place.row + 1} / ${place.column + 1} / span ${place.height} / span ${place.width}` }}
                   onOpen={onOpen}
                 />
@@ -54,8 +57,18 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
   )
 }
 
-function Item({ item, style, onOpen }: { item: DesktopItem; style: CSSProperties; onOpen: (app: string, route?: string) => void }) {
-  const app = findApp(item.app)
+function Item({
+  item,
+  apps,
+  style,
+  onOpen,
+}: {
+  item: DesktopItem
+  apps: AppManifest[]
+  style: CSSProperties
+  onOpen: (app: string, route?: string) => void
+}) {
+  const app = findApp(apps, item.app)
   if (!app) {
     return null
   }

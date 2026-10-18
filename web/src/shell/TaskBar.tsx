@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { findApp } from '../apps/index.ts'
+import { findApp, useApps } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
 import type { BarPlacement } from './bar-placement.ts'
 import { layouts } from './layout.ts'
@@ -57,6 +57,7 @@ export function TaskBar({
   onLayout: (layout: LayoutId) => void
   onClose: () => void
 }) {
+  const apps = useApps()
   const [picking, setPicking] = useState(false)
   const picker = useRef<HTMLDivElement>(null)
   const canPick = !home && allowed.length > 1
@@ -84,7 +85,7 @@ export function TaskBar({
         {windows.length > 0 && <span className={styles.separator} />}
         <div className={styles.apps}>
           {windows.map((item) => {
-            const app = findApp(item.window.app)
+            const app = findApp(apps, item.window.app)
             return (
               <button
                 key={item.id}

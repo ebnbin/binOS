@@ -1,0 +1,173 @@
+.section {
+  padding: 8px 20px 24px;
+  font-size: 14px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 4px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.add {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.add:disabled,
+.row:disabled {
+  opacity: 0.4;
+}
+
+@media (hover: hover) {
+  .add:hover:not(:disabled),
+  .row:hover:not(:disabled) {
+    background: var(--hover);
+  }
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list li {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 8px;
+  color: var(--text-2);
+  text-align: left;
+}
+
+.name {
+  flex: none;
+  color: var(--text);
+}
+
+.url {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0 16px;
+}
+
+.editor label,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.editor input {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.editor input:focus {
+  border-color: var(--muted);
+}
+
+.icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.icons button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--text-2);
+}
+
+.icons button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.actions button {
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.primary {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.primary:disabled {
+  opacity: 0.35;
+}
+
+.secondary {
+  background: var(--bubble);
+}
+
+.danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
+@media (pointer: coarse) {
+  .editor input {
+    font-size: 16px;
+  }
+}
