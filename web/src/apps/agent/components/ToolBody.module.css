@@ -1,0 +1,127 @@
+.output,
+.terminal,
+.diffLines {
+  max-height: 480px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--code);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.output[data-error='true'] {
+  color: var(--danger);
+}
+
+.prompt {
+  color: var(--muted);
+  user-select: none;
+}
+
+.terminal {
+  color: var(--text);
+}
+
+.terminalOutput {
+  color: var(--text-2);
+}
+
+.terminalOutput[data-error='true'] {
+  color: var(--danger);
+}
+
+.note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.diff {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.diffLines {
+  padding: 10px 0;
+  white-space: pre;
+}
+
+.diffLine {
+  display: block;
+  padding: 0 12px 0 0;
+}
+
+.diffLine[data-change='added'] {
+  background: color-mix(in srgb, #2da44e 14%, transparent);
+}
+
+.diffLine[data-change='removed'] {
+  background: color-mix(in srgb, var(--danger) 13%, transparent);
+}
+
+.diffSign {
+  display: inline-block;
+  width: 26px;
+  text-align: center;
+  color: var(--muted);
+  user-select: none;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links a {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+@media (hover: hover) {
+  .links a:hover {
+    background: var(--hover);
+  }
+}
+
+.linkTitle {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.linkHost {
+  flex: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.image {
+  display: block;
+  width: fit-content;
+}
+
+.image img {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+}
