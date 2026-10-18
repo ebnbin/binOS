@@ -9,6 +9,7 @@ process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
 const { appendRecords, createSession, filesDir, readTranscript, sessionDir, sessionInfo } = await import('./sessions.js')
 const user = (text: string) => ({ type: 'user' as const, time: new Date().toISOString(), text })
+const result = () => ({ type: 'result' as const, time: new Date().toISOString(), durationMs: 0 })
 
 let sessionId: number
 beforeAll(() => {
@@ -68,13 +69,13 @@ describe('api', () => {
 })
 
 describe('sessions', () => {
-  it('session.json 和 transcript 对不上时从头重算', () => {
+  it('session.json 和 transcript 对不上时从头重算；一轮进行中的 user 是插话，不算新的一轮', () => {
     const id = createSession(user('一'))
-    expect(appendRecords(id, [user('二'), user('三')])).toBe(1)
-    expect(sessionInfo(id)).toMatchObject({ count: 3, turns: 3, title: '一' })
+    expect(appendRecords(id, [user('插话'), result(), user('二')])).toBe(1)
+    expect(sessionInfo(id)).toMatchObject({ count: 4, turns: 2, inTurn: true, title: '一' })
     rmSync(`${sessionDir(id)}/session.json`)
-    appendFileSync(`${sessionDir(id)}/transcript.jsonl`, JSON.stringify(user('四')) + '\n')
-    expect(sessionInfo(id)).toMatchObject({ count: 4, turns: 4 })
+    appendFileSync(`${sessionDir(id)}/transcript.jsonl`, JSON.stringify(result()) + '\n')
+    expect(sessionInfo(id)).toMatchObject({ count: 5, turns: 2, inTurn: false })
   })
 
   it('跳过崩溃时没写完的半行，之后的记录另起一行', () => {

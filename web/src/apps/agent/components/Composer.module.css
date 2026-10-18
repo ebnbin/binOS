@@ -90,6 +90,32 @@
   opacity: 0.22;
 }
 
+.interrupt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  margin-left: auto;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+@media (hover: hover) {
+  .interrupt:hover {
+    background: var(--hover);
+  }
+}
+
+.interrupt + .action {
+  margin-left: 8px;
+}
+
 .busy {
   background: var(--bubble);
 }

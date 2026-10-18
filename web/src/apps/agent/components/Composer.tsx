@@ -1,4 +1,4 @@
-import { ArrowUp, Paperclip } from 'lucide-react'
+import { ArrowUp, Paperclip, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import { PendingAttachments } from './Attachments.tsx'
@@ -20,7 +20,7 @@ export function Composer({
   onStop,
 }: {
   running: boolean
-  onSend: (text: string, files: File[]) => Promise<boolean>
+  onSend: (text: string, files: File[], interrupt: boolean) => Promise<boolean>
   onStop: () => void
 }) {
   const [input, setInput] = useState('')
@@ -29,7 +29,8 @@ export function Composer({
   const [dragging, setDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const canSend = !running && !sending && (input.trim() !== '' || pending.length > 0)
+  const hasContent = input.trim() !== '' || pending.length > 0
+  const canSend = !sending && hasContent
 
   function addFiles(files: File[]) {
     if (!sending) {
@@ -80,12 +81,13 @@ export function Composer({
     }
   }, [])
 
-  async function send() {
+  // 正在回答时发出的是插话，agent 在下一次工具调用之间看到；interrupt 时先打断正在做的事
+  async function send(interrupt = false) {
     if (!canSend) {
       return
     }
     setSending(true)
-    const ok = await onSend(input.trim(), pending.map((item) => item.file))
+    const ok = await onSend(input.trim(), pending.map((item) => item.file), interrupt)
     setSending(false)
     if (ok) {
       setInput('')
@@ -152,9 +154,9 @@ export function Composer({
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
-          placeholder={running ? '正在回答…' : '输入消息'}
+          placeholder={running ? '补充或纠正，agent 会在下一步看到' : '输入消息'}
           rows={1}
-          disabled={running || sending}
+          disabled={sending}
           autoFocus={enterSends}
         />
         <div className={styles.bar}>
@@ -177,18 +179,38 @@ export function Composer({
             onClick={() => fileInputRef.current?.click()}
           />
           {enterSends && <span className={styles.hint}>Enter 发送，Shift + Enter 换行</span>}
-          {running ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
-              <span className={styles.stopIcon} />
-            </button>
-          ) : sending ? (
+          {sending ? (
             <span className={`${styles.action} ${styles.busy}`}>
               <Spinner />
             </span>
-          ) : (
-            <button type="submit" className={styles.action} disabled={!canSend} aria-label="发送" title="发送">
-              <ArrowUp size={17} strokeWidth={2.2} />
+          ) : running && !hasContent ? (
+            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+              <span className={styles.stopIcon} />
             </button>
+          ) : (
+            <>
+              {running && (
+                <button
+                  type="button"
+                  className={styles.interrupt}
+                  onClick={() => void send(true)}
+                  aria-label="打断并发送"
+                  title="打断正在做的事，马上处理这句话"
+                >
+                  <Zap size={14} strokeWidth={2} />
+                  打断
+                </button>
+              )}
+              <button
+                type="submit"
+                className={styles.action}
+                disabled={!canSend}
+                aria-label={running ? '插话' : '发送'}
+                title={running ? '插话：agent 在下一步看到' : '发送'}
+              >
+                <ArrowUp size={17} strokeWidth={2.2} />
+              </button>
+            </>
           )}
         </div>
       </form>

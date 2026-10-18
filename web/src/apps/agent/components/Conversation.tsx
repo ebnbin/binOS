@@ -37,7 +37,7 @@ export function Conversation({
     }
   }
 
-  async function send(text: string, files: File[]) {
+  async function send(text: string, files: File[], interrupt: boolean) {
     setNotice('')
     stick.current = true
     const tooLarge = files.find((file) => file.size > maxUploadBytes)
@@ -54,7 +54,7 @@ export function Conversation({
       }
       attachments.push(upload)
     }
-    const result = await sendMessage(sessionId, text, attachments)
+    const result = await sendMessage(sessionId, text, attachments, interrupt)
     if ('error' in result) {
       setNotice(result.error)
       return false

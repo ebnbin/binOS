@@ -6,7 +6,7 @@ import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { subscribe } from './live-events.js'
 import { filesDir, listSessions, readTranscript, sessionExists, sessionInfo } from './sessions.js'
-import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
+import { isAnswering, liveState, sendMessage, stopTurn } from './turns.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
@@ -18,14 +18,14 @@ const sessionParam = validator('param', (value: Record<string, string>, c) => {
   return { id }
 })
 
-// attachments 的 file 是上传后拿到的文件名；有附件时可以不写字
+// attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。interrupt：正在回答时先打断正在做的事
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown } | null
+  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown } | null
   const attachments = parseAttachments(body?.attachments)
   if (typeof body?.text !== 'string' || !attachments || (!body.text.trim() && !attachments.length)) {
     return c.text('Bad Request', 400)
   }
-  return { text: body.text, attachments }
+  return { text: body.text, attachments, interrupt: body.interrupt === true }
 })
 
 // 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
@@ -43,9 +43,9 @@ const inlineTypes: Record<string, string> = {
   json: 'text/plain; charset=utf-8',
 }
 
-function start(sessionId: number | undefined, text: string, attachments: Attachment[]) {
-  const id = startTurn(sessionId, text, attachments)
-  return id === undefined ? ({ error: 'busy' } as const) : { id }
+async function send(sessionId: number | undefined, text: string, attachments: Attachment[], interrupt: boolean) {
+  const id = await sendMessage(sessionId, text, attachments, interrupt)
+  return id === undefined ? ({ error: 'unavailable' } as const) : { id }
 }
 
 export const agentApi = new Hono()
@@ -77,15 +77,16 @@ export const agentApi = new Hono()
       throw error
     }
   })
-  .post('/sessions', messageBody, (c) => {
+  .post('/sessions', messageBody, async (c) => {
     const { text, attachments } = c.req.valid('json')
-    const result = start(undefined, text, attachments)
-    return 'id' in result ? c.json(result, 200) : c.json(result, 409)
+    const result = await send(undefined, text, attachments, false)
+    return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
-  .post('/sessions/:id/messages', sessionParam, messageBody, (c) => {
-    const { text, attachments } = c.req.valid('json')
-    const result = start(c.req.valid('param').id, text, attachments)
-    return 'id' in result ? c.json(result, 200) : c.json(result, 409)
+  // 正在回答时交给 agent，没在回答时开始新的一轮
+  .post('/sessions/:id/messages', sessionParam, messageBody, async (c) => {
+    const { text, attachments, interrupt } = c.req.valid('json')
+    const result = await send(c.req.valid('param').id, text, attachments, interrupt)
+    return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
   .post('/sessions/:id/stop', sessionParam, (c) => {
     if (!stopTurn(c.req.valid('param').id)) {

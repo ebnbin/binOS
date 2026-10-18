@@ -22,6 +22,7 @@ type Item =
   | { kind: 'tools'; key: string; calls: ToolCallItem[] }
   | { kind: 'agent'; key: string; call: ToolCallItem }
   | { kind: 'compact'; key: string; record: Compact }
+  | { kind: 'interrupted'; key: string }
   // reply：这一轮回复的全部文字，用于复制
   | { kind: 'result'; key: string; record: Result; reply: string }
 
@@ -40,12 +41,20 @@ const agentTools = new Set(['Agent', 'Task'])
 // 相邻的普通工具调用合成一组
 function buildItems(entries: Entry[], context: Context): Item[] {
   const items: Item[] = []
+  // 这一轮到目前为止回复的文字；一轮进行中出现的 user 是插话，不另起一轮
   let replies: string[] = []
+  let inTurn = false
   for (const { record, index } of entries) {
     const key = String(index)
     switch (record.type) {
       case 'user':
-        replies = []
+        if (!inTurn) {
+          replies = []
+          inTurn = true
+        }
+        if (record.interrupt) {
+          items.push({ kind: 'interrupted', key: `${key}-interrupted` })
+        }
         if (record.attachments?.length) {
           items.push({ kind: 'attachments', key: `${key}-attachments`, attachments: record.attachments })
         }
@@ -78,6 +87,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         items.push({ kind: 'compact', key, record })
         break
       case 'result':
+        inTurn = false
         items.push({ kind: 'result', key, record, reply: replies.join('\n\n') })
         break
     }
@@ -116,6 +126,12 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
           />
         )
       }
+      case 'interrupted':
+        return (
+          <div key={item.key} className={styles.divider}>
+            已打断
+          </div>
+        )
       case 'compact':
         return (
           <div key={item.key} className={styles.divider}>
@@ -158,7 +174,8 @@ function TurnEnd({ record, reply }: { record: Result; reply: string }) {
   )
 }
 
-function statusText(status: Status | null, live: Live) {
+// runningTool：主对话里还没有结果的最后一次工具调用
+function statusText(status: Status | null, live: Live, runningTool: string | undefined) {
   switch (status?.type) {
     case 'requesting':
       return '等待模型'
@@ -168,10 +185,12 @@ function statusText(status: Status | null, live: Live) {
       return `正在调用 ${status.name}`
     case 'compacting':
       return '正在压缩上下文'
+    case 'waiting':
+      return `已答完，等待 ${status.tasks} 个后台任务`
     case 'retrying':
       return `请求失败，第 ${status.attempt} 次重试`
     default:
-      return live.text ? '正在回答' : '正在处理'
+      return live.text ? '正在回答' : runningTool ? `正在运行 ${runningTool}` : '正在处理'
   }
 }
 
@@ -203,7 +222,9 @@ export function Transcript({ sessionId, records, live }: { sessionId: number; re
     }
   })
   const context: Context = { sessionId, results, children, live, now }
-  const turnStart = records.findLast((record) => record.type === 'user')?.time
+  const runningTool = main.findLast(({ record }) => record.type === 'tool_use' && !results.has(record.id))?.record
+  // 这一轮从最后一个 result 之后开始
+  const turnStart = records[records.findLastIndex((record) => record.type === 'result') + 1]?.time
   return (
     <>
       <Timeline entries={main} context={context} />
@@ -211,7 +232,7 @@ export function Transcript({ sessionId, records, live }: { sessionId: number; re
       {live?.text.trim() && <Markdown sessionId={sessionId} text={live.text} files={live.files} />}
       {live && (
         <div className={styles.status}>
-          {statusText(live.status, live)}
+          {statusText(live.status, live, runningTool?.type === 'tool_use' ? runningTool.name : undefined)}
           {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
         </div>
       )}

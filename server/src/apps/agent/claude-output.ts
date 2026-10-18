@@ -90,11 +90,18 @@ export class ClaudeOutput {
   private contextTokens: number | undefined
   private model: string | undefined
   private result: Line | undefined
+  // 答完了一轮（输出了 result）、之后还没有新的动静：插的话会让它接着答，没人插话就可以让它退出了
+  answered = false
 
   constructor(options: { filesDir: string; recorded: number; sessionId: string | undefined }) {
     this.filesDir = options.filesDir
     this.recorded = options.recorded
     this.sessionId = options.sessionId
+  }
+
+  // 主对话里还在后台运行、没有结束的工具调用
+  backgroundTasks(): number {
+    return [...this.openTools.values()].filter((tool) => tool.background && !tool.parent).length
   }
 
   current(): Live {
@@ -136,6 +143,10 @@ export class ClaudeOutput {
     if (!parent && line.session_id && line.session_id !== this.sessionId && (line.type === 'assistant' || line.type === 'result')) {
       this.sessionId = line.session_id
       record({ type: 'agent', time, provider: 'claude', sessionId: line.session_id })
+    }
+
+    if (!parent && (line.type === 'stream_event' || line.type === 'assistant' || line.subtype === 'init')) {
+      this.answered = false
     }
 
     switch (line.type) {
@@ -191,6 +202,10 @@ export class ClaudeOutput {
       case 'result':
         if (!parent) {
           this.result = line
+          this.answered = true
+          // 被打断时正在想的、正在写的不会再写完了，照样记下
+          records.push(...this.flushLive(time).map((fields) => ({ ...fields, offset }) as TranscriptRecord))
+          status(this.waitingStatus())
         }
         break
     }
@@ -200,14 +215,7 @@ export class ClaudeOutput {
   // 一轮结束时补记：被停止或出错时还没想完的思考、还没写完的文字照样记下；还没有结果的工具调用不会再有结果，记成出错
   finish(options: { startedAt: string; stopped: boolean; errors: string }): TranscriptRecord[] {
     const time = new Date().toISOString()
-    const records: TranscriptRecord[] = []
-    if (this.live.thinking) {
-      records.push({ type: 'thinking', time, text: this.live.thinking })
-    }
-    if (this.live.text) {
-      const files = snapshotFiles(this.live.text, this.filesDir)
-      records.push({ type: 'text', time, text: this.live.text, ...(Object.keys(files).length > 0 && { files }) })
-    }
+    const records = this.flushLive(time)
     for (const [toolUseId, { parent }] of this.openTools) {
       records.push({ type: 'tool_result', time, ...(this.held.get(toolUseId) ?? { toolUseId }), status: 'error', ...(parent && { parent }) })
     }
@@ -248,6 +256,28 @@ export class ClaudeOutput {
       }),
     })
     return records
+  }
+
+  private flushLive(time: string): TranscriptRecord[] {
+    const records: TranscriptRecord[] = []
+    if (this.live.thinking) {
+      records.push({ type: 'thinking', time, text: this.live.thinking })
+    }
+    if (this.live.text) {
+      const files = snapshotFiles(this.live.text, this.filesDir)
+      records.push({ type: 'text', time, text: this.live.text, ...(Object.keys(files).length > 0 && { files }) })
+    }
+    this.live.thinking = ''
+    this.live.text = ''
+    this.live.files = {}
+    this.thinkingStartedAt = undefined
+    return records
+  }
+
+  // 答完了但还有后台任务时，agent 等任务结束后会接着答
+  private waitingStatus(): Status | null {
+    const tasks = this.backgroundTasks()
+    return this.answered && tasks > 0 ? { type: 'waiting', tasks } : null
   }
 
   private handleStreamEvent(event: NonNullable<Line['event']>, status: (value: Status | null) => void, events: LiveEvent[]) {
@@ -340,6 +370,9 @@ export class ClaudeOutput {
         this.openTools.delete(id)
         record({ type: 'tool_result', time, ...(this.held.get(id) ?? { toolUseId: id }), status: line.status === 'completed' ? 'done' : 'error' })
         this.held.delete(id)
+        if (this.answered) {
+          status(this.waitingStatus())
+        }
         break
       }
     }
