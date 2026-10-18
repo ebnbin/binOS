@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readFileSync, statSync } from 'node:fs'
+import { constants, copyFileSync, existsSync, mkdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 const extensions: Record<string, string> = {
@@ -13,7 +13,7 @@ const extensions: Record<string, string> = {
 }
 const maxSize = 20 * 1024 * 1024
 // ![说明](/绝对路径) 或 ![说明](</带空格的路径>)
-const imagePattern = /!\[([^\]\n]*)\]\((<[^>\n]+>|[^)\s]+)\)/g
+const imagePattern = /!\[[^\]\n]*\]\((?:<([^>\n]+)>|([^)\s]+))\)/g
 
 export const replyFilesPrompt = [
   '用户在 binOS 的网页上看你的回复，回复按 Markdown 渲染。',
@@ -23,25 +23,41 @@ export const replyFilesPrompt = [
   '支持 png、jpg、gif、webp、html，单个文件不超过 20 MB。回复发出时文件会被复制保存，之后删除原文件不影响显示。',
 ].join('\n')
 
-// 把回复里引用的本机图片和网页存进 session，引用改成存下的文件名。文件名取内容的哈希：后端重启后重新读取同一份输出时，覆盖同一个文件
-export function attachReplyFiles(text: string, saveFile: (name: string, data: Buffer) => void): string {
-  return text.replace(imagePattern, (match, alt: string, target: string) => {
-    const file = target.startsWith('<') ? target.slice(1, -1) : target
-    const extension = extensions[path.extname(file).toLowerCase()]
-    if (!extension || !path.isAbsolute(file)) {
-      return match
+// 路径里可能有转义（空格写成 %20），按还原后的路径找文件；页面上也按还原后的路径找快照
+export function decodeReference(reference: string): string {
+  try {
+    return decodeURI(reference)
+  } catch {
+    return reference
+  }
+}
+
+// 给文字里引用的本机图片和网页存快照，返回 known 里还没有的（路径 → 快照文件名）。文字本身不改。
+// 原文件之后可能被覆盖或删掉，存一份才能让已发出的回复保持原样。快照名由路径、修改时间和大小决定：
+// 文件没变就是同一个名字，后端重启后重读输出时不会重复存。用克隆复制，APFS 上不占额外空间
+export function snapshotFiles(text: string, dir: string, known: Record<string, string> = {}): Record<string, string> {
+  const saved: Record<string, string> = {}
+  for (const match of text.matchAll(imagePattern)) {
+    const reference = decodeReference(match[1] ?? match[2])
+    const extension = extensions[path.extname(reference).toLowerCase()]
+    if (known[reference] || saved[reference] || !extension || !path.isAbsolute(reference)) {
+      continue
     }
-    let data: Buffer
     try {
-      if (statSync(file).size > maxSize) {
-        return match
+      const info = statSync(reference)
+      if (!info.isFile() || info.size > maxSize) {
+        continue
       }
-      data = readFileSync(file)
+      const hash = createHash('sha256').update(`${reference}\0${info.mtimeMs}\0${info.size}`).digest('hex')
+      const name = `${hash.slice(0, 32)}.${extension}`
+      if (!existsSync(path.join(dir, name))) {
+        mkdirSync(dir, { recursive: true })
+        copyFileSync(reference, path.join(dir, name), constants.COPYFILE_FICLONE)
+      }
+      saved[reference] = name
     } catch {
-      return match
+      // 文件不存在或读不了，页面上显示成无法显示
     }
-    const name = `${createHash('sha256').update(data).digest('hex').slice(0, 16)}.${extension}`
-    saveFile(name, data)
-    return `![${alt}](${name})`
-  })
+  }
+  return saved
 }

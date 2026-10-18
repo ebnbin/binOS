@@ -9,14 +9,32 @@ import styles from './Markdown.module.css'
 
 const remarkPlugins = [remarkGfm]
 
-// 后端把回复引用的本机图片和网页存进 session 后，引用会改成存下的文件名
-const sessionFile = /^[\w-]+\.(png|jpg|gif|webp|html)$/
-
-function MarkdownImage({ sessionId, src, alt }: { sessionId: number; src: unknown; alt: string | undefined }) {
-  if (typeof src === 'string' && sessionFile.test(src) && src.endsWith('.html')) {
-    return <HtmlFrame sessionId={sessionId} file={src} title={alt || '网页'} />
+// 和后端一致：路径里的转义还原后再找快照
+function decodeReference(reference: string) {
+  try {
+    return decodeURI(reference)
+  } catch {
+    return reference
   }
-  const url = typeof src !== 'string' ? undefined : sessionFile.test(src) ? fileUrl(sessionId, src) : /^https?:\/\//.test(src) ? src : undefined
+}
+
+// 回复引用的本机图片和网页，后端存了快照（files：路径 → 快照文件名）
+function MarkdownImage({
+  sessionId,
+  files,
+  src,
+  alt,
+}: {
+  sessionId: number
+  files: Record<string, string> | undefined
+  src: unknown
+  alt: string | undefined
+}) {
+  const snapshot = typeof src === 'string' ? files?.[decodeReference(src)] : undefined
+  if (snapshot?.endsWith('.html')) {
+    return <HtmlFrame sessionId={sessionId} file={snapshot} title={alt || '网页'} />
+  }
+  const url = snapshot ? fileUrl(sessionId, snapshot) : typeof src === 'string' && /^https?:\/\//.test(src) ? src : undefined
   if (!url) {
     return (
       <span className={styles.missingImage}>
@@ -33,18 +51,26 @@ function MarkdownImage({ sessionId, src, alt }: { sessionId: number; src: unknow
 }
 
 // 回答过程中文本会频繁更新，内容不变的段落不重新解析
-export const Markdown = memo(function Markdown({ sessionId, text }: { sessionId: number; text: string }) {
+export const Markdown = memo(function Markdown({
+  sessionId,
+  text,
+  files,
+}: {
+  sessionId: number
+  text: string
+  files?: Record<string, string>
+}) {
   const components = useMemo<Components>(
     () => ({
       a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noreferrer" />,
-      img: ({ src, alt }) => <MarkdownImage sessionId={sessionId} src={src} alt={alt} />,
+      img: ({ src, alt }) => <MarkdownImage sessionId={sessionId} files={files} src={src} alt={alt} />,
       table: ({ node: _node, ...props }) => (
         <div className={styles.tableWrap}>
           <table {...props} />
         </div>
       ),
     }),
-    [sessionId],
+    [sessionId, files],
   )
   return (
     <div className={styles.markdown}>

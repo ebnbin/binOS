@@ -1,11 +1,33 @@
-import { randomUUID } from 'node:crypto'
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  appendFileSync,
+  closeSync,
+  existsSync,
+  fstatSync,
+  mkdirSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  readSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import { sessionsDir } from '../../paths.js'
-import type { Entry, EntryFields, SessionSummary } from './types.js'
+import type { Context, TranscriptRecord } from './types.js'
 
+// session.json：从 transcript 算出来的缓存，会话列表和启动 agent 时用。
+// transcriptSize 是算的时候 transcript 有多大，对不上就从头重算，丢了也能重建
 export type SessionInfo = {
-  claudeSessionId: string
+  transcriptSize: number
+  count: number
+  title: string
+  createdAt: string
+  updatedAt: string
+  turns: number
+  agent?: { provider: 'claude'; sessionId: string }
+  outcome?: 'stopped' | 'error'
+  context?: Context
 }
 
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
@@ -25,65 +47,129 @@ export function listSessions(): number[] {
 }
 
 export function sessionExists(id: number): boolean {
-  return Number.isSafeInteger(id) && id > 0 && existsSync(infoPath(id))
+  return Number.isSafeInteger(id) && id > 0 && existsSync(transcriptPath(id))
 }
 
-export function createSession(info: SessionInfo): number {
+// 只有这个后端写 session（根目录锁保证），同步地建目录、写第一条，编号不会被占
+export function createSession(first: TranscriptRecord): number {
   const id = (listSessions()[0] ?? 0) + 1
   mkdirSync(sessionDir(id), { recursive: true })
-  writeSessionInfo(id, info)
+  appendRecords(id, [first])
   return id
 }
 
-export function readSessionInfo(id: number): SessionInfo {
-  return JSON.parse(readFileSync(infoPath(id), 'utf8'))
-}
-
-export function writeSessionInfo(id: number, info: SessionInfo) {
-  writeFileSync(infoPath(id), JSON.stringify(info, null, 2) + '\n')
-}
-
-export function readTranscript(id: number): Entry[] {
+// 最后一行可能是崩溃时没写完的半行，跳过
+export function readTranscript(id: number): TranscriptRecord[] {
   if (!existsSync(transcriptPath(id))) {
     return []
   }
-  return readFileSync(transcriptPath(id), 'utf8')
-    .split('\n')
-    .filter(Boolean)
-    .map((line) => JSON.parse(line))
+  const records: TranscriptRecord[] = []
+  for (const line of readFileSync(transcriptPath(id), 'utf8').split('\n')) {
+    try {
+      records.push(JSON.parse(line))
+    } catch {
+      // 空行或没写完的半行
+    }
+  }
+  return records
 }
 
-// 追加时不用重读整个 transcript。只有这个后端写 transcript（根目录锁保证），所以缓存不会过期
-const tails = new Map<number, { count: number; lastUuid: string | null }>()
-
-export function appendEntry(id: number, fields: EntryFields): { entry: Entry; index: number } {
-  let tail = tails.get(id)
-  if (!tail) {
-    const transcript = readTranscript(id)
-    tail = { count: transcript.length, lastUuid: transcript.at(-1)?.uuid ?? null }
-    tails.set(id, tail)
-  }
-  const { type, ...rest } = fields
-  const entry: Entry = {
-    type,
-    uuid: randomUUID(),
-    parentUuid: tail.lastUuid,
-    sessionId: id,
-    timestamp: new Date().toISOString(),
-    ...rest,
-  }
-  appendFileSync(transcriptPath(id), JSON.stringify(entry) + '\n')
-  const index = tail.count
-  tail.count += 1
-  tail.lastUuid = entry.uuid
-  return { entry, index }
+function emptyInfo(): SessionInfo {
+  return { transcriptSize: 0, count: 0, title: '', createdAt: '', updatedAt: '', turns: 0 }
 }
 
-export function sessionSummary(id: number): Omit<SessionSummary, 'running'> {
-  const transcript = readTranscript(id)
-  const firstEntry = transcript.find((entry) => entry.type === 'user')
-  const first = firstEntry?.message?.content
-  const text = typeof first === 'string' ? first : (first?.find((block) => block.type === 'text')?.text ?? '')
-  const title = text.trim() || firstEntry?.attachments?.[0]?.name || ''
-  return { id, title: title.slice(0, 200), updatedAt: transcript.at(-1)?.timestamp ?? null }
+function apply(info: SessionInfo, record: TranscriptRecord) {
+  info.count += 1
+  info.updatedAt = record.time
+  info.createdAt ||= record.time
+  switch (record.type) {
+    case 'user':
+      if (info.turns === 0) {
+        info.title = (record.text.trim() || record.attachments?.[0]?.name || '').slice(0, 200)
+      }
+      info.turns += 1
+      delete info.outcome
+      break
+    case 'agent':
+      info.agent = { provider: record.provider, sessionId: record.sessionId }
+      break
+    case 'result':
+      if (record.outcome) {
+        info.outcome = record.outcome
+      }
+      if (record.context) {
+        info.context = record.context
+      }
+      break
+  }
+}
+
+// 先写临时文件再改名，不会出现写了一半的 session.json
+function writeInfo(id: number, info: SessionInfo) {
+  writeFileSync(`${infoPath(id)}.tmp`, JSON.stringify(info, null, 2) + '\n')
+  renameSync(`${infoPath(id)}.tmp`, infoPath(id))
+}
+
+function readInfoFile(id: number): SessionInfo | undefined {
+  try {
+    return JSON.parse(readFileSync(infoPath(id), 'utf8'))
+  } catch {
+    return undefined
+  }
+}
+
+function transcriptSize(id: number): number {
+  try {
+    return statSync(transcriptPath(id)).size
+  } catch {
+    return 0
+  }
+}
+
+// 内存里记着每个 session 算到哪了，追加时接着算；后端刚启动时先看 session.json，和 transcript 对得上就直接用
+const infos = new Map<number, SessionInfo>()
+
+export function sessionInfo(id: number): SessionInfo {
+  const size = transcriptSize(id)
+  const cached = infos.get(id) ?? readInfoFile(id)
+  if (cached?.transcriptSize === size) {
+    infos.set(id, cached)
+    return cached
+  }
+  const info = emptyInfo()
+  for (const record of readTranscript(id)) {
+    apply(info, record)
+  }
+  info.transcriptSize = size
+  writeInfo(id, info)
+  infos.set(id, info)
+  return info
+}
+
+// 崩溃时没写完的半行后面先换行，不和新的记录连在一起
+function endsWithNewline(id: number): boolean {
+  const fd = openSync(transcriptPath(id), 'r')
+  try {
+    const size = fstatSync(fd).size
+    const last = Buffer.alloc(1)
+    return size === 0 || (readSync(fd, last, 0, 1, size - 1) === 1 && last[0] === 10)
+  } finally {
+    closeSync(fd)
+  }
+}
+
+// 同一行输出产生的几条记录一次写进去，后端重启时不会只记下其中一部分。返回第一条是第几条
+export function appendRecords(id: number, records: TranscriptRecord[]): number {
+  const exists = existsSync(transcriptPath(id))
+  const info = exists ? sessionInfo(id) : emptyInfo()
+  const index = info.count
+  const lines = records.map((record) => JSON.stringify(record) + '\n').join('')
+  appendFileSync(transcriptPath(id), exists && !endsWithNewline(id) ? '\n' + lines : lines)
+  for (const record of records) {
+    apply(info, record)
+  }
+  info.transcriptSize = transcriptSize(id)
+  writeInfo(id, info)
+  infos.set(id, info)
+  return index
 }

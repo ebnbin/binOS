@@ -18,7 +18,8 @@ export function Conversation({
   sessionId: number | null
   onCreated: (id: number) => void
 }) {
-  const { entries, progress, running } = useSession(sessionId)
+  const { records, live } = useSession(sessionId)
+  const running = live !== null
   const [notice, setNotice] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
@@ -28,7 +29,7 @@ export function Conversation({
     if (el && stick.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [entries, progress, running, notice])
+  }, [records, live, notice])
 
   function stop() {
     if (sessionId !== null) {
@@ -82,9 +83,9 @@ export function Conversation({
               <p>你说的每一句话，都可能改变这个系统本身</p>
             </div>
           ) : (
-            <Transcript sessionId={sessionId} entries={entries} progress={progress} />
+            <Transcript sessionId={sessionId} records={records} live={live} />
           )}
-          {running && !progress?.length && <div className={styles.pending}>正在处理</div>}
+          {running && records.at(-1)?.type === 'user' && !live.text && <div className={styles.pending}>正在处理</div>}
           {notice && <Alert>{notice}</Alert>}
         </div>
       </div>

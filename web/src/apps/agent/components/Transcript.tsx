@@ -1,36 +1,31 @@
-import { interruptedText } from '@binos/server/apps/agent/types'
-import type { Attachment, ContentBlock, Entry, ToolResultBlock, ToolUseBlock } from '@binos/server/apps/agent/types'
+import type { Attachment, Live, TranscriptRecord } from '@binos/server/apps/agent/types'
 import { Alert } from './Alert.tsx'
 import { AttachmentList } from './Attachments.tsx'
 import { Markdown } from './Markdown.tsx'
 import { ToolGroup } from './ToolCall.tsx'
-import type { ToolCallItem } from './ToolCall.tsx'
+import type { ToolCallItem, ToolResult, ToolUse } from './ToolCall.tsx'
 import styles from './Transcript.module.css'
 
 type Item =
-  | { kind: 'text'; key: string; role: 'user' | 'assistant'; text: string }
+  | { kind: 'user'; key: string; text: string }
+  | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
   | { kind: 'attachments'; key: string; attachments: Attachment[] }
   | { kind: 'stopped'; key: string }
   | { kind: 'alert'; key: string; text: string }
   | { kind: 'tools'; key: string; calls: ToolCallItem[] }
 
-function blocksOf(entry: Entry): ContentBlock[] {
-  const content = entry.message?.content
-  return typeof content === 'string' ? [{ type: 'text', text: content }] : (content ?? [])
-}
-
-// 工具调用和它的结果在不同的条目里，按 id 对应起来；相邻的工具调用合成一组
-function buildItems(entries: Entry[], progress: ContentBlock[] | null): Item[] {
-  const results = new Map<string, ToolResultBlock>()
-  for (const block of [...entries.flatMap(blocksOf), ...(progress ?? [])]) {
-    if (block.type === 'tool_result') {
-      results.set(block.tool_use_id, block)
+// 工具调用和它的结果是两条记录，按 id 对应起来；相邻的工具调用合成一组。子 agent 的记录不在这里显示
+function buildItems(records: TranscriptRecord[], live: Live | null): Item[] {
+  const results = new Map<string, ToolResult>()
+  for (const record of records) {
+    if (record.type === 'tool_result') {
+      results.set(record.toolUseId, record)
     }
   }
 
   const items: Item[] = []
-  const addTool = (use: ToolUseBlock, live: boolean) => {
-    const call = { use, result: results.get(use.id), live }
+  const addTool = (use: ToolUse) => {
+    const call = { use, result: results.get(use.id), live: live !== null }
     const last = items.at(-1)
     if (last?.kind === 'tools') {
       last.calls.push(call)
@@ -38,49 +33,55 @@ function buildItems(entries: Entry[], progress: ContentBlock[] | null): Item[] {
       items.push({ kind: 'tools', key: use.id, calls: [call] })
     }
   }
-  const addBlock = (block: ContentBlock, key: string, role: 'user' | 'assistant', live: boolean) => {
-    if (block.type === 'tool_use') {
-      addTool(block, live)
-    } else if (block.type === 'text' && block.text === interruptedText) {
-      items.push({ kind: 'stopped', key })
-    } else if (block.type === 'text' && block.text.trim()) {
-      items.push({ kind: 'text', key, role, text: block.text })
-    }
-  }
 
-  for (const entry of entries) {
-    if (entry.type === 'system') {
-      items.push({ kind: 'alert', key: entry.uuid, text: entry.content ?? '' })
-    } else {
-      if (entry.attachments?.length) {
-        items.push({ kind: 'attachments', key: `${entry.uuid}-attachments`, attachments: entry.attachments })
-      }
-      blocksOf(entry).forEach((block, i) => addBlock(block, `${entry.uuid}-${i}`, entry.type as 'user' | 'assistant', false))
+  records.forEach((record, index) => {
+    const key = String(index)
+    if ('parent' in record && record.parent) {
+      return
     }
+    switch (record.type) {
+      case 'user':
+        if (record.attachments?.length) {
+          items.push({ kind: 'attachments', key: `${key}-attachments`, attachments: record.attachments })
+        }
+        if (record.text.trim()) {
+          items.push({ kind: 'user', key, text: record.text })
+        }
+        break
+      case 'text':
+        if (record.text.trim()) {
+          items.push({ kind: 'text', key, text: record.text, files: record.files })
+        }
+        break
+      case 'tool_use':
+        addTool(record)
+        break
+      case 'result':
+        if (record.outcome === 'stopped') {
+          items.push({ kind: 'stopped', key })
+        } else if (record.outcome === 'error') {
+          items.push({ kind: 'alert', key, text: record.error ?? '' })
+        }
+        break
+    }
+  })
+  if (live?.text.trim()) {
+    items.push({ kind: 'text', key: 'live', text: live.text, files: live.files })
   }
-  progress?.forEach((block, i) => addBlock(block, `progress-${i}`, 'assistant', true))
   return items
 }
 
-export function Transcript({
-  sessionId,
-  entries,
-  progress,
-}: {
-  sessionId: number
-  entries: Entry[]
-  progress: ContentBlock[] | null
-}) {
-  return buildItems(entries, progress).map((item) => {
+export function Transcript({ sessionId, records, live }: { sessionId: number; records: TranscriptRecord[]; live: Live | null }) {
+  return buildItems(records, live).map((item) => {
     switch (item.kind) {
-      case 'text':
-        return item.role === 'user' ? (
+      case 'user':
+        return (
           <div key={item.key} className={styles.user}>
             {item.text}
           </div>
-        ) : (
-          <Markdown key={item.key} sessionId={sessionId} text={item.text} />
         )
+      case 'text':
+        return <Markdown key={item.key} sessionId={sessionId} text={item.text} files={item.files} />
       case 'attachments':
         return <AttachmentList key={item.key} sessionId={sessionId} attachments={item.attachments} />
       case 'stopped':

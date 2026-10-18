@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
+import { appendFileSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -7,11 +7,12 @@ const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
-const { appendEntry, createSession, filesDir, readTranscript } = await import('./sessions.js')
+const { appendRecords, createSession, filesDir, readTranscript, sessionDir, sessionInfo } = await import('./sessions.js')
+const user = (text: string) => ({ type: 'user' as const, time: new Date().toISOString(), text })
 
 let sessionId: number
 beforeAll(() => {
-  sessionId = createSession({ claudeSessionId: 'test' })
+  sessionId = createSession(user('测试'))
   mkdirSync(filesDir(sessionId), { recursive: true })
   writeFileSync(path.join(filesDir(sessionId), 'a-0.png'), 'png')
   writeFileSync(path.join(filesDir(sessionId), 'page.html'), '<script></script>')
@@ -66,14 +67,21 @@ describe('api', () => {
   })
 })
 
-describe('appendEntry', () => {
-  it('按顺序追加，parentUuid 指向上一条', () => {
-    const id = createSession({ claudeSessionId: 'test' })
-    const first = appendEntry(id, { type: 'user', message: { role: 'user', content: '一' } })
-    const second = appendEntry(id, { type: 'system', subtype: 'error', content: '二' })
-    expect([first.index, second.index]).toEqual([0, 1])
-    expect(first.entry.parentUuid).toBeNull()
-    expect(second.entry.parentUuid).toBe(first.entry.uuid)
-    expect(readTranscript(id)).toEqual([first.entry, second.entry])
+describe('sessions', () => {
+  it('session.json 和 transcript 对不上时从头重算', () => {
+    const id = createSession(user('一'))
+    expect(appendRecords(id, [user('二'), user('三')])).toBe(1)
+    expect(sessionInfo(id)).toMatchObject({ count: 3, turns: 3, title: '一' })
+    rmSync(`${sessionDir(id)}/session.json`)
+    appendFileSync(`${sessionDir(id)}/transcript.jsonl`, JSON.stringify(user('四')) + '\n')
+    expect(sessionInfo(id)).toMatchObject({ count: 4, turns: 4 })
+  })
+
+  it('跳过崩溃时没写完的半行，之后的记录另起一行', () => {
+    const id = createSession(user('一'))
+    appendFileSync(`${sessionDir(id)}/transcript.jsonl`, '{"type":"us')
+    expect(appendRecords(id, [user('二')])).toBe(1)
+    expect(readTranscript(id).map((record) => record.type === 'user' && record.text)).toEqual(['一', '二'])
+    expect(readFileSync(`${sessionDir(id)}/transcript.jsonl`, 'utf8').split('\n')).toHaveLength(4)
   })
 })

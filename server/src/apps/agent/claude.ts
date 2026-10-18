@@ -22,6 +22,10 @@ export function spawnClaude(options: {
         '--output-format', 'stream-json',
         '--verbose',
         '--include-partial-messages',
+        // 思考默认只给加密的原文，要这个才给出能显示的摘要
+        '--thinking-display', 'summarized',
+        // 子 agent 的文字和思考也转发出来，带着 parent_tool_use_id
+        '--forward-subagent-text',
         '--chrome',
         '--append-system-prompt', replyFilesPrompt,
         options.resume ? '--resume' : '--session-id', options.claudeSessionId,

@@ -5,7 +5,7 @@ import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { subscribe } from './live-events.js'
-import { filesDir, listSessions, readTranscript, sessionExists, sessionSummary } from './sessions.js'
+import { filesDir, listSessions, readTranscript, sessionExists, sessionInfo } from './sessions.js'
 import { isAnswering, liveState, startTurn, stopTurn } from './turns.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
@@ -50,7 +50,10 @@ function start(sessionId: number | undefined, text: string, attachments: Attachm
 
 export const agentApi = new Hono()
   .get('/sessions', (c) => {
-    const sessions: SessionSummary[] = listSessions().map((id) => ({ ...sessionSummary(id), running: isAnswering(id) }))
+    const sessions: SessionSummary[] = listSessions().map((id) => {
+      const { title, updatedAt } = sessionInfo(id)
+      return { id, title, updatedAt, running: isAnswering(id) }
+    })
     return c.json({ sessions })
   })
   // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
@@ -108,7 +111,7 @@ export const agentApi = new Hono()
       'Cache-Control': 'private, max-age=31536000, immutable',
     })
   })
-  // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
+  // 记录的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
   .get('/sessions/:id/stream', sessionParam, (c) => {
     const id = c.req.valid('param').id
     const from = Number(c.req.header('Last-Event-ID') ?? c.req.query('from') ?? 0) || 0
@@ -116,16 +119,16 @@ export const agentApi = new Hono()
       const send = (event: LiveEvent) =>
         void stream.writeSSE({
           data: JSON.stringify(event),
-          id: event.type === 'entry' ? String(event.index + 1) : undefined,
+          id: event.type === 'record' ? String(event.index + 1) : undefined,
         })
       // 读取记录、补发、开始监听之间没有等待，不会漏掉或重复条目
       await stream.write(connectedPreamble)
-      readTranscript(id).forEach((entry, index) => {
+      readTranscript(id).forEach((record, index) => {
         if (index >= from) {
-          send({ type: 'entry', index, entry })
+          send({ type: 'record', index, record })
         }
       })
-      liveState(id).forEach(send)
+      send({ type: 'live', live: liveState(id) })
       stream.onAbort(subscribe(id, send))
       await keepAlive(stream)
     })
