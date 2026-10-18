@@ -3,9 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { Shell } from './shell/Shell.tsx'
 import { reserveStatusBarTint } from './status-bar.ts'
-import { followVisualViewport } from './viewport.ts'
+import { followVisualViewport, preventPinchZoom } from './viewport.ts'
 
 followVisualViewport()
+preventPinchZoom()
 reserveStatusBarTint()
 
 createRoot(document.getElementById('root')!).render(
