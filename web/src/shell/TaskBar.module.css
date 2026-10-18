@@ -4,6 +4,8 @@
   align-items: center;
   justify-content: center;
   flex: none;
+  min-width: 0;
+  min-height: 0;
   padding: 6px 0;
 }
 
@@ -20,8 +22,26 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  min-width: 0;
+  min-height: 0;
   max-width: 100%;
   max-height: 100%;
+}
+
+/* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
+.apps {
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.bar[data-placement='left'] .apps,
+.bar[data-placement='right'] .apps {
+  flex-direction: column;
 }
 
 .bar[data-placement='left'] .dock,

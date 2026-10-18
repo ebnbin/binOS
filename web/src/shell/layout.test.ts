@@ -50,8 +50,14 @@ describe('allowedLayouts', () => {
     expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:1'])
     expect(allowedLayouts({ width: 576, height: 890 })).toEqual(['1'])
     expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:1'])
-    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
-    expect(allowedLayouts({ width: 1032, height: 1440 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
+    expect(allowedLayouts({ width: 1092, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
+    expect(allowedLayouts({ width: 1032, height: 1452 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
+  })
+
+  it('窗口之间的缝不算在窗口的尺寸里', () => {
+    expect(allowedLayouts({ width: 720, height: 600 })).toEqual(['1'])
+    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:1'])
+    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:1'])
   })
 })
 

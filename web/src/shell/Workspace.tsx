@@ -1,7 +1,7 @@
 import { apps } from '../apps/index.ts'
 import { AppHost } from './AppHost.tsx'
 import type { OpenWindow } from './Shell.tsx'
-import { layouts } from './layout.ts'
+import { layouts, paneGap } from './layout.ts'
 import type { LayoutId } from './layout.ts'
 import styles from './Workspace.module.css'
 
@@ -34,7 +34,7 @@ export function Workspace({
       className={styles.workspace}
       hidden={hidden}
       data-portrait={portrait}
-      style={portrait ? { gridTemplateRows: tracks } : { gridTemplateColumns: tracks }}
+      style={{ gap: paneGap, ...(portrait ? { gridTemplateRows: tracks } : { gridTemplateColumns: tracks }) }}
     >
       {windows.map((item) => {
         const slot = panes.indexOf(item.id)
@@ -43,7 +43,6 @@ export function Workspace({
             key={item.id}
             className={styles.pane}
             hidden={slot < 0}
-            data-first={slot === 0}
             style={position(slot)}
             aria-label={item.title}
             onPointerDownCapture={() => onFocus(item.id, slot)}
@@ -58,8 +57,7 @@ export function Workspace({
             <section
               key={`empty-${slot}`}
               className={styles.pane}
-              data-first={slot === 0}
-                style={position(slot)}
+                  style={position(slot)}
               onPointerDownCapture={() => onFocus(null, slot)}
             >
               <div className={styles.picker}>

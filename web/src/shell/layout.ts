@@ -107,14 +107,19 @@ export const maxPanes = 3
 
 // 分屏时每个窗口至少这么大；只有一个窗口时不限制
 export const minPane = { width: 360, height: 480 }
+// 分屏时窗口之间的黑缝。每个窗口是独立的圆角矩形，缝不占窗口自己的尺寸
+export const paneGap = 6
 
 export const isPortrait = (size: Size) => size.height > size.width
 
 export function paneSizes(layout: LayoutId, size: Size): Size[] {
   const parts = layouts[layout]
   const total = parts.reduce((sum, part) => sum + part, 0)
+  const gaps = paneGap * (parts.length - 1)
   return parts.map((part) =>
-    isPortrait(size) ? { width: size.width, height: (size.height * part) / total } : { width: (size.width * part) / total, height: size.height },
+    isPortrait(size)
+      ? { width: size.width, height: ((size.height - gaps) * part) / total }
+      : { width: ((size.width - gaps) * part) / total, height: size.height },
   )
 }
 

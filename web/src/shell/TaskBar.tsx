@@ -82,23 +82,25 @@ export function TaskBar({
           <BrandMark size={22} inverted />
         </button>
         {windows.length > 0 && <span className={styles.separator} />}
-        {windows.map((item) => {
-          const app = findApp(item.window.app)
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className={styles.item}
-              aria-label={item.title}
-              title={item.title}
-              aria-pressed={!home && item.id === focused}
-              data-visible={!home && panes.includes(item.id)}
-              onClick={() => onShow(item.id)}
-            >
-              {app && <app.icon size={21} strokeWidth={1.75} />}
-            </button>
-          )
-        })}
+        <div className={styles.apps}>
+          {windows.map((item) => {
+            const app = findApp(item.window.app)
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={styles.item}
+                aria-label={item.title}
+                title={item.title}
+                aria-pressed={!home && item.id === focused}
+                data-visible={!home && panes.includes(item.id)}
+                onClick={() => onShow(item.id)}
+              >
+                {app && <app.icon size={21} strokeWidth={1.75} />}
+              </button>
+            )
+          })}
+        </div>
         {canPick && (
           <>
             <span className={styles.separator} />
