@@ -1,5 +1,5 @@
 import type { TranscriptRecord } from '@binos/server/apps/agent/types'
-import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
+import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 export type ToolUse = Extract<TranscriptRecord, { type: 'tool_use' }>
@@ -32,6 +32,9 @@ const kinds: Record<string, ToolKind> = {
   Write: { icon: FilePlus, verb: '写入', category: 'edit', detailKey: 'file_path' },
   Edit: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'file_path' },
   NotebookEdit: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'notebook_path' },
+  // Codex 改文件，每个文件一次
+  Patch: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'file_path' },
+  ViewImage: { icon: Image, verb: '查看图片', category: 'read', detailKey: 'file_path' },
   Grep: { icon: Search, verb: '搜索', category: 'search', detailKey: 'pattern' },
   Glob: { icon: Search, verb: '查找文件', category: 'search', detailKey: 'pattern' },
   WebSearch: { icon: Globe, verb: '搜索网页', category: 'search', detailKey: 'query' },

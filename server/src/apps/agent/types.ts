@@ -12,13 +12,22 @@ type Produced = { offset?: number; parent?: string }
 // transcript.jsonl 的一行：只追加，发生时就写，是 session 唯一的真相。
 // 对话以内容块为粒度，一段思考、一段文字、一次工具调用、一个工具结果各一条；没在回答时的 user 开始一轮，result 结束一轮
 // 一轮进行中又出现的 user 是回答中途插的话，interrupt 表示插话前先打断了正在做的事。
-// 开始一轮的 user 带着这一轮用的模型和思考程度，没有就是 Claude Code 的默认
+// 开始一轮的 user 带着这一轮用的 agent（没有是 Claude）、模型和思考程度（没有是 agent 的默认）
 export type TranscriptRecord =
-  | { type: 'user'; time: string; text: string; attachments?: Attachment[]; interrupt?: true; model?: Model; effort?: Effort }
+  | {
+      type: 'user'
+      time: string
+      text: string
+      attachments?: Attachment[]
+      interrupt?: true
+      provider?: Provider
+      model?: string
+      effort?: string
+    }
   // 用户给 session 改名
   | { type: 'title'; time: string; title: string }
   // agent 那边的会话建立了，之后的轮次接着这个会话
-  | ({ type: 'agent'; time: string; provider: 'claude'; sessionId: string } & Produced)
+  | ({ type: 'agent'; time: string; provider: Provider; sessionId: string } & Produced)
   // 思考的摘要；durationMs 是想了多久，不知道开始时间（后端重启时正在想）就没有
   | ({ type: 'thinking'; time: string; text: string; durationMs?: number } & Produced)
   // files：文字里引用的本机文件（原样的路径）对应的快照，在 files/ 里
@@ -49,11 +58,16 @@ export type TranscriptRecord =
       sessionUsage?: Record<string, Tokens>
     }
 
-// 模型用 Claude Code 的别名，总是对应各系列最新的模型
-export const models = ['fable', 'opus', 'sonnet', 'haiku'] as const
-export type Model = (typeof models)[number]
-export const efforts = ['low', 'medium', 'high', 'xhigh', 'max'] as const
-export type Effort = (typeof efforts)[number]
+// 回答用的 agent：Claude Code 或 Codex，一个 session 自始至终用同一个
+export const providers = ['claude', 'codex'] as const
+export type Provider = (typeof providers)[number]
+
+// Claude 的模型用 Claude Code 的别名，总是对应各系列最新的模型
+export const claudeModels = ['fable', 'opus', 'sonnet', 'haiku'] as const
+export const claudeEfforts = ['low', 'medium', 'high', 'xhigh', 'max'] as const
+
+// Codex 的模型由 codex 列出，各自支持的思考程度不同；isDefault 是 codex 默认用的
+export type CodexModel = { id: string; name: string; efforts: string[]; defaultEffort: string; isDefault: boolean }
 
 // session 里开的 PR；state、title 查到了才有，preview 是开着的 binOS 自己的 PR 正在运行的预览
 export type PullRequest = { url: string; number: number; state?: 'open' | 'merged' | 'closed'; title?: string; preview?: string }
@@ -72,9 +86,10 @@ export type SessionSummary = {
   pinned: boolean
   archived: boolean
   context?: Context
+  provider: Provider
   // 最近一轮用的模型和思考程度
-  model?: Model
-  effort?: Effort
+  model?: string
+  effort?: string
   prs: PullRequest[]
 }
 
@@ -112,7 +127,7 @@ export type LiveEvent =
   | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
 
 // 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
-// Claude 每次请求后报告，存在系统状态的 agent/limits 里
+// agent 回答时报告，按 agent 存在系统状态里
 export type QuotaWindow = { utilization: number; resetsAt: number }
 export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
-export const limitsKey = 'agent/limits'
+export const limitsKeys: Record<Provider, string> = { claude: 'agent/limits', codex: 'agent/codex-limits' }

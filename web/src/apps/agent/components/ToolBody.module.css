@@ -66,6 +66,10 @@
   background: color-mix(in srgb, var(--danger) 13%, transparent);
 }
 
+.diffLine[data-hunk] {
+  color: var(--muted);
+}
+
 .diffSign {
   display: inline-block;
   width: 26px;

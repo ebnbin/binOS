@@ -18,7 +18,7 @@ export function previewPaths(previewsDir: string, pr: number) {
   }
 }
 
-// 预览实例是测试实例：数据在预览目录里，借用正式版的 Claude Code 登录，agent 在 PR 的 worktree 里工作。
+// 预览实例是测试实例：数据在预览目录里，借用正式版的 Claude Code 和 Codex 登录，agent 在 PR 的 worktree 里工作。
 // 自成一个进程组，启动它的 agent 和 session 结束后仍在运行
 export function startPreviewServer(options: {
   dir: string
@@ -27,6 +27,7 @@ export function startPreviewServer(options: {
   port: number
   repoDir: string
   claudeConfigDir: string
+  codexHome: string
 }) {
   const log = openSync(options.serverLog, 'a')
   try {
@@ -41,6 +42,7 @@ export function startPreviewServer(options: {
         BINOS_ROOT: options.dir,
         BINOS_TEST_INSTANCE: '1',
         BINOS_CLAUDE_CONFIG_DIR: options.claudeConfigDir,
+        BINOS_CODEX_HOME: options.codexHome,
         BINOS_REPO_DIR: options.repoDir,
         PORT: String(options.port),
       },

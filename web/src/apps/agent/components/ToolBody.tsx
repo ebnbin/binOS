@@ -45,6 +45,8 @@ function Content({
       return <CodeBlock code={text(input.content).replace(/\n$/, '')} lang={languageOf(text(input.file_path))} startLine={1} />
     case 'Edit':
       return <Diff before={text(input.old_string)} after={text(input.new_string)} replaceAll={input.replace_all === true} />
+    case 'Patch':
+      return <Patch kind={text(input.kind)} diff={text(input.diff)} path={text(input.file_path)} />
     case 'WebSearch':
       return result?.output ? <SearchResults sessionId={sessionId} output={result.output} /> : null
     case 'WebFetch':
@@ -118,6 +120,37 @@ function Diff({ before, after, replaceAll }: { before: string; after: string; re
               </span>
             )),
         )}
+      </pre>
+    </div>
+  )
+}
+
+// Codex 改的一个文件：新建时 diff 是文件内容，删除时是删掉的内容，修改时是统一格式的 diff
+function Patch({ kind, diff, path }: { kind: string; diff: string; path: string }) {
+  if (kind === 'add') {
+    return <CodeBlock code={diff.replace(/\n$/, '')} lang={languageOf(path)} startLine={1} />
+  }
+  if (kind === 'delete') {
+    return <p className={styles.note}>删除了这个文件</p>
+  }
+  return (
+    <div className={styles.diff}>
+      <pre className={styles.diffLines}>
+        {diff
+          .replace(/\n$/, '')
+          .split('\n')
+          .filter((line) => !line.startsWith('+++') && !line.startsWith('---'))
+          .map((line, i) => {
+            const sign = line[0]
+            const change = sign === '+' ? 'added' : sign === '-' ? 'removed' : undefined
+            return (
+              <span key={i} className={styles.diffLine} data-change={change} data-hunk={sign === '@' || undefined}>
+                <span className={styles.diffSign}>{change ? sign : ' '}</span>
+                {sign === '+' || sign === '-' || sign === ' ' ? line.slice(1) : line}
+                {'\n'}
+              </span>
+            )
+          })}
       </pre>
     </div>
   )

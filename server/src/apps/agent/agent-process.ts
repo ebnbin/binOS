@@ -1,9 +1,12 @@
 import { execFileSync, spawn } from 'node:child_process'
+import { randomUUID } from 'node:crypto'
 import { closeSync, constants, existsSync, openSync, readFileSync, rmSync } from 'node:fs'
 import { open } from 'node:fs/promises'
+import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { claudeConfigDir, repoDir } from '../../paths.js'
+import { claudeConfigDir, codexHome, repoDir } from '../../paths.js'
 import { replyFilesPrompt } from './reply-files.js'
+import type { Provider } from './types.js'
 
 // 一轮回答用到的文件：给 agent 发消息的管道（FIFO）、转发进程的进程号、agent 的输出和错误信息
 export type TurnFiles = { input: string; relay: string; output: string; errors: string }
@@ -14,17 +17,12 @@ export type TurnFiles = { input: string; relay: string; output: string; errors: 
 // 不直接把管道接给 agent，是因为它在命名管道上察觉不到输入结束，答完也不会退出
 const relayScript = 'F=$1; R=$2; shift 2; exec "$@" < <(exec sh -c \'echo $$ > "$1"; exec cat 0<>"$0"\' "$F" "$R")'
 
+// sessionId：接着 agent 那边的这个会话，没有就开一个新的；model、effort 没有时用 agent 自己的默认
+export type AgentLaunch = { provider: Provider; sessionId?: string; model?: string; effort?: string }
+
 // 输出直接写进文件，自成一个进程组（转发进程也在里面）：后端重启时 launchd 结束的是后端所在的进程组，agent 不受影响，
-// 后端重启后接着读文件、接着往管道里写。bash 执行脚本后 exec 成 claude，进程号就是 agent 的
-// model、effort 没有时用 Claude Code 的默认
-export function spawnClaude(options: {
-  files: TurnFiles
-  claudeSessionId: string
-  resume: boolean
-  model?: string
-  effort?: string
-}): number | undefined {
-  const { files } = options
+// 后端重启后接着读文件、接着往管道里写。bash 执行脚本后 exec 成 agent，进程号就是 agent 的
+export function spawnAgent(files: TurnFiles, launch: AgentLaunch): number | undefined {
   for (const file of [files.input, files.relay]) {
     rmSync(file, { force: true })
   }
@@ -32,29 +30,12 @@ export function spawnClaude(options: {
   const stdout = openSync(files.output, 'w')
   const stderr = openSync(files.errors, 'w')
   try {
-    const child = spawn(
-      '/bin/bash',
-      [
-        '-c', relayScript, 'binos', files.input, files.relay,
-        'claude',
-        '-p',
-        '--input-format', 'stream-json',
-        '--permission-mode', 'bypassPermissions',
-        '--output-format', 'stream-json',
-        '--verbose',
-        '--include-partial-messages',
-        // 思考默认只给加密的原文，要这个才给出能显示的摘要
-        '--thinking-display', 'summarized',
-        // 子 agent 的文字和思考也转发出来，带着 parent_tool_use_id
-        '--forward-subagent-text',
-        '--chrome',
-        '--append-system-prompt', replyFilesPrompt,
-        ...(options.model ? ['--model', options.model] : []),
-        ...(options.effort ? ['--effort', options.effort] : []),
-        options.resume ? '--resume' : '--session-id', options.claudeSessionId,
-      ],
-      { cwd: repoDir, env: agentEnv(), stdio: ['ignore', stdout, stderr], detached: true },
-    )
+    const child = spawn('/bin/bash', ['-c', relayScript, 'binos', files.input, files.relay, ...agentCommand(launch)], {
+      cwd: repoDir,
+      env: agentEnv(),
+      stdio: ['ignore', stdout, stderr],
+      detached: true,
+    })
     child.on('error', () => {})
     child.unref()
     return child.pid
@@ -64,12 +45,38 @@ export function spawnClaude(options: {
   }
 }
 
-// 后端可能是从 Claude Code 里启动的（比如测试实例），agent 不能继承那里的 Claude 设置
+function agentCommand({ provider, sessionId, model, effort }: AgentLaunch): string[] {
+  if (provider === 'codex') {
+    // 转接进程和这个模块在一起，开发时是 .ts
+    const bridge = path.join(import.meta.dirname, `codex-bridge${path.extname(import.meta.filename)}`)
+    return [process.execPath, bridge, JSON.stringify({ threadId: sessionId, model, effort, instructions: replyFilesPrompt })]
+  }
+  return [
+    'claude',
+    '-p',
+    '--input-format', 'stream-json',
+    '--permission-mode', 'bypassPermissions',
+    '--output-format', 'stream-json',
+    '--verbose',
+    '--include-partial-messages',
+    // 思考默认只给加密的原文，要这个才给出能显示的摘要
+    '--thinking-display', 'summarized',
+    // 子 agent 的文字和思考也转发出来，带着 parent_tool_use_id
+    '--forward-subagent-text',
+    '--chrome',
+    '--append-system-prompt', replyFilesPrompt,
+    ...(model ? ['--model', model] : []),
+    ...(effort ? ['--effort', effort] : []),
+    ...(sessionId ? ['--resume', sessionId] : ['--session-id', randomUUID()]),
+  ]
+}
+
+// 后端可能是从 Claude Code 或 Codex 里启动的（比如测试实例），agent 不能继承那里的设置
 function agentEnv(): NodeJS.ProcessEnv {
   const env = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !key.startsWith('CLAUDE') && !key.startsWith('ANTHROPIC')),
+    Object.entries(process.env).filter(([key]) => !/^(CLAUDE|ANTHROPIC|CODEX|OPENAI)/.test(key)),
   )
-  return { ...env, CLAUDE_CONFIG_DIR: claudeConfigDir }
+  return { ...env, CLAUDE_CONFIG_DIR: claudeConfigDir, CODEX_HOME: codexHome }
 }
 
 // 同时写的两条消息可能交错，按顺序一条条写

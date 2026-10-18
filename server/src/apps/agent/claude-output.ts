@@ -4,7 +4,7 @@ import { snapshotFiles } from './reply-files.js'
 import type { Limits, Live, LiveEvent, QuotaWindow, Status, TaskProgress, Tokens, TranscriptRecord } from './types.js'
 
 // 工具结果的文字只留末尾这么多：出错时要看的报错一般在最后
-const outputLimit = 64 * 1024
+export const outputLimit = 64 * 1024
 const imageExtensions: Record<string, string> = {
   'image/png': 'png',
   'image/jpeg': 'jpg',
@@ -70,7 +70,10 @@ type Line = {
 type ToolResult = Extract<TranscriptRecord, { type: 'tool_result' }>
 type HeldResult = Omit<ToolResult, 'type' | 'time' | 'status' | 'offset'>
 
-const emptyLive = (): Live => ({ thinking: '', text: '', files: {}, status: null, tasks: {} })
+export const emptyLive = (): Live => ({ thinking: '', text: '', files: {}, status: null, tasks: {} })
+
+// 一轮回答期间读 agent 输出的对象：answered 是答完了一轮、之后还没有新的动静
+export type AgentOutput = Pick<ClaudeOutput, 'answered' | 'backgroundTasks' | 'current' | 'push' | 'finish'>
 
 // 把 Claude 的输出逐行转成 transcript 记录和临时内容的变化。输出总是从头读：
 // 后端重启后，已经记下的那些行（offset 不超过 recorded）只用来恢复状态，不再产生记录和推送

@@ -6,10 +6,11 @@ import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { subscribe } from './live-events.js'
 import { filesDir, listSessions, readTranscript, searchSessions, sessionExists, sessionInfo, setUserState } from './sessions.js'
-import { isAnswering, isWaiting, liveState, renameSession, sendMessage, stopTurn } from './turns.js'
+import { isAnswering, isWaiting, liveState, renameSession, saveLimits, sendMessage, stopTurn } from './turns.js'
 import type { MessageOptions } from './turns.js'
-import { efforts, models } from './types.js'
-import type { Attachment, Effort, LiveEvent, Model, SessionSummary } from './types.js'
+import { codexCatalog } from './codex.js'
+import { providers } from './types.js'
+import type { Attachment, LiveEvent, Provider, SessionSummary } from './types.js'
 import { notifyChange } from '../../events.js'
 import { pullRequests } from './pull-requests.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
@@ -22,20 +23,23 @@ const sessionParam = validator('param', (value: Record<string, string>, c) => {
   return { id }
 })
 
-const isModel = (value: unknown): value is Model => models.includes(value as Model)
-const isEffort = (value: unknown): value is Effort => efforts.includes(value as Effort)
+const isProvider = (value: unknown): value is Provider => providers.includes(value as Provider)
+// 模型和思考程度是否适用于这个 agent，开始一轮时再看
+const isName = (value: unknown): value is string => typeof value === 'string' && /^[\w.-]{1,64}$/.test(value)
 
 // attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。
-// interrupt：正在回答时先打断正在做的事；model、effort：开始新的一轮时用，不给就是 Claude Code 的默认
+// interrupt：正在回答时先打断正在做的事；provider：新的 session 用哪个 agent，不给是 Claude；
+// model、effort：开始新的一轮时用，不给就是 agent 的默认
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; model?: unknown; effort?: unknown } | null
+  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; provider?: unknown; model?: unknown; effort?: unknown } | null
   const attachments = parseAttachments(body?.attachments)
   if (
     typeof body?.text !== 'string' ||
     !attachments ||
     (!body.text.trim() && !attachments.length) ||
-    (body.model !== undefined && !isModel(body.model)) ||
-    (body.effort !== undefined && !isEffort(body.effort))
+    (body.provider !== undefined && !isProvider(body.provider)) ||
+    (body.model !== undefined && !isName(body.model)) ||
+    (body.effort !== undefined && !isName(body.effort))
   ) {
     return c.text('Bad Request', 400)
   }
@@ -43,8 +47,9 @@ const messageBody = validator('json', (value, c) => {
     text: body.text,
     attachments,
     interrupt: body.interrupt === true,
-    ...(isModel(body.model) && { model: body.model }),
-    ...(isEffort(body.effort) && { effort: body.effort }),
+    ...(isProvider(body.provider) && { provider: body.provider }),
+    ...(isName(body.model) && { model: body.model }),
+    ...(isName(body.effort) && { effort: body.effort }),
   }
   return message
 })
@@ -86,6 +91,7 @@ async function summary(id: number): Promise<SessionSummary> {
     pinned: Boolean(info.pinned),
     archived: Boolean(info.archived),
     ...(info.context && { context: info.context }),
+    provider: info.provider,
     ...(info.model && { model: info.model }),
     ...(info.effort && { effort: info.effort }),
     prs,
@@ -119,6 +125,14 @@ async function send(sessionId: number | undefined, text: string, attachments: At
 }
 
 export const agentApi = new Hono()
+  // Codex 能不能用、有哪些模型；顺便更新 Codex 的额度
+  .get('/codex', async (c) => {
+    const { limits, ...catalog } = await codexCatalog()
+    if (limits) {
+      saveLimits('codex', limits)
+    }
+    return c.json(catalog)
+  })
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
   .get('/sessions', async (c) => {
     const query = c.req.query('q')?.trim()

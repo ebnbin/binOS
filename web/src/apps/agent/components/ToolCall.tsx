@@ -41,10 +41,27 @@ function lineChanges(use: ToolUse): { added: number; removed: number } | undefin
     }
     return { added, removed }
   }
+  if (use.name === 'Patch') {
+    return patchChanges(use.input as { kind?: unknown; diff?: unknown })
+  }
   if (use.name === 'Write' && typeof input.content === 'string') {
     return { added: input.content.replace(/\n$/, '').split('\n').length, removed: 0 }
   }
   return undefined
+}
+
+// Codex 改文件：新建和删除时 diff 是整个文件的内容，修改时是统一格式的 diff
+function patchChanges({ kind, diff }: { kind?: unknown; diff?: unknown }): { added: number; removed: number } | undefined {
+  if (typeof diff !== 'string') {
+    return undefined
+  }
+  const lines = diff.replace(/\n$/, '').split('\n')
+  if (kind === 'add' || kind === 'delete') {
+    const count = diff ? lines.length : 0
+    return kind === 'add' ? { added: count, removed: 0 } : { added: 0, removed: count }
+  }
+  const body = lines.filter((line) => !line.startsWith('+++') && !line.startsWith('---'))
+  return { added: body.filter((line) => line.startsWith('+')).length, removed: body.filter((line) => line.startsWith('-')).length }
 }
 
 // 命令的输出、以及出错的工具的报错，收起时显示最后几行
