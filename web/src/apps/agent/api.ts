@@ -1,26 +1,30 @@
 import type { AgentApi } from '@binos/server/apps/agent/api'
-import type { Attachment } from '@binos/server/apps/agent/types'
+import type { Attachment, Effort, Model } from '@binos/server/apps/agent/types'
 import { hc } from 'hono/client'
 
 const client = hc<AgentApi>(`${window.location.origin}/api/apps/agent`)
 const sessions = client.sessions
 
-export async function listSessions() {
-  const res = await sessions.$get()
+// query：只要标题或对话内容里含有它的
+export async function listSessions(query?: string) {
+  const res = await sessions.$get({ query: query ? { q: query } : {} })
   if (!res.ok) {
     throw new Error(`读取 session 列表失败（${res.status}）`)
   }
   return (await res.json()).sessions
 }
 
-// 正在回答时交给 agent，interrupt 时先打断正在做的事
+// interrupt：正在回答时先打断正在做的事；model、effort：开始新的一轮时用，不给就是默认
+export type SendOptions = { interrupt?: boolean; model?: Model; effort?: Effort }
+
+// 正在回答时交给 agent，没在回答时开始新的一轮
 export async function sendMessage(
   sessionId: number | null,
   text: string,
   attachments: Attachment[],
-  interrupt = false,
+  options: SendOptions,
 ): Promise<{ id: number } | { error: string }> {
-  const json = { text, attachments, interrupt }
+  const json = { text, attachments, ...options }
   const res = await (sessionId === null
     ? sessions.$post({ json })
     : sessions[':id'].messages.$post({ param: { id: String(sessionId) }, json })
@@ -50,6 +54,17 @@ export async function uploadFile(file: File): Promise<Attachment | { error: stri
 // 写操作都要带上 JSON 的 Content-Type，后端以此拒绝跨站请求
 export async function stopSession(sessionId: number) {
   await sessions[':id'].stop.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
+}
+
+export async function editSession(sessionId: number, edit: { title?: string; pinned?: boolean; archived?: boolean }) {
+  const res = await sessions[':id'].edit
+    .$post({ param: { id: String(sessionId) }, json: edit })
+    .catch(() => undefined)
+  return res?.ok ?? false
+}
+
+export async function markRead(sessionId: number) {
+  await sessions[':id'].read.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }
 
 export function streamUrl(sessionId: number, from: number) {

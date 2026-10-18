@@ -7,7 +7,7 @@ const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
-const { appendRecords, createSession, filesDir, readTranscript, sessionDir, sessionInfo } = await import('./sessions.js')
+const { appendRecords, createSession, filesDir, readTranscript, searchSessions, sessionDir, sessionInfo, setUserState } = await import('./sessions.js')
 const user = (text: string) => ({ type: 'user' as const, time: new Date().toISOString(), text })
 const result = () => ({ type: 'result' as const, time: new Date().toISOString(), durationMs: 0 })
 
@@ -76,6 +76,25 @@ describe('sessions', () => {
     rmSync(`${sessionDir(id)}/session.json`)
     appendFileSync(`${sessionDir(id)}/transcript.jsonl`, JSON.stringify(result()) + '\n')
     expect(sessionInfo(id)).toMatchObject({ count: 5, turns: 2, inTurn: false })
+  })
+
+  it('重算时保留用户的整理；改名不算有了动静', () => {
+    const id = createSession(user('原来的名字'))
+    setUserState(id, { pinned: true, readAt: '2026-01-01T00:00:00.000Z' })
+    const { updatedAt } = sessionInfo(id)
+    appendFileSync(`${sessionDir(id)}/transcript.jsonl`, JSON.stringify({ type: 'title', time: '2099-01-01T00:00:00.000Z', title: '新名字' }) + '\n')
+    expect(sessionInfo(id)).toMatchObject({ title: '新名字', updatedAt, pinned: true, readAt: '2026-01-01T00:00:00.000Z' })
+  })
+
+  it('按标题、用户的话和回复搜索，不看子 agent 的文字', () => {
+    const id = createSession(user('Alpha 计划'))
+    appendRecords(id, [
+      { type: 'text', time: new Date().toISOString(), text: '关于 Beta 的回复' },
+      { type: 'text', time: new Date().toISOString(), text: 'Gamma', parent: 't1' },
+    ])
+    expect(searchSessions([id], 'alpha').has(id)).toBe(true)
+    expect(searchSessions([id], 'BETA').has(id)).toBe(true)
+    expect(searchSessions([id], 'gamma').has(id)).toBe(false)
   })
 
   it('跳过崩溃时没写完的半行，之后的记录另起一行', () => {

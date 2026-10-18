@@ -10,8 +10,8 @@ import { emit } from './live-events.js'
 import { LineReader } from '../../line-reader.js'
 import { isAlive, isRunning, processStartTime } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
-import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionDir, sessionInfo } from './sessions.js'
-import type { Attachment, Live, TranscriptRecord } from './types.js'
+import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionDir, sessionInfo, setUserState } from './sessions.js'
+import type { Attachment, Effort, Live, Model, TranscriptRecord } from './types.js'
 import { moveUploads, promptWithAttachments } from './uploads.js'
 
 // 回答期间的 turn/ 目录：给 agent 发消息的管道、agent 的原始输出和进程身份，后端重启后能接着读、接着发
@@ -44,6 +44,16 @@ export function liveState(sessionId: number): Live | null {
   return turns.get(sessionId)?.output.current() ?? null
 }
 
+// 改名记进 transcript，和别的记录一样推给正在看的页面
+export function renameSession(sessionId: number, title: string) {
+  append(sessionId, [{ type: 'title', time: new Date().toISOString(), title }])
+}
+
+// 答完了，在等后台任务
+export function isWaiting(sessionId: number): boolean {
+  return turns.get(sessionId)?.output.current().status?.type === 'waiting'
+}
+
 function append(sessionId: number, records: TranscriptRecord[]) {
   if (records.length === 0) {
     return
@@ -62,34 +72,40 @@ function failTurn(sessionId: number, error: string) {
   append(sessionId, [{ type: 'result', time: new Date().toISOString(), durationMs: 0, outcome: 'error', error }])
 }
 
-function userRecord(text: string, attachments: Attachment[], interrupt = false): TranscriptRecord {
+// interrupt：插话前先打断正在做的事；model、effort：开始新的一轮时用，插话时沿用这一轮的
+export type MessageOptions = { interrupt?: boolean; model?: Model; effort?: Effort }
+
+type UserFields = Pick<Extract<TranscriptRecord, { type: 'user' }>, 'interrupt' | 'model' | 'effort'>
+
+function userRecord(text: string, attachments: Attachment[], fields: UserFields = {}): TranscriptRecord {
   return {
     type: 'user',
     time: new Date().toISOString(),
     text,
     ...(attachments.length > 0 && { attachments }),
-    ...(interrupt && { interrupt }),
+    ...fields,
   }
 }
 
-// 用户发来一句话：没在回答时开始新的一轮；正在回答时交给 agent，它在下一次工具调用之间看到，interrupt 时先打断正在做的事。
-// 返回 session 编号；交不过去时返回 undefined
+// 用户发来一句话：没在回答时开始新的一轮；正在回答时交给 agent，它在下一次工具调用之间看到。
+// 归档了的 session 又接着聊，就回到列表里。返回 session 编号；交不过去时返回 undefined
 export async function sendMessage(
   sessionId: number | undefined,
   text: string,
   attachments: Attachment[],
-  interrupt: boolean,
+  options: MessageOptions,
 ): Promise<number | undefined> {
   if (sessionId === undefined) {
-    return startTurn(undefined, text, attachments)
+    return startTurn(undefined, text, attachments, options)
   }
+  setUserState(sessionId, { archived: undefined })
   for (let attempt = 0; attempt < 3; attempt++) {
     const turn = turns.get(sessionId)
     if (!turn) {
-      return startTurn(sessionId, text, attachments)
+      return startTurn(sessionId, text, attachments, options)
     }
     if (turn.open) {
-      return (await insert(sessionId, turn, text, attachments, interrupt)) ? sessionId : undefined
+      return (await insert(sessionId, turn, text, attachments, Boolean(options.interrupt))) ? sessionId : undefined
     }
     const exited = await Promise.race([turn.finished.then(() => true), sleep(exitWait).then(() => false)])
     if (!exited) {
@@ -112,13 +128,14 @@ async function insert(id: number, turn: Turn, text: string, attachments: Attachm
     return false
   }
   turn.settledSince = undefined
-  append(id, [userRecord(text, attachments, interrupt)])
+  append(id, [userRecord(text, attachments, interrupt ? { interrupt } : {})])
   notifyChange({ type: 'session', id })
   return true
 }
 
-async function startTurn(sessionId: number | undefined, text: string, attachments: Attachment[]): Promise<number> {
-  const user = userRecord(text, attachments)
+async function startTurn(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions): Promise<number> {
+  const { model, effort } = options
+  const user = userRecord(text, attachments, { ...(model && { model }), ...(effort && { effort }) })
   let id: number
   if (sessionId === undefined) {
     id = createSession(user)
@@ -132,7 +149,7 @@ async function startTurn(sessionId: number | undefined, text: string, attachment
   const { agent } = sessionInfo(id)
   const files = turnFiles(id)
   mkdirSync(turnDir(id), { recursive: true })
-  const pid = spawnClaude({ files, claudeSessionId: agent?.sessionId ?? randomUUID(), resume: agent !== undefined })
+  const pid = spawnClaude({ files, claudeSessionId: agent?.sessionId ?? randomUUID(), resume: agent !== undefined, model, effort })
   const startedAt = pid && processStartTime(pid)
   if (!pid || !startedAt) {
     rmSync(turnDir(id), { recursive: true, force: true })

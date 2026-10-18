@@ -41,7 +41,13 @@ export function AgentApp({ ctx }: { ctx: AppContext }) {
           <SessionList sessions={sessions} failed={failed} current={sessionId} onNavigate={ctx.navigate} />
         </div>
         <main className={styles.conversationPane}>
-          <TopBar title={title} sessionId={sessionId} onBack={ctx.back} onNew={() => ctx.navigate('/new')} />
+          <TopBar
+            title={title}
+            sessionId={sessionId}
+            context={session?.context}
+            onBack={ctx.back}
+            onNew={() => ctx.navigate('/new')}
+          />
           {missing ? (
             <div className={styles.missing}>
               <p>这个对话不存在</p>
@@ -53,6 +59,7 @@ export function AgentApp({ ctx }: { ctx: AppContext }) {
             <Conversation
               key={sessionId ?? 'new'}
               sessionId={sessionId}
+              session={session}
               onCreated={(id) => {
                 setCreatedId(id)
                 ctx.navigate(sessionRoute(id), { replace: true })

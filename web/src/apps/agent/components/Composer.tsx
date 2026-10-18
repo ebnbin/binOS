@@ -1,8 +1,11 @@
 import { ArrowUp, Paperclip, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
+import { efforts, models } from '@binos/server/apps/agent/types'
+import type { Effort, Model } from '@binos/server/apps/agent/types'
 import { PendingAttachments } from './Attachments.tsx'
 import type { PendingFile } from './Attachments.tsx'
+import type { Choice } from './Conversation.tsx'
 import styles from './Composer.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
@@ -14,12 +17,19 @@ let nextKey = 0
 
 const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
+const modelNames: Record<Model, string> = { fable: 'Fable', opus: 'Opus', sonnet: 'Sonnet', haiku: 'Haiku' }
+const effortNames: Record<Effort, string> = { low: '低', medium: '中', high: '高', xhigh: '很高', max: '最高' }
+
 export function Composer({
   running,
+  choice,
+  onChoice,
   onSend,
   onStop,
 }: {
   running: boolean
+  choice: Choice
+  onChoice: (choice: Choice) => void
   onSend: (text: string, files: File[], interrupt: boolean) => Promise<boolean>
   onStop: () => void
 }) {
@@ -178,7 +188,37 @@ export function Composer({
             disabled={sending}
             onClick={() => fileInputRef.current?.click()}
           />
-          {enterSends && <span className={styles.hint}>Enter 发送，Shift + Enter 换行</span>}
+          {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
+          <select
+            className={styles.choice}
+            value={choice.model ?? ''}
+            disabled={running}
+            title={running ? '下一轮生效' : '模型'}
+            aria-label="模型"
+            onChange={(event) => onChoice({ ...choice, model: (event.target.value || undefined) as Model | undefined })}
+          >
+            <option value="">默认模型</option>
+            {models.map((model) => (
+              <option key={model} value={model}>
+                {modelNames[model]}
+              </option>
+            ))}
+          </select>
+          <select
+            className={styles.choice}
+            value={choice.effort ?? ''}
+            disabled={running}
+            title={running ? '下一轮生效' : '思考程度'}
+            aria-label="思考程度"
+            onChange={(event) => onChoice({ ...choice, effort: (event.target.value || undefined) as Effort | undefined })}
+          >
+            <option value="">默认思考</option>
+            {efforts.map((effort) => (
+              <option key={effort} value={effort}>
+                思考：{effortNames[effort]}
+              </option>
+            ))}
+          </select>
           {sending ? (
             <span className={`${styles.action} ${styles.busy}`}>
               <Spinner />

@@ -5,9 +5,12 @@ import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { subscribe } from './live-events.js'
-import { filesDir, listSessions, readTranscript, sessionExists, sessionInfo } from './sessions.js'
-import { isAnswering, liveState, sendMessage, stopTurn } from './turns.js'
-import type { Attachment, LiveEvent, SessionSummary } from './types.js'
+import { filesDir, listSessions, readTranscript, searchSessions, sessionExists, sessionInfo, setUserState } from './sessions.js'
+import { isAnswering, isWaiting, liveState, renameSession, sendMessage, stopTurn } from './turns.js'
+import type { MessageOptions } from './turns.js'
+import { efforts, models } from './types.js'
+import type { Attachment, Effort, LiveEvent, Model, SessionSummary } from './types.js'
+import { notifyChange } from '../../events.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
 const sessionParam = validator('param', (value: Record<string, string>, c) => {
@@ -18,15 +21,72 @@ const sessionParam = validator('param', (value: Record<string, string>, c) => {
   return { id }
 })
 
-// attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。interrupt：正在回答时先打断正在做的事
+const isModel = (value: unknown): value is Model => models.includes(value as Model)
+const isEffort = (value: unknown): value is Effort => efforts.includes(value as Effort)
+
+// attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。
+// interrupt：正在回答时先打断正在做的事；model、effort：开始新的一轮时用，不给就是 Claude Code 的默认
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown } | null
+  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; model?: unknown; effort?: unknown } | null
   const attachments = parseAttachments(body?.attachments)
-  if (typeof body?.text !== 'string' || !attachments || (!body.text.trim() && !attachments.length)) {
+  if (
+    typeof body?.text !== 'string' ||
+    !attachments ||
+    (!body.text.trim() && !attachments.length) ||
+    (body.model !== undefined && !isModel(body.model)) ||
+    (body.effort !== undefined && !isEffort(body.effort))
+  ) {
     return c.text('Bad Request', 400)
   }
-  return { text: body.text, attachments, interrupt: body.interrupt === true }
+  const message: { text: string; attachments: Attachment[] } & MessageOptions = {
+    text: body.text,
+    attachments,
+    interrupt: body.interrupt === true,
+    ...(isModel(body.model) && { model: body.model }),
+    ...(isEffort(body.effort) && { effort: body.effort }),
+  }
+  return message
 })
+
+// 改名、置顶、归档，没给的项不动
+const editBody = validator('json', (value, c) => {
+  const body = value as { title?: unknown; pinned?: unknown; archived?: unknown } | null
+  const title = typeof body?.title === 'string' ? body.title.replace(/\p{Cc}/gu, ' ').trim().slice(0, 200) : undefined
+  if (
+    !body ||
+    (body.title !== undefined && !title) ||
+    (body.pinned !== undefined && typeof body.pinned !== 'boolean') ||
+    (body.archived !== undefined && typeof body.archived !== 'boolean')
+  ) {
+    return c.text('Bad Request', 400)
+  }
+  const edit: { title?: string; pinned?: boolean; archived?: boolean } = {
+    ...(title && { title }),
+    ...(typeof body.pinned === 'boolean' && { pinned: body.pinned }),
+    ...(typeof body.archived === 'boolean' && { archived: body.archived }),
+  }
+  return edit
+})
+
+function summary(id: number): SessionSummary {
+  const info = sessionInfo(id)
+  const waiting = isWaiting(id)
+  const running = isAnswering(id) && !waiting
+  return {
+    id,
+    title: info.title,
+    updatedAt: info.updatedAt,
+    running,
+    waiting,
+    unread: !running && Boolean(info.readAt && info.repliedAt && info.repliedAt > info.readAt),
+    ...(info.outcome && { outcome: info.outcome }),
+    pinned: Boolean(info.pinned),
+    archived: Boolean(info.archived),
+    ...(info.context && { context: info.context }),
+    ...(info.model && { model: info.model }),
+    ...(info.effort && { effort: info.effort }),
+  }
+}
 
 // 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
 const inlineTypes: Record<string, string> = {
@@ -43,17 +103,21 @@ const inlineTypes: Record<string, string> = {
   json: 'text/plain; charset=utf-8',
 }
 
-async function send(sessionId: number | undefined, text: string, attachments: Attachment[], interrupt: boolean) {
-  const id = await sendMessage(sessionId, text, attachments, interrupt)
+async function send(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions) {
+  const id = await sendMessage(sessionId, text, attachments, options)
   return id === undefined ? ({ error: 'unavailable' } as const) : { id }
 }
 
 export const agentApi = new Hono()
+  // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
   .get('/sessions', (c) => {
-    const sessions: SessionSummary[] = listSessions().map((id) => {
-      const { title, updatedAt } = sessionInfo(id)
-      return { id, title, updatedAt, running: isAnswering(id) }
-    })
+    const query = c.req.query('q')?.trim()
+    const ids = listSessions()
+    const matched = query ? searchSessions(ids, query) : undefined
+    const sessions = ids
+      .filter((id) => !matched || matched.has(id))
+      .map(summary)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     return c.json({ sessions })
   })
   // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
@@ -78,15 +142,41 @@ export const agentApi = new Hono()
     }
   })
   .post('/sessions', messageBody, async (c) => {
-    const { text, attachments } = c.req.valid('json')
-    const result = await send(undefined, text, attachments, false)
+    const { text, attachments, ...options } = c.req.valid('json')
+    const result = await send(undefined, text, attachments, { ...options, interrupt: false })
     return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
   // 正在回答时交给 agent，没在回答时开始新的一轮
   .post('/sessions/:id/messages', sessionParam, messageBody, async (c) => {
-    const { text, attachments, interrupt } = c.req.valid('json')
-    const result = await send(c.req.valid('param').id, text, attachments, interrupt)
+    const { text, attachments, ...options } = c.req.valid('json')
+    const result = await send(c.req.valid('param').id, text, attachments, options)
     return 'id' in result ? c.json(result, 200) : c.json(result, 503)
+  })
+  // 改名记进 transcript；置顶、归档是用户的整理，记在 session.json
+  .post('/sessions/:id/edit', sessionParam, editBody, (c) => {
+    const id = c.req.valid('param').id
+    const { title, pinned, archived } = c.req.valid('json')
+    if (title && title !== sessionInfo(id).title) {
+      renameSession(id, title)
+    }
+    if (pinned !== undefined) {
+      setUserState(id, { pinned: pinned || undefined })
+    }
+    if (archived !== undefined) {
+      setUserState(id, { archived: archived || undefined })
+    }
+    notifyChange({ type: 'session', id })
+    return c.json({ ok: true }, 200)
+  })
+  // 页面正在显示这个 session：记为已读。原本有未读时才通知各个页面，否则页面收到通知重新读取，又会来标记，来回不停
+  .post('/sessions/:id/read', sessionParam, (c) => {
+    const id = c.req.valid('param').id
+    const wasUnread = summary(id).unread
+    setUserState(id, { readAt: new Date().toISOString() })
+    if (wasUnread) {
+      notifyChange({ type: 'session', id })
+    }
+    return c.json({ ok: true }, 200)
   })
   .post('/sessions/:id/stop', sessionParam, (c) => {
     if (!stopTurn(c.req.valid('param').id)) {
