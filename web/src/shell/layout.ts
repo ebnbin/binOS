@@ -13,6 +13,86 @@ export function desktopColumns(width: number) {
   return { count, columnWidth, scale: columnWidth / column.min }
 }
 
+// 一栏宽 4 格
+export const columnCells = 4
+
+export type Placement = { row: number; column: number; width: number; height: number }
+
+// 按顺序放进一栏：每一个从上一个的后面开始，找第一个放得下的位置，不回头填前面的空，所以顺序不会变
+export function packColumn(sizes: Size[]): { placements: Placement[]; rows: number } {
+  const taken: boolean[][] = []
+  const free = (row: number, col: number, size: Size) => {
+    for (let r = row; r < row + size.height; r++) {
+      for (let c = col; c < col + size.width; c++) {
+        if (taken[r]?.[c]) {
+          return false
+        }
+      }
+    }
+    return true
+  }
+  let cursor = { row: 0, column: 0 }
+  let rows = 0
+  const placements = sizes.map((size) => {
+    let { row, column: col } = cursor
+    while (col + size.width > columnCells || !free(row, col, size)) {
+      col += 1
+      if (col + size.width > columnCells) {
+        row += 1
+        col = 0
+      }
+    }
+    for (let r = row; r < row + size.height; r++) {
+      taken[r] ??= []
+      for (let c = col; c < col + size.width; c++) {
+        taken[r][c] = true
+      }
+    }
+    cursor = { row, column: col + size.width }
+    rows = Math.max(rows, row + size.height)
+    return { row, column: col, width: size.width, height: size.height }
+  })
+  return { placements, rows }
+}
+
+// 按顺序把内容切成 count 段，第 1 段放第 1 栏，依次往右。
+// 选最高的那一栏最矮的切法，这样各栏一样高，放不下时整个桌面一起滚动；
+// 一样矮时选空格最少的，再一样时让前面的栏多放
+export function splitColumns(sizes: Size[], count: number): number[] {
+  const rows = new Map<string, number>()
+  const rowsOf = (start: number, end: number) => {
+    const key = `${start}-${end}`
+    if (!rows.has(key)) {
+      rows.set(key, packColumn(sizes.slice(start, end)).rows)
+    }
+    return rows.get(key)!
+  }
+  const best: { starts: number[]; heights: number[] | null } = { starts: [0], heights: null }
+  const better = (heights: number[], than: number[]) => {
+    const key = (list: number[]) => [Math.max(...list), list.reduce((sum, value) => sum + value, 0), ...list.map((value) => -value)]
+    const a = key(heights)
+    const b = key(than)
+    const index = a.findIndex((value, i) => value !== b[i])
+    return index >= 0 && a[index] < b[index]
+  }
+  const search = (starts: number[]) => {
+    if (starts.length === count) {
+      const bounds = [...starts, sizes.length]
+      const heights = starts.map((start, index) => rowsOf(start, bounds[index + 1]))
+      if (!best.heights || better(heights, best.heights)) {
+        best.starts = starts
+        best.heights = heights
+      }
+      return
+    }
+    for (let start = starts.at(-1)!; start <= sizes.length; start++) {
+      search([...starts, start])
+    }
+  }
+  search([0])
+  return best.starts
+}
+
 // 窗口只能按这几种比例分屏：横屏左右分，竖屏上下分
 export type LayoutId = '1' | '1:1' | '1:2' | '2:1' | '1:1:1'
 export const layouts: Record<LayoutId, number[]> = {

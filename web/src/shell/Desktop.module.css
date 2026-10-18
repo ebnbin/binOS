@@ -16,21 +16,13 @@
   margin: 0 auto;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--gap) * 1.5);
-  width: var(--column);
-  padding: var(--margin);
-}
-
 /* 行间多留一点，放图标下面的名字 */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, var(--cell));
-  grid-auto-rows: var(--cell);
-  grid-auto-flow: row dense;
   gap: calc(var(--gap) * 1.5) var(--gap);
+  width: var(--column);
+  padding: var(--margin);
 }
 
 .icon {
