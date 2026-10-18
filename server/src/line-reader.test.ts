@@ -12,8 +12,8 @@ it('只返回完整的行，不拆开多字节字符', () => {
 
   const text = Buffer.from('第一行\n第二')
   appendFileSync(file, text.subarray(0, text.length - 1))
-  expect(reader.read()).toEqual(['第一行'])
+  expect(reader.read()).toEqual([{ text: '第一行', end: Buffer.byteLength('第一行\n') }])
   appendFileSync(file, Buffer.concat([text.subarray(text.length - 1), Buffer.from('行\n')]))
-  expect(reader.read()).toEqual(['第二行'])
+  expect(reader.read()).toEqual([{ text: '第二行', end: text.length + Buffer.byteLength('行\n') }])
   expect(reader.read()).toEqual([])
 })

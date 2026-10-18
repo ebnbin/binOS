@@ -1,12 +1,13 @@
-import type { ToolResultBlock, ToolUseBlock } from '@binos/server/apps/agent/types'
+import type { TranscriptRecord } from '@binos/server/apps/agent/types'
 import { Check, ChevronRight, Minus, X } from 'lucide-react'
 import { fileUrl } from '../api.ts'
 import styles from './ToolCall.module.css'
 import { Spinner } from '../../../ui/Spinner.tsx'
 
-export type ToolCallItem = { use: ToolUseBlock; result: ToolResultBlock | undefined; live: boolean }
-
-const outputLimit = 4000
+export type ToolUse = Extract<TranscriptRecord, { type: 'tool_use' }>
+export type ToolResult = Extract<TranscriptRecord, { type: 'tool_result' }>
+// live：这一轮还在回答，没有结果的调用还在运行
+export type ToolCallItem = { use: ToolUse; result: ToolResult | undefined; live: boolean }
 
 export function ToolGroup({ sessionId, calls }: { sessionId: number; calls: ToolCallItem[] }) {
   return (
@@ -19,7 +20,7 @@ export function ToolGroup({ sessionId, calls }: { sessionId: number; calls: Tool
 }
 
 function ToolCall({ sessionId, use, result, live }: { sessionId: number } & ToolCallItem) {
-  const status = result ? (result.is_error ? 'error' : 'done') : live ? 'running' : 'stopped'
+  const status = result ? result.status : live ? 'running' : 'stopped'
   const input = use.input as Record<string, unknown>
   return (
     <details className={styles.call} data-status={status}>
@@ -33,21 +34,16 @@ function ToolCall({ sessionId, use, result, live }: { sessionId: number } & Tool
       </summary>
       <div className={styles.body}>
         <pre className={styles.pre}>{use.name === 'Bash' ? String(input.command ?? '') : JSON.stringify(input, null, 2)}</pre>
-        {result?.content.map((part, i) => {
-          if (part.type === 'text') {
-            return (
-              <pre key={i} className={`${styles.pre} ${styles.output}`}>
-                {truncate(part.text)}
-              </pre>
-            )
-          }
-          const src = fileUrl(sessionId, part.file)
-          return (
-            <a key={i} className={styles.image} href={src} target="_blank" rel="noreferrer">
-              <img src={src} alt="" />
-            </a>
-          )
-        })}
+        {result?.output && (
+          <pre className={`${styles.pre} ${styles.output}`}>
+            {result.truncated ? `…（前面的输出已省略）\n${result.output}` : result.output}
+          </pre>
+        )}
+        {result?.images?.map((file) => (
+          <a key={file} className={styles.image} href={fileUrl(sessionId, file)} target="_blank" rel="noreferrer">
+            <img src={fileUrl(sessionId, file)} alt="" />
+          </a>
+        ))}
       </div>
     </details>
   )
@@ -81,8 +77,4 @@ function toolSummary(name: string, input: Record<string, unknown>): string {
   const key = summaryKeys[name]
   const value = key ? input[key] : Object.values(input).find((v) => typeof v === 'string')
   return typeof value === 'string' ? value : ''
-}
-
-function truncate(text: string) {
-  return text.length > outputLimit ? `${text.slice(0, outputLimit)}\n…（还有 ${text.length - outputLimit} 个字符）` : text
 }
