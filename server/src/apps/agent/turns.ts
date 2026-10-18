@@ -11,7 +11,9 @@ import { LineReader } from '../../line-reader.js'
 import { isAlive, isRunning, processStartTime } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
 import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionDir, sessionInfo, setUserState } from './sessions.js'
-import type { Attachment, Effort, Live, Model, TranscriptRecord } from './types.js'
+import { applyChanges, readState } from '../../state.js'
+import { limitsKey } from './types.js'
+import type { Attachment, Effort, Limits, Live, Model, TranscriptRecord } from './types.js'
 import { moveUploads, promptWithAttachments } from './uploads.js'
 
 // 回答期间的 turn/ 目录：给 agent 发消息的管道、agent 的原始输出和进程身份，后端重启后能接着读、接着发
@@ -198,6 +200,16 @@ export function resumeTurns() {
   }
 }
 
+// 额度变了才写进系统状态，各个页面随即收到
+function saveLimits(limits: Limits) {
+  const current = readState().entries.find((entry) => entry.key === limitsKey)?.value as Limits | undefined
+  const { updatedAt: _, ...next } = limits
+  const { updatedAt: __, ...previous } = current ?? {}
+  if (JSON.stringify(next) !== JSON.stringify(previous)) {
+    applyChanges([{ key: limitsKey, value: limits }])
+  }
+}
+
 // 以 agent 进程退出为结束，而不是 result：答完后还会接着处理插的话，有后台任务时等任务结束后接着回答。
 // 这一轮已经记下的内容里最大的 offset 之前的输出，重读时只用来恢复状态。后端重启后接上的，看管道和转发进程还在不在
 function follow(id: number, state: TurnState, open = inputOpen(turnFiles(id))) {
@@ -219,7 +231,10 @@ function follow(id: number, state: TurnState, open = inputOpen(turnFiles(id))) {
   const reader = new LineReader(files.output)
   const readNew = () => {
     for (const line of reader.read()) {
-      const { records, events } = output.push(line.text, line.end)
+      const { records, events, limits } = output.push(line.text, line.end)
+      if (limits) {
+        saveLimits(limits)
+      }
       append(id, records)
       for (const event of events) {
         emit(id, event)
