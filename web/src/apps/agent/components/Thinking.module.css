@@ -1,37 +1,4 @@
-.summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
-  color: var(--muted);
-  list-style: none;
-  cursor: pointer;
-  user-select: none;
-  transition: color 0.15s;
-}
-
-.summary::-webkit-details-marker {
-  display: none;
-}
-
-@media (hover: hover) {
-  .summary:hover {
-    color: var(--text-2);
-  }
-}
-
-.chevron {
-  transition: transform 0.2s var(--ease);
-}
-
-.thinking[open] .chevron {
-  transform: rotate(90deg);
-}
-
-.body {
-  margin: 8px 0 0 6px;
-  padding-left: 14px;
-  border-left: 2px solid var(--hairline);
+.text {
   font-size: 14px;
   color: var(--text-2);
 }
