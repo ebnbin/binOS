@@ -7,9 +7,11 @@
     <!-- 正式版在 Cloudflare Access 后面，manifest 默认不带 cookie 去取会被拦下 -->
     <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
     <meta name="apple-mobile-web-app-title" content="binOS" />
+    <!-- maximum-scale=1：iOS 聚焦字号小于 16px 的输入框时会放大整个页面，外部 app 的输入框在 iframe 里也会触发。
+         iOS 上双指缩放不受影响 -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
     />
     <!-- 屏幕四周是纯黑的外框，系统状态栏和浏览器标题栏也是黑色。
          iOS 装成 app 后用默认样式，页面从状态栏下面开始：不能用 black-translucent，
