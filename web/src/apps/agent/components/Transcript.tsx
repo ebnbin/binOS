@@ -3,6 +3,7 @@ import { formatDuration, formatModel, formatTokens, useNow } from '../format.ts'
 import { AgentCall } from './AgentCall.tsx'
 import { Alert } from './Alert.tsx'
 import { AttachmentList } from './Attachments.tsx'
+import { CopyButton } from './CopyButton.tsx'
 import { Markdown } from './Markdown.tsx'
 import { Thinking } from './Thinking.tsx'
 import { ToolGroup } from './ToolCall.tsx'
@@ -21,7 +22,8 @@ type Item =
   | { kind: 'tools'; key: string; calls: ToolCallItem[] }
   | { kind: 'agent'; key: string; call: ToolCallItem }
   | { kind: 'compact'; key: string; record: Compact }
-  | { kind: 'result'; key: string; record: Result }
+  // reply：这一轮回复的全部文字，用于复制
+  | { kind: 'result'; key: string; record: Result; reply: string }
 
 // 整个 transcript 共用的：工具结果按调用 id，子 agent 的记录按它所属的调用 id
 type Context = {
@@ -38,10 +40,12 @@ const agentTools = new Set(['Agent', 'Task'])
 // 相邻的普通工具调用合成一组
 function buildItems(entries: Entry[], context: Context): Item[] {
   const items: Item[] = []
+  let replies: string[] = []
   for (const { record, index } of entries) {
     const key = String(index)
     switch (record.type) {
       case 'user':
+        replies = []
         if (record.attachments?.length) {
           items.push({ kind: 'attachments', key: `${key}-attachments`, attachments: record.attachments })
         }
@@ -54,6 +58,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         break
       case 'text':
         if (record.text.trim()) {
+          replies.push(record.text)
           items.push({ kind: 'text', key, text: record.text, files: record.files })
         }
         break
@@ -73,7 +78,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         items.push({ kind: 'compact', key, record })
         break
       case 'result':
-        items.push({ kind: 'result', key, record })
+        items.push({ kind: 'result', key, record, reply: replies.join('\n\n') })
         break
     }
   }
@@ -118,7 +123,7 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
           </div>
         )
       case 'result':
-        return <TurnEnd key={item.key} record={item.record} />
+        return <TurnEnd key={item.key} record={item.record} reply={item.reply} />
     }
   })
 }
@@ -129,7 +134,7 @@ function compactText({ trigger, preTokens, postTokens }: Compact) {
 }
 
 // 一轮的结尾：停止、出错，以及这一轮的统计
-function TurnEnd({ record }: { record: Result }) {
+function TurnEnd({ record, reply }: { record: Result; reply: string }) {
   const { durationMs, outputTokens, context, model, outcome, error } = record
   const stats = [
     `用时 ${formatDuration(durationMs)}`,
@@ -143,11 +148,11 @@ function TurnEnd({ record }: { record: Result }) {
   return (
     <>
       {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
-      <div
-        className={styles.stats}
-        title={context ? `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token` : undefined}
-      >
-        {stats.join(' · ')}
+      <div className={styles.stats}>
+        {reply && <CopyButton text={reply} label="复制回复" />}
+        <span title={context ? `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token` : undefined}>
+          {stats.join(' · ')}
+        </span>
       </div>
     </>
   )

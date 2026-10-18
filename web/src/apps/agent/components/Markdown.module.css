@@ -11,7 +11,7 @@
   margin-bottom: 0;
 }
 
-.markdown :is(p, ul, ol, blockquote, pre, .tableWrap, hr) {
+.markdown :is(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
   margin: 0 0 14px;
 }
 
@@ -108,20 +108,17 @@
   font-size: 0.86em;
 }
 
-.markdown pre {
-  overflow-x: auto;
-  padding: 12px 14px;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--code);
-  line-height: 1.6;
-}
-
-.markdown pre code {
+.markdown .codeBlock code {
   padding: 0;
   border-radius: 0;
   background: none;
-  font-size: 12.5px;
+  font-size: inherit;
+}
+
+.markdown :global(.katex-display) {
+  margin: 0 0 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .tableWrap {

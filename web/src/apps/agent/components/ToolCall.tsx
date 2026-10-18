@@ -1,8 +1,9 @@
 import { Check, ChevronRight, Minus, X } from 'lucide-react'
-import { fileUrl } from '../api.ts'
+import { useState } from 'react'
 import { formatDuration } from '../format.ts'
 import { callDuration, callStatus } from '../tool-calls.ts'
 import type { CallStatus, ToolCallItem } from '../tool-calls.ts'
+import { ToolBody } from './ToolBody.tsx'
 import styles from './ToolCall.module.css'
 import { Spinner } from '../../../ui/Spinner.tsx'
 
@@ -21,8 +22,10 @@ function ToolCall({ sessionId, call, now }: { sessionId: number; call: ToolCallI
   const status = callStatus(call)
   const duration = callDuration(call, now)
   const input = use.input as Record<string, unknown>
+  // 展开时才渲染内容：一个会话里有上百次调用，不展开的不用高亮
+  const [open, setOpen] = useState(false)
   return (
-    <details className={styles.call} data-status={status}>
+    <details className={styles.call} data-status={status} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary className={styles.row}>
         <span className={styles.status}>
           <StatusIcon status={status} />
@@ -33,19 +36,11 @@ function ToolCall({ sessionId, call, now }: { sessionId: number; call: ToolCallI
         {duration !== undefined && <span className={styles.time}>{formatDuration(duration)}</span>}
         <ChevronRight size={15} strokeWidth={1.75} className={styles.chevron} />
       </summary>
-      <div className={styles.body}>
-        <pre className={styles.pre}>{use.name === 'Bash' ? String(input.command ?? '') : JSON.stringify(input, null, 2)}</pre>
-        {result?.output && (
-          <pre className={`${styles.pre} ${styles.output}`}>
-            {result.truncated ? `…（前面的输出已省略）\n${result.output}` : result.output}
-          </pre>
-        )}
-        {result?.images?.map((file) => (
-          <a key={file} className={styles.image} href={fileUrl(sessionId, file)} target="_blank" rel="noreferrer">
-            <img src={fileUrl(sessionId, file)} alt="" />
-          </a>
-        ))}
-      </div>
+      {open && (
+        <div className={styles.body}>
+          <ToolBody sessionId={sessionId} use={use} result={result} />
+        </div>
+      )}
     </details>
   )
 }

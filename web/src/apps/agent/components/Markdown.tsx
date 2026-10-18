@@ -1,13 +1,32 @@
+import 'katex/dist/katex.min.css'
 import { ImageOff } from 'lucide-react'
 import { memo, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
-import type { Components } from 'react-markdown'
+import type { Components, Options } from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import { fileUrl } from '../api.ts'
+import { CodeBlock } from './CodeBlock.tsx'
 import { HtmlFrame } from './HtmlFrame.tsx'
 import styles from './Markdown.module.css'
+import { Mermaid } from './Mermaid.tsx'
 
-const remarkPlugins = [remarkGfm]
+// 行内公式 $…$，单独成段的 $$…$$
+const remarkPlugins: Options['remarkPlugins'] = [remarkGfm, remarkMath]
+const rehypePlugins: Options['rehypePlugins'] = [rehypeKatex]
+
+// 围起来的代码块带语言（language-xxx）或者以换行结尾，行内代码两者都没有
+function MarkdownCode({ className, children }: { className?: string; children?: ReactNode }) {
+  const lang = /language-(\S+)/.exec(className ?? '')?.[1]
+  const text = String(children ?? '')
+  if (!lang && !text.endsWith('\n')) {
+    return <code className={className}>{children}</code>
+  }
+  const code = text.replace(/\n$/, '')
+  return lang === 'mermaid' ? <Mermaid code={code} /> : <CodeBlock code={code} lang={lang} label={lang ?? ''} />
+}
 
 // 和后端一致：路径里的转义还原后再找快照
 function decodeReference(reference: string) {
@@ -64,6 +83,8 @@ export const Markdown = memo(function Markdown({
     () => ({
       a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noreferrer" />,
       img: ({ src, alt }) => <MarkdownImage sessionId={sessionId} files={files} src={src} alt={alt} />,
+      pre: ({ children }) => <div className={styles.codeBlock}>{children}</div>,
+      code: ({ className, children }) => <MarkdownCode className={className}>{children}</MarkdownCode>,
       table: ({ node: _node, ...props }) => (
         <div className={styles.tableWrap}>
           <table {...props} />
@@ -74,7 +95,7 @@ export const Markdown = memo(function Markdown({
   )
   return (
     <div className={styles.markdown}>
-      <ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+      <ReactMarkdown remarkPlugins={remarkPlugins} rehypePlugins={rehypePlugins} components={components}>
         {text}
       </ReactMarkdown>
     </div>
