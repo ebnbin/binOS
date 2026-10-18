@@ -9,6 +9,7 @@ import { filesDir, listSessions, readTranscript, searchSessions, sessionExists, 
 import { isAnswering, isWaiting, liveState, renameSession, saveLimits, sendMessage, stopTurn } from './turns.js'
 import type { MessageOptions } from './turns.js'
 import { codexCatalog } from './codex.js'
+import { agentAccounts } from './status.js'
 import { providers } from './types.js'
 import type { Attachment, LiveEvent, Provider, SessionSummary } from './types.js'
 import { notifyChange } from '../../events.js'
@@ -125,6 +126,8 @@ async function send(sessionId: number | undefined, text: string, attachments: At
 }
 
 export const agentApi = new Hono()
+  // 各个 agent 的账号、登录凭证和用量，系统 app 里显示
+  .get('/accounts', async (c) => c.json({ accounts: await agentAccounts() }))
   // Codex 能不能用、有哪些模型；顺便更新 Codex 的额度
   .get('/codex', async (c) => {
     const { limits, ...catalog } = await codexCatalog()

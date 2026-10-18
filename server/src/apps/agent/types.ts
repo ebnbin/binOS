@@ -131,3 +131,23 @@ export type LiveEvent =
 export type QuotaWindow = { utilization: number; resetsAt: number }
 export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
 export const limitsKeys: Record<Provider, string> = { claude: 'agent/limits', codex: 'agent/codex-limits' }
+
+// 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
+export type AgentAccount = {
+  provider: Provider
+  version?: string
+  loggedIn: boolean
+  email?: string
+  organization?: string
+  // 订阅的套餐，原样显示
+  plan?: string
+  // 登录凭证：访问令牌什么时候过期、上次续期的时间，有刷新令牌时到期前会自动续
+  token?: { expiresAt?: string; refreshedAt?: string; refreshable: boolean }
+  // Codex 送的额度重置次数，最早的那次什么时候过期
+  resetCredits?: { count: number; expiresAt?: string }
+  // 登录和配置存放的目录
+  configDir: string
+  // 用这个 agent 的 session 数，其中正在回答的
+  sessions: number
+  running: number
+}

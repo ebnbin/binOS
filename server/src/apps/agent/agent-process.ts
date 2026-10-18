@@ -72,7 +72,7 @@ function agentCommand({ provider, sessionId, model, effort }: AgentLaunch): stri
 }
 
 // 后端可能是从 Claude Code 或 Codex 里启动的（比如测试实例），agent 不能继承那里的设置
-function agentEnv(): NodeJS.ProcessEnv {
+export function agentEnv(): NodeJS.ProcessEnv {
   const env = Object.fromEntries(
     Object.entries(process.env).filter(([key]) => !/^(CLAUDE|ANTHROPIC|CODEX|OPENAI)/.test(key)),
   )
