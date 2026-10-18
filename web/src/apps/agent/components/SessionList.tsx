@@ -1,5 +1,5 @@
 import type { SessionSummary } from '@binos/server/apps/agent/types'
-import { Archive, ArchiveRestore, ChevronRight, CircleAlert, Hourglass, MoreHorizontal, Pencil, Pin, PinOff, Search, SquarePen, X } from 'lucide-react'
+import { Archive, ArchiveRestore, ChevronRight, CircleAlert, GitPullRequest, Hourglass, MoreHorizontal, Pencil, Pin, PinOff, Search, SquarePen, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { editSession, listSessions } from '../api.ts'
@@ -168,6 +168,9 @@ function SessionItem({
           <span className={styles.title} data-unread={session.unread || undefined}>
             {session.title || '（无内容）'}
           </span>
+          {session.prs.some((pr) => pr.state === 'open') && (
+            <GitPullRequest size={13} strokeWidth={2} className={styles.openPr} aria-label="有开着的 PR" />
+          )}
           <SessionStatus session={session} />
         </button>
       )}

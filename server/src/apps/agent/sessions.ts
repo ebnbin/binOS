@@ -21,8 +21,11 @@ export type UserState = { pinned?: true; archived?: true; readAt?: string }
 const userKeys = ['pinned', 'archived', 'readAt'] as const
 
 // session.json：除了 UserState，都是从 transcript 算出来的缓存，会话列表和启动 agent 时用。
-// transcriptSize 是算的时候 transcript 有多大，对不上就从头重算，丢了也能重建
+// transcriptSize 是算的时候 transcript 有多大，version 是算的方式，任何一个对不上就从头重算，丢了也能重建
+const infoVersion = 2
+
 export type SessionInfo = UserState & {
+  version: number
   transcriptSize: number
   count: number
   title: string
@@ -39,7 +42,12 @@ export type SessionInfo = UserState & {
   // 最近一轮用的模型和思考程度
   model?: Model
   effort?: Effort
+  // 这个 session 里开的 PR 的网址；creatingPrs 是还没有结果的 gh pr create 调用
+  prs: string[]
+  creatingPrs: string[]
 }
+
+const prUrlPattern = /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/g
 
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
 export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
@@ -86,7 +94,18 @@ export function readTranscript(id: number): TranscriptRecord[] {
 }
 
 function emptyInfo(): SessionInfo {
-  return { transcriptSize: 0, count: 0, title: '', createdAt: '', updatedAt: '', turns: 0, inTurn: false }
+  return {
+    version: infoVersion,
+    transcriptSize: 0,
+    count: 0,
+    title: '',
+    createdAt: '',
+    updatedAt: '',
+    turns: 0,
+    inTurn: false,
+    prs: [],
+    creatingPrs: [],
+  }
 }
 
 function apply(info: SessionInfo, record: TranscriptRecord) {
@@ -111,6 +130,23 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
       break
     case 'title':
       info.title = record.title
+      break
+    case 'tool_use': {
+      const command = (record.input as { command?: unknown }).command
+      if (record.name === 'Bash' && typeof command === 'string' && command.includes('gh pr create')) {
+        info.creatingPrs.push(record.id)
+      }
+      break
+    }
+    case 'tool_result':
+      if (info.creatingPrs.includes(record.toolUseId)) {
+        info.creatingPrs = info.creatingPrs.filter((id) => id !== record.toolUseId)
+        for (const url of record.output?.match(prUrlPattern) ?? []) {
+          if (!info.prs.includes(url)) {
+            info.prs.push(url)
+          }
+        }
+      }
       break
     case 'agent':
       info.agent = { provider: record.provider, sessionId: record.sessionId }
@@ -156,7 +192,7 @@ const infos = new Map<number, SessionInfo>()
 export function sessionInfo(id: number): SessionInfo {
   const size = transcriptSize(id)
   const cached = infos.get(id) ?? readInfoFile(id)
-  if (cached?.transcriptSize === size) {
+  if (cached?.transcriptSize === size && cached.version === infoVersion) {
     infos.set(id, cached)
     return cached
   }

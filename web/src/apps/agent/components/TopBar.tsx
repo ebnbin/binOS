@@ -1,5 +1,6 @@
-import type { Context } from '@binos/server/apps/agent/types'
-import { ChevronLeft, SquarePen } from 'lucide-react'
+import type { Context, PullRequest } from '@binos/server/apps/agent/types'
+import { ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { formatTokens } from '../format.ts'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
@@ -9,12 +10,14 @@ export function TopBar({
   title,
   sessionId,
   context,
+  prs,
   onBack,
   onNew,
 }: {
   title: string
   sessionId: number | null
   context: Context | undefined
+  prs: PullRequest[]
   onBack: () => void
   onNew: () => void
 }) {
@@ -28,6 +31,7 @@ export function TopBar({
           <>
             <span className={styles.title}>{title}</span>
             <span className={styles.id}>#{sessionId}</span>
+            {prs.length > 0 && <PrList prs={prs} />}
             {context && (
               <span className={styles.context} title={`上下文 ${formatTokens(context.tokens)} / ${formatTokens(context.window)} token`}>
                 上下文 {Math.round((context.tokens / context.window) * 100)}%
@@ -44,5 +48,69 @@ export function TopBar({
         disabled={sessionId === null}
       />
     </header>
+  )
+}
+
+// 开着的 PR 直接显示，结束了的收起来，点开再看
+function PrList({ prs }: { prs: PullRequest[] }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    const onPointerDown = (event: PointerEvent) => {
+      if (!ref.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [open])
+  const active = prs.filter((pr) => pr.state === 'open' || !pr.state)
+  const finished = prs.filter((pr) => pr.state === 'merged' || pr.state === 'closed')
+  return (
+    <span ref={ref} className={styles.prs}>
+      {active.map((pr) => (
+        <PrLink key={pr.url} pr={pr} />
+      ))}
+      {finished.length > 0 && (
+        <button type="button" className={styles.finished} onClick={() => setOpen(!open)} aria-expanded={open}>
+          <GitMerge size={13} strokeWidth={2} />
+          {finished.length}
+        </button>
+      )}
+      {open && (
+        <span className={styles.prMenu}>
+          {[...prs].reverse().map((pr) => (
+            <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
+              <span className={styles.prNumber}>#{pr.number}</span>
+              <span className={styles.prTitle}>{pr.title ?? pr.url}</span>
+              <span className={styles.prState}>{pr.state && prStates[pr.state]}</span>
+            </a>
+          ))}
+        </span>
+      )}
+    </span>
+  )
+}
+
+const prIcons = { open: GitPullRequest, merged: GitMerge, closed: GitPullRequestClosed }
+const prStates = { open: '开着', merged: '已合并', closed: '已关闭' }
+
+// 这个 session 开的 PR：点编号去 GitHub，开着的有预览时另有预览链接
+function PrLink({ pr }: { pr: PullRequest }) {
+  const Icon = prIcons[pr.state ?? 'open']
+  return (
+    <span className={styles.pr} data-state={pr.state}>
+      <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
+        <Icon size={13} strokeWidth={2} />#{pr.number}
+      </a>
+      {pr.preview && (
+        <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>
+          预览
+        </a>
+      )}
+    </span>
   )
 }
