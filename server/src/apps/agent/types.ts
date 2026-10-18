@@ -11,9 +11,12 @@ type Produced = { offset?: number; parent?: string }
 
 // transcript.jsonl 的一行：只追加，发生时就写，是 session 唯一的真相。
 // 对话以内容块为粒度，一段思考、一段文字、一次工具调用、一个工具结果各一条；没在回答时的 user 开始一轮，result 结束一轮
-// 一轮进行中又出现的 user 是回答中途插的话，interrupt 表示插话前先打断了正在做的事
+// 一轮进行中又出现的 user 是回答中途插的话，interrupt 表示插话前先打断了正在做的事。
+// 开始一轮的 user 带着这一轮用的模型和思考程度，没有就是 Claude Code 的默认
 export type TranscriptRecord =
-  | { type: 'user'; time: string; text: string; attachments?: Attachment[]; interrupt?: true }
+  | { type: 'user'; time: string; text: string; attachments?: Attachment[]; interrupt?: true; model?: Model; effort?: Effort }
+  // 用户给 session 改名
+  | { type: 'title'; time: string; title: string }
   // agent 那边的会话建立了，之后的轮次接着这个会话
   | ({ type: 'agent'; time: string; provider: 'claude'; sessionId: string } & Produced)
   // 思考的摘要；durationMs 是想了多久，不知道开始时间（后端重启时正在想）就没有
@@ -46,12 +49,29 @@ export type TranscriptRecord =
       sessionUsage?: Record<string, Tokens>
     }
 
+// 模型用 Claude Code 的别名，总是对应各系列最新的模型
+export const models = ['fable', 'opus', 'sonnet', 'haiku'] as const
+export type Model = (typeof models)[number]
+export const efforts = ['low', 'medium', 'high', 'xhigh', 'max'] as const
+export type Effort = (typeof efforts)[number]
+
 export type SessionSummary = {
   id: number
-  // 第一条用户消息，没写字时是第一个附件的文件名
+  // 改过名就是改的名字；否则是第一条用户消息，没写字时是第一个附件的文件名
   title: string
   updatedAt: string
+  // running：正在回答；waiting：答完了，在等后台任务
   running: boolean
+  waiting: boolean
+  // 最近一轮答完之后还没看过
+  unread: boolean
+  outcome?: 'stopped' | 'error'
+  pinned: boolean
+  archived: boolean
+  context?: Context
+  // 最近一轮用的模型和思考程度
+  model?: Model
+  effort?: Effort
 }
 
 // 回答进行中只推给页面、不写进 transcript 的：正在想的那段思考，正在写的那段文字和它引用的文件，当前在做什么

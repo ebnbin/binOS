@@ -14,11 +14,15 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 import { sessionsDir } from '../../paths.js'
-import type { Context, TranscriptRecord } from './types.js'
+import type { Context, Effort, Model, TranscriptRecord } from './types.js'
 
-// session.json：从 transcript 算出来的缓存，会话列表和启动 agent 时用。
+// session.json 里不是从 transcript 算出来的部分：用户在列表上的整理，重算时保留。readAt 是最后一次看这个 session 的时间
+export type UserState = { pinned?: true; archived?: true; readAt?: string }
+const userKeys = ['pinned', 'archived', 'readAt'] as const
+
+// session.json：除了 UserState，都是从 transcript 算出来的缓存，会话列表和启动 agent 时用。
 // transcriptSize 是算的时候 transcript 有多大，对不上就从头重算，丢了也能重建
-export type SessionInfo = {
+export type SessionInfo = UserState & {
   transcriptSize: number
   count: number
   title: string
@@ -30,6 +34,11 @@ export type SessionInfo = {
   agent?: { provider: 'claude'; sessionId: string }
   outcome?: 'stopped' | 'error'
   context?: Context
+  // 最近一轮结束的时间
+  repliedAt?: string
+  // 最近一轮用的模型和思考程度
+  model?: Model
+  effort?: Effort
 }
 
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
@@ -82,8 +91,11 @@ function emptyInfo(): SessionInfo {
 
 function apply(info: SessionInfo, record: TranscriptRecord) {
   info.count += 1
-  info.updatedAt = record.time
   info.createdAt ||= record.time
+  // 改名不算有了动静，不把它顶到列表前面
+  if (record.type !== 'title') {
+    info.updatedAt = record.time
+  }
   switch (record.type) {
     case 'user':
       if (info.turns === 0) {
@@ -93,13 +105,19 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
         info.turns += 1
         info.inTurn = true
         delete info.outcome
+        info.model = record.model
+        info.effort = record.effort
       }
+      break
+    case 'title':
+      info.title = record.title
       break
     case 'agent':
       info.agent = { provider: record.provider, sessionId: record.sessionId }
       break
     case 'result':
       info.inTurn = false
+      info.repliedAt = record.time
       if (record.outcome) {
         info.outcome = record.outcome
       }
@@ -147,6 +165,11 @@ export function sessionInfo(id: number): SessionInfo {
     apply(info, record)
   }
   info.transcriptSize = size
+  for (const key of userKeys) {
+    if (cached?.[key] !== undefined) {
+      Object.assign(info, { [key]: cached[key] })
+    }
+  }
   writeInfo(id, info)
   infos.set(id, info)
   return info
@@ -178,4 +201,33 @@ export function appendRecords(id: number, records: TranscriptRecord[]): number {
   writeInfo(id, info)
   infos.set(id, info)
   return index
+}
+
+// 改用户的整理，值为 undefined 的去掉这一项
+export function setUserState(id: number, state: { [K in keyof UserState]?: UserState[K] | undefined }) {
+  const info = sessionInfo(id)
+  for (const key of userKeys) {
+    if (!(key in state)) {
+      continue
+    }
+    if (state[key] === undefined) {
+      delete info[key]
+    } else {
+      Object.assign(info, { [key]: state[key] })
+    }
+  }
+  writeInfo(id, info)
+}
+
+// 标题、用户的话或回复的文字里含有 query（不分大小写）的 session
+export function searchSessions(ids: number[], query: string): Set<number> {
+  const needle = query.toLowerCase()
+  const includes = (text: string) => text.toLowerCase().includes(needle)
+  return new Set(
+    ids.filter(
+      (id) =>
+        includes(sessionInfo(id).title) ||
+        readTranscript(id).some((record) => (record.type === 'user' || (record.type === 'text' && !record.parent)) && includes(record.text)),
+    ),
+  )
 }

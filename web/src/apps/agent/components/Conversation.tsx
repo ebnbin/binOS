@@ -1,6 +1,6 @@
-import type { Attachment } from '@binos/server/apps/agent/types'
-import { useLayoutEffect, useRef, useState } from 'react'
-import { maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
+import type { Attachment, Effort, Model, SessionSummary } from '@binos/server/apps/agent/types'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { useSession } from '../useSession.ts'
 import { Alert } from './Alert.tsx'
 import { Composer } from './Composer.tsx'
@@ -11,15 +11,30 @@ import { BrandMark } from '../../../ui/BrandMark.tsx'
 // 离底部不超过这个距离时，新内容到来会自动滚到底；往上翻看时不打扰
 const stickThreshold = 80
 
+export type Choice = { model?: Model; effort?: Effort }
+
+// session：列表里这个 session 的概况，新对话时没有
 export function Conversation({
   sessionId,
+  session,
   onCreated,
 }: {
   sessionId: number | null
+  session: SessionSummary | undefined
   onCreated: (id: number) => void
 }) {
   const { records, live } = useSession(sessionId)
   const running = live !== null
+  // 下一轮用的模型和思考程度，没选过就沿用这个 session 最近一轮的
+  const [picked, setPicked] = useState<Choice>()
+  const choice = picked ?? { model: session?.model, effort: session?.effort }
+
+  // 正在看、又没在回答：记为已读（打开时，以及这一轮答完时）
+  useEffect(() => {
+    if (sessionId !== null && !running) {
+      void markRead(sessionId)
+    }
+  }, [sessionId, running])
   const [notice, setNotice] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
@@ -54,7 +69,7 @@ export function Conversation({
       }
       attachments.push(upload)
     }
-    const result = await sendMessage(sessionId, text, attachments, interrupt)
+    const result = await sendMessage(sessionId, text, attachments, { interrupt, ...choice })
     if ('error' in result) {
       setNotice(result.error)
       return false
@@ -88,7 +103,7 @@ export function Conversation({
           {notice && <Alert>{notice}</Alert>}
         </div>
       </div>
-      <Composer running={running} onSend={send} onStop={stop} />
+      <Composer running={running} choice={choice} onChoice={setPicked} onSend={send} onStop={stop} />
     </>
   )
 }

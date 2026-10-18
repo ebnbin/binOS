@@ -61,11 +61,30 @@
   margin: -2px 0 -2px -10px;
 }
 
-.hint {
-  font-size: 12px;
-  color: var(--muted);
-  user-select: none;
+.choice {
+  height: 28px;
+  min-width: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
 }
+
+@media (hover: hover) {
+  .choice:hover:not(:disabled) {
+    background: var(--hover);
+  }
+}
+
+.choice:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 
 .action {
   display: grid;

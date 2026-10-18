@@ -30,6 +30,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.context {
+  flex: none;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--hover);
+  font-size: 11.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* 提高优先级，盖过 IconButton 自身的 display */
 .bar .singleColumnOnly {
   display: none;

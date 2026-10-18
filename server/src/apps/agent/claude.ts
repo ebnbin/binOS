@@ -16,7 +16,14 @@ const relayScript = 'F=$1; R=$2; shift 2; exec "$@" < <(exec sh -c \'echo $$ > "
 
 // 输出直接写进文件，自成一个进程组（转发进程也在里面）：后端重启时 launchd 结束的是后端所在的进程组，agent 不受影响，
 // 后端重启后接着读文件、接着往管道里写。bash 执行脚本后 exec 成 claude，进程号就是 agent 的
-export function spawnClaude(options: { files: TurnFiles; claudeSessionId: string; resume: boolean }): number | undefined {
+// model、effort 没有时用 Claude Code 的默认
+export function spawnClaude(options: {
+  files: TurnFiles
+  claudeSessionId: string
+  resume: boolean
+  model?: string
+  effort?: string
+}): number | undefined {
   const { files } = options
   for (const file of [files.input, files.relay]) {
     rmSync(file, { force: true })
@@ -42,6 +49,8 @@ export function spawnClaude(options: { files: TurnFiles; claudeSessionId: string
         '--forward-subagent-text',
         '--chrome',
         '--append-system-prompt', replyFilesPrompt,
+        ...(options.model ? ['--model', options.model] : []),
+        ...(options.effort ? ['--effort', options.effort] : []),
         options.resume ? '--resume' : '--session-id', options.claudeSessionId,
       ],
       { cwd: repoDir, env: agentEnv(), stdio: ['ignore', stdout, stderr], detached: true },
