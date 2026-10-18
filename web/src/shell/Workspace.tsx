@@ -29,7 +29,8 @@ export function Workspace({
 }) {
   const tracks = layouts[layout].map((part) => `minmax(0, ${part}fr)`).join(' ')
   const split = panes.length > 1
-  const position = (slot: number) => (portrait ? { gridRow: slot + 1 } : { gridColumn: slot + 1 })
+  // 行和列都要指定，只指定一个时，前面的位置空着会被自动排到下一行
+  const position = (slot: number) => ({ gridArea: portrait ? `${slot + 1} / 1` : `1 / ${slot + 1}` })
 
   return (
     <div

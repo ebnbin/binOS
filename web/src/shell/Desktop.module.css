@@ -9,13 +9,14 @@
     var(--sidebar);
 }
 
+/* 横向翻页和每一栏的上下滚动分开，手指斜着划时只朝一个方向动 */
 .scroller {
   display: flex;
   flex: 1;
   min-height: 0;
   width: calc(var(--column) * var(--count));
   margin: 0 auto;
-  overflow: auto;
+  overflow: auto hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
@@ -25,7 +26,10 @@
   flex: none;
   width: var(--column);
   padding: var(--margin);
+  overflow: hidden auto;
+  overscroll-behavior-y: contain;
   scroll-snap-align: start;
+  scrollbar-width: none;
 }
 
 /* 行间多留一点，放图标下面的名字 */
