@@ -1,4 +1,4 @@
-import { CalendarDays, CloudSun, Folder, Gauge, Music, NotebookPen, Puzzle, Sparkles } from 'lucide-react'
+import { CalendarDays, CloudSun, Folder, Gauge, Music, NotebookPen, Puzzle, Sparkles, Swords } from 'lucide-react'
 import { lazy } from 'react'
 import { externalApp } from './external/index.ts'
 import { placeholderApp } from './placeholder/index.ts'
@@ -32,6 +32,7 @@ export const apps: AppManifest[] = [
     },
   },
   externalApp('puzzles', 'Puzzles', Puzzle, 'https://puzzles.ebnbin.dev/'),
+  externalApp('warmoji', 'WarMoji', Swords, 'https://warmoji.ebnbin.dev/'),
   placeholderApp('notes', '笔记', NotebookPen),
   placeholderApp('calendar', '日历', CalendarDays),
   placeholderApp('weather', '天气', CloudSun),

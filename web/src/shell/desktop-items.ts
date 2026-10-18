@@ -13,6 +13,7 @@ const defaultDesktop: DesktopItem[] = [
   { app: 'agent' },
   { app: 'system' },
   { app: 'puzzles' },
+  { app: 'warmoji' },
   { app: 'notes' },
   { app: 'calendar' },
   { app: 'weather' },
