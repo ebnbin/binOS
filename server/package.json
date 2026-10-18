@@ -9,7 +9,9 @@
     "./api": "./src/api.ts",
     "./types": "./src/types.ts",
     "./apps/agent/api": "./src/apps/agent/api.ts",
-    "./apps/agent/types": "./src/apps/agent/types.ts"
+    "./apps/agent/types": "./src/apps/agent/types.ts",
+    "./apps/browser/api": "./src/apps/browser/api.ts",
+    "./apps/browser/types": "./src/apps/browser/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

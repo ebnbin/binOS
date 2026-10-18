@@ -14,6 +14,7 @@ export function rootLayout(root: string) {
     sessionsDir: path.join(libraryDir, 'agent', 'sessions'),
     uploadsDir: path.join(libraryDir, 'agent', 'uploads'),
     claudeConfigDir: path.join(libraryDir, 'claude'),
+    browserDir: path.join(libraryDir, 'browser'),
   }
 }
 

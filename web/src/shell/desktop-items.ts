@@ -12,6 +12,7 @@ const defaultDesktop: DesktopItem[] = [
   { app: 'system', widget: 'status', size: '4x2' },
   { app: 'agent' },
   { app: 'system' },
+  { app: 'browser' },
   { app: 'notes' },
   { app: 'calendar' },
   { app: 'weather' },

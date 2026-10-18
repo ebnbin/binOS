@@ -6,6 +6,7 @@ import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { requireOwner } from './access.js'
 import { agentApi } from './apps/agent/api.js'
+import { browserApi } from './apps/browser/api.js'
 import { onChange } from './events.js'
 import { codeDir } from './paths.js'
 import { connectedPreamble, keepAlive } from './sse.js'
@@ -40,6 +41,7 @@ export const api = new Hono()
   .get('/state', (c) => c.json(readState()))
   .post('/state', stateBody, (c) => c.json({ version: applyChanges(c.req.valid('json').changes) }, 200))
   .route('/apps/agent', agentApi)
+  .route('/apps/browser', browserApi)
   // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
   .get('/events', (c) =>
     streamSSE(c, async (stream) => {

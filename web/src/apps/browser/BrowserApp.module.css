@@ -1,0 +1,53 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  height: 52px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.address {
+  flex: 1;
+  min-width: 0;
+  margin: 0 6px;
+}
+
+.address input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  outline: none;
+  background: var(--bubble);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+}
+
+.address input::placeholder {
+  color: var(--muted);
+}
+
+/* 提高优先级，盖过 IconButton 自身的 display；只有触屏需要手动调出软键盘 */
+.bar .keyboardButton {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .address input {
+    font-size: 16px;
+  }
+
+  .bar .keyboardButton {
+    display: grid;
+  }
+}
