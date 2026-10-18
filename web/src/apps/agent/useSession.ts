@@ -42,6 +42,10 @@ function applyEvent(state: SessionState, event: Exclude<LiveEvent, { type: 'reco
       return { ...state, live: { ...live, files: { ...live.files, [event.path]: event.name } } }
     case 'status':
       return { ...state, live: { ...live, status: event.status } }
+    case 'task': {
+      const { [event.toolUseId]: _previous, ...tasks } = live.tasks
+      return { ...state, live: { ...live, tasks: event.progress ? { ...tasks, [event.toolUseId]: event.progress } : tasks } }
+    }
   }
 }
 

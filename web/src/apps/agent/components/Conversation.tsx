@@ -85,7 +85,6 @@ export function Conversation({
           ) : (
             <Transcript sessionId={sessionId} records={records} live={live} />
           )}
-          {running && records.at(-1)?.type === 'user' && !live.text && <div className={styles.pending}>正在处理</div>}
           {notice && <Alert>{notice}</Alert>}
         </div>
       </div>

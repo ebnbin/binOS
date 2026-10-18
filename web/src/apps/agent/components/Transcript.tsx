@@ -1,44 +1,45 @@
-import type { Attachment, Live, TranscriptRecord } from '@binos/server/apps/agent/types'
+import type { Attachment, Live, Status, TranscriptRecord } from '@binos/server/apps/agent/types'
+import { formatDuration, formatModel, formatTokens, useNow } from '../format.ts'
+import { AgentCall } from './AgentCall.tsx'
 import { Alert } from './Alert.tsx'
 import { AttachmentList } from './Attachments.tsx'
 import { Markdown } from './Markdown.tsx'
+import { Thinking } from './Thinking.tsx'
 import { ToolGroup } from './ToolCall.tsx'
-import type { ToolCallItem, ToolResult, ToolUse } from './ToolCall.tsx'
+import type { ToolCallItem, ToolResult } from '../tool-calls.ts'
 import styles from './Transcript.module.css'
+
+type Entry = { record: TranscriptRecord; index: number }
+type Result = Extract<TranscriptRecord, { type: 'result' }>
+type Compact = Extract<TranscriptRecord, { type: 'compact' }>
 
 type Item =
   | { kind: 'user'; key: string; text: string }
-  | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
   | { kind: 'attachments'; key: string; attachments: Attachment[] }
-  | { kind: 'stopped'; key: string }
-  | { kind: 'alert'; key: string; text: string }
+  | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
+  | { kind: 'thinking'; key: string; text: string; durationMs?: number }
   | { kind: 'tools'; key: string; calls: ToolCallItem[] }
+  | { kind: 'agent'; key: string; call: ToolCallItem }
+  | { kind: 'compact'; key: string; record: Compact }
+  | { kind: 'result'; key: string; record: Result }
 
-// 工具调用和它的结果是两条记录，按 id 对应起来；相邻的工具调用合成一组。子 agent 的记录不在这里显示
-function buildItems(records: TranscriptRecord[], live: Live | null): Item[] {
-  const results = new Map<string, ToolResult>()
-  for (const record of records) {
-    if (record.type === 'tool_result') {
-      results.set(record.toolUseId, record)
-    }
-  }
+// 整个 transcript 共用的：工具结果按调用 id，子 agent 的记录按它所属的调用 id
+type Context = {
+  sessionId: number
+  results: Map<string, ToolResult>
+  children: Map<string, Entry[]>
+  live: Live | null
+  now: number
+}
 
+// 启动子 agent 的工具
+const agentTools = new Set(['Agent', 'Task'])
+
+// 相邻的普通工具调用合成一组
+function buildItems(entries: Entry[], context: Context): Item[] {
   const items: Item[] = []
-  const addTool = (use: ToolUse) => {
-    const call = { use, result: results.get(use.id), live: live !== null }
-    const last = items.at(-1)
-    if (last?.kind === 'tools') {
-      last.calls.push(call)
-    } else {
-      items.push({ kind: 'tools', key: use.id, calls: [call] })
-    }
-  }
-
-  records.forEach((record, index) => {
+  for (const { record, index } of entries) {
     const key = String(index)
-    if ('parent' in record && record.parent) {
-      return
-    }
     switch (record.type) {
       case 'user':
         if (record.attachments?.length) {
@@ -48,31 +49,40 @@ function buildItems(records: TranscriptRecord[], live: Live | null): Item[] {
           items.push({ kind: 'user', key, text: record.text })
         }
         break
+      case 'thinking':
+        items.push({ kind: 'thinking', key, text: record.text, durationMs: record.durationMs })
+        break
       case 'text':
         if (record.text.trim()) {
           items.push({ kind: 'text', key, text: record.text, files: record.files })
         }
         break
-      case 'tool_use':
-        addTool(record)
-        break
-      case 'result':
-        if (record.outcome === 'stopped') {
-          items.push({ kind: 'stopped', key })
-        } else if (record.outcome === 'error') {
-          items.push({ kind: 'alert', key, text: record.error ?? '' })
+      case 'tool_use': {
+        const call = { use: record, result: context.results.get(record.id), live: context.live !== null }
+        const last = items.at(-1)
+        if (agentTools.has(record.name)) {
+          items.push({ kind: 'agent', key, call })
+        } else if (last?.kind === 'tools') {
+          last.calls.push(call)
+        } else {
+          items.push({ kind: 'tools', key, calls: [call] })
         }
         break
+      }
+      case 'compact':
+        items.push({ kind: 'compact', key, record })
+        break
+      case 'result':
+        items.push({ kind: 'result', key, record })
+        break
     }
-  })
-  if (live?.text.trim()) {
-    items.push({ kind: 'text', key: 'live', text: live.text, files: live.files })
   }
   return items
 }
 
-export function Transcript({ sessionId, records, live }: { sessionId: number; records: TranscriptRecord[]; live: Live | null }) {
-  return buildItems(records, live).map((item) => {
+function Timeline({ entries, context }: { entries: Entry[]; context: Context }) {
+  const { sessionId } = context
+  return buildItems(entries, context).map((item) => {
     switch (item.kind) {
       case 'user':
         return (
@@ -80,20 +90,126 @@ export function Transcript({ sessionId, records, live }: { sessionId: number; re
             {item.text}
           </div>
         )
-      case 'text':
-        return <Markdown key={item.key} sessionId={sessionId} text={item.text} files={item.files} />
       case 'attachments':
         return <AttachmentList key={item.key} sessionId={sessionId} attachments={item.attachments} />
-      case 'stopped':
+      case 'text':
+        return <Markdown key={item.key} sessionId={sessionId} text={item.text} files={item.files} />
+      case 'thinking':
+        return <Thinking key={item.key} sessionId={sessionId} text={item.text} durationMs={item.durationMs} />
+      case 'tools':
+        return <ToolGroup key={item.key} sessionId={sessionId} calls={item.calls} now={context.now} />
+      case 'agent': {
+        const children = context.children.get(item.call.use.id)
+        return (
+          <AgentCall
+            key={item.key}
+            sessionId={sessionId}
+            call={item.call}
+            progress={context.live?.tasks[item.call.use.id]}
+            now={context.now}
+            timeline={children && <Timeline entries={children} context={context} />}
+          />
+        )
+      }
+      case 'compact':
         return (
           <div key={item.key} className={styles.divider}>
-            已停止
+            {compactText(item.record)}
           </div>
         )
-      case 'alert':
-        return <Alert key={item.key}>{item.text}</Alert>
-      case 'tools':
-        return <ToolGroup key={item.key} sessionId={sessionId} calls={item.calls} />
+      case 'result':
+        return <TurnEnd key={item.key} record={item.record} />
     }
   })
+}
+
+function compactText({ trigger, preTokens, postTokens }: Compact) {
+  const sizes = preTokens !== undefined && postTokens !== undefined ? `（${formatTokens(preTokens)} → ${formatTokens(postTokens)} token）` : ''
+  return `${trigger === 'manual' ? '手动' : '自动'}压缩了上下文${sizes}`
+}
+
+// 一轮的结尾：停止、出错，以及这一轮的统计
+function TurnEnd({ record }: { record: Result }) {
+  const { durationMs, outputTokens, context, model, outcome, error } = record
+  const stats = [
+    `用时 ${formatDuration(durationMs)}`,
+    outputTokens !== undefined && `输出 ${formatTokens(outputTokens)} token`,
+    context && `上下文 ${Math.round((context.tokens / context.window) * 100)}%`,
+    model && formatModel(model),
+  ].filter(Boolean)
+  if (outcome === 'stopped') {
+    return <div className={styles.divider}>已停止 · {stats[0]}</div>
+  }
+  return (
+    <>
+      {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
+      <div
+        className={styles.stats}
+        title={context ? `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token` : undefined}
+      >
+        {stats.join(' · ')}
+      </div>
+    </>
+  )
+}
+
+function statusText(status: Status | null, live: Live) {
+  switch (status?.type) {
+    case 'requesting':
+      return '等待模型'
+    case 'thinking':
+      return '思考中'
+    case 'tool':
+      return `正在调用 ${status.name}`
+    case 'compacting':
+      return '正在压缩上下文'
+    case 'retrying':
+      return `请求失败，第 ${status.attempt} 次重试`
+    default:
+      return live.text ? '正在回答' : '正在处理'
+  }
+}
+
+// 进行中的一轮的已用时间，只到秒
+function formatElapsed(ms: number) {
+  const seconds = Math.max(Math.floor(ms / 1000), 0)
+  return seconds < 60 ? `${seconds} 秒` : `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`
+}
+
+export function Transcript({ sessionId, records, live }: { sessionId: number; records: TranscriptRecord[]; live: Live | null }) {
+  const now = useNow(live !== null)
+  const results = new Map<string, ToolResult>()
+  const children = new Map<string, Entry[]>()
+  const main: Entry[] = []
+  records.forEach((record, index) => {
+    if (record.type === 'tool_result') {
+      results.set(record.toolUseId, record)
+    }
+    const parent = 'parent' in record ? record.parent : undefined
+    if (parent) {
+      const siblings = children.get(parent)
+      if (siblings) {
+        siblings.push({ record, index })
+      } else {
+        children.set(parent, [{ record, index }])
+      }
+    } else {
+      main.push({ record, index })
+    }
+  })
+  const context: Context = { sessionId, results, children, live, now }
+  const turnStart = records.findLast((record) => record.type === 'user')?.time
+  return (
+    <>
+      <Timeline entries={main} context={context} />
+      {live?.thinking && <Thinking sessionId={sessionId} text={live.thinking} live />}
+      {live?.text.trim() && <Markdown sessionId={sessionId} text={live.text} files={live.files} />}
+      {live && (
+        <div className={styles.status}>
+          {statusText(live.status, live)}
+          {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+        </div>
+      )}
+    </>
+  )
 }

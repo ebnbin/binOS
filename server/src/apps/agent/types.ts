@@ -61,11 +61,16 @@ export type Status =
   | { type: 'compacting' }
   | { type: 'retrying'; attempt: number }
 
+// 子 agent 或后台任务正在做的一步，以及到目前为止调用了几次工具、用了多少 token
+export type TaskProgress = { activity?: string; toolUses?: number; tokens?: number }
+
+// tasks 按对应的工具调用 id
 export type Live = {
   thinking: string
   text: string
   files: Record<string, string>
   status: Status | null
+  tasks: Record<string, TaskProgress>
 }
 
 // record 带着它是第几条；live 是连上时（以及一轮结束时）的临时内容，null 表示没在回答；
@@ -77,3 +82,4 @@ export type LiveEvent =
   | { type: 'text'; text: string }
   | { type: 'file'; path: string; name: string }
   | { type: 'status'; status: Status | null }
+  | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
