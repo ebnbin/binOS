@@ -5,8 +5,8 @@ export type AppManifest = {
   id: string
   name: string
   icon: LucideIcon
-  // 独立部署的 web app，来自系统状态里的清单
-  external?: boolean
+  // 独立部署的 web app 的网址，来自系统状态里的清单
+  url?: string
   component: ComponentType<{ ctx: AppContext }>
   // 放在桌面上的 widget，键是 widget 的 id
   widgets?: Record<string, WidgetManifest>

@@ -17,7 +17,7 @@ export function externalApp(config: ExternalAppConfig): AppManifest {
       id,
       name,
       icon: icons[icon],
-      external: true,
+      url,
       component: ({ ctx }: { ctx: AppContext }) => createElement(ExternalApp, { ctx, name, url }),
     }
     cache.set(key, manifest)
