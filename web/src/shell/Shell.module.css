@@ -1,11 +1,10 @@
 /* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
    除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
-   固定定位、带背景、盖住页面顶边的元素，iOS 不会在它上面加顶部的毛玻璃 */
+   不能是固定定位：iOS 会从盖住页面顶边的固定定位元素取色给状态栏，见 status-bar.ts */
 .shell {
   --radius: 12px;
 
-  position: fixed;
-  inset: 0 0 auto;
+  position: relative;
   display: flex;
   flex-direction: column;
   height: var(--viewport-height, 100dvh);

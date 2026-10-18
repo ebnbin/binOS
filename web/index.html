@@ -1,5 +1,6 @@
 <!doctype html>
-<html lang="zh-CN">
+<!-- 背景直接写在这里，iOS 打开页面时就取到黑色给状态栏 -->
+<html lang="zh-CN" style="background: #000">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -12,7 +13,8 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content"
     />
     <!-- 屏幕四周是纯黑的外框，系统状态栏和浏览器标题栏也是黑色。
-         iOS 装成 app 后用默认的不透明状态栏：页面画到状态栏下面时，iOS 26 起会把页面顶部一截做成毛玻璃 -->
+         iOS 装成 app 后用默认样式，页面从状态栏下面开始：不能用 black-translucent，
+         iOS 26 起页面画到状态栏下面时，顶部一截会变成毛玻璃，页面高度也会少一截 -->
     <meta name="theme-color" content="#000000" />
     <title>binOS</title>
   </head>
