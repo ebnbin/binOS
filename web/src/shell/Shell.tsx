@@ -39,11 +39,6 @@ export function Shell() {
     return { id, window: win, title: titles[id] ? `${appName} · ${titles[id]}` : appName }
   })
   const focus = normalizeFocus(storedFocus, windows.map((item) => item.id))
-  const focused = windows.find((item) => item.id === focus.focused)
-
-  useEffect(() => {
-    document.title = focused ? `${focused.title} - binOS` : 'binOS'
-  }, [focused])
 
   useEffect(() => {
     const onPopState = () => {
