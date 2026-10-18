@@ -13,7 +13,7 @@ const defaultDesktop = (apps: AppManifest[]): DesktopItem[] => [
   { app: 'system', widget: 'status', size: '4x2' },
   { app: 'agent' },
   { app: 'system' },
-  ...apps.filter((app) => app.external).map((app) => ({ app: app.id })),
+  ...apps.filter((app) => app.url).map((app) => ({ app: app.id })),
   { app: 'notes' },
   { app: 'calendar' },
   { app: 'weather' },

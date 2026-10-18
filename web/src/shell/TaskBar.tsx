@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { ExternalLink, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { findApp, useApps } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
@@ -27,7 +27,7 @@ function LayoutGlyph({ layout, portrait, active }: { layout: LayoutId; portrait:
   )
 }
 
-// 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
+// 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、在新标签页打开外部 app、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
 export function TaskBar({
   placement,
   windows,
@@ -58,6 +58,8 @@ export function TaskBar({
   onClose: () => void
 }) {
   const apps = useApps()
+  // 外部 app 的窗口可以在新标签页打开，比如要在那里重新登录
+  const focusedUrl = findApp(apps, windows.find((item) => item.id === focused)?.window.app ?? '')?.url
   const [picking, setPicking] = useState(false)
   const picker = useRef<HTMLDivElement>(null)
   const canPick = !home && allowed.length > 1
@@ -141,6 +143,17 @@ export function TaskBar({
         {!home && focused && (
           <>
             <span className={styles.separator} />
+            {focusedUrl && (
+              <button
+                type="button"
+                className={styles.item}
+                aria-label="在新标签页打开"
+                title="在新标签页打开"
+                onClick={() => window.open(focusedUrl, '_blank', 'noopener,noreferrer')}
+              >
+                <ExternalLink size={21} strokeWidth={1.75} />
+              </button>
+            )}
             <button type="button" className={styles.item} aria-label="关闭当前窗口" title="关闭当前窗口" onClick={onClose}>
               <X size={21} strokeWidth={1.75} />
             </button>
