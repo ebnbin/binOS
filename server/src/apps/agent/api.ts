@@ -11,6 +11,7 @@ import type { MessageOptions } from './turns.js'
 import { efforts, models } from './types.js'
 import type { Attachment, Effort, LiveEvent, Model, SessionSummary } from './types.js'
 import { notifyChange } from '../../events.js'
+import { pullRequests } from './pull-requests.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
 const sessionParam = validator('param', (value: Record<string, string>, c) => {
@@ -68,8 +69,10 @@ const editBody = validator('json', (value, c) => {
   return edit
 })
 
-function summary(id: number): SessionSummary {
+// PR 的状态查到有变化时，通知页面重新读取列表
+async function summary(id: number): Promise<SessionSummary> {
   const info = sessionInfo(id)
+  const prs = await pullRequests(info.prs, () => notifyChange({ type: 'session', id }))
   const waiting = isWaiting(id)
   const running = isAnswering(id) && !waiting
   return {
@@ -78,14 +81,21 @@ function summary(id: number): SessionSummary {
     updatedAt: info.updatedAt,
     running,
     waiting,
-    unread: !running && Boolean(info.readAt && info.repliedAt && info.repliedAt > info.readAt),
+    unread: isUnread(id),
     ...(info.outcome && { outcome: info.outcome }),
     pinned: Boolean(info.pinned),
     archived: Boolean(info.archived),
     ...(info.context && { context: info.context }),
     ...(info.model && { model: info.model }),
     ...(info.effort && { effort: info.effort }),
+    prs,
   }
+}
+
+// 页面正在看、又没在回答时才算看过
+function isUnread(id: number) {
+  const info = sessionInfo(id)
+  return !isAnswering(id) && Boolean(info.readAt && info.repliedAt && info.repliedAt > info.readAt)
 }
 
 // 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
@@ -110,14 +120,13 @@ async function send(sessionId: number | undefined, text: string, attachments: At
 
 export const agentApi = new Hono()
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
-  .get('/sessions', (c) => {
+  .get('/sessions', async (c) => {
     const query = c.req.query('q')?.trim()
     const ids = listSessions()
     const matched = query ? searchSessions(ids, query) : undefined
-    const sessions = ids
-      .filter((id) => !matched || matched.has(id))
-      .map(summary)
-      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    const sessions = (await Promise.all(ids.filter((id) => !matched || matched.has(id)).map(summary))).sort((a, b) =>
+      b.updatedAt.localeCompare(a.updatedAt),
+    )
     return c.json({ sessions })
   })
   // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
@@ -171,7 +180,7 @@ export const agentApi = new Hono()
   // 页面正在显示这个 session：记为已读。原本有未读时才通知各个页面，否则页面收到通知重新读取，又会来标记，来回不停
   .post('/sessions/:id/read', sessionParam, (c) => {
     const id = c.req.valid('param').id
-    const wasUnread = summary(id).unread
+    const wasUnread = isUnread(id)
     setUserState(id, { readAt: new Date().toISOString() })
     if (wasUnread) {
       notifyChange({ type: 'session', id })

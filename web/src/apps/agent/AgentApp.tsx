@@ -45,6 +45,7 @@ export function AgentApp({ ctx }: { ctx: AppContext }) {
             title={title}
             sessionId={sessionId}
             context={session?.context}
+            prs={session?.prs ?? []}
             onBack={ctx.back}
             onNew={() => ctx.navigate('/new')}
           />

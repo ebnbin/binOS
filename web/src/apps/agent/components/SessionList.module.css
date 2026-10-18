@@ -242,6 +242,11 @@
   background: var(--ink);
 }
 
+.openPr {
+  flex: none;
+  color: #1a7f37;
+}
+
 .waiting {
   flex: none;
   color: var(--live);

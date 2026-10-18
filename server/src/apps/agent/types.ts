@@ -55,6 +55,9 @@ export type Model = (typeof models)[number]
 export const efforts = ['low', 'medium', 'high', 'xhigh', 'max'] as const
 export type Effort = (typeof efforts)[number]
 
+// session 里开的 PR；state、title 查到了才有，preview 是开着的 binOS 自己的 PR 正在运行的预览
+export type PullRequest = { url: string; number: number; state?: 'open' | 'merged' | 'closed'; title?: string; preview?: string }
+
 export type SessionSummary = {
   id: number
   // 改过名就是改的名字；否则是第一条用户消息，没写字时是第一个附件的文件名
@@ -72,6 +75,7 @@ export type SessionSummary = {
   // 最近一轮用的模型和思考程度
   model?: Model
   effort?: Effort
+  prs: PullRequest[]
 }
 
 // 回答进行中只推给页面、不写进 transcript 的：正在想的那段思考，正在写的那段文字和它引用的文件，当前在做什么
