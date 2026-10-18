@@ -1,35 +1,27 @@
 .desktop {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
   background:
     radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--live) 16%, transparent), transparent 55%),
     radial-gradient(ellipse at 85% 100%, color-mix(in srgb, var(--ink) 8%, transparent), transparent 60%),
     var(--sidebar);
 }
 
-/* 横向翻页和每一栏的上下滚动分开，手指斜着划时只朝一个方向动 */
-.scroller {
+.columns {
   display: flex;
-  flex: 1;
-  min-height: 0;
+  align-items: flex-start;
   width: calc(var(--column) * var(--count));
   margin: 0 auto;
-  overflow: auto hidden;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
 }
 
 .column {
-  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--gap) * 1.5);
   width: var(--column);
   padding: var(--margin);
-  overflow: hidden auto;
-  overscroll-behavior-y: contain;
-  scroll-snap-align: start;
-  scrollbar-width: none;
 }
 
 /* 行间多留一点，放图标下面的名字 */
@@ -98,23 +90,4 @@
 .failed {
   color: var(--muted);
   font-size: 13px;
-}
-
-.pages {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex: none;
-  padding: 4px 0 8px;
-}
-
-.pages button {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--text-2) 30%, transparent);
-}
-
-.pages button[aria-current='true'] {
-  background: var(--text-2);
 }

@@ -2,8 +2,8 @@ import type { JsonValue } from '@binos/server/types'
 import { findApp } from '../apps/index.ts'
 import type { WidgetSize } from '../apps/types.ts'
 
-// 系统状态 shell/desktop → DesktopItem[][]：桌面的每一栏放什么，所有设备共用。
-// 一栏的内容固定是 4 格宽，换设备不会重排，屏幕只决定同时看到几栏
+// 系统状态 shell/desktop → DesktopItem[][]：桌面上的几组内容，所有设备共用。
+// 每一组固定 4 格宽，换设备时组内不会重排，屏幕只决定分成几栏
 export type DesktopItem = { app: string } | { app: string; widget: string; size: WidgetSize }
 
 export const desktopKey = 'shell/desktop'

@@ -1,4 +1,4 @@
-import { Suspense, useLayoutEffect, useRef, useState } from 'react'
+import { Suspense } from 'react'
 import type { CSSProperties } from 'react'
 import { findApp } from '../apps/index.ts'
 import { useStateValue } from '../state.ts'
@@ -14,22 +14,10 @@ const gap = 16
 const margin = (column.min - cell * 4 - gap * 3) / 2
 
 export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string, route?: string) => void }) {
-  const columns = readDesktop(useStateValue(desktopKey))
+  const groups = readDesktop(useStateValue(desktopKey))
   const { count, columnWidth, scale } = desktopColumns(width)
-  const [page, setPage] = useState(0)
-  const pages = Math.max(1, columns.length - count + 1)
-  const current = Math.min(page, pages - 1)
-  const scroller = useRef<HTMLDivElement>(null)
-  const lastWidth = useRef(columnWidth)
-
-  // 一栏的宽度变了，停在原来那一栏的边上
-  useLayoutEffect(() => {
-    const element = scroller.current
-    if (element) {
-      element.scrollLeft = Math.round(element.scrollLeft / lastWidth.current) * columnWidth
-    }
-    lastWidth.current = columnWidth
-  }, [columnWidth])
+  // 每一组固定 4 格宽，依次分到屏幕上的各栏：栏少时同一栏里上下排几组，整个桌面只上下滚动
+  const columns = Array.from({ length: count }, (_, index) => groups.filter((_, group) => group % count === index))
 
   const vars = {
     '--column': `${columnWidth}px`,
@@ -41,35 +29,19 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
 
   return (
     <div className={styles.desktop} style={vars}>
-      {/* 栏比屏幕放得下的多时，横向滑动，每次停在一栏的边上 */}
-      <div
-        className={styles.scroller}
-        ref={scroller}
-        onScroll={(event) => setPage(Math.round(event.currentTarget.scrollLeft / columnWidth))}
-      >
-        {columns.map((items, index) => (
-          <section key={index} className={styles.column}>
-            <div className={styles.grid}>
-              {items.map((item, itemIndex) => (
-                <Item key={itemIndex} item={item} onOpen={onOpen} />
-              ))}
-            </div>
-          </section>
+      <div className={styles.columns}>
+        {columns.map((column, index) => (
+          <div key={index} className={styles.column}>
+            {column.map((items, group) => (
+              <div key={group} className={styles.grid}>
+                {items.map((item, itemIndex) => (
+                  <Item key={itemIndex} item={item} onOpen={onOpen} />
+                ))}
+              </div>
+            ))}
+          </div>
         ))}
       </div>
-      {pages > 1 && (
-        <nav className={styles.pages}>
-          {Array.from({ length: pages }, (_, index) => (
-            <button
-              key={index}
-              type="button"
-              aria-label={`第 ${index + 1} 页`}
-              aria-current={index === current}
-              onClick={() => scroller.current?.scrollTo({ left: index * columnWidth, behavior: 'smooth' })}
-            />
-          ))}
-        </nav>
-      )}
     </div>
   )
 }
