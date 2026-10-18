@@ -1,0 +1,79 @@
+.workspace {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  background: var(--bg);
+}
+
+.workspace[hidden],
+.pane[hidden] {
+  display: none;
+}
+
+.pane {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* 分隔线画在窗口里面，不占宽度 */
+.pane[data-first='false'] {
+  box-shadow: inset 1px 0 0 var(--border);
+}
+
+.workspace[data-portrait='true'] .pane[data-first='false'] {
+  box-shadow: inset 0 1px 0 var(--border);
+}
+
+.pane[data-focused='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 1;
+  height: 2px;
+  background: var(--live);
+  pointer-events: none;
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 100%;
+  padding: 24px;
+  color: var(--muted);
+}
+
+.picker p {
+  margin: 0;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.choices button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--hairline);
+  font-size: 14px;
+}
+
+@media (hover: hover) {
+  .choices button:hover {
+    box-shadow: 0 0 0 1px var(--border), var(--shadow);
+  }
+}

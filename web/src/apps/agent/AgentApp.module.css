@@ -19,7 +19,6 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding-right: env(safe-area-inset-right);
 }
 
 .missing {

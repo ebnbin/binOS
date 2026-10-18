@@ -1,52 +1,110 @@
-// 窗口的层级和位置计算，不读写系统状态
+import type { JsonValue } from '@binos/server/types'
 
-export type Form = 'desktop' | 'mobile'
-export type Frame = { x: number; y: number; w: number; h: number; minimized: boolean; maximized: boolean }
-// stack：从下到上的窗口 id。focused 为 null 时没有聚焦的窗口：桌面上是点了空白处，手机上是在主屏
-export type Focus = { stack: string[]; focused: string | null }
-// 窗口可以摆放的区域，在页面坐标里
-export type Area = { top: number; width: number; height: number }
+// 桌面分栏和窗口分屏的规格，只做计算，不读写系统状态
 
-export const minSize = { width: 320, height: 200 }
-// 窗口至少露出这么多，才拖得回来
-const visible = { width: 120, titleBar: 36 }
+export type Size = { width: number; height: number }
 
-// 手机竖屏，或者高度放不下窗口的横屏
-export function formFor(width: number, height: number): Form {
-  return width < 640 || height < 500 ? 'mobile' : 'desktop'
+// 桌面一栏宽 360～480，放 4 个图标格；最多 3 栏，再宽的空间平分到左右两边
+export const column = { min: 360, max: 480, maxCount: 3 }
+
+export function desktopColumns(width: number) {
+  const count = Math.max(1, Math.min(column.maxCount, Math.floor(width / column.min)))
+  const columnWidth = Math.min(width / count, column.max)
+  return { count, columnWidth, scale: columnWidth / column.min }
 }
 
-// 去掉已经关掉的窗口；别的设备新开的窗口放在最下面，不抢聚焦
-export function normalizeFocus(focus: Focus | null, ids: string[]): Focus {
-  const known = (focus?.stack ?? []).filter((id) => ids.includes(id))
-  const focused = focus?.focused && ids.includes(focus.focused) ? focus.focused : null
-  return { stack: [...ids.filter((id) => !known.includes(id)), ...known], focused }
+// 窗口只能按这几种比例分屏：横屏左右分，竖屏上下分
+export type LayoutId = '1' | '1:1' | '1:2' | '2:1' | '1:1:1'
+export const layouts: Record<LayoutId, number[]> = {
+  '1': [1],
+  '1:1': [1, 1],
+  '1:2': [1, 2],
+  '2:1': [2, 1],
+  '1:1:1': [1, 1, 1],
+}
+export const layoutIds = Object.keys(layouts) as LayoutId[]
+export const maxPanes = 3
+
+// 分屏时每个窗口至少这么大；只有一个窗口时不限制
+export const minPane = { width: 360, height: 480 }
+
+export const isPortrait = (size: Size) => size.height > size.width
+
+export function paneSizes(layout: LayoutId, size: Size): Size[] {
+  const parts = layouts[layout]
+  const total = parts.reduce((sum, part) => sum + part, 0)
+  return parts.map((part) =>
+    isPortrait(size) ? { width: size.width, height: (size.height * part) / total } : { width: (size.width * part) / total, height: size.height },
+  )
 }
 
-export function raise(focus: Focus, id: string): Focus {
-  return { stack: [...focus.stack.filter((item) => item !== id), id], focused: id }
+export function allowedLayouts(size: Size): LayoutId[] {
+  return layoutIds.filter(
+    (id) => id === '1' || paneSizes(id, size).every((pane) => pane.width >= minPane.width && pane.height >= minPane.height),
+  )
 }
 
-export function clampFrame(frame: Frame, area: Area): Frame {
-  const w = Math.max(minSize.width, Math.min(frame.w, area.width))
-  const h = Math.max(minSize.height, Math.min(frame.h, area.height))
-  const x = Math.min(Math.max(frame.x, visible.width - w), area.width - visible.width)
-  const y = Math.min(Math.max(frame.y, area.top), area.top + area.height - visible.titleBar)
-  return { ...frame, x, y, w, h }
-}
-
-// 新窗口居中，已经有窗口时依次错开
-export function placeFrame(size: { width: number; height: number }, area: Area, count: number): Frame {
-  const w = Math.min(size.width, area.width - 32)
-  const h = Math.min(size.height, area.height - 32)
-  const offset = (count % 6) * 28
-  const frame = {
-    x: Math.round((area.width - w) / 2) + offset,
-    y: area.top + Math.round((area.height - h) / 2) + offset,
-    w,
-    h,
-    minimized: false,
-    maximized: false,
+// 放不下时降级：多个窗口先降为平分，再降为一个
+export function fitLayout(layout: LayoutId, allowed: LayoutId[]): LayoutId {
+  if (allowed.includes(layout)) {
+    return layout
   }
-  return clampFrame(frame, area)
+  return layouts[layout].length > 1 && allowed.includes('1:1') ? '1:1' : '1'
+}
+
+// 系统状态 shell/workspace：选的分屏布局和每个位置上的窗口 id，所有设备共用
+export type Workspace = { layout: LayoutId; slots: (string | null)[] }
+
+export function normalizeWorkspace(value: JsonValue, ids: string[]): Workspace {
+  const stored = value as Partial<Workspace> | null
+  const layout = stored?.layout && stored.layout in layouts ? stored.layout : '1'
+  const slots = Array.from({ length: maxPanes }, (_, index) => {
+    const id = stored?.slots?.[index]
+    return id && ids.includes(id) ? id : null
+  })
+  return { layout, slots }
+}
+
+// 实际显示的窗口。只有一个位置时显示本设备聚焦的窗口，不动共用的布局；分屏时按共用的位置
+export function arrange(workspace: Workspace, layout: LayoutId, focused: string | null): (string | null)[] {
+  const count = layouts[layout].length
+  if (count === 1) {
+    return [focused ?? workspace.slots.find((id) => id !== null) ?? null]
+  }
+  return workspace.slots.slice(0, count)
+}
+
+// 换成分屏布局时，聚焦的窗口一定在里面，空位用最近用过的窗口补上
+export function relayout(workspace: Workspace, layout: LayoutId, focused: string | null, recent: string[]): Workspace {
+  const count = layouts[layout].length
+  if (count === 1) {
+    return { ...workspace, layout }
+  }
+  const slots = [...workspace.slots]
+  if (focused && !slots.slice(0, count).includes(focused)) {
+    const empty = slots.slice(0, count).indexOf(null)
+    slots[empty >= 0 ? empty : 0] = focused
+  }
+  for (const id of recent) {
+    const empty = slots.slice(0, count).indexOf(null)
+    if (empty < 0) {
+      break
+    }
+    if (!slots.slice(0, count).includes(id)) {
+      slots[empty] = id
+    }
+  }
+  // 同一个窗口只出现一次，前面的位置优先
+  return { layout, slots: slots.map((id, index) => (id && slots.indexOf(id) === index ? id : null)) }
+}
+
+// 把窗口放到某个位置；它已经在别的位置上时，和原来的窗口对调
+export function place(workspace: Workspace, id: string, slot: number): Workspace {
+  const slots = [...workspace.slots]
+  const from = slots.indexOf(id)
+  if (from >= 0) {
+    slots[from] = slots[slot]
+  }
+  slots[slot] = id
+  return { ...workspace, slots }
 }

@@ -1,6 +1,6 @@
 .dock {
   flex: none;
-  padding: 0 28px max(20px, env(safe-area-inset-bottom));
+  padding: 0 28px 20px;
 }
 
 .card {
@@ -103,7 +103,7 @@
 
 @container agent (width < 600px) {
   .dock {
-    padding: 0 10px max(10px, env(safe-area-inset-bottom));
+    padding: 0 10px 10px;
   }
 
   .card {
