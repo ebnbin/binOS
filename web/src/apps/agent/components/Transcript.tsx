@@ -1,5 +1,6 @@
 import type { Attachment, Live, Status, TranscriptRecord } from '@binos/server/apps/agent/types'
 import { formatDuration, formatModel, formatTokens, useNow } from '../format.ts'
+import { formatDivider, formatFull, sameDay } from '../time.ts'
 import { AgentCall } from './AgentCall.tsx'
 import { Alert } from './Alert.tsx'
 import { AttachmentList } from './Attachments.tsx'
@@ -15,7 +16,8 @@ type Result = Extract<TranscriptRecord, { type: 'result' }>
 type Compact = Extract<TranscriptRecord, { type: 'compact' }>
 
 type Item =
-  | { kind: 'user'; key: string; text: string }
+  | { kind: 'user'; key: string; text: string; time: string }
+  | { kind: 'time'; key: string; time: string }
   | { kind: 'attachments'; key: string; attachments: Attachment[] }
   | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
   | { kind: 'thinking'; key: string; text: string; durationMs?: number }
@@ -35,6 +37,9 @@ type Context = {
   now: number
 }
 
+// 一轮开始时离上一条记录超过这么久，先显示一条时间
+const dividerGap = 30 * 60 * 1000
+
 // 启动子 agent 的工具
 const agentTools = new Set(['Agent', 'Task'])
 
@@ -44,13 +49,24 @@ function buildItems(entries: Entry[], context: Context): Item[] {
   // 这一轮到目前为止回复的文字；一轮进行中出现的 user 是插话，不另起一轮
   let replies: string[] = []
   let inTurn = false
+  // 上一条记录的时间：一轮开始时离它太久或者跨了天，就先显示一条时间
+  let lastTime: Date | undefined
   for (const { record, index } of entries) {
     const key = String(index)
+    const previous = lastTime
+    // 改名不算对话里的动静
+    if (record.type !== 'title') {
+      lastTime = new Date(record.time)
+    }
     switch (record.type) {
       case 'user':
         if (!inTurn) {
           replies = []
           inTurn = true
+          const time = new Date(record.time)
+          if (!previous || time.getTime() - previous.getTime() > dividerGap || !sameDay(time, previous)) {
+            items.push({ kind: 'time', key: `${key}-time`, time: record.time })
+          }
         }
         if (record.interrupt) {
           items.push({ kind: 'interrupted', key: `${key}-interrupted` })
@@ -59,7 +75,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
           items.push({ kind: 'attachments', key: `${key}-attachments`, attachments: record.attachments })
         }
         if (record.text.trim()) {
-          items.push({ kind: 'user', key, text: record.text })
+          items.push({ kind: 'user', key, text: record.text, time: record.time })
         }
         break
       case 'thinking':
@@ -101,8 +117,14 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
     switch (item.kind) {
       case 'user':
         return (
-          <div key={item.key} className={styles.user}>
+          <div key={item.key} className={styles.user} title={formatFull(new Date(item.time))}>
             {item.text}
+          </div>
+        )
+      case 'time':
+        return (
+          <div key={item.key} className={styles.time}>
+            {formatDivider(new Date(item.time))}
           </div>
         )
       case 'attachments':
@@ -166,7 +188,11 @@ function TurnEnd({ record, reply }: { record: Result; reply: string }) {
       {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
       <div className={styles.stats}>
         {reply && <CopyButton text={reply} label="复制回复" />}
-        <span title={context ? `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token` : undefined}>
+        <span
+          title={[`${formatFull(new Date(record.time))} 答完`, context && `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token`]
+            .filter(Boolean)
+            .join('\n')}
+        >
           {stats.join(' · ')}
         </span>
       </div>
