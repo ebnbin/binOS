@@ -1,4 +1,6 @@
 import type { Attachment, Live, Status, TranscriptRecord } from '@binos/server/apps/agent/types'
+import { Layers } from 'lucide-react'
+import { useState } from 'react'
 import { formatDuration, formatModel, formatTokens, useNow } from '../format.ts'
 import { formatDivider, formatFull, sameDay } from '../time.ts'
 import { AgentCall } from './AgentCall.tsx'
@@ -7,8 +9,10 @@ import { AttachmentList } from './Attachments.tsx'
 import { CopyButton } from './CopyButton.tsx'
 import { Markdown } from './Markdown.tsx'
 import { Thinking } from './Thinking.tsx'
-import { ToolGroup } from './ToolCall.tsx'
-import type { ToolCallItem, ToolResult } from '../tool-calls.ts'
+import { ToolCall } from './ToolCall.tsx'
+import { Activity } from './Activity.tsx'
+import { callStatus, toolKind } from '../tool-calls.ts'
+import type { ToolCallItem, ToolCategory, ToolResult } from '../tool-calls.ts'
 import styles from './Transcript.module.css'
 
 type Entry = { record: TranscriptRecord; index: number }
@@ -20,13 +24,17 @@ type Item =
   | { kind: 'time'; key: string; time: string }
   | { kind: 'attachments'; key: string; attachments: Attachment[] }
   | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
-  | { kind: 'thinking'; key: string; text: string; durationMs?: number }
-  | { kind: 'tools'; key: string; calls: ToolCallItem[] }
-  | { kind: 'agent'; key: string; call: ToolCallItem }
+  | { kind: 'steps'; key: string; steps: Step[] }
   | { kind: 'compact'; key: string; record: Compact }
   | { kind: 'interrupted'; key: string }
   // reply：这一轮回复的全部文字，用于复制
   | { kind: 'result'; key: string; record: Result; reply: string }
+
+// 回答过程中的一步：思考、工具调用、子 agent。两段文字之间连续的几步合成一组
+type Step =
+  | { kind: 'thinking'; key: string; time: string; text: string; durationMs?: number }
+  | { kind: 'tool'; key: string; time: string; call: ToolCallItem }
+  | { kind: 'agent'; key: string; time: string; call: ToolCallItem }
 
 // 整个 transcript 共用的：工具结果按调用 id，子 agent 的记录按它所属的调用 id
 type Context = {
@@ -43,9 +51,16 @@ const dividerGap = 30 * 60 * 1000
 // 启动子 agent 的工具
 const agentTools = new Set(['Agent', 'Task'])
 
-// 相邻的普通工具调用合成一组
 function buildItems(entries: Entry[], context: Context): Item[] {
   const items: Item[] = []
+  const addStep = (step: Step) => {
+    const last = items.at(-1)
+    if (last?.kind === 'steps') {
+      last.steps.push(step)
+    } else {
+      items.push({ kind: 'steps', key: step.key, steps: [step] })
+    }
+  }
   // 这一轮到目前为止回复的文字；一轮进行中出现的 user 是插话，不另起一轮
   let replies: string[] = []
   let inTurn = false
@@ -79,7 +94,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         }
         break
       case 'thinking':
-        items.push({ kind: 'thinking', key, text: record.text, durationMs: record.durationMs })
+        addStep({ kind: 'thinking', key, time: record.time, text: record.text, durationMs: record.durationMs })
         break
       case 'text':
         if (record.text.trim()) {
@@ -89,14 +104,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         break
       case 'tool_use': {
         const call = { use: record, result: context.results.get(record.id), live: context.live !== null }
-        const last = items.at(-1)
-        if (agentTools.has(record.name)) {
-          items.push({ kind: 'agent', key, call })
-        } else if (last?.kind === 'tools') {
-          last.calls.push(call)
-        } else {
-          items.push({ kind: 'tools', key, calls: [call] })
-        }
+        addStep({ kind: agentTools.has(record.name) ? 'agent' : 'tool', key, time: record.time, call })
         break
       }
       case 'compact':
@@ -113,7 +121,8 @@ function buildItems(entries: Entry[], context: Context): Item[] {
 
 function Timeline({ entries, context }: { entries: Entry[]; context: Context }) {
   const { sessionId } = context
-  return buildItems(entries, context).map((item) => {
+  const items = buildItems(entries, context)
+  return items.map((item, index) => {
     switch (item.kind) {
       case 'user':
         return (
@@ -131,23 +140,8 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
         return <AttachmentList key={item.key} sessionId={sessionId} attachments={item.attachments} />
       case 'text':
         return <Markdown key={item.key} sessionId={sessionId} text={item.text} files={item.files} />
-      case 'thinking':
-        return <Thinking key={item.key} sessionId={sessionId} text={item.text} durationMs={item.durationMs} />
-      case 'tools':
-        return <ToolGroup key={item.key} sessionId={sessionId} calls={item.calls} now={context.now} />
-      case 'agent': {
-        const children = context.children.get(item.call.use.id)
-        return (
-          <AgentCall
-            key={item.key}
-            sessionId={sessionId}
-            call={item.call}
-            progress={context.live?.tasks[item.call.use.id]}
-            now={context.now}
-            timeline={children && <Timeline entries={children} context={context} />}
-          />
-        )
-      }
+      case 'steps':
+        return <Steps key={item.key} steps={item.steps} context={context} last={index === items.length - 1} />
       case 'interrupted':
         return (
           <div key={item.key} className={styles.divider}>
@@ -164,6 +158,92 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
         return <TurnEnd key={item.key} record={item.record} reply={item.reply} />
     }
   })
+}
+
+function StepView({ step, context }: { step: Step; context: Context }) {
+  const { sessionId } = context
+  switch (step.kind) {
+    case 'thinking':
+      return <Thinking sessionId={sessionId} text={step.text} durationMs={step.durationMs} />
+    case 'tool':
+      return <ToolCall sessionId={sessionId} call={step.call} now={context.now} />
+    case 'agent': {
+      const children = context.children.get(step.call.use.id)
+      return (
+        <AgentCall
+          sessionId={sessionId}
+          call={step.call}
+          progress={context.live?.tasks[step.call.use.id]}
+          now={context.now}
+          timeline={children && <Timeline entries={children} context={context} />}
+        />
+      )
+    }
+  }
+}
+
+const categoryText: Record<ToolCategory, (count: number) => string> = {
+  command: (n) => `运行 ${n} 条命令`,
+  read: (n) => `查看 ${n} 个文件`,
+  edit: (n) => `修改 ${n} 个文件`,
+  search: (n) => `搜索 ${n} 次`,
+  web: (n) => `打开 ${n} 个网页`,
+  browser: (n) => `操作浏览器 ${n} 次`,
+  agent: (n) => `启动 ${n} 个子 agent`,
+  other: (n) => `调用 ${n} 次工具`,
+}
+
+// 一组步骤的摘要，比如「运行 3 条命令，查看 2 个文件」；修改的文件按路径去重
+function summarize(steps: Step[]) {
+  const counts = new Map<ToolCategory, Set<string>>()
+  for (const step of steps) {
+    if (step.kind === 'thinking') {
+      continue
+    }
+    const category = toolKind(step.call.use.name).category
+    const path = (step.call.use.input as { file_path?: unknown }).file_path
+    const id = category === 'edit' && typeof path === 'string' ? path : step.call.use.id
+    counts.set(category, (counts.get(category) ?? new Set()).add(id))
+  }
+  const parts = (Object.keys(categoryText) as ToolCategory[]).flatMap((category) => {
+    const count = counts.get(category)?.size
+    return count ? [categoryText[category](count)] : []
+  })
+  return parts.length ? parts.join('，') : `思考 ${steps.length} 次`
+}
+
+// 连续的几步：只有一步时直接显示；多步时是一行摘要，正在进行的那一组展开，答完了收起，点开看每一步
+function Steps({ steps, context, last }: { steps: Step[]; context: Context; last: boolean }) {
+  const [userOpen, setUserOpen] = useState<boolean>()
+  if (steps.length === 1) {
+    return <StepView step={steps[0]} context={context} />
+  }
+  const calls = steps.flatMap((step) => (step.kind === 'thinking' ? [] : [step.call]))
+  const running = calls.some((call) => callStatus(call) === 'running')
+  const errors = calls.filter((call) => callStatus(call) === 'error').length
+  const first = steps[0]
+  const start = Date.parse(first.time) - (first.kind === 'thinking' ? (first.durationMs ?? 0) : 0)
+  const end = Math.max(
+    ...steps.map((step) => (step.kind === 'thinking' ? Date.parse(step.time) : step.call.result ? Date.parse(step.call.result.time) : running ? context.now : Date.parse(step.time))),
+  )
+  const meta = [errors > 0 && `${errors} 个出错`, formatDuration(Math.max(end - start, 0))].filter(Boolean).join(' · ')
+  return (
+    <Activity
+      icon={<Layers size={14} strokeWidth={1.75} />}
+      label={summarize(steps)}
+      meta={meta}
+      status={running ? 'running' : 'done'}
+      open={userOpen ?? (context.live !== null && last)}
+      onOpenChange={setUserOpen}
+      body={() => (
+        <div className={styles.steps}>
+          {steps.map((step) => (
+            <StepView key={step.key} step={step} context={context} />
+          ))}
+        </div>
+      )}
+    />
+  )
 }
 
 function compactText({ trigger, preTokens, postTokens }: Compact) {

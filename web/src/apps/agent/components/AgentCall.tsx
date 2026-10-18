@@ -1,14 +1,14 @@
 import type { TaskProgress } from '@binos/server/apps/agent/types'
-import { Bot, ChevronRight } from 'lucide-react'
+import { Bot, ScrollText } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { formatDuration, formatTokens } from '../format.ts'
-import styles from './AgentCall.module.css'
-import { Markdown } from './Markdown.tsx'
 import { callDuration, callStatus } from '../tool-calls.ts'
 import type { ToolCallItem } from '../tool-calls.ts'
-import { StatusIcon } from './ToolCall.tsx'
+import { Activity } from './Activity.tsx'
+import styles from './AgentCall.module.css'
+import { Markdown } from './Markdown.tsx'
 
-// 子 agent：卡片上是任务描述和正在做的一步，展开是它自己的过程（timeline）。
+// 子 agent：一行是任务描述，运行中带上正在做的一步；展开是任务说明和它自己的过程（timeline）。
 // 过程里已经有它最后的回复；没有过程的记录时（这个格式之前的会话）显示它交回的结果
 export function AgentCall({
   sessionId,
@@ -27,41 +27,37 @@ export function AgentCall({
   const input = use.input as { description?: unknown; subagent_type?: unknown; prompt?: unknown }
   const status = callStatus(call)
   const duration = callDuration(call, now)
-  const details = progress && [
-    progress.activity,
-    progress.toolUses !== undefined && `${progress.toolUses} 次工具`,
-    progress.tokens !== undefined && `${formatTokens(progress.tokens)} token`,
+  const description = typeof input.description === 'string' ? input.description : ''
+  const type = typeof input.subagent_type === 'string' ? input.subagent_type : undefined
+  const running = status === 'running' && progress
+  const meta = [
+    use.background && '后台',
+    running && progress.toolUses !== undefined && `${progress.toolUses} 次工具`,
+    running && progress.tokens !== undefined && `${formatTokens(progress.tokens)} token`,
+    duration !== undefined && formatDuration(duration),
   ]
+    .filter(Boolean)
+    .join(' · ')
   return (
-    <details className={styles.card} data-status={status}>
-      <summary className={styles.header}>
-        <span className={styles.row}>
-          <span className={styles.status}>
-            <StatusIcon status={status} />
-          </span>
-          <Bot size={15} strokeWidth={1.75} className={styles.icon} />
-          <span className={styles.title}>{typeof input.description === 'string' && input.description ? input.description : '子 agent'}</span>
-          {typeof input.subagent_type === 'string' && <span className={styles.badge}>{input.subagent_type}</span>}
-          {use.background && <span className={styles.badge}>后台</span>}
-          {duration !== undefined && <span className={styles.time}>{formatDuration(duration)}</span>}
-          <ChevronRight size={15} strokeWidth={1.75} className={styles.chevron} />
-        </span>
-        {status === 'running' && details && <span className={styles.activity}>{details.filter(Boolean).join(' · ')}</span>}
-      </summary>
-      <div className={styles.body}>
-        {typeof input.prompt === 'string' && (
-          <details className={styles.prompt}>
-            <summary>任务说明</summary>
-            <pre>{input.prompt}</pre>
-          </details>
-        )}
-        {timeline}
-        {!timeline && result?.output && (
-          <div className={styles.result}>
-            <Markdown sessionId={sessionId} text={result.output} />
-          </div>
-        )}
-      </div>
-    </details>
+    <Activity
+      icon={<Bot size={14} strokeWidth={1.75} />}
+      label={type ? `子 agent（${type}）` : '子 agent'}
+      detail={running && progress.activity ? `${description} · ${progress.activity}` : description}
+      meta={meta}
+      status={status}
+      body={() => (
+        <>
+          {typeof input.prompt === 'string' && (
+            <Activity
+              icon={<ScrollText size={14} strokeWidth={1.75} />}
+              label="任务说明"
+              body={() => <pre className={styles.prompt}>{input.prompt as string}</pre>}
+            />
+          )}
+          {timeline}
+          {!timeline && result?.output && <Markdown sessionId={sessionId} text={result.output} />}
+        </>
+      )}
+    />
   )
 }

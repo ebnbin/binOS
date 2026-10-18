@@ -24,6 +24,11 @@
   background: var(--hairline);
 }
 
+.steps {
+  display: flex;
+  flex-direction: column;
+}
+
 .time {
   align-self: center;
   margin-top: 8px;
