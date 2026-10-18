@@ -11,7 +11,7 @@
   margin-bottom: 0;
 }
 
-.markdown :is(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
+.markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
   margin: 0 0 14px;
 }
 

@@ -47,3 +47,7 @@ export function formatFull(date: Date) {
 export function sameDay(a: Date, b: Date) {
   return dayNumber(a) === dayNumber(b)
 }
+
+export function formatClock(date: Date) {
+  return clock.format(date)
+}

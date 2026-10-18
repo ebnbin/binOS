@@ -1,8 +1,9 @@
 import type { Attachment, Live, Status, TranscriptRecord } from '@binos/server/apps/agent/types'
-import { Layers } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { formatDuration, formatModel, formatTokens, useNow } from '../format.ts'
-import { formatDivider, formatFull, sameDay } from '../time.ts'
+import { formatClock, formatDivider, formatFull, sameDay } from '../time.ts'
 import { AgentCall } from './AgentCall.tsx'
 import { Alert } from './Alert.tsx'
 import { AttachmentList } from './Attachments.tsx'
@@ -10,7 +11,6 @@ import { CopyButton } from './CopyButton.tsx'
 import { Markdown } from './Markdown.tsx'
 import { Thinking } from './Thinking.tsx'
 import { ToolCall } from './ToolCall.tsx'
-import { Activity } from './Activity.tsx'
 import { callStatus, toolKind } from '../tool-calls.ts'
 import type { ToolCallItem, ToolCategory, ToolResult } from '../tool-calls.ts'
 import styles from './Transcript.module.css'
@@ -22,6 +22,8 @@ type Compact = Extract<TranscriptRecord, { type: 'compact' }>
 type Item =
   | { kind: 'user'; key: string; text: string; time: string }
   | { kind: 'time'; key: string; time: string }
+  // 一轮从这里开始，主对话按轮分节
+  | { kind: 'turn'; key: string }
   | { kind: 'attachments'; key: string; attachments: Attachment[] }
   | { kind: 'text'; key: string; text: string; files?: Record<string, string> }
   | { kind: 'steps'; key: string; steps: Step[] }
@@ -78,6 +80,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         if (!inTurn) {
           replies = []
           inTurn = true
+          items.push({ kind: 'turn', key: `${key}-turn` })
           const time = new Date(record.time)
           if (!previous || time.getTime() - previous.getTime() > dividerGap || !sameDay(time, previous)) {
             items.push({ kind: 'time', key: `${key}-time`, time: record.time })
@@ -119,15 +122,43 @@ function buildItems(entries: Entry[], context: Context): Item[] {
   return items
 }
 
-function Timeline({ entries, context }: { entries: Entry[]; context: Context }) {
-  const { sessionId } = context
+// 主对话按轮分节，tail 放在最后一节的末尾（回答进行中的临时内容）；子 agent 的过程不分节
+function Turns({ entries, context, tail }: { entries: Entry[]; context: Context; tail: ReactNode }) {
   const items = buildItems(entries, context)
-  return items.map((item, index) => {
+  const turns: Item[][] = []
+  for (const item of items) {
+    if (item.kind === 'turn' || turns.length === 0) {
+      turns.push([])
+    }
+    turns.at(-1)!.push(item)
+  }
+  return turns.map((turn, index) => (
+    <section key={turn[0].key} className={styles.turn}>
+      {renderItems(turn, context, index === turns.length - 1 ? items.at(-1) : undefined)}
+      {index === turns.length - 1 && tail}
+    </section>
+  ))
+}
+
+function Timeline({ entries, context }: { entries: Entry[]; context: Context }) {
+  const items = buildItems(entries, context)
+  return renderItems(items, context, items.at(-1))
+}
+
+// last：整个对话的最后一项，正在进行的那一组步骤展开
+function renderItems(items: Item[], context: Context, last: Item | undefined) {
+  const { sessionId } = context
+  return items.map((item) => {
     switch (item.kind) {
+      case 'turn':
+        return null
       case 'user':
         return (
-          <div key={item.key} className={styles.user} title={formatFull(new Date(item.time))}>
+          <div key={item.key} className={styles.user}>
             {item.text}
+            <time className={styles.userTime} dateTime={item.time} title={formatFull(new Date(item.time))}>
+              {formatClock(new Date(item.time))}
+            </time>
           </div>
         )
       case 'time':
@@ -141,7 +172,7 @@ function Timeline({ entries, context }: { entries: Entry[]; context: Context }) 
       case 'text':
         return <Markdown key={item.key} sessionId={sessionId} text={item.text} files={item.files} />
       case 'steps':
-        return <Steps key={item.key} steps={item.steps} context={context} last={index === items.length - 1} />
+        return <Steps key={item.key} steps={item.steps} context={context} last={item === last} />
       case 'interrupted':
         return (
           <div key={item.key} className={styles.divider}>
@@ -212,13 +243,14 @@ function summarize(steps: Step[]) {
   return parts.length ? parts.join('，') : `思考 ${steps.length} 次`
 }
 
-// 连续的几步：只有一步时直接显示；多步时是一行摘要，正在进行的那一组展开，答完了收起，点开看每一步
+// 连续的几步：最多只有一次工具调用时直接显示；多次时收成一行「已工作 …」，正在进行的那一组展开，答完了收起，点开看每一步
 function Steps({ steps, context, last }: { steps: Step[]; context: Context; last: boolean }) {
   const [userOpen, setUserOpen] = useState<boolean>()
-  if (steps.length === 1) {
-    return <StepView step={steps[0]} context={context} />
-  }
   const calls = steps.flatMap((step) => (step.kind === 'thinking' ? [] : [step.call]))
+  const list = steps.map((step) => <StepView key={step.key} step={step} context={context} />)
+  if (calls.length <= 1) {
+    return list
+  }
   const running = calls.some((call) => callStatus(call) === 'running')
   const errors = calls.filter((call) => callStatus(call) === 'error').length
   const first = steps[0]
@@ -226,23 +258,18 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   const end = Math.max(
     ...steps.map((step) => (step.kind === 'thinking' ? Date.parse(step.time) : step.call.result ? Date.parse(step.call.result.time) : running ? context.now : Date.parse(step.time))),
   )
-  const meta = [errors > 0 && `${errors} 个出错`, formatDuration(Math.max(end - start, 0))].filter(Boolean).join(' · ')
+  const open = userOpen ?? (context.live !== null && last)
   return (
-    <Activity
-      icon={<Layers size={14} strokeWidth={1.75} />}
-      label={summarize(steps)}
-      meta={meta}
-      status={running ? 'running' : 'done'}
-      open={userOpen ?? (context.live !== null && last)}
-      onOpenChange={setUserOpen}
-      body={() => (
-        <div className={styles.steps}>
-          {steps.map((step) => (
-            <StepView key={step.key} step={step} context={context} />
-          ))}
-        </div>
-      )}
-    />
+    <div className={styles.worked} data-open={open || undefined}>
+      <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
+        <span>
+          {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
+          {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
+        </span>
+        <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
+      </button>
+      {open && <div className={styles.steps}>{list}</div>}
+    </div>
   )
 }
 
@@ -267,14 +294,14 @@ function TurnEnd({ record, reply }: { record: Result; reply: string }) {
     <>
       {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
       <div className={styles.stats}>
-        {reply && <CopyButton text={reply} label="复制回复" />}
         <span
           title={[`${formatFull(new Date(record.time))} 答完`, context && `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token`]
             .filter(Boolean)
             .join('\n')}
         >
-          {stats.join(' · ')}
+          {[formatClock(new Date(record.time)), ...stats].join(' · ')}
         </span>
+        {reply && <CopyButton text={reply} label="复制回复" />}
       </div>
     </>
   )
@@ -332,16 +359,21 @@ export function Transcript({ sessionId, records, live }: { sessionId: number; re
   // 这一轮从最后一个 result 之后开始
   const turnStart = records[records.findLastIndex((record) => record.type === 'result') + 1]?.time
   return (
-    <>
-      <Timeline entries={main} context={context} />
-      {live?.thinking && <Thinking sessionId={sessionId} text={live.thinking} live />}
-      {live?.text.trim() && <Markdown sessionId={sessionId} text={live.text} files={live.files} />}
-      {live && (
-        <div className={styles.status}>
-          {statusText(live.status, live, runningTool?.type === 'tool_use' ? runningTool.name : undefined)}
-          {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
-        </div>
-      )}
-    </>
+    <Turns
+      entries={main}
+      context={context}
+      tail={
+        <>
+          {live?.thinking && <Thinking sessionId={sessionId} text={live.thinking} live />}
+          {live?.text.trim() && <Markdown sessionId={sessionId} text={live.text} files={live.files} />}
+          {live && (
+            <div className={styles.status}>
+              {statusText(live.status, live, runningTool?.type === 'tool_use' ? runningTool.name : undefined)}
+              {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+            </div>
+          )}
+        </>
+      }
+    />
   )
 }
