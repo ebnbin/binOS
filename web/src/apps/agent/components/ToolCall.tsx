@@ -1,26 +1,25 @@
-import type { TranscriptRecord } from '@binos/server/apps/agent/types'
 import { Check, ChevronRight, Minus, X } from 'lucide-react'
 import { fileUrl } from '../api.ts'
+import { formatDuration } from '../format.ts'
+import { callDuration, callStatus } from '../tool-calls.ts'
+import type { CallStatus, ToolCallItem } from '../tool-calls.ts'
 import styles from './ToolCall.module.css'
 import { Spinner } from '../../../ui/Spinner.tsx'
 
-export type ToolUse = Extract<TranscriptRecord, { type: 'tool_use' }>
-export type ToolResult = Extract<TranscriptRecord, { type: 'tool_result' }>
-// live：这一轮还在回答，没有结果的调用还在运行
-export type ToolCallItem = { use: ToolUse; result: ToolResult | undefined; live: boolean }
-
-export function ToolGroup({ sessionId, calls }: { sessionId: number; calls: ToolCallItem[] }) {
+export function ToolGroup({ sessionId, calls, now }: { sessionId: number; calls: ToolCallItem[]; now: number }) {
   return (
     <div className={styles.group}>
       {calls.map((call) => (
-        <ToolCall key={call.use.id} sessionId={sessionId} {...call} />
+        <ToolCall key={call.use.id} sessionId={sessionId} call={call} now={now} />
       ))}
     </div>
   )
 }
 
-function ToolCall({ sessionId, use, result, live }: { sessionId: number } & ToolCallItem) {
-  const status = result ? result.status : live ? 'running' : 'stopped'
+function ToolCall({ sessionId, call, now }: { sessionId: number; call: ToolCallItem; now: number }) {
+  const { use, result } = call
+  const status = callStatus(call)
+  const duration = callDuration(call, now)
   const input = use.input as Record<string, unknown>
   return (
     <details className={styles.call} data-status={status}>
@@ -30,6 +29,8 @@ function ToolCall({ sessionId, use, result, live }: { sessionId: number } & Tool
         </span>
         <span className={styles.name}>{use.name}</span>
         <span className={styles.summary}>{toolSummary(use.name, input)}</span>
+        {use.background && <span className={styles.badge}>后台</span>}
+        {duration !== undefined && <span className={styles.time}>{formatDuration(duration)}</span>}
         <ChevronRight size={15} strokeWidth={1.75} className={styles.chevron} />
       </summary>
       <div className={styles.body}>
@@ -49,7 +50,7 @@ function ToolCall({ sessionId, use, result, live }: { sessionId: number } & Tool
   )
 }
 
-function StatusIcon({ status }: { status: 'running' | 'done' | 'error' | 'stopped' }) {
+export function StatusIcon({ status }: { status: CallStatus }) {
   switch (status) {
     case 'running':
       return <Spinner />

@@ -44,6 +44,17 @@ describe('ClaudeOutput', () => {
     expect(records[5]).toMatchObject({ toolUseId: 't1', status: 'done', output: 'started' })
   })
 
+  it('子 agent 的进展在它交回结果后清掉', () => {
+    const { output: parsed } = run([
+      output[3],
+      system({ subtype: 'task_progress', tool_use_id: 't2', description: 'Reading a', usage: { tool_uses: 1, total_tokens: 900 } }),
+    ])
+    expect(parsed.current().tasks).toEqual({ t2: { activity: 'Reading a', toolUses: 1, tokens: 900 } })
+    const { events } = parsed.push(user([{ type: 'tool_result', tool_use_id: 't2', content: '查到了' }]), 9)
+    expect(events).toEqual([{ type: 'task', toolUseId: 't2', progress: null }])
+    expect(parsed.current().tasks).toEqual({})
+  })
+
   it('重读时已经记下的行只恢复状态，不再产生记录', () => {
     const { records } = run(output, 3, 's1')
     expect(records.map((record) => record.type === 'tool_use' ? record.id : record.type)).toEqual(['t2', 't3', 'tool_result'])

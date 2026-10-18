@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { snapshotFiles } from './reply-files.js'
-import type { Live, LiveEvent, Status, Tokens, TranscriptRecord } from './types.js'
+import type { Live, LiveEvent, Status, TaskProgress, Tokens, TranscriptRecord } from './types.js'
 
 // 工具结果的文字只留末尾这么多：出错时要看的报错一般在最后
 const outputLimit = 64 * 1024
@@ -50,6 +50,8 @@ type Line = {
   tool_use_id?: string
   is_backgrounded?: boolean
   owned_by_subagent?: boolean
+  description?: string
+  usage?: { total_tokens?: number; tool_uses?: number }
   compact_metadata?: { trigger?: string; pre_tokens?: number; post_tokens?: number }
   event?: {
     type: string
@@ -67,7 +69,7 @@ type Line = {
 type ToolResult = Extract<TranscriptRecord, { type: 'tool_result' }>
 type HeldResult = Omit<ToolResult, 'type' | 'time' | 'status' | 'offset'>
 
-const emptyLive = (): Live => ({ thinking: '', text: '', files: {}, status: null })
+const emptyLive = (): Live => ({ thinking: '', text: '', files: {}, status: null, tasks: {} })
 
 // 把 Claude 的输出逐行转成 transcript 记录和临时内容的变化。输出总是从头读：
 // 后端重启后，已经记下的那些行（offset 不超过 recorded）只用来恢复状态，不再产生记录和推送
@@ -119,6 +121,16 @@ export class ClaudeOutput {
       this.live.status = value
       events.push({ type: 'status', status: value })
     }
+    const task = (toolUseId: string, progress: TaskProgress | null) => {
+      if (progress) {
+        this.live.tasks[toolUseId] = progress
+      } else if (this.live.tasks[toolUseId]) {
+        delete this.live.tasks[toolUseId]
+      } else {
+        return
+      }
+      events.push({ type: 'task', toolUseId, progress })
+    }
 
     // 有了模型的回复或结果，才说明 Claude 那边的会话真的建立起来了
     if (!parent && line.session_id && line.session_id !== this.sessionId && (line.type === 'assistant' || line.type === 'result')) {
@@ -167,12 +179,13 @@ export class ClaudeOutput {
             continue
           }
           this.openTools.delete(block.tool_use_id)
+          task(block.tool_use_id, null)
           record({ type: 'tool_result', time, status: block.is_error ? 'error' : 'done', ...result })
         }
         break
       case 'system':
         if (!parent) {
-          this.handleSystem(line, time, record, status)
+          this.handleSystem(line, time, record, status, task)
         }
         break
       case 'result':
@@ -267,7 +280,13 @@ export class ClaudeOutput {
     }
   }
 
-  private handleSystem(line: Line, time: string, record: (fields: TranscriptRecord) => void, status: (value: Status | null) => void) {
+  private handleSystem(
+    line: Line,
+    time: string,
+    record: (fields: TranscriptRecord) => void,
+    status: (value: Status | null) => void,
+    task: (toolUseId: string, progress: TaskProgress | null) => void,
+  ) {
     switch (line.subtype) {
       case 'init':
         this.model = line.model
@@ -300,8 +319,21 @@ export class ClaudeOutput {
         }
         break
       }
+      // 子 agent 自己发起的任务也对应着一次（子 agent 的）工具调用，进展照样显示
+      case 'task_progress':
+        if (line.tool_use_id) {
+          task(line.tool_use_id, {
+            ...(line.description && { activity: line.description }),
+            ...(line.usage?.tool_uses !== undefined && { toolUses: line.usage.tool_uses }),
+            ...(line.usage?.total_tokens !== undefined && { tokens: line.usage.total_tokens }),
+          })
+        }
+        break
       case 'task_notification': {
         const id = line.tool_use_id
+        if (id) {
+          task(id, null)
+        }
         if (!id || line.owned_by_subagent || !this.openTools.get(id)?.background) {
           break
         }
