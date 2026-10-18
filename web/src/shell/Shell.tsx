@@ -73,15 +73,16 @@ export function Shell() {
         : { home: false, focused: id ?? prev.focused, slot: at, recent: id ? [id, ...prev.recent.filter((item) => item !== id)].slice(0, 20) : prev.recent },
     )
 
-  // 分屏时放进聚焦的位置，已经显示着就只聚焦；只有一个位置时只改本设备显示哪个
+  // 分屏时：指定了位置就挪到那里，和原来的窗口对调；没指定时，已经显示着就只聚焦，否则放进聚焦的位置。
+  // 只有一个位置时只改本设备显示哪个
   const show = (id: string, target?: number) => {
     if (count === 1) {
       focus(id, 0)
       return
     }
     const at = panes.indexOf(id)
-    const to = at >= 0 ? at : (target ?? slot)
-    if (at < 0) {
+    const to = target ?? (at >= 0 ? at : slot)
+    if (at !== to) {
       updateWorkspace((current) => place(current, id, to))
     }
     focus(id, to)
