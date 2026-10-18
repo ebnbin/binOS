@@ -2,48 +2,42 @@ import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Activity.module.css'
-import { Spinner } from '../../../ui/Spinner.tsx'
 
 export type ActivityStatus = 'running' | 'done' | 'error' | 'stopped'
 
-// 回答过程里的一行活动（思考、工具调用、子 agent，以及它们合起来的摘要）：图标、一句话、细节和耗时。
-// body 展开时才渲染：一个会话里有上百次调用，不展开的不用渲染内容。open 给了就由外面控制
+// 回答过程里的一步（思考、工具调用、子 agent）：状态圆点、动作、细节和右边的耗时等。
+// preview 是收起时显示在下面的几行（比如命令输出的最后几行）。body 展开时才渲染：一个会话里有上百步，不展开的不用渲染
 export function Activity({
-  icon,
   label,
   detail,
   meta,
+  preview,
   status = 'done',
+  quiet = false,
   defaultOpen = false,
-  open: controlledOpen,
-  onOpenChange,
   body,
 }: {
-  icon: ReactNode
   label: ReactNode
   detail?: ReactNode
   meta?: ReactNode
+  preview?: string
   status?: ActivityStatus
+  // 次要的一步（思考）：动作也用淡色
+  quiet?: boolean
   defaultOpen?: boolean
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
   body?: () => ReactNode
 }) {
-  const [ownOpen, setOwnOpen] = useState(defaultOpen)
-  const open = controlledOpen ?? ownOpen
-  const toggle = () => {
-    setOwnOpen(!open)
-    onOpenChange?.(!open)
-  }
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className={styles.activity} data-status={status} data-open={open || undefined}>
-      <button type="button" className={styles.row} onClick={toggle} disabled={!body} aria-expanded={body ? open : undefined}>
-        <span className={styles.icon}>{status === 'running' ? <Spinner /> : icon}</span>
+    <div className={styles.activity} data-status={status} data-quiet={quiet || undefined} data-open={open || undefined}>
+      <button type="button" className={styles.row} onClick={() => setOpen(!open)} disabled={!body} aria-expanded={body ? open : undefined}>
+        <span className={styles.dot} />
         <span className={styles.label}>{label}</span>
         {detail && <span className={styles.detail}>{detail}</span>}
         {meta && <span className={styles.meta}>{meta}</span>}
-        {body && <ChevronRight size={14} strokeWidth={1.75} className={styles.chevron} />}
+        {body && <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />}
       </button>
+      {!open && preview && <pre className={styles.preview}>{preview}</pre>}
       {open && body && <div className={styles.body}>{body()}</div>}
     </div>
   )

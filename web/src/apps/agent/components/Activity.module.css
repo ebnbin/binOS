@@ -3,8 +3,8 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 28px;
-  padding: 2px 0;
+  min-height: 26px;
+  padding: 1px 0;
   border: 0;
   background: none;
   color: var(--muted);
@@ -18,12 +18,29 @@
   cursor: default;
 }
 
-.icon {
-  display: grid;
-  place-items: center;
-  width: 16px;
-  height: 16px;
+/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
+.dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 4px 0 1px;
   flex: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--muted) 70%, transparent);
+}
+
+[data-status='error'] > .row .dot {
+  background: var(--danger);
+}
+
+[data-status='running'] > .row .dot {
+  background: var(--live);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .label {
@@ -32,8 +49,13 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--text-2);
-  transition: color 0.15s;
+  color: var(--text);
+  font-weight: 500;
+}
+
+[data-quiet] > .row .label {
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .detail {
@@ -47,6 +69,8 @@
 }
 
 .meta {
+  display: flex;
+  gap: 6px;
   flex: none;
   margin-left: auto;
   font-size: 12px;
@@ -62,17 +86,7 @@
 }
 
 @media (hover: hover) {
-  .row:hover:not(:disabled) .label {
-    color: var(--text);
-  }
-
   .row:hover .chevron {
-    opacity: 1;
-  }
-}
-
-@media (hover: none) {
-  .chevron {
     opacity: 1;
   }
 }
@@ -82,16 +96,32 @@
   transform: rotate(90deg);
 }
 
-[data-status='error'] > .row :is(.icon, .label) {
-  color: var(--danger);
+/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
+.preview,
+.body {
+  margin: 0 0 4px 5px;
+  padding-left: 13px;
+  border-left: 1px solid var(--hairline);
 }
 
-/* 展开的内容缩进，左边一条细线表示属于上面这一行 */
+.preview {
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  text-overflow: ellipsis;
+}
+
+[data-status='error'] > .preview {
+  color: color-mix(in srgb, var(--danger) 80%, var(--muted));
+}
+
 .body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin: 2px 0 10px 7px;
-  padding-left: 15px;
-  border-left: 2px solid var(--hairline);
+  padding-top: 4px;
+  padding-bottom: 4px;
 }

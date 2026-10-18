@@ -1,4 +1,3 @@
-import { Lightbulb } from 'lucide-react'
 import { formatDuration } from '../format.ts'
 import { Activity } from './Activity.tsx'
 import styles from './Thinking.module.css'
@@ -8,8 +7,8 @@ import { Markdown } from './Markdown.tsx'
 export function Thinking({ sessionId, text, durationMs, live }: { sessionId: number; text: string; durationMs?: number; live?: boolean }) {
   return (
     <Activity
-      icon={<Lightbulb size={14} strokeWidth={1.75} />}
       label={live ? '正在思考' : durationMs !== undefined ? `思考了 ${formatDuration(durationMs)}` : '思考'}
+      quiet
       defaultOpen={live}
       body={() => (
         <div className={styles.text}>

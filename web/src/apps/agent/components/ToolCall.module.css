@@ -1,0 +1,9 @@
+.added {
+  color: #1a7f37;
+  font-family: var(--mono);
+}
+
+.removed {
+  color: var(--danger);
+  font-family: var(--mono);
+}

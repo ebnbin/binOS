@@ -1,5 +1,4 @@
 import type { TaskProgress } from '@binos/server/apps/agent/types'
-import { Bot, ScrollText } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { formatDuration, formatTokens } from '../format.ts'
 import { callDuration, callStatus } from '../tool-calls.ts'
@@ -40,7 +39,6 @@ export function AgentCall({
     .join(' · ')
   return (
     <Activity
-      icon={<Bot size={14} strokeWidth={1.75} />}
       label={type ? `子 agent（${type}）` : '子 agent'}
       detail={running && progress.activity ? `${description} · ${progress.activity}` : description}
       meta={meta}
@@ -49,7 +47,6 @@ export function AgentCall({
         <>
           {typeof input.prompt === 'string' && (
             <Activity
-              icon={<ScrollText size={14} strokeWidth={1.75} />}
               label="任务说明"
               body={() => <pre className={styles.prompt}>{input.prompt as string}</pre>}
             />
