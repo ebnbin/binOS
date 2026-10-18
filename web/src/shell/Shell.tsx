@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { apps, findApp } from '../apps/index.ts'
+import { findApp, useApps } from '../apps/index.ts'
+import type { AppManifest } from '../apps/types.ts'
 import { useStateList, useStateLoaded, useStateValue } from '../state.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
 import type { HistoryState } from './AppHost.tsx'
@@ -30,10 +31,11 @@ function loadView(): View {
   }
 }
 
-const appOrder = (appId: string) => apps.findIndex((app) => app.id === appId)
+const appOrder = (apps: AppManifest[], appId: string) => apps.findIndex((app) => app.id === appId)
 
 export function Shell() {
   const loaded = useStateLoaded()
+  const apps = useApps()
   const [main, size] = useElementSize<HTMLDivElement>()
   const entries = useStateList(windowPrefix)
   const storedWorkspace = useStateValue(workspaceKey)
@@ -48,10 +50,10 @@ export function Shell() {
     .map(([key, value]) => {
       const id = key.slice(windowPrefix.length)
       const win = value as WindowState
-      const appName = findApp(win.app)?.name ?? win.app
+      const appName = findApp(apps, win.app)?.name ?? win.app
       return { id, window: win, title: titles[id] ? `${appName} · ${titles[id]}` : appName }
     })
-    .sort((a, b) => appOrder(a.window.app) - appOrder(b.window.app))
+    .sort((a, b) => appOrder(apps, a.window.app) - appOrder(apps, b.window.app))
   const ids = windows.map((item) => item.id)
 
   const workspace = normalizeWorkspace(storedWorkspace, ids)

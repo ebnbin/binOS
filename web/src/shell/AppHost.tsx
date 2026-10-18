@@ -1,5 +1,5 @@
 import { Suspense, useMemo } from 'react'
-import { findApp } from '../apps/index.ts'
+import { findApp, useApps } from '../apps/index.ts'
 import type { AppContext } from '../apps/types.ts'
 import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
 import styles from './AppHost.module.css'
@@ -15,6 +15,7 @@ const historyState = () => window.history.state as HistoryState
 // 一个窗口里的 app。出错时只影响这个窗口
 export function AppHost({ id, window: win, onTitle }: { id: string; window: WindowState; onTitle: (id: string, title: string) => void }) {
   const { route } = win
+  const apps = useApps()
   const ctx = useMemo<AppContext>(() => {
     const navigate: AppContext['navigate'] = (next, { replace = false } = {}) => {
       if (replace || next === route) {
@@ -34,7 +35,7 @@ export function AppHost({ id, window: win, onTitle }: { id: string; window: Wind
     }
   }, [id, route, onTitle])
 
-  const App = findApp(win.app)?.component
+  const App = findApp(apps, win.app)?.component
   if (!App) {
     return <div className={styles.message}>找不到 app「{win.app}」</div>
   }
