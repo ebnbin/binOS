@@ -1,11 +1,11 @@
 import { ArrowUp, Paperclip, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
-import { efforts, models } from '@binos/server/apps/agent/types'
-import type { Effort, Model } from '@binos/server/apps/agent/types'
+import { claudeEfforts, claudeModels } from '@binos/server/apps/agent/types'
 import { PendingAttachments } from './Attachments.tsx'
 import type { PendingFile } from './Attachments.tsx'
 import type { Choice } from './Conversation.tsx'
+import { claudeModelNames, effortName, providerNames, useCodexCatalog } from '../providers.ts'
 import styles from './Composer.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
@@ -17,18 +17,18 @@ let nextKey = 0
 
 const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
-const modelNames: Record<Model, string> = { fable: 'Fable', opus: 'Opus', sonnet: 'Sonnet', haiku: 'Haiku' }
-const effortNames: Record<Effort, string> = { low: '低', medium: '中', high: '高', xhigh: '很高', max: '最高' }
-
+// providerFixed：已有的 session，agent 不能换
 export function Composer({
   running,
   choice,
+  providerFixed,
   onChoice,
   onSend,
   onStop,
 }: {
   running: boolean
   choice: Choice
+  providerFixed: boolean
   onChoice: (choice: Choice) => void
   onSend: (text: string, files: File[], interrupt: boolean) => Promise<boolean>
   onStop: () => void
@@ -40,6 +40,13 @@ export function Composer({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasContent = input.trim() !== '' || pending.length > 0
+  const codex = useCodexCatalog()
+  const codexModel = codex.models.find((model) => model.id === choice.model) ?? codex.models.find((model) => model.isDefault)
+  const models =
+    choice.provider === 'codex'
+      ? codex.models.map((model) => ({ id: model.id, name: model.name }))
+      : claudeModels.map((model) => ({ id: model, name: claudeModelNames[model] }))
+  const efforts: readonly string[] = choice.provider === 'codex' ? (codexModel?.efforts ?? []) : claudeEfforts
   const canSend = !sending && hasContent
 
   function addFiles(files: File[]) {
@@ -189,20 +196,35 @@ export function Composer({
             onClick={() => fileInputRef.current?.click()}
           />
           {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
+          {(codex.available || choice.provider === 'codex') && (
+            <select
+              className={styles.choice}
+              value={choice.provider}
+              disabled={providerFixed}
+              title={providerFixed ? '对话开始后不能换 agent' : 'agent'}
+              aria-label="agent"
+              onChange={(event) => onChoice({ provider: event.target.value as Choice['provider'] })}
+            >
+              <option value="claude">{providerNames.claude}</option>
+              <option value="codex">{providerNames.codex}</option>
+            </select>
+          )}
           <select
             className={styles.choice}
             value={choice.model ?? ''}
             disabled={running}
             title={running ? '下一轮生效' : '模型'}
             aria-label="模型"
-            onChange={(event) => onChoice({ ...choice, model: (event.target.value || undefined) as Model | undefined })}
+            onChange={(event) => onChoice({ ...choice, model: event.target.value || undefined })}
           >
             <option value="">默认模型</option>
             {models.map((model) => (
-              <option key={model} value={model}>
-                {modelNames[model]}
+              <option key={model.id} value={model.id}>
+                {model.name}
               </option>
             ))}
+            {/* 之前用过、现在列表里没有的模型 */}
+            {choice.model && !models.some((model) => model.id === choice.model) && <option value={choice.model}>{choice.model}</option>}
           </select>
           <select
             className={styles.choice}
@@ -210,14 +232,15 @@ export function Composer({
             disabled={running}
             title={running ? '下一轮生效' : '思考程度'}
             aria-label="思考程度"
-            onChange={(event) => onChoice({ ...choice, effort: (event.target.value || undefined) as Effort | undefined })}
+            onChange={(event) => onChoice({ ...choice, effort: event.target.value || undefined })}
           >
             <option value="">默认思考</option>
             {efforts.map((effort) => (
               <option key={effort} value={effort}>
-                思考：{effortNames[effort]}
+                思考：{effortName(effort)}
               </option>
             ))}
+            {choice.effort && !efforts.includes(choice.effort) && <option value={choice.effort}>思考：{effortName(choice.effort)}</option>}
           </select>
           {sending ? (
             <span className={`${styles.action} ${styles.busy}`}>

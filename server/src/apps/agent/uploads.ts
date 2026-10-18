@@ -6,7 +6,7 @@ import { pipeline } from 'node:stream/promises'
 import type { ReadableStream } from 'node:stream/web'
 import { uploadsDir } from '../../paths.js'
 import { filesDir } from './sessions.js'
-import type { Attachment } from './types.js'
+import type { Attachment, Provider } from './types.js'
 
 // 用户上传的附件先放在 uploads/，随消息发出时移进 session 的 files/：新对话发出第一句之前还没有 session 目录
 
@@ -74,11 +74,13 @@ export function moveUploads(sessionId: number, attachments: Attachment[]) {
   }
 }
 
-// 附件不直接放进消息，写上存放的路径，让 agent 自己用 Read 查看：什么文件都能这样传
-export function promptWithAttachments(sessionId: number, text: string, attachments: Attachment[]): string {
+// 附件不直接放进消息，写上存放的路径，让 agent 自己查看：什么文件都能这样传
+const viewHints: Record<Provider, string> = { claude: '用 Read 工具查看', codex: '自己查看，图片用 view_image 工具' }
+
+export function promptWithAttachments(sessionId: number, text: string, attachments: Attachment[], provider: Provider): string {
   if (!attachments.length) {
     return text
   }
   const list = attachments.map(({ file, name }) => `- ${path.join(filesDir(sessionId), file)}（${name}）`).join('\n')
-  return `${text.trim() ? `${text}\n\n` : ''}用户附上了文件，用 Read 工具查看：\n${list}`
+  return `${text.trim() ? `${text}\n\n` : ''}用户附上了文件，${viewHints[provider]}：\n${list}`
 }

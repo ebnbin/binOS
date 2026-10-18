@@ -1,5 +1,5 @@
 import type { AgentApi } from '@binos/server/apps/agent/api'
-import type { Attachment, Effort, Model } from '@binos/server/apps/agent/types'
+import type { Attachment, Provider } from '@binos/server/apps/agent/types'
 import { hc } from 'hono/client'
 
 const client = hc<AgentApi>(`${window.location.origin}/api/apps/agent`)
@@ -14,8 +14,8 @@ export async function listSessions(query?: string) {
   return (await res.json()).sessions
 }
 
-// interrupt：正在回答时先打断正在做的事；model、effort：开始新的一轮时用，不给就是默认
-export type SendOptions = { interrupt?: boolean; model?: Model; effort?: Effort }
+// interrupt：正在回答时先打断正在做的事；provider：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
+export type SendOptions = { interrupt?: boolean; provider?: Provider; model?: string; effort?: string }
 
 // 正在回答时交给 agent，没在回答时开始新的一轮
 export async function sendMessage(
@@ -33,6 +33,12 @@ export async function sendMessage(
     return await res.json()
   }
   return { error: res?.status === 503 ? '消息没能交给 agent，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
+}
+
+// 读不到时当作不能用
+export async function codexCatalog() {
+  const res = await client.codex.$get().catch(() => undefined)
+  return res?.ok ? await res.json() : { available: false, models: [] }
 }
 
 // 和后端一致

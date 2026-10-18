@@ -14,7 +14,7 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 import { sessionsDir } from '../../paths.js'
-import type { Context, Effort, Model, TranscriptRecord } from './types.js'
+import type { Context, Provider, TranscriptRecord } from './types.js'
 
 // session.json 里不是从 transcript 算出来的部分：用户在列表上的整理，重算时保留。readAt 是最后一次看这个 session 的时间
 export type UserState = { pinned?: true; archived?: true; readAt?: string }
@@ -22,7 +22,7 @@ const userKeys = ['pinned', 'archived', 'readAt'] as const
 
 // session.json：除了 UserState，都是从 transcript 算出来的缓存，会话列表和启动 agent 时用。
 // transcriptSize 是算的时候 transcript 有多大，version 是算的方式，任何一个对不上就从头重算，丢了也能重建
-const infoVersion = 2
+const infoVersion = 3
 
 export type SessionInfo = UserState & {
   version: number
@@ -34,14 +34,16 @@ export type SessionInfo = UserState & {
   turns: number
   // 最后一轮还没结束：之后的 user 是插话，不算新的一轮
   inTurn: boolean
-  agent?: { provider: 'claude'; sessionId: string }
+  // 第一轮定下的 agent，之后的轮次都用它
+  provider: Provider
+  agent?: { provider: Provider; sessionId: string }
   outcome?: 'stopped' | 'error'
   context?: Context
   // 最近一轮结束的时间
   repliedAt?: string
   // 最近一轮用的模型和思考程度
-  model?: Model
-  effort?: Effort
+  model?: string
+  effort?: string
   // 这个 session 里开的 PR 的网址；creatingPrs 是还没有结果的 gh pr create 调用
   prs: string[]
   creatingPrs: string[]
@@ -103,6 +105,7 @@ function emptyInfo(): SessionInfo {
     updatedAt: '',
     turns: 0,
     inTurn: false,
+    provider: 'claude',
     prs: [],
     creatingPrs: [],
   }
@@ -119,6 +122,7 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
     case 'user':
       if (info.turns === 0) {
         info.title = (record.text.trim() || record.attachments?.[0]?.name || '').slice(0, 200)
+        info.provider = record.provider ?? 'claude'
       }
       if (!info.inTurn) {
         info.turns += 1

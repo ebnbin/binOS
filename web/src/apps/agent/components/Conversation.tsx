@@ -1,4 +1,4 @@
-import type { Attachment, Effort, Model, SessionSummary } from '@binos/server/apps/agent/types'
+import type { Attachment, Provider, SessionSummary } from '@binos/server/apps/agent/types'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { useSession } from '../useSession.ts'
@@ -11,7 +11,8 @@ import { BrandMark } from '../../../ui/BrandMark.tsx'
 // 离底部不超过这个距离时，新内容到来会自动滚到底；往上翻看时不打扰
 const stickThreshold = 80
 
-export type Choice = { model?: Model; effort?: Effort }
+// provider 只在新对话时能选，已有的 session 沿用它的
+export type Choice = { provider: Provider; model?: string; effort?: string }
 
 // session：列表里这个 session 的概况，新对话时没有
 export function Conversation({
@@ -27,7 +28,7 @@ export function Conversation({
   const running = live !== null
   // 下一轮用的模型和思考程度，没选过就沿用这个 session 最近一轮的
   const [picked, setPicked] = useState<Choice>()
-  const choice = picked ?? { model: session?.model, effort: session?.effort }
+  const choice = picked ?? { provider: session?.provider ?? 'claude', model: session?.model, effort: session?.effort }
 
   // 正在看、又没在回答：记为已读（打开时，以及这一轮答完时）
   useEffect(() => {
@@ -103,7 +104,14 @@ export function Conversation({
           {notice && <Alert>{notice}</Alert>}
         </div>
       </div>
-      <Composer running={running} choice={choice} onChoice={setPicked} onSend={send} onStop={stop} />
+      <Composer
+        running={running}
+        choice={choice}
+        providerFixed={sessionId !== null}
+        onChoice={setPicked}
+        onSend={send}
+        onStop={stop}
+      />
     </>
   )
 }

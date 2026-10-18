@@ -1,10 +1,11 @@
-import { randomUUID } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { closeInput, inputOpen, sendInterrupt, sendMessage as sendToAgent, spawnClaude, stopRelay } from './claude.js'
-import type { TurnFiles } from './claude.js'
+import { closeInput, inputOpen, sendInterrupt, sendMessage as sendToAgent, spawnAgent, stopRelay } from './agent-process.js'
+import type { TurnFiles } from './agent-process.js'
 import { ClaudeOutput } from './claude-output.js'
+import type { AgentOutput } from './claude-output.js'
+import { CodexOutput } from './codex-output.js'
 import { notifyChange } from '../../events.js'
 import { emit } from './live-events.js'
 import { LineReader } from '../../line-reader.js'
@@ -12,8 +13,8 @@ import { isAlive, isRunning, processStartTime } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
 import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionDir, sessionInfo, setUserState } from './sessions.js'
 import { applyChanges, readState } from '../../state.js'
-import { limitsKey } from './types.js'
-import type { Attachment, Effort, Limits, Live, Model, TranscriptRecord } from './types.js'
+import { claudeEfforts, claudeModels, limitsKeys } from './types.js'
+import type { Attachment, Limits, Live, Provider, TranscriptRecord } from './types.js'
 import { moveUploads, promptWithAttachments } from './uploads.js'
 
 // 回答期间的 turn/ 目录：给 agent 发消息的管道、agent 的原始输出和进程身份，后端重启后能接着读、接着发
@@ -35,7 +36,7 @@ const exitWait = 5000
 // stopped：用户停止了这一轮，结果记成停止而不是出错
 type TurnState = { agent: ProcessIdentity; stopped?: true }
 // open：还能往管道里发消息；settledSince：从什么时候起答完了、没有后台任务；finished：这一轮结束了
-type Turn = { state: TurnState; output: ClaudeOutput; open: boolean; settledSince?: number; finished: Promise<void> }
+type Turn = { state: TurnState; output: AgentOutput; open: boolean; settledSince?: number; finished: Promise<void> }
 const turns = new Map<number, Turn>()
 
 export function isAnswering(sessionId: number): boolean {
@@ -74,10 +75,11 @@ function failTurn(sessionId: number, error: string) {
   append(sessionId, [{ type: 'result', time: new Date().toISOString(), durationMs: 0, outcome: 'error', error }])
 }
 
-// interrupt：插话前先打断正在做的事；model、effort：开始新的一轮时用，插话时沿用这一轮的
-export type MessageOptions = { interrupt?: boolean; model?: Model; effort?: Effort }
+// interrupt：插话前先打断正在做的事；provider：新的 session 用哪个 agent，已有的 session 沿用它的；
+// model、effort：开始新的一轮时用，插话时沿用这一轮的
+export type MessageOptions = { interrupt?: boolean; provider?: Provider; model?: string; effort?: string }
 
-type UserFields = Pick<Extract<TranscriptRecord, { type: 'user' }>, 'interrupt' | 'model' | 'effort'>
+type UserFields = Pick<Extract<TranscriptRecord, { type: 'user' }>, 'interrupt' | 'provider' | 'model' | 'effort'>
 
 function userRecord(text: string, attachments: Attachment[], fields: UserFields = {}): TranscriptRecord {
   return {
@@ -125,7 +127,7 @@ async function insert(id: number, turn: Turn, text: string, attachments: Attachm
     if (interrupt) {
       await sendInterrupt(files)
     }
-    await sendToAgent(files, promptWithAttachments(id, text, attachments))
+    await sendToAgent(files, promptWithAttachments(id, text, attachments, sessionInfo(id).provider))
   } catch {
     return false
   }
@@ -136,8 +138,12 @@ async function insert(id: number, turn: Turn, text: string, attachments: Attachm
 }
 
 async function startTurn(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions): Promise<number> {
-  const { model, effort } = options
-  const user = userRecord(text, attachments, { ...(model && { model }), ...(effort && { effort }) })
+  const provider = sessionId === undefined ? (options.provider ?? 'claude') : sessionInfo(sessionId).provider
+  // 别的 agent 的模型和思考程度不适用，用默认的
+  const fits = (value: string | undefined, names: readonly string[]) => (value && (provider === 'codex' || names.includes(value)) ? value : undefined)
+  const model = fits(options.model, claudeModels)
+  const effort = fits(options.effort, claudeEfforts)
+  const user = userRecord(text, attachments, { ...(provider !== 'claude' && { provider }), ...(model && { model }), ...(effort && { effort }) })
   let id: number
   if (sessionId === undefined) {
     id = createSession(user)
@@ -151,7 +157,7 @@ async function startTurn(sessionId: number | undefined, text: string, attachment
   const { agent } = sessionInfo(id)
   const files = turnFiles(id)
   mkdirSync(turnDir(id), { recursive: true })
-  const pid = spawnClaude({ files, claudeSessionId: agent?.sessionId ?? randomUUID(), resume: agent !== undefined, model, effort })
+  const pid = spawnAgent(files, { provider, sessionId: agent?.sessionId, model, effort })
   const startedAt = pid && processStartTime(pid)
   if (!pid || !startedAt) {
     rmSync(turnDir(id), { recursive: true, force: true })
@@ -165,7 +171,7 @@ async function startTurn(sessionId: number | undefined, text: string, attachment
   follow(id, state, true)
   notifyChange({ type: 'session', id })
   // 发不过去时结束 agent，这一轮照常以出错结束
-  await sendToAgent(files, promptWithAttachments(id, text, attachments)).catch(() => stopTurn(id))
+  await sendToAgent(files, promptWithAttachments(id, text, attachments, provider)).catch(() => stopTurn(id))
   return id
 }
 
@@ -200,13 +206,15 @@ export function resumeTurns() {
   }
 }
 
-// 额度变了才写进系统状态，各个页面随即收到
-function saveLimits(limits: Limits) {
-  const current = readState().entries.find((entry) => entry.key === limitsKey)?.value as Limits | undefined
-  const { updatedAt: _, ...next } = limits
+// 额度变了才写进系统状态，各个页面随即收到。Codex 只报告变了的窗口，没报告的沿用之前的
+export function saveLimits(provider: Provider, limits: Limits) {
+  const key = limitsKeys[provider]
+  const current = readState().entries.find((entry) => entry.key === key)?.value as Limits | undefined
+  const merged = provider === 'codex' ? { ...current, ...limits } : limits
+  const { updatedAt: _, ...next } = merged
   const { updatedAt: __, ...previous } = current ?? {}
   if (JSON.stringify(next) !== JSON.stringify(previous)) {
-    applyChanges([{ key: limitsKey, value: limits }])
+    applyChanges([{ key, value: merged }])
   }
 }
 
@@ -221,7 +229,9 @@ function follow(id: number, state: TurnState, open = inputOpen(turnFiles(id))) {
   }
   const current = records.slice(records.findLastIndex((record) => record.type === 'result') + 1)
   const recorded = Math.max(0, ...current.map((record) => ('offset' in record && record.offset) || 0))
-  const output = new ClaudeOutput({ filesDir: filesDir(id), recorded, sessionId: sessionInfo(id).agent?.sessionId })
+  const { provider, agent } = sessionInfo(id)
+  const options = { filesDir: filesDir(id), recorded, sessionId: agent?.sessionId }
+  const output = provider === 'codex' ? new CodexOutput(options) : new ClaudeOutput(options)
   const files = turnFiles(id)
   let finish!: () => void
   const turn: Turn = { state, output, open, finished: new Promise((resolve) => (finish = resolve)) }
@@ -233,7 +243,7 @@ function follow(id: number, state: TurnState, open = inputOpen(turnFiles(id))) {
     for (const line of reader.read()) {
       const { records, events, limits } = output.push(line.text, line.end)
       if (limits) {
-        saveLimits(limits)
+        saveLimits(provider, limits)
       }
       append(id, records)
       for (const event of events) {

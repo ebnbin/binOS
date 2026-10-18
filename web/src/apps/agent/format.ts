@@ -26,8 +26,11 @@ export function formatTokens(count: number) {
   return `${(count / 1_000_000).toFixed(1)}M`
 }
 
-// claude-opus-5-5 → Opus 5.5
+// claude-opus-5-5 → Opus 5.5；gpt-6.1-sol → GPT-6.1-Sol
 export function formatModel(model: string) {
+  if (model.startsWith('gpt-')) {
+    return model.split('-').map((part, i) => (i === 0 ? 'GPT' : part[0].toUpperCase() + part.slice(1))).join('-')
+  }
   const match = /^claude-([a-z]+)-(\d+)(?:-(\d+))?/.exec(model)
   if (!match) {
     return model
