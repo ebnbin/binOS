@@ -112,6 +112,15 @@
   opacity: 0.85;
 }
 
+.glyph i[data-active='false'] {
+  opacity: 0.3;
+}
+
+.glyph i[data-active='true'] {
+  opacity: 1;
+  background: #fff;
+}
+
 .picker {
   position: relative;
 }

@@ -11,7 +11,6 @@ export function Workspace({
   panes,
   layout,
   portrait,
-  focusedSlot,
   hidden,
   onFocus,
   onPick,
@@ -21,14 +20,12 @@ export function Workspace({
   panes: (string | null)[]
   layout: LayoutId
   portrait: boolean
-  focusedSlot: number
   hidden: boolean
   onFocus: (id: string | null, slot: number) => void
   onPick: (app: string, slot: number) => void
   onTitle: (id: string, title: string) => void
 }) {
   const tracks = layouts[layout].map((part) => `minmax(0, ${part}fr)`).join(' ')
-  const split = panes.length > 1
   // 行和列都要指定，只指定一个时，前面的位置空着会被自动排到下一行
   const position = (slot: number) => ({ gridArea: portrait ? `${slot + 1} / 1` : `1 / ${slot + 1}` })
 
@@ -47,7 +44,6 @@ export function Workspace({
             className={styles.pane}
             hidden={slot < 0}
             data-first={slot === 0}
-            data-focused={split && slot === focusedSlot}
             style={position(slot)}
             aria-label={item.title}
             onPointerDownCapture={() => onFocus(item.id, slot)}
@@ -63,8 +59,7 @@ export function Workspace({
               key={`empty-${slot}`}
               className={styles.pane}
               data-first={slot === 0}
-              data-focused={split && slot === focusedSlot}
-              style={position(slot)}
+                style={position(slot)}
               onPointerDownCapture={() => onFocus(null, slot)}
             >
               <div className={styles.picker}>

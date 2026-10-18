@@ -142,7 +142,6 @@ export function Shell() {
               panes={panes}
               layout={layout}
               portrait={portrait}
-              focusedSlot={slot}
               hidden={home}
               onFocus={focus}
               onPick={(appId, at) => open(appId, undefined, at)}
@@ -158,6 +157,7 @@ export function Shell() {
           windows={windows}
           panes={panes}
           focused={focused}
+          focusedSlot={slot}
           home={home}
           layout={layout}
           allowed={allowed}

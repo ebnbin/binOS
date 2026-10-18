@@ -16,22 +16,24 @@ const layoutNames: Record<LayoutId, string> = {
   '1:1:1': '三等分',
 }
 
-function LayoutGlyph({ layout, portrait }: { layout: LayoutId; portrait: boolean }) {
+// active：聚焦的位置，亮起来的那一块
+function LayoutGlyph({ layout, portrait, active }: { layout: LayoutId; portrait: boolean; active?: number }) {
   return (
     <span className={styles.glyph} data-portrait={portrait}>
       {layouts[layout].map((part, index) => (
-        <i key={index} style={{ flex: part }} />
+        <i key={index} style={{ flex: part }} data-active={active === undefined ? undefined : index === active} />
       ))}
     </span>
   )
 }
 
-// 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、关闭当前窗口
+// 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
 export function TaskBar({
   placement,
   windows,
   panes,
   focused,
+  focusedSlot,
   home,
   layout,
   allowed,
@@ -45,6 +47,7 @@ export function TaskBar({
   windows: OpenWindow[]
   panes: (string | null)[]
   focused: string | null
+  focusedSlot: number
   home: boolean
   layout: LayoutId
   allowed: LayoutId[]
@@ -109,7 +112,7 @@ export function TaskBar({
                 aria-pressed={picking}
                 onClick={() => setPicking(!picking)}
               >
-                <LayoutGlyph layout={layout} portrait={portrait} />
+                <LayoutGlyph layout={layout} portrait={portrait} active={layouts[layout].length > 1 ? focusedSlot : undefined} />
               </button>
               {picking && (
                 <div className={styles.popover}>
