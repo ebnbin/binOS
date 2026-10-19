@@ -1,5 +1,5 @@
 #!/bin/sh
-# binOS 的命令行，随构建一起上线。launchd 只认 $BINOS_ROOT/System/binOS/bin/binos 这个路径：
+# binOS 的命令行，随构建一起上线。launchd 只认 $BINOS_ROOT/System/binos/bin/binos 这个路径：
 # app.binos.server 运行 server，app.binos.tunnel 运行 tunnel，app.binos.deploy 每 60 秒运行一次 deploy。
 # 这几个服务具体怎么做都写在这里，改它们不用重新生成 launchd 的配置
 set -eu
@@ -41,7 +41,7 @@ case "$1" in
     ;;
   tunnel)
     # 令牌在钥匙串里，启动时取出交给 cloudflared，不写进文件和命令行参数
-    token=$(security find-generic-password -s 'binOS cloudflared tunnel' -w)
+    token=$(security find-generic-password -s app.binos.tunnel -w)
     TUNNEL_TOKEN=$token exec cloudflared tunnel run
     ;;
   deploy)
