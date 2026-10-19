@@ -13,8 +13,8 @@ export function rootLayout(root: string) {
     libraryDir,
     // 第三方 agent 自己的目录，每个 agent 一个子目录
     agentsDir: path.join(rootDir, 'Agents'),
-    // launchd 服务的输出，一个服务一个文件
-    logsDir: path.join(rootDir, 'var', 'log'),
+    // launchd 服务的输出，一个服务一个文件。Library/binOS 是 binOS 系统自己的数据
+    logsDir: path.join(libraryDir, 'binOS', 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
     appsDir: path.join(libraryDir, 'Apps'),
