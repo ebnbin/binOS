@@ -6,14 +6,14 @@ export function rootLayout(root: string) {
   return {
     rootDir,
     // 正在运行的 binOS：指向 builds/ 里的某个构建，launchd 运行其中的 bin/binos
-    binOSDir: path.join(rootDir, 'System', 'binOS'),
+    binosDir: path.join(rootDir, 'System', 'binos'),
     buildsDir: path.join(rootDir, 'System', 'builds'),
     previewsDir: path.join(rootDir, 'System', 'previews'),
     libraryDir,
     // 第三方 agent 自己的目录，每个 agent 一个子目录
     agentsDir: path.join(rootDir, 'Agents'),
-    // launchd 服务的输出，一个服务一个文件。Library/binOS 是 binOS 系统自己的数据
-    logsDir: path.join(libraryDir, 'binOS', 'logs'),
+    // launchd 服务的输出，一个服务一个文件。Library/binos 是 binOS 系统自己的数据
+    logsDir: path.join(libraryDir, 'binos', 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
     appsDir: path.join(libraryDir, 'Apps'),

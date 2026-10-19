@@ -1,5 +1,5 @@
 // 生成并加载 launchd 服务的配置，根目录搬家或换宿主后重新运行一次。
-// 每个服务都只运行 System/binOS/bin/binos 的一个子命令，具体怎么做由随版本上线的 bin/binos 决定，这里的配置不随版本变
+// 每个服务都只运行 System/binos/bin/binos 的一个子命令，具体怎么做由随版本上线的 bin/binos 决定，这里的配置不随版本变
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
@@ -7,10 +7,10 @@ import path from 'node:path'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
 import { serverLabel } from '../server/src/production.ts'
 
-const { rootDir, binOSDir, logsDir } = rootLayout(rootFromEnv())
+const { rootDir, binosDir, logsDir } = rootLayout(rootFromEnv())
 const agentsDir = path.join(os.homedir(), 'Library', 'LaunchAgents')
 const domain = `gui/${os.userInfo().uid}`
-const binos = path.join(binOSDir, 'bin', 'binos')
+const binos = path.join(binosDir, 'bin', 'binos')
 
 // command：运行的子命令，输出写进日志目录下的 <command>.log；interval：每隔多少秒运行一次，没有的是常驻服务，退出后自动拉起
 type Service = { label: string; command: string; interval?: number }

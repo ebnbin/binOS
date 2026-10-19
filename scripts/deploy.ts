@@ -8,7 +8,7 @@ import { serverLabel, serverPort } from '../server/src/production.ts'
 import { buildCommit, isHealthy } from './build.ts'
 import { closeFinishedPreviews } from './previews.ts'
 
-const { binOSDir, buildsDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
+const { binosDir, buildsDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 const serverLog = path.join(logsDir, 'server.log')
 const previousLink = path.join(buildsDir, 'previous')
@@ -31,7 +31,7 @@ if (command === 'deploy') {
   await closeFinishedPreviews(previewsDir, repoDir, say).catch((err: unknown) => say(`清理预览出错：${String(err)}`))
   const commit = git('rev-parse', 'HEAD')
   // 定时任务每分钟执行一次，已经在运行时不输出，免得日志里每分钟多一行
-  if (commitOf(binOSDir) === commit) {
+  if (commitOf(binosDir) === commit) {
     if (process.stdout.isTTY) {
       say(`已经在运行 ${short(commit)}`)
     }
@@ -56,7 +56,7 @@ if (command === 'deploy') {
 }
 
 async function switchTo(commit: string) {
-  const old = commitOf(binOSDir)
+  const old = commitOf(binosDir)
   if (old === commit) {
     say(`已经在运行 ${short(commit)}`)
     return
@@ -76,12 +76,12 @@ async function switchTo(commit: string) {
 }
 
 async function activate(commit: string) {
-  pointTo(binOSDir, path.join(buildsDir, commit))
+  pointTo(binosDir, path.join(buildsDir, commit))
   execFileSync('launchctl', ['kickstart', '-k', `gui/${os.userInfo().uid}/${serverLabel}`])
   return isHealthy(serverPort, commit)
 }
 
-// System/binOS 指向正在运行的构建，builds/previous 指向上一个
+// System/binos 指向正在运行的构建，builds/previous 指向上一个
 function commitOf(linkPath: string): string | undefined {
   try {
     return path.basename(readlinkSync(linkPath))
