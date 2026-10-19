@@ -8,9 +8,9 @@ const worktreeDir = path.resolve(import.meta.dirname, '..')
 const rootDir = path.join(worktreeDir, '.test-instance')
 
 const production = process.env.BINOS_ROOT ? rootLayout(process.env.BINOS_ROOT) : undefined
-const agentConfigRoot = process.env.BINOS_AGENT_CONFIG_ROOT ?? production?.libraryDir
-if (!agentConfigRoot) {
-  throw new Error('需要 BINOS_ROOT（正式版的根目录）或 BINOS_AGENT_CONFIG_ROOT，用来借用正式版 agent 的登录')
+const agentsDir = process.env.BINOS_AGENTS_DIR ?? production?.agentsDir
+if (!agentsDir) {
+  throw new Error('需要 BINOS_ROOT（正式版的根目录）或 BINOS_AGENTS_DIR，用来借用正式版 agent 的登录')
 }
 
 mkdirSync(rootDir, { recursive: true })
@@ -25,7 +25,7 @@ const children = [
       ...process.env,
       BINOS_ROOT: rootDir,
       BINOS_TEST_INSTANCE: '1',
-      BINOS_AGENT_CONFIG_ROOT: agentConfigRoot,
+      BINOS_AGENTS_DIR: agentsDir,
       PORT: String(serverPort),
     },
   }),

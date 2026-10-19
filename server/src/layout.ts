@@ -9,6 +9,8 @@ export function rootLayout(root: string) {
     buildsDir: path.join(rootDir, 'System', 'builds'),
     previewsDir: path.join(rootDir, 'System', 'previews'),
     libraryDir,
+    // 第三方 agent 自己的目录，每个 agent 一个子目录
+    agentsDir: path.join(rootDir, 'Agents'),
     logsDir: path.join(libraryDir, 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
