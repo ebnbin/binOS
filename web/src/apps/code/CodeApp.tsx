@@ -44,8 +44,7 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
           <TopBar
             title={title}
             sessionId={sessionId}
-            context={session?.context}
-            prs={session?.prs ?? []}
+            session={session}
             onBack={ctx.back}
             onNew={() => ctx.navigate('/new')}
           />

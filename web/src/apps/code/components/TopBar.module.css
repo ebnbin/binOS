@@ -23,6 +23,55 @@
   font-weight: 550;
 }
 
+.titleWrap {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.titleButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin: 0 -8px;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+@media (hover: hover) {
+  .titleButton:hover {
+    background: var(--hover);
+  }
+}
+
+.titleButton[aria-expanded='true'] {
+  background: var(--hover);
+}
+
+.titleChevron {
+  flex: none;
+  color: var(--muted);
+}
+
+.titleMenu {
+  top: calc(100% + 6px);
+  right: auto;
+  left: -8px;
+}
+
+.rename {
+  align-self: center;
+  max-width: 420px;
+  height: 32px;
+}
+
 .id {
   flex: none;
   font-size: 13px;
@@ -175,6 +224,11 @@
 
   .heading {
     justify-content: center;
+  }
+
+  .titleMenu {
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .bar .singleColumnOnly {

@@ -51,3 +51,18 @@ export function sameDay(a: Date, b: Date) {
 export function formatClock(date: Date) {
   return clock.format(date)
 }
+
+// 会话列表的分组，按自然日算
+export function dateGroup(date: Date, now = new Date()) {
+  const days = dayNumber(now) - dayNumber(date)
+  if (days <= 0) {
+    return '今天'
+  }
+  if (days === 1) {
+    return '昨天'
+  }
+  if (days < 7) {
+    return '7 天内'
+  }
+  return days < 30 ? '30 天内' : '更早'
+}

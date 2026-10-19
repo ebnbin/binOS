@@ -12,7 +12,8 @@ import { CopyButton } from './CopyButton.tsx'
 import { Markdown } from './Markdown.tsx'
 import { Thinking } from './Thinking.tsx'
 import { ToolCall } from './ToolCall.tsx'
-import { callStatus, toolKind } from '../tool-calls.ts'
+import { TurnChanges } from './TurnChanges.tsx'
+import { callStatus, fileChanges, isFileEdit, toolKind } from '../tool-calls.ts'
 import type { ToolCallItem, ToolCategory, ToolResult } from '../tool-calls.ts'
 import styles from './Transcript.module.css'
 
@@ -30,8 +31,8 @@ type Item =
   | { kind: 'steps'; key: string; steps: Step[] }
   | { kind: 'compact'; key: string; record: Compact }
   | { kind: 'interrupted'; key: string }
-  // reply：这一轮回复的全部文字，用于复制
-  | { kind: 'result'; key: string; record: Result; reply: string }
+  // reply：这一轮回复的全部文字，用于复制；edits：这一轮（包括子 agent）改文件的调用
+  | { kind: 'result'; key: string; record: Result; reply: string; edits: ToolCallItem[] }
 
 // 回答过程中的一步：思考、工具调用、子 agent。两段文字之间连续的几步合成一组
 type Step =
@@ -64,8 +65,9 @@ function buildItems(entries: Entry[], context: Context): Item[] {
       items.push({ kind: 'steps', key: step.key, steps: [step] })
     }
   }
-  // 这一轮到目前为止回复的文字；一轮进行中出现的 user 是插话，不另起一轮
+  // 这一轮到目前为止回复的文字和改文件的调用；一轮进行中出现的 user 是插话，不另起一轮
   let replies: string[] = []
+  let edits: ToolCallItem[] = []
   let inTurn = false
   // 上一条记录的时间：一轮开始时离它太久或者跨了天，就先显示一条时间
   let lastTime: Date | undefined
@@ -80,6 +82,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
       case 'user':
         if (!inTurn) {
           replies = []
+          edits = []
           inTurn = true
           items.push({ kind: 'turn', key: `${key}-turn` })
           const time = new Date(record.time)
@@ -108,6 +111,7 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         break
       case 'tool_use': {
         const call = { use: record, result: context.results.get(record.id), live: context.live !== null }
+        edits.push(...editCalls(call, context))
         addStep({ kind: agentTools.has(record.name) ? 'agent' : 'tool', key, time: record.time, call })
         break
       }
@@ -116,11 +120,21 @@ function buildItems(entries: Entry[], context: Context): Item[] {
         break
       case 'result':
         inTurn = false
-        items.push({ kind: 'result', key, record, reply: replies.join('\n\n') })
+        items.push({ kind: 'result', key, record, reply: replies.join('\n\n'), edits })
         break
     }
   }
   return items
+}
+
+// 这次调用改了文件就是它自己；是子 agent 时，是子 agent 里改文件的调用
+function editCalls(call: ToolCallItem, context: Context): ToolCallItem[] {
+  if (isFileEdit(call.use)) {
+    return [call]
+  }
+  return (context.children.get(call.use.id) ?? []).flatMap(({ record }) =>
+    record.type === 'tool_use' ? editCalls({ use: record, result: context.results.get(record.id), live: call.live }, context) : [],
+  )
 }
 
 // 主对话按轮分节，tail 放在最后一节的末尾（回答进行中的临时内容）；子 agent 的过程不分节
@@ -157,9 +171,12 @@ function renderItems(items: Item[], context: Context, last: Item | undefined) {
         return (
           <div key={item.key} className={styles.user}>
             {item.text}
-            <time className={styles.userTime} dateTime={item.time} title={formatFull(new Date(item.time))}>
-              {formatClock(new Date(item.time))}
-            </time>
+            <span className={styles.userMeta}>
+              <time dateTime={item.time} title={formatFull(new Date(item.time))}>
+                {formatClock(new Date(item.time))}
+              </time>
+              <CopyButton text={item.text} label="复制消息" />
+            </span>
           </div>
         )
       case 'time':
@@ -187,7 +204,7 @@ function renderItems(items: Item[], context: Context, last: Item | undefined) {
           </div>
         )
       case 'result':
-        return <TurnEnd key={item.key} record={item.record} reply={item.reply} />
+        return <TurnEnd key={item.key} sessionId={sessionId} record={item.record} reply={item.reply} edits={item.edits} />
     }
   })
 }
@@ -280,7 +297,8 @@ function compactText({ trigger, preTokens, postTokens }: Compact) {
 }
 
 // 一轮的结尾：停止、出错，以及这一轮的统计
-function TurnEnd({ record, reply }: { record: Result; reply: string }) {
+function TurnEnd({ sessionId, record, reply, edits }: { sessionId: number; record: Result; reply: string; edits: ToolCallItem[] }) {
+  const files = fileChanges(edits)
   const { durationMs, outputTokens, context, model, outcome, error } = record
   const stats = [
     `用时 ${formatDuration(durationMs)}`,
@@ -288,11 +306,18 @@ function TurnEnd({ record, reply }: { record: Result; reply: string }) {
     context && `上下文 ${Math.round((context.tokens / context.window) * 100)}%`,
     model && formatModel(model),
   ].filter(Boolean)
+  const changes = files.length > 0 && <TurnChanges sessionId={sessionId} files={files} />
   if (outcome === 'stopped') {
-    return <div className={styles.divider}>已停止 · {stats[0]}</div>
+    return (
+      <>
+        {changes}
+        <div className={styles.divider}>已停止 · {stats[0]}</div>
+      </>
+    )
   }
   return (
     <>
+      {changes}
       {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
       <div className={styles.stats}>
         <span

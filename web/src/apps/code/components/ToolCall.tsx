@@ -1,7 +1,6 @@
-import { diffLines } from 'diff'
 import { formatDuration } from '../format.ts'
-import { callDuration, callStatus, toolKind } from '../tool-calls.ts'
-import type { ToolCallItem, ToolUse } from '../tool-calls.ts'
+import { callDuration, callStatus, lineChanges, toolKind } from '../tool-calls.ts'
+import type { ToolCallItem } from '../tool-calls.ts'
 import { Activity } from './Activity.tsx'
 import styles from './ToolCall.module.css'
 import { ToolBody } from './ToolBody.tsx'
@@ -24,44 +23,6 @@ function toolDetail(name: string, input: Record<string, unknown>): string {
   const key = toolKind(name).detailKey
   const value = key ? input[key] : Object.values(input).find((v) => typeof v === 'string')
   return typeof value === 'string' ? shorten(value) : ''
-}
-
-// 修改和写入文件增删了多少行
-function lineChanges(use: ToolUse): { added: number; removed: number } | undefined {
-  const input = use.input as { old_string?: unknown; new_string?: unknown; content?: unknown }
-  if (use.name === 'Edit' && typeof input.old_string === 'string' && typeof input.new_string === 'string') {
-    let added = 0
-    let removed = 0
-    for (const part of diffLines(input.old_string, input.new_string)) {
-      if (part.added) {
-        added += part.count ?? 0
-      } else if (part.removed) {
-        removed += part.count ?? 0
-      }
-    }
-    return { added, removed }
-  }
-  if (use.name === 'Patch') {
-    return patchChanges(use.input as { kind?: unknown; diff?: unknown })
-  }
-  if (use.name === 'Write' && typeof input.content === 'string') {
-    return { added: input.content.replace(/\n$/, '').split('\n').length, removed: 0 }
-  }
-  return undefined
-}
-
-// Patch 改文件：新建和删除时 diff 是整个文件的内容，修改时是统一格式的 diff
-function patchChanges({ kind, diff }: { kind?: unknown; diff?: unknown }): { added: number; removed: number } | undefined {
-  if (typeof diff !== 'string') {
-    return undefined
-  }
-  const lines = diff.replace(/\n$/, '').split('\n')
-  if (kind === 'add' || kind === 'delete') {
-    const count = diff ? lines.length : 0
-    return kind === 'add' ? { added: count, removed: 0 } : { added: 0, removed: count }
-  }
-  const body = lines.filter((line) => !line.startsWith('+++') && !line.startsWith('---'))
-  return { added: body.filter((line) => line.startsWith('+')).length, removed: body.filter((line) => line.startsWith('-')).length }
 }
 
 // 命令的输出、以及出错的工具的报错，收起时显示最后几行

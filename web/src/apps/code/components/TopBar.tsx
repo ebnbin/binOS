@@ -1,27 +1,27 @@
-import type { PullRequest } from '@binos/server/apps/code/types'
-import type { Context } from '@binos/server/services/agent/types'
-import { ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
+import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { formatTokens } from '../format.ts'
+import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 
-// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题。context：最近一轮结束时的上下文占用
+// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题。session：列表里这个 session 的概况，还没读到时没有
 export function TopBar({
   title,
   sessionId,
-  context,
-  prs,
+  session,
   onBack,
   onNew,
 }: {
   title: string
   sessionId: number | null
-  context: Context | undefined
-  prs: PullRequest[]
+  session: SessionSummary | undefined
   onBack: () => void
   onNew: () => void
 }) {
+  const prs = session?.prs ?? []
+  const context = session?.context
   return (
     <header className={styles.bar}>
       <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
@@ -30,7 +30,7 @@ export function TopBar({
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
         ) : (
           <>
-            <span className={styles.title}>{title}</span>
+            {session ? <SessionTitle key={session.id} session={session} /> : <span className={styles.title}>{title}</span>}
             <span className={styles.id}>#{sessionId}</span>
             {prs.length > 0 && <PrList prs={prs} />}
             {context && (
@@ -49,6 +49,28 @@ export function TopBar({
         disabled={sessionId === null}
       />
     </header>
+  )
+}
+
+// 点标题打开这个会话的操作菜单，重命名时标题换成输入框
+function SessionTitle({ session }: { session: SessionSummary }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  if (renaming) {
+    return <RenameInput session={session} className={styles.rename} onDone={() => setRenaming(false)} />
+  }
+  return (
+    <span className={styles.titleWrap}>
+      <button type="button" className={styles.titleButton} onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-haspopup="menu">
+        <span className={styles.title}>{session.title || '（无内容）'}</span>
+        <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
+      </button>
+      {menuOpen && (
+        <Menu className={styles.titleMenu} onClose={() => setMenuOpen(false)}>
+          <SessionMenuItems session={session} onRename={() => setRenaming(true)} />
+        </Menu>
+      )}
+    </span>
   )
 }
 

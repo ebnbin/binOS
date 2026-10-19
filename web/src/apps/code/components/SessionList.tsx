@@ -1,10 +1,10 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import { Archive, ArchiveRestore, ChevronRight, CircleAlert, GitPullRequest, Hourglass, MoreHorizontal, Pencil, Pin, PinOff, Search, SquarePen, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
-import { editSession, listSessions } from '../api.ts'
-import { formatTime } from '../time.ts'
+import { ChevronRight, CircleAlert, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
+import { Fragment, useEffect, useState } from 'react'
+import { listSessions } from '../api.ts'
+import { dateGroup, formatClock, formatTime } from '../time.ts'
 import { Quota } from './Quota.tsx'
+import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
 import styles from './SessionList.module.css'
 
 // 输入停下这么久才去搜
@@ -77,7 +77,7 @@ function useSearch(query: string): Set<number> | undefined {
   return query ? result?.ids : undefined
 }
 
-// 置顶的在最上面，归档的收在最下面
+// 置顶的在最上面，其余按最近的动静分成今天、昨天等几组，归档的收在最下面
 function Sections({
   sessions,
   searching,
@@ -101,10 +101,11 @@ function Sections({
   const pinned = sessions.filter((session) => session.pinned && !session.archived)
   const others = sessions.filter((session) => !session.pinned && !session.archived)
   const archived = sessions.filter((session) => session.archived)
-  const items = (list: SessionSummary[]) => (
+  // clock：所在的分组已经写明了是哪天，只显示时刻
+  const items = (list: SessionSummary[], clock = false) => (
     <ul>
       {list.map((session) => (
-        <SessionItem key={session.id} session={session} current={session.id === current} onNavigate={onNavigate} />
+        <SessionItem key={session.id} session={session} current={session.id === current} clock={clock} onNavigate={onNavigate} />
       ))}
     </ul>
   )
@@ -116,12 +117,12 @@ function Sections({
           {items(pinned)}
         </>
       )}
-      {others.length > 0 && (
-        <>
-          <div className={styles.label}>对话</div>
-          {items(others)}
-        </>
-      )}
+      {[...Map.groupBy(others, (session) => dateGroup(new Date(session.updatedAt)))].map(([group, list]) => (
+        <Fragment key={group}>
+          <div className={styles.label}>{group}</div>
+          {items(list, group === '今天' || group === '昨天')}
+        </Fragment>
+      ))}
       {archived.length > 0 && (
         <>
           <button type="button" className={styles.archivedToggle} onClick={() => setShowArchived(!showArchived)} aria-expanded={showArchived}>
@@ -138,10 +139,12 @@ function Sections({
 function SessionItem({
   session,
   current,
+  clock,
   onNavigate,
 }: {
   session: SessionSummary
   current: boolean
+  clock: boolean
   onNavigate: (route: string) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -149,15 +152,7 @@ function SessionItem({
   return (
     <li className={styles.row} data-menu-open={menuOpen || undefined}>
       {renaming ? (
-        <RenameInput
-          title={session.title}
-          onDone={(title) => {
-            setRenaming(false)
-            if (title && title !== session.title) {
-              void editSession(session.id, { title })
-            }
-          }}
-        />
+        <RenameInput session={session} onDone={() => setRenaming(false)} />
       ) : (
         <button
           type="button"
@@ -171,7 +166,7 @@ function SessionItem({
           {session.prs.some((pr) => pr.state === 'open') && (
             <GitPullRequest size={13} strokeWidth={2} className={styles.openPr} aria-label="有开着的 PR" />
           )}
-          <SessionStatus session={session} />
+          <SessionStatus session={session} clock={clock} />
         </button>
       )}
       {!renaming && (
@@ -187,18 +182,7 @@ function SessionItem({
       )}
       {menuOpen && (
         <Menu onClose={() => setMenuOpen(false)}>
-          <button type="button" onClick={() => setRenaming(true)}>
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </button>
-          <button type="button" onClick={() => void editSession(session.id, { pinned: !session.pinned })}>
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </button>
-          <button type="button" onClick={() => void editSession(session.id, { archived: !session.archived })}>
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </button>
+          <SessionMenuItems session={session} onRename={() => setRenaming(true)} />
         </Menu>
       )}
     </li>
@@ -206,7 +190,7 @@ function SessionItem({
 }
 
 // 正在回答、在等后台任务、出错、未读，都没有时显示时间
-function SessionStatus({ session }: { session: SessionSummary }) {
+function SessionStatus({ session, clock }: { session: SessionSummary; clock: boolean }) {
   if (session.running) {
     return <span className={styles.live} aria-label="正在回答" title="正在回答" />
   }
@@ -219,51 +203,9 @@ function SessionStatus({ session }: { session: SessionSummary }) {
   if (session.unread) {
     return <span className={styles.unread} aria-label="有新回复" title="有新回复" />
   }
-  return session.updatedAt ? <span className={styles.time}>{formatTime(new Date(session.updatedAt))}</span> : null
-}
-
-function RenameInput({ title, onDone }: { title: string; onDone: (title: string | undefined) => void }) {
-  const [value, setValue] = useState(title)
-  return (
-    <input
-      className={styles.rename}
-      value={value}
-      autoFocus
-      onFocus={(event) => event.currentTarget.select()}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={() => onDone(value.trim() || undefined)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-          event.currentTarget.blur()
-        } else if (event.key === 'Escape') {
-          onDone(undefined)
-        }
-      }}
-      aria-label="新的名字"
-    />
-  )
-}
-
-// 点菜单外面、按 Esc、或者选了一项后关上
-function Menu({ onClose, children }: { onClose: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      if (!ref.current?.parentElement?.contains(event.target as Node)) {
-        onClose()
-      }
-    }
-    const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [onClose])
-  return (
-    <div ref={ref} className={styles.menu} role="menu" onClick={onClose}>
-      {children}
-    </div>
-  )
+  if (!session.updatedAt) {
+    return null
+  }
+  const date = new Date(session.updatedAt)
+  return <span className={styles.time}>{clock ? formatClock(date) : formatTime(date)}</span>
 }
