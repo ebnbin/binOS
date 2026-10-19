@@ -8,8 +8,10 @@ binOS 是运行在 macOS 上、通过浏览器使用的个人操作系统。用�
 
 - `System/source/main/`：main 分支的克隆，只读。binOS 的 session 从这里启动
 - `System/source/<分支名>/`：每项改动一个 worktree
-- `System/builds/`：正式版的构建，`current` 是正在运行的版本
-- `Library/`：系统数据，包括 session 记录和日志
+- `System/binOS`：正在运行的 binOS，指向 `System/builds/` 里的某个构建。launchd 的三个服务都运行其中的 `bin/binos`：`app.binos.server` 运行 `server`（后端），`app.binos.tunnel` 运行 `tunnel`（Cloudflare Tunnel），`app.binos.deploy` 每 60 秒运行一次 `deploy`（main 有新提交就上线）
+- `System/builds/`：正式版的构建，`previous` 是上一个版本
+- `Library/`：系统数据，包括 session 记录
+- `var/log/`：launchd 服务的输出，`server.log`、`tunnel.log`、`deploy.log`
 - `Agents/`：Claude Code、Codex 自己的配置目录，包括登录凭证和它们的会话记录。路径和钥匙串里的凭证、会话的续接绑定在一起，不能挪动
 
 ## 工作流
@@ -18,7 +20,7 @@ binOS 是运行在 macOS 上、通过浏览器使用的个人操作系统。用�
 2. 在 worktree 根目录 `pnpm install` 安装依赖，完成改动后运行 `pnpm check`（类型检查、lint 和测试），再用 `pnpm dev` 启动测试实例验证。测试实例的数据在 worktree 里，和正式版互不影响
 3. 第一次提交后推送、开 PR，在描述里写明验证的方式和结果，再在 worktree 里运行 `pnpm preview`，它会构建 PR 最新的提交，给出 `https://pr-<编号>.binos.app` 的预览链接。把 PR 链接和预览链接一起发给用户。之后的改动都提交、推送到同一个 PR，每次推送后重新运行 `pnpm preview`
 4. 用户明确说合并后，才合并 PR
-5. 合并后，binOS 会在一分钟内自动上线 main 的最新版本。运行 `pnpm deployed` 等待并确认正式版包含这次合并的提交。上线失败时线上会自动切回原版本，`pnpm deployed` 会输出 `deploy.log` 里的原因，详细日志见 `Library/logs/server.log`
+5. 合并后，binOS 会在一分钟内自动上线 main 的最新版本。运行 `pnpm deployed` 等待并确认正式版包含这次合并的提交。上线失败时线上会自动切回原版本，`pnpm deployed` 会输出 `deploy.log` 里的原因，详细日志见 `var/log/server.log`。自动上线本身坏了、上不了修复它的提交时，在 `System/source/main` 里依次运行 `git fetch origin`、`git merge --ff-only origin/main`、`node scripts/deploy.ts deploy` 手动上线
 6. 合并上线后，或者 PR 被关闭后，删除这次的 worktree 和本地分支。预览会在 PR 合并或关闭后一分钟内自动删除
 
 ## 约定

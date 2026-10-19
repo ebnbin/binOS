@@ -8,6 +8,7 @@ import { api } from './api.js'
 import { codeDir, libraryDir } from './paths.js'
 import { previewProxy } from './previews.js'
 import { acquireProcessLock } from './process.js'
+import { serverPort } from './production.js'
 import { serverApps } from './apps/index.js'
 import { migrate } from './migrations.js'
 
@@ -34,7 +35,8 @@ if (existsSync(webDist)) {
   app.use('*', (c, next) => (c.req.path.startsWith('/api/') ? next() : index(c, next)))
 }
 
-const port = Number(process.env.PORT ?? 3000)
+// 测试实例和预览由启动方给出端口，正式版用固定的端口
+const port = Number(process.env.PORT ?? serverPort)
 serve({ fetch: app.fetch, hostname: '127.0.0.1', port }, (info) => {
   console.log(`binOS 后端已启动：http://127.0.0.1:${info.port}`)
 })
