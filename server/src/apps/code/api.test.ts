@@ -100,11 +100,11 @@ describe('sessions', () => {
   it('记下 gh pr create 输出的 PR，别的命令输出里的 PR 链接不算', () => {
     const id = createSession(user('开个 PR'))
     const time = new Date().toISOString()
-    const pr = 'https://github.com/ebnbin/binOS/pull/41'
+    const pr = 'https://github.com/ebnbin/binos/pull/41'
     appendRecords(id, [
       { type: 'tool_use', time, id: 't1', name: 'Bash', input: { command: 'git push && gh pr create --fill && pnpm preview' } },
       { type: 'tool_use', time, id: 't2', name: 'Bash', input: { command: 'gh pr view 40' } },
-      { type: 'tool_result', time, toolUseId: 't2', status: 'done', output: 'https://github.com/ebnbin/binOS/pull/40' },
+      { type: 'tool_result', time, toolUseId: 't2', status: 'done', output: 'https://github.com/ebnbin/binos/pull/40' },
       { type: 'tool_result', time, toolUseId: 't1', status: 'done', output: `${pr}\n✓ PR #41 的预览：https://pr-41.binos.app` },
     ])
     expect(sessionInfo(id)).toMatchObject({ prs: [pr], creatingPrs: [] })

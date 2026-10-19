@@ -7,7 +7,6 @@ export function rootLayout(root: string) {
     rootDir,
     // 正在运行的 binOS：指向 builds/ 里的某个构建，launchd 运行其中的 bin/binos
     binOSDir: path.join(rootDir, 'System', 'binOS'),
-    mainDir: path.join(rootDir, 'System', 'source', 'main'),
     buildsDir: path.join(rootDir, 'System', 'builds'),
     previewsDir: path.join(rootDir, 'System', 'previews'),
     libraryDir,
