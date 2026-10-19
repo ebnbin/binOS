@@ -11,7 +11,7 @@ export const desktopKey = 'shell/desktop'
 // 外部 app 的图标排在系统 app 后面
 const defaultDesktop = (apps: AppManifest[]): DesktopItem[] => [
   { app: 'system', widget: 'status', size: '4x2' },
-  { app: 'agent' },
+  { app: 'kita' },
   { app: 'system' },
   ...apps.filter((app) => app.url).map((app) => ({ app: app.id })),
   { app: 'notes' },
@@ -19,7 +19,7 @@ const defaultDesktop = (apps: AppManifest[]): DesktopItem[] => [
   { app: 'weather' },
   { app: 'music' },
   { app: 'files' },
-  { app: 'agent', widget: 'recent', size: '4x2' },
+  { app: 'kita', widget: 'recent', size: '4x2' },
   { app: 'calendar', widget: 'main', size: '4x4' },
   { app: 'weather', widget: 'main', size: '2x2' },
   { app: 'music', widget: 'main', size: '2x2' },

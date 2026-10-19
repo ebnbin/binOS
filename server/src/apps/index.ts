@@ -1,4 +1,4 @@
-import { agentApp } from './agent/index.js'
+import { kitaApp } from './kita/index.js'
 import type { ServerApp } from './types.js'
 
-export const serverApps: ServerApp[] = [agentApp]
+export const serverApps: ServerApp[] = [kitaApp]

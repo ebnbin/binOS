@@ -1,4 +1,4 @@
-import { CalendarDays, CloudSun, Folder, Gauge, Music, NotebookPen, Sparkles } from 'lucide-react'
+import { CalendarDays, Cat, CloudSun, Folder, Gauge, Music, NotebookPen } from 'lucide-react'
 import { lazy, useMemo } from 'react'
 import { useStateValue } from '../state.ts'
 import { externalApp } from './external/index.ts'
@@ -8,20 +8,16 @@ import type { AppManifest } from './types.ts'
 
 const builtinApps: AppManifest[] = [
   {
-    id: 'agent',
-    name: 'Agent',
-    icon: Sparkles,
-    component: lazy(() => import('./agent/AgentApp.tsx').then((module) => ({ default: module.AgentApp }))),
+    id: 'kita',
+    name: '喜多',
+    icon: Cat,
+    component: lazy(() => import('./kita/KitaApp.tsx').then((module) => ({ default: module.KitaApp }))),
     widgets: {
       recent: {
         name: '最近的对话',
         sizes: ['2x2', '4x2', '4x4'],
-        component: lazy(() => import('./agent/AgentWidget.tsx').then((module) => ({ default: module.AgentWidget }))),
+        component: lazy(() => import('./kita/KitaWidget.tsx').then((module) => ({ default: module.KitaWidget }))),
       },
-    },
-    settings: {
-      hint: '账号、额度和登录凭证',
-      component: lazy(() => import('./agent/AgentAccounts.tsx').then((module) => ({ default: module.AgentAccounts }))),
     },
   },
   {

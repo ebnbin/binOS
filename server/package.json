@@ -8,8 +8,10 @@
   "exports": {
     "./api": "./src/api.ts",
     "./types": "./src/types.ts",
-    "./apps/agent/api": "./src/apps/agent/api.ts",
-    "./apps/agent/types": "./src/apps/agent/types.ts"
+    "./services/agent/api": "./src/services/agent/api.ts",
+    "./services/agent/types": "./src/services/agent/types.ts",
+    "./apps/kita/api": "./src/apps/kita/api.ts",
+    "./apps/kita/types": "./src/apps/kita/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
