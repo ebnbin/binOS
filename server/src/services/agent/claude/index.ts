@@ -1,11 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto'
 import path from 'node:path'
-import { agentConfigRoot } from '../../../paths.js'
+import { agentsDir } from '../../../paths.js'
 import type { Adapter } from '../adapter.js'
 import { commandOutput, parseJson } from '../cli.js'
 import { ClaudeOutput } from './output.js'
 
-const configDir = path.join(agentConfigRoot, 'claude')
+const configDir = path.join(agentsDir, 'claude')
 
 // 模型用 Claude Code 的别名，总是对应各系列最新的模型；思考程度各个模型都一样
 const models = [

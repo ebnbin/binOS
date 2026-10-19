@@ -26,7 +26,7 @@ export function startPreviewServer(options: {
   serverLog: string
   port: number
   repoDir: string
-  agentConfigRoot: string
+  agentsDir: string
 }) {
   const log = openSync(options.serverLog, 'a')
   try {
@@ -40,7 +40,7 @@ export function startPreviewServer(options: {
         PATH: process.env.PATH!.split(':').filter((dir) => !dir.includes('node_modules')).join(':'),
         BINOS_ROOT: options.dir,
         BINOS_TEST_INSTANCE: '1',
-        BINOS_AGENT_CONFIG_ROOT: options.agentConfigRoot,
+        BINOS_AGENTS_DIR: options.agentsDir,
         BINOS_REPO_DIR: options.repoDir,
         PORT: String(options.port),
       },

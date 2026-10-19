@@ -11,7 +11,7 @@ import { freePort } from './net.ts'
 import { previewPaths, readJson, runningPreviewServer, startPreviewServer, stopPreviewServer } from './previews.ts'
 
 // 把当前分支的 PR 构建成预览；PR 合并或关闭后由上线脚本删除
-const { previewsDir, libraryDir } = rootLayout(rootFromEnv())
+const { previewsDir, agentsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim()
@@ -80,7 +80,7 @@ startPreviewServer({
   serverLog: paths.serverLog,
   port,
   repoDir,
-  agentConfigRoot: process.env.BINOS_AGENT_CONFIG_ROOT ?? libraryDir,
+  agentsDir: process.env.BINOS_AGENTS_DIR ?? agentsDir,
 })
 if (!(await isHealthy(port, commit))) {
   fail(`${short(commit)} 的预览没有正常启动，日志见 ${paths.serverLog}`)

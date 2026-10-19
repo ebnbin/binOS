@@ -10,6 +10,7 @@ binOS 是运行在 macOS 上、通过浏览器使用的个人操作系统。用�
 - `System/source/<分支名>/`：每项改动一个 worktree
 - `System/builds/`：正式版的构建，`current` 是正在运行的版本
 - `Library/`：系统数据，包括 session 记录和日志
+- `Agents/`：Claude Code、Codex 自己的配置目录，包括登录凭证和它们的会话记录。路径和钥匙串里的凭证、会话的续接绑定在一起，不能挪动
 
 ## 工作流
 
@@ -27,4 +28,4 @@ binOS 是运行在 macOS 上、通过浏览器使用的个人操作系统。用�
 - 遵循所用工具和框架的官方最佳实践
 - 代码、注释、提交信息和 PR 描述只写结论和现状，不写讨论过程和被放弃的方案
 - 外部 app 的清单（系统状态 `apps/external`）是私有数据，可能有不公开的 app：其中的名称、网址等信息不写进代码、注释、提交信息和 PR 描述
-- 仓库之外的改动没有 PR 和回退兜底：删除或改写 `Library/` 里的数据，修改 launchd 服务、钥匙串、Cloudflare 或 GitHub 的设置之前，先征得用户同意
+- 仓库之外的改动没有 PR 和回退兜底：删除或改写 `Library/`、`Agents/` 里的数据，修改 launchd 服务、钥匙串、Cloudflare 或 GitHub 的设置之前，先征得用户同意

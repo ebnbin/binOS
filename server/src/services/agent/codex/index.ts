@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { agentConfigRoot } from '../../../paths.js'
+import { agentsDir } from '../../../paths.js'
 import type { Adapter } from '../adapter.js'
 import { commandOutput, isoFromSeconds, parseJson, readText } from '../cli.js'
 import { saveLimits } from '../limits.js'
@@ -7,7 +7,7 @@ import { askCodex, codexCatalog, codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
 import { CodexOutput } from './output.js'
 
-const configDir = path.join(agentConfigRoot, 'codex')
+const configDir = path.join(agentsDir, 'codex')
 
 // 转接进程和这个模块在一起，开发时是 .ts
 const bridge = path.join(import.meta.dirname, `bridge${path.extname(import.meta.filename)}`)
