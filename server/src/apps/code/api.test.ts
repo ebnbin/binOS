@@ -25,22 +25,22 @@ const post = (url: string, body: string, contentType: string) =>
 
 describe('api', () => {
   it('写操作只接受 JSON', async () => {
-    expect((await post('/api/apps/kita/sessions', 'text=hi', 'application/x-www-form-urlencoded')).status).toBe(415)
-    expect((await post(`/api/apps/kita/sessions/${sessionId}/stop`, '', 'text/plain')).status).toBe(415)
+    expect((await post('/api/apps/code/sessions', 'text=hi', 'application/x-www-form-urlencoded')).status).toBe(415)
+    expect((await post(`/api/apps/code/sessions/${sessionId}/stop`, '', 'text/plain')).status).toBe(415)
   })
 
   it('附件超过上限时拒绝，不留下文件', async () => {
-    const res = await api.request('/api/apps/kita/uploads', {
+    const res = await api.request('/api/apps/code/uploads', {
       method: 'POST',
       body: new Uint8Array(50 * 1024 * 1024 + 1),
       headers: { 'Content-Type': 'application/octet-stream' },
     })
     expect(res.status).toBe(413)
-    expect(readdirSync(path.join(root, 'Library', 'kita', 'uploads'))).toEqual([])
+    expect(readdirSync(path.join(root, 'Library', 'code', 'uploads'))).toEqual([])
   })
 
   it('消息只能带上传过的附件', async () => {
-    const upload = await api.request('/api/apps/kita/uploads', {
+    const upload = await api.request('/api/apps/code/uploads', {
       method: 'POST',
       body: 'hi',
       headers: { 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent('笔记.txt') },
@@ -48,23 +48,23 @@ describe('api', () => {
     const { file } = (await upload.json()) as { file: string }
     expect(file).toMatch(/^[0-9a-f]{32}\.txt$/)
     for (const attachments of [[{ file: 'missing.txt', name: 'a' }], [{ file: '../session.json', name: 'a' }], [{ file }, { file }]]) {
-      expect((await post('/api/apps/kita/sessions', JSON.stringify({ text: '', attachments }), 'application/json')).status).toBe(400)
+      expect((await post('/api/apps/code/sessions', JSON.stringify({ text: '', attachments }), 'application/json')).status).toBe(400)
     }
   })
 
   it('网页类文件只能下载，不在页面里打开', async () => {
-    const html = await api.request(`/api/apps/kita/sessions/${sessionId}/files/page.html?name=${encodeURIComponent('页面.html')}`)
+    const html = await api.request(`/api/apps/code/sessions/${sessionId}/files/page.html?name=${encodeURIComponent('页面.html')}`)
     expect(html.headers.get('Content-Type')).toBe('application/octet-stream')
     expect(html.headers.get('Content-Disposition')).toBe(`attachment; filename*=UTF-8''${encodeURIComponent('页面.html')}`)
-    const image = await api.request(`/api/apps/kita/sessions/${sessionId}/files/a-0.png`)
+    const image = await api.request(`/api/apps/code/sessions/${sessionId}/files/a-0.png`)
     expect(image.headers.get('Content-Disposition')).toBe('inline')
   })
 
   it('只提供 files/ 里的文件', async () => {
-    const res = await api.request(`/api/apps/kita/sessions/${sessionId}/files/a-0.png`)
+    const res = await api.request(`/api/apps/code/sessions/${sessionId}/files/a-0.png`)
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('png')
-    expect((await api.request(`/api/apps/kita/sessions/${sessionId}/files/..%2F..%2Fsecret.png`)).status).toBe(404)
+    expect((await api.request(`/api/apps/code/sessions/${sessionId}/files/..%2F..%2Fsecret.png`)).status).toBe(404)
   })
 })
 

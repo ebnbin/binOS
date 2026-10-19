@@ -1,4 +1,4 @@
-import type { Attachment, SessionSummary } from '@binos/server/apps/kita/types'
+import type { Attachment, SessionSummary } from '@binos/server/apps/code/types'
 import { defaultProvider } from '@binos/server/services/agent/types'
 import type { Provider } from '@binos/server/services/agent/types'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'

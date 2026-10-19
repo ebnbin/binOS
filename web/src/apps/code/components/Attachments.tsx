@@ -1,4 +1,4 @@
-import type { Attachment } from '@binos/server/apps/kita/types'
+import type { Attachment } from '@binos/server/apps/code/types'
 import { FileText, X } from 'lucide-react'
 import { useState } from 'react'
 import { fileUrl } from '../api.ts'

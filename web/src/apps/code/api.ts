@@ -1,9 +1,9 @@
-import type { KitaApi } from '@binos/server/apps/kita/api'
-import type { Attachment } from '@binos/server/apps/kita/types'
+import type { CodeApi } from '@binos/server/apps/code/api'
+import type { Attachment } from '@binos/server/apps/code/types'
 import type { Provider } from '@binos/server/services/agent/types'
 import { hc } from 'hono/client'
 
-const client = hc<KitaApi>(`${window.location.origin}/api/apps/kita`)
+const client = hc<CodeApi>(`${window.location.origin}/api/apps/code`)
 const sessions = client.sessions
 
 // query：只要标题或对话内容里含有它的

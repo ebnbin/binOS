@@ -1,4 +1,4 @@
-import type { Attachment, Live, TranscriptRecord } from '@binos/server/apps/kita/types'
+import type { Attachment, Live, TranscriptRecord } from '@binos/server/apps/code/types'
 import type { Status } from '@binos/server/services/agent/types'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'

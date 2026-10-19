@@ -10,8 +10,8 @@
     "./types": "./src/types.ts",
     "./services/agent/api": "./src/services/agent/api.ts",
     "./services/agent/types": "./src/services/agent/types.ts",
-    "./apps/kita/api": "./src/apps/kita/api.ts",
-    "./apps/kita/types": "./src/apps/kita/types.ts"
+    "./apps/code/api": "./src/apps/code/api.ts",
+    "./apps/code/types": "./src/apps/code/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

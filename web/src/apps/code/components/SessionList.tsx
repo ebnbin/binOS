@@ -1,4 +1,4 @@
-import type { SessionSummary } from '@binos/server/apps/kita/types'
+import type { SessionSummary } from '@binos/server/apps/code/types'
 import { Archive, ArchiveRestore, ChevronRight, CircleAlert, GitPullRequest, Hourglass, MoreHorizontal, Pencil, Pin, PinOff, Search, SquarePen, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -26,7 +26,7 @@ export function SessionList({
   return (
     <div className={styles.pane}>
       <header className={styles.brand}>
-        <span className={styles.wordmark}>喜多</span>
+        <span className={styles.wordmark}>Code</span>
         <Quota />
       </header>
       <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>

@@ -1,4 +1,4 @@
-import type { Live, LiveEvent, TranscriptRecord } from '@binos/server/apps/kita/types'
+import type { Live, LiveEvent, TranscriptRecord } from '@binos/server/apps/code/types'
 import { useEffect, useState } from 'react'
 import { streamUrl } from './api.ts'
 import { connectEventSource } from '../../eventSource.ts'

@@ -1,11 +1,11 @@
 import { SquarePen } from 'lucide-react'
 import type { WidgetProps } from '../types.ts'
-import styles from './KitaWidget.module.css'
+import styles from './CodeWidget.module.css'
 import { formatTime } from './time.ts'
 import { useSessions } from './useSessions.ts'
 
 // 最近的对话，点一条直接打开
-export function KitaWidget({ size, open }: WidgetProps) {
+export function CodeWidget({ size, open }: WidgetProps) {
   const { sessions } = useSessions()
   const running = sessions?.filter((session) => session.running).length ?? 0
   const shown = sessions?.slice(0, size === '4x4' ? 8 : 3) ?? []
@@ -13,7 +13,7 @@ export function KitaWidget({ size, open }: WidgetProps) {
   return (
     <div className={styles.widget}>
       <header className={styles.header}>
-        <span className={styles.name}>喜多</span>
+        <span className={styles.name}>Code</span>
         {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
         <button
           type="button"
