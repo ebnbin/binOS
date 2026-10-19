@@ -4,13 +4,14 @@ import os from 'node:os'
 import path from 'node:path'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
 import { acquireProcessLock } from '../server/src/process.ts'
+import { serverLabel, serverPort } from '../server/src/production.ts'
 import { buildCommit, isHealthy } from './build.ts'
 import { closeFinishedPreviews } from './previews.ts'
-import { serverLabel, serverPort } from './server.ts'
 
-const { buildsDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
+const { binOSDir, buildsDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 const serverLog = path.join(logsDir, 'server.log')
+const previousLink = path.join(buildsDir, 'previous')
 
 const git = (...args: string[]) => execFileSync('git', args, { cwd: repoDir, encoding: 'utf8' }).trim()
 const short = (commit: string) => commit.slice(0, 7)
@@ -30,7 +31,7 @@ if (command === 'deploy') {
   await closeFinishedPreviews(previewsDir, repoDir, say).catch((err: unknown) => say(`清理预览出错：${String(err)}`))
   const commit = git('rev-parse', 'HEAD')
   // 定时任务每分钟执行一次，已经在运行时不输出，免得日志里每分钟多一行
-  if (linkTarget('current') === commit) {
+  if (commitOf(binOSDir) === commit) {
     if (process.stdout.isTTY) {
       say(`已经在运行 ${short(commit)}`)
     }
@@ -47,7 +48,7 @@ if (command === 'deploy') {
   }
   await switchTo(commit)
 } else {
-  const previous = linkTarget('previous')
+  const previous = commitOf(previousLink)
   if (!previous) {
     throw new Error('没有可以回退的版本')
   }
@@ -55,14 +56,14 @@ if (command === 'deploy') {
 }
 
 async function switchTo(commit: string) {
-  const old = linkTarget('current')
+  const old = commitOf(binOSDir)
   if (old === commit) {
     say(`已经在运行 ${short(commit)}`)
     return
   }
   if (await activate(commit)) {
     if (old) {
-      link(old, 'previous')
+      pointTo(previousLink, path.join(buildsDir, old))
     }
     say(`✓ 正在运行 ${short(commit)}`)
     return
@@ -75,23 +76,23 @@ async function switchTo(commit: string) {
 }
 
 async function activate(commit: string) {
-  link(commit, 'current')
+  pointTo(binOSDir, path.join(buildsDir, commit))
   execFileSync('launchctl', ['kickstart', '-k', `gui/${os.userInfo().uid}/${serverLabel}`])
   return isHealthy(serverPort, commit)
 }
 
-function linkTarget(name: string): string | undefined {
+// System/binOS 指向正在运行的构建，builds/previous 指向上一个
+function commitOf(linkPath: string): string | undefined {
   try {
-    return readlinkSync(path.join(buildsDir, name))
+    return path.basename(readlinkSync(linkPath))
   } catch {
     return undefined
   }
 }
 
-// 先建临时链接再改名，切换是一步完成的；链接里只写 commit id，根目录搬家后仍然有效
-function link(target: string, name: string) {
-  const linkPath = path.join(buildsDir, name)
+// 先建临时链接再改名，切换是一步完成的；链接里写相对路径，根目录搬家后仍然有效
+function pointTo(linkPath: string, target: string) {
   rmSync(`${linkPath}.tmp`, { force: true })
-  symlinkSync(target, `${linkPath}.tmp`)
+  symlinkSync(path.relative(path.dirname(linkPath), target), `${linkPath}.tmp`)
   renameSync(`${linkPath}.tmp`, linkPath)
 }

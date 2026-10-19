@@ -5,7 +5,7 @@ import { setTimeout as sleep } from 'node:timers/promises'
 
 const run = (command: string, args: string[], cwd: string) => execFileSync(command, args, { cwd, stdio: 'inherit' })
 
-// 在临时目录里构建完整的仓库，构建目录里只放运行需要的部分：server 和它的生产依赖、页面的构建产物
+// 在临时目录里构建完整的仓库，构建目录里只放运行需要的部分：命令行 bin/binos、server 和它的生产依赖、页面的构建产物
 export function buildCommit(repoDir: string, commit: string, buildDir: string) {
   const staging = `${buildDir}.tmp`
   const source = path.join(staging, 'source')
@@ -21,6 +21,7 @@ export function buildCommit(repoDir: string, commit: string, buildDir: string) {
     run('pnpm', ['build'], source)
     run('pnpm', ['--filter', '@binos/server', '--prod', 'deploy', path.join(output, 'server')], source)
     cpSync(path.join(source, 'web', 'dist'), path.join(output, 'web', 'dist'), { recursive: true })
+    cpSync(path.join(source, 'bin'), path.join(output, 'bin'), { recursive: true })
     writeFileSync(path.join(output, 'VERSION'), commit + '\n')
     renameSync(output, buildDir)
   } finally {

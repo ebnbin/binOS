@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
-import { serverPort } from './server.ts'
+import { serverPort } from '../server/src/production.ts'
 
 const { logsDir } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
