@@ -4,13 +4,14 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
 import type { ReadableStream } from 'node:stream/web'
-import { uploadsDir } from '../../paths.js'
-import { filesDir } from './sessions.js'
+import { dataDir, filesDir } from './sessions.js'
 import { viewHint } from '../../services/agent/index.js'
 import type { Provider } from '../../services/agent/types.js'
 import type { Attachment } from './types.js'
 
 // 用户上传的附件先放在 uploads/，随消息发出时移进 session 的 files/：新对话发出第一句之前还没有 session 目录
+
+const uploadsDir = path.join(dataDir, 'uploads')
 
 export const maxUploadBytes = 50 * 1024 * 1024
 export const maxAttachments = 20

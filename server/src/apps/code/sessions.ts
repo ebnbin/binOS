@@ -13,7 +13,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import path from 'node:path'
-import { sessionsDir } from '../../paths.js'
+import { appDir } from '../../paths.js'
 import { defaultProvider } from '../../services/agent/types.js'
 import type { Context, Provider } from '../../services/agent/types.js'
 import type { TranscriptRecord } from './types.js'
@@ -52,6 +52,9 @@ export type SessionInfo = UserState & {
 }
 
 const prUrlPattern = /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/g
+
+export const dataDir = appDir('code')
+const sessionsDir = path.join(dataDir, 'sessions')
 
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
 export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
