@@ -28,7 +28,7 @@ const isProvider = (value: unknown): value is Provider => providers.includes(val
 const isName = (value: unknown): value is string => typeof value === 'string' && /^[\w.-]{1,64}$/.test(value)
 
 // attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。
-// interrupt：正在回答时先打断正在做的事；provider：新的 session 用哪个 agent，不给是 Claude；
+// interrupt：正在回答时先打断正在做的事；provider：新的 session 用哪个 agent，不给是默认的；
 // model、effort：开始新的一轮时用，不给就是 agent 的默认
 const messageBody = validator('json', (value, c) => {
   const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; provider?: unknown; model?: unknown; effort?: unknown } | null

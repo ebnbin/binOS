@@ -1,10 +1,9 @@
 import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
-import { codexHome } from '../../../paths.js'
-import type { CodexModel, Limits } from '../types.js'
+import type { AgentModel, Limits } from '../types.js'
 
-// 新对话能不能选 Codex、能选哪些模型：codex 没装或没登录时 available 为 false。顺便读一次额度
-export type CodexCatalog = { available: boolean; models: CodexModel[]; limits?: Limits }
+// 能不能用 Codex、能选哪些模型：codex 没装或没登录时 available 为 false。顺便读一次额度
+type CodexCatalog = { available: boolean; models: AgentModel[]; limits?: Limits }
 
 type RateLimitWindow = { usedPercent: number; windowDurationMins: number | null; resetsAt: number | null }
 export type RateLimits = { limitId: string | null; primary: RateLimitWindow | null; secondary: RateLimitWindow | null; rateLimitReachedType: string | null }
@@ -13,7 +12,6 @@ type ListedModel = {
   displayName: string
   hidden: boolean
   isDefault: boolean
-  defaultReasoningEffort: string
   supportedReasoningEfforts: { reasoningEffort: string }[]
 }
 
@@ -22,9 +20,9 @@ const timeout = 15_000
 const maxAge = 10 * 60_000
 let cached: { at: number; catalog: Promise<CodexCatalog> } | undefined
 
-export function codexCatalog(): Promise<CodexCatalog> {
+export function codexCatalog(env: NodeJS.ProcessEnv): Promise<CodexCatalog> {
   if (!cached || Date.now() - cached.at > maxAge) {
-    cached = { at: Date.now(), catalog: readCatalog() }
+    cached = { at: Date.now(), catalog: readCatalog(env) }
   }
   return cached.catalog
 }
@@ -32,8 +30,8 @@ export function codexCatalog(): Promise<CodexCatalog> {
 type Request = <T>(method: string, params: unknown) => Promise<T | undefined>
 
 // 起一个临时的 app-server，问完就结束；codex 没装、出错或超时时返回 fallback
-export async function askCodex<T>(ask: (request: Request) => Promise<T>, fallback: T): Promise<T> {
-  const server = spawn('codex', ['app-server'], { stdio: ['pipe', 'pipe', 'ignore'], env: { ...process.env, CODEX_HOME: codexHome } })
+export async function askCodex<T>(env: NodeJS.ProcessEnv, ask: (request: Request) => Promise<T>, fallback: T): Promise<T> {
+  const server = spawn('codex', ['app-server'], { stdio: ['pipe', 'pipe', 'ignore'], env })
   const waiting = new Map<number, (result: unknown) => void>()
   let nextId = 0
   const request: Request = <R>(method: string, params: unknown) =>
@@ -69,9 +67,9 @@ export async function askCodex<T>(ask: (request: Request) => Promise<T>, fallbac
   }
 }
 
-function readCatalog(): Promise<CodexCatalog> {
+function readCatalog(env: NodeJS.ProcessEnv): Promise<CodexCatalog> {
   const unavailable: CodexCatalog = { available: false, models: [] }
-  return askCodex(async (request) => {
+  return askCodex(env, async (request) => {
     const account = await request<{ account: unknown }>('account/read', {})
     if (!account?.account) {
       return unavailable
@@ -86,8 +84,7 @@ function readCatalog(): Promise<CodexCatalog> {
         id: model.id,
         name: model.displayName,
         efforts: model.supportedReasoningEfforts.map((option) => option.reasoningEffort),
-        defaultEffort: model.defaultReasoningEffort,
-        isDefault: model.isDefault,
+        ...(model.isDefault && { isDefault: true }),
       }))
     const limits = rateLimits?.rateLimits && codexLimits(rateLimits.rateLimits, new Date().toISOString())
     return { available: true, models, ...(limits && { limits }) }

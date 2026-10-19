@@ -32,7 +32,7 @@ const kinds: Record<string, ToolKind> = {
   Write: { icon: FilePlus, verb: '写入', category: 'edit', detailKey: 'file_path' },
   Edit: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'file_path' },
   NotebookEdit: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'notebook_path' },
-  // Codex 改文件，每个文件一次
+  // 按 diff 改文件，每个文件一次
   Patch: { icon: FilePen, verb: '修改', category: 'edit', detailKey: 'file_path' },
   ViewImage: { icon: Image, verb: '查看图片', category: 'read', detailKey: 'file_path' },
   Grep: { icon: Search, verb: '搜索', category: 'search', detailKey: 'pattern' },

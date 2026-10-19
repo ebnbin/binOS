@@ -1,11 +1,11 @@
 import { applyChanges, readState } from '../../state.js'
 import { adapters } from './adapters.js'
-import { limitsKeys } from './types.js'
+import { agents } from './types.js'
 import type { Limits, Provider } from './types.js'
 
 // 额度变了才写进系统状态，各个页面随即收到
 export function saveLimits(provider: Provider, limits: Limits) {
-  const key = limitsKeys[provider]
+  const key = agents[provider].limitsKey
   const current = readState().entries.find((entry) => entry.key === key)?.value as Limits | undefined
   const merged = adapters[provider].partialLimits ? { ...current, ...limits } : limits
   const { updatedAt: _, ...next } = merged

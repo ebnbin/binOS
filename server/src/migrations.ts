@@ -4,6 +4,7 @@ import path from 'node:path'
 import { replyFilesPrompt } from './apps/kita/reply-files.js'
 import type { TranscriptRecord } from './apps/kita/types.js'
 import { agentRunsDir, libraryDir, repoDir, sessionsDir } from './paths.js'
+import { defaultProvider } from './services/agent/types.js'
 import { applyChanges, readState } from './state.js'
 import type { JsonValue, StateChange } from './types.js'
 
@@ -71,7 +72,7 @@ function moveTurnsToRuns() {
       owner: 'kita',
       ref: id,
       options: {
-        provider: (first?.type === 'user' && first.provider) || 'claude',
+        provider: (first?.type === 'user' && first.provider) || defaultProvider,
         cwd: repoDir,
         filesDir: path.join(sessionDir, 'files'),
         ...(thread?.type === 'agent' && { resume: thread.sessionId }),

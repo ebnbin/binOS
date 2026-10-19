@@ -3,6 +3,7 @@ import { notifyChange } from '../../events.js'
 import { repoDir } from '../../paths.js'
 import { fitOptions, resumeRuns, startRun } from '../../services/agent/index.js'
 import type { Run, RunHandler } from '../../services/agent/index.js'
+import { defaultProvider } from '../../services/agent/types.js'
 import type { Provider } from '../../services/agent/types.js'
 import { emit } from './live-events.js'
 import { replyFilesPrompt, snapshotFiles } from './reply-files.js'
@@ -146,10 +147,10 @@ async function insert(id: number, run: Run, text: string, attachments: Attachmen
 }
 
 function startTurn(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions): number {
-  const provider = sessionId === undefined ? (options.provider ?? 'claude') : sessionInfo(sessionId).provider
+  const provider = sessionId === undefined ? (options.provider ?? defaultProvider) : sessionInfo(sessionId).provider
   // 别的 agent 的模型和思考程度不适用，用默认的
   const { model, effort } = fitOptions(provider, options)
-  const user = userRecord(text, attachments, { ...(provider !== 'claude' && { provider }), ...(model && { model }), ...(effort && { effort }) })
+  const user = userRecord(text, attachments, { ...(provider !== defaultProvider && { provider }), ...(model && { model }), ...(effort && { effort }) })
   let id: number
   if (sessionId === undefined) {
     id = createSession(user)

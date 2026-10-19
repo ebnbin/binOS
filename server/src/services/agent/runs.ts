@@ -5,7 +5,7 @@ import { LineReader } from '../../line-reader.js'
 import { agentRunsDir } from '../../paths.js'
 import { isAlive, isRunning, processStartTime } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
-import { adapters } from './adapters.js'
+import { adapters, agentEnv } from './adapters.js'
 import { saveLimits } from './limits.js'
 import type { AgentOutput } from './output.js'
 import { closeInput, inputOpen, sendInterrupt, sendMessage, spawnAgent, stopRelay } from './process.js'
@@ -104,7 +104,8 @@ export function startRun(owner: string, ref: string, options: RunOptions, prompt
   const files = runFiles(id)
   mkdirSync(runDir(id), { recursive: true })
   const { resume, model, effort, instructions } = fitted
-  const pid = spawnAgent(files, adapters[fitted.provider].command({ sessionId: resume, model, effort, instructions }), fitted.cwd)
+  const command = adapters[fitted.provider].command({ sessionId: resume, model, effort, instructions })
+  const pid = spawnAgent(files, command, fitted.cwd, agentEnv(fitted.provider))
   const startedAt = pid && processStartTime(pid)
   if (!pid || !startedAt) {
     rmSync(runDir(id), { recursive: true, force: true })

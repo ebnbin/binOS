@@ -8,7 +8,7 @@ type TextRecord = Extract<AgentRecord, { type: 'text' }>
 // transcript.jsonl 的一行：只追加，发生时就写，是 session 唯一的真相。
 // 没在回答时的 user 开始一轮，一轮是 agent 的一次运行，以运行的 result 结束；
 // 一轮进行中又出现的 user 是回答中途插的话，interrupt 表示插话前先打断了正在做的事。
-// 开始一轮的 user 带着这一轮用的 agent（没有是 Claude）、模型和思考程度（没有是 agent 的默认）
+// 开始一轮的 user 带着这一轮用的 agent（没有是默认的 defaultProvider）、模型和思考程度（没有是 agent 的默认）
 export type TranscriptRecord =
   | {
       type: 'user'

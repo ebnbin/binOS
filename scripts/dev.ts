@@ -8,10 +8,9 @@ const worktreeDir = path.resolve(import.meta.dirname, '..')
 const rootDir = path.join(worktreeDir, '.test-instance')
 
 const production = process.env.BINOS_ROOT ? rootLayout(process.env.BINOS_ROOT) : undefined
-const claudeConfigDir = process.env.BINOS_CLAUDE_CONFIG_DIR ?? production?.claudeConfigDir
-const codexHome = process.env.BINOS_CODEX_HOME ?? production?.codexHome
-if (!claudeConfigDir || !codexHome) {
-  throw new Error('需要 BINOS_ROOT（正式版的根目录），或者 BINOS_CLAUDE_CONFIG_DIR 和 BINOS_CODEX_HOME，用来借用 Claude Code 和 Codex 的登录')
+const agentConfigRoot = process.env.BINOS_AGENT_CONFIG_ROOT ?? production?.libraryDir
+if (!agentConfigRoot) {
+  throw new Error('需要 BINOS_ROOT（正式版的根目录）或 BINOS_AGENT_CONFIG_ROOT，用来借用正式版 agent 的登录')
 }
 
 mkdirSync(rootDir, { recursive: true })
@@ -26,8 +25,7 @@ const children = [
       ...process.env,
       BINOS_ROOT: rootDir,
       BINOS_TEST_INSTANCE: '1',
-      BINOS_CLAUDE_CONFIG_DIR: claudeConfigDir,
-      BINOS_CODEX_HOME: codexHome,
+      BINOS_AGENT_CONFIG_ROOT: agentConfigRoot,
       PORT: String(serverPort),
     },
   }),

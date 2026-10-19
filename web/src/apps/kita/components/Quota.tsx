@@ -1,16 +1,15 @@
-import { limitsKeys } from '@binos/server/services/agent/types'
+import { agents, providers } from '@binos/server/services/agent/types'
 import type { Limits, Provider } from '@binos/server/services/agent/types'
 import { useEffect, useRef, useState } from 'react'
-import { useStateValue } from '../../../state.ts'
+import { useStateList } from '../../../state.ts'
 import { current, formatReset, level, windowsOf } from '../../../services/agent/quota.ts'
-import { providerNames } from '../../../services/agent/providers.ts'
 import styles from './Quota.module.css'
 
 // 订阅额度：平时只显示用了多少，点开看进度和重置时间。
 // 只有一个 agent 报告过额度时显示它两个窗口各用了多少；两个都有时各显示用得多的那个窗口
 export function Quota() {
-  const claude = useStateValue(limitsKeys.claude) as Limits | null
-  const codex = useStateValue(limitsKeys.codex) as Limits | null
+  // 额度都存在系统状态的 agent/ 下
+  const entries = useStateList('agent/')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   // 点外面关上
@@ -26,12 +25,10 @@ export function Quota() {
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [open])
-  const reported = (
-    [
-      ['claude', claude],
-      ['codex', codex],
-    ] as const
-  ).filter((item): item is readonly [Provider, Limits] => item[1] !== null)
+  const reported = providers.flatMap((provider): [Provider, Limits][] => {
+    const limits = entries.find(([key]) => key === agents[provider].limitsKey)?.[1] as Limits | undefined
+    return limits ? [[provider, limits]] : []
+  })
   if (reported.length === 0) {
     return null
   }
@@ -54,7 +51,7 @@ export function Quota() {
             const limited = limits.status !== 'allowed'
             return (
               <span key={provider} data-level={level(used, limited)}>
-                {providerNames[provider]} {limited ? '已限流' : `${Math.round(used * 100)}%`}
+                {agents[provider].name} {limited ? '已限流' : `${Math.round(used * 100)}%`}
               </span>
             )
           })
@@ -67,7 +64,7 @@ export function Quota() {
               <div key={`${provider}-${name}`} className={styles.row}>
                 <div className={styles.label}>
                   <span>
-                    {reported.length > 1 && `${providerNames[provider]} `}
+                    {reported.length > 1 && `${agents[provider].name} `}
                     {name}额度
                   </span>
                   <span>{Math.round(current(window) * 100)}%</span>

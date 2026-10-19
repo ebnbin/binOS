@@ -14,6 +14,7 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 import { sessionsDir } from '../../paths.js'
+import { defaultProvider } from '../../services/agent/types.js'
 import type { Context, Provider } from '../../services/agent/types.js'
 import type { TranscriptRecord } from './types.js'
 
@@ -106,7 +107,7 @@ function emptyInfo(): SessionInfo {
     updatedAt: '',
     turns: 0,
     inTurn: false,
-    provider: 'claude',
+    provider: defaultProvider,
     prs: [],
     creatingPrs: [],
   }
@@ -123,7 +124,7 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
     case 'user':
       if (info.turns === 0) {
         info.title = (record.text.trim() || record.attachments?.[0]?.name || '').slice(0, 200)
-        info.provider = record.provider ?? 'claude'
+        info.provider = record.provider ?? defaultProvider
       }
       if (!info.inTurn) {
         info.turns += 1

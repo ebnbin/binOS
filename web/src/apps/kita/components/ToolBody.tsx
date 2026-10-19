@@ -125,7 +125,7 @@ function Diff({ before, after, replaceAll }: { before: string; after: string; re
   )
 }
 
-// Codex 改的一个文件：新建时 diff 是文件内容，删除时是删掉的内容，修改时是统一格式的 diff
+// 改的一个文件（Patch）：新建时 diff 是文件内容，删除时是删掉的内容，修改时是统一格式的 diff
 function Patch({ kind, diff, path }: { kind: string; diff: string; path: string }) {
   if (kind === 'add') {
     return <CodeBlock code={diff.replace(/\n$/, '')} lang={languageOf(path)} startLine={1} />
