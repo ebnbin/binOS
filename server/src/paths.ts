@@ -5,7 +5,9 @@ const layout = rootLayout(rootFromEnv())
 
 export const isTestInstance = process.env.BINOS_TEST_INSTANCE === '1'
 
-export const { agentRunsDir, libraryDir, previewsDir, sessionsDir, statePath, uploadsDir } = layout
+export const { agentRunsDir, libraryDir, previewsDir, statePath } = layout
+// 内置 app 的数据目录，每个 app 一个，里面怎么组织由 app 自己决定
+export const appDir = (id: string) => path.join(layout.appsDir, id)
 // 当前运行的代码：测试实例是被测试的 worktree，正式版是 System/builds 下的某个版本
 export const codeDir = path.resolve(import.meta.dirname, '../..')
 // Code 里 agent 的工作目录：正式版是 main/，测试实例是被测试的 worktree，预览由启动方指定为它的 worktree

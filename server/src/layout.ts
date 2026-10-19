@@ -14,8 +14,7 @@ export function rootLayout(root: string) {
     logsDir: path.join(libraryDir, 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
-    sessionsDir: path.join(libraryDir, 'code', 'sessions'),
-    uploadsDir: path.join(libraryDir, 'code', 'uploads'),
+    appsDir: path.join(libraryDir, 'Apps'),
   }
 }
 

@@ -1,46 +1,34 @@
-import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { agentRunsDir, libraryDir } from './paths.js'
-import { applyChanges, readState } from './state.js'
-import type { JsonValue, StateChange } from './types.js'
+import { agentRunsDir, appDir, libraryDir } from './paths.js'
 
 // 后端启动时、各 app 启动前执行的数据迁移。每一步都先看是否已经做过，可以重复执行
 export function migrate() {
-  renameKitaToCode()
+  moveCodeToApps()
 }
 
-// 对话 app 的 id 从 kita 改为 code：数据目录、进行中的 agent 运行的归属、窗口和桌面引用的 app
-function renameKitaToCode() {
-  const from = path.join(libraryDir, 'kita')
-  const to = path.join(libraryDir, 'code')
+// Code 的数据从 Library/code 挪到 Library/Apps/code。进行中的 agent 运行记着工具结果图片的存放目录，跟着改
+function moveCodeToApps() {
+  const from = path.join(libraryDir, 'code')
+  const to = appDir('code')
   if (existsSync(from) && !existsSync(to)) {
+    mkdirSync(path.dirname(to), { recursive: true })
     renameSync(from, to)
   }
 
-  if (existsSync(agentRunsDir)) {
-    for (const id of readdirSync(agentRunsDir)) {
-      const file = path.join(agentRunsDir, id, 'state.json')
-      const state = readJson<{ owner?: string }>(file)
-      if (state?.owner === 'kita') {
-        writeFileSync(`${file}.tmp`, JSON.stringify({ ...state, owner: 'code' }) + '\n')
-        renameSync(`${file}.tmp`, file)
-      }
-    }
+  if (!existsSync(agentRunsDir)) {
+    return
   }
-
-  const isKita = (item: unknown) => (item as { app?: unknown } | null)?.app === 'kita'
-  const withCode = (item: JsonValue) => ({ ...(item as Record<string, JsonValue>), app: 'code' })
-  const changes: StateChange[] = []
-  for (const { key, value } of readState().entries) {
-    if (key.startsWith('shell/windows/') && isKita(value)) {
-      changes.push({ key, value: withCode(value) })
+  const prefix = from + path.sep
+  for (const id of readdirSync(agentRunsDir)) {
+    const file = path.join(agentRunsDir, id, 'state.json')
+    const state = readJson<{ options: { filesDir: string } }>(file)
+    const filesDir = state?.options.filesDir
+    if (filesDir?.startsWith(prefix)) {
+      const options = { ...state!.options, filesDir: path.join(to, filesDir.slice(prefix.length)) }
+      writeFileSync(`${file}.tmp`, JSON.stringify({ ...state, options }) + '\n')
+      renameSync(`${file}.tmp`, file)
     }
-    if (key === 'shell/desktop' && Array.isArray(value) && value.some(isKita)) {
-      changes.push({ key, value: value.map((item) => (isKita(item) ? withCode(item) : item)) })
-    }
-  }
-  if (changes.length > 0) {
-    applyChanges(changes)
   }
 }
 

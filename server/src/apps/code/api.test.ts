@@ -36,7 +36,7 @@ describe('api', () => {
       headers: { 'Content-Type': 'application/octet-stream' },
     })
     expect(res.status).toBe(413)
-    expect(readdirSync(path.join(root, 'Library', 'code', 'uploads'))).toEqual([])
+    expect(readdirSync(path.join(root, 'Library', 'Apps', 'code', 'uploads'))).toEqual([])
   })
 
   it('消息只能带上传过的附件', async () => {
