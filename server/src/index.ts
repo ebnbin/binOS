@@ -8,14 +8,16 @@ import { api } from './api.js'
 import { codeDir, libraryDir } from './paths.js'
 import { previewProxy } from './previews.js'
 import { acquireProcessLock } from './process.js'
-import { resumeTurns } from './apps/agent/turns.js'
+import { serverApps } from './apps/index.js'
 
 // 一个根目录的数据只能由一个后端读写：两个后端会同时跟进同一轮回答，重复写入记录
 const holder = acquireProcessLock(path.join(libraryDir, 'server.lock'))
 if (holder) {
   throw new Error(`根目录 ${path.dirname(libraryDir)} 已有后端在运行（进程 ${holder.pid}）`)
 }
-resumeTurns()
+for (const app of serverApps) {
+  app.start?.()
+}
 
 const app = new Hono().use(previewProxy).route('/', api)
 

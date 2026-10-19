@@ -2,20 +2,26 @@ import { ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { getVersion } from '../../api.ts'
 import { useConnected } from '../../events.ts'
-import type { AppContext } from '../types.ts'
-import { AgentAccounts } from './AgentAccounts.tsx'
+import { useApps } from '../index.ts'
+import type { AppContext, AppManifest } from '../types.ts'
 import { ExternalApps } from './ExternalApps.tsx'
 import styles from './SystemApp.module.css'
 
-// /：系统概况；/agent：agent 的账号、登录凭证和用量
+// /：系统概况和各个 app 的设置入口；/<app 的 id>：这个 app 的设置页
 export function SystemApp({ ctx }: { ctx: AppContext }) {
-  const page = ctx.route === '/agent' ? 'agent' : 'home'
+  const apps = useApps().filter((app) => app.settings)
+  const app = apps.find((item) => ctx.route === `/${item.id}`)
   const { setTitle } = ctx
-  useEffect(() => setTitle(page === 'agent' ? 'Agent' : ''), [setTitle, page])
-  return page === 'agent' ? <AgentAccounts onBack={ctx.back} /> : <Home onOpen={ctx.navigate} />
+  const title = app?.name ?? ''
+  useEffect(() => setTitle(title), [setTitle, title])
+  if (app) {
+    const Settings = app.settings!.component
+    return <Settings back={ctx.back} />
+  }
+  return <Home apps={apps} onOpen={ctx.navigate} />
 }
 
-function Home({ onOpen }: { onOpen: (route: string) => void }) {
+function Home({ apps, onOpen }: { apps: AppManifest[]; onOpen: (route: string) => void }) {
   const [version, setVersion] = useState<string>()
   const connected = useConnected()
 
@@ -39,11 +45,13 @@ function Home({ onOpen }: { onOpen: (route: string) => void }) {
         </div>
       </dl>
       <div className={styles.links}>
-        <button type="button" className={styles.link} onClick={() => onOpen('/agent')}>
-          <span>Agent</span>
-          <span className={styles.linkHint}>账号、额度和登录凭证</span>
-          <ChevronRight size={16} strokeWidth={1.75} />
-        </button>
+        {apps.map((app) => (
+          <button key={app.id} type="button" className={styles.link} onClick={() => onOpen(`/${app.id}`)}>
+            <span>{app.name}</span>
+            <span className={styles.linkHint}>{app.settings!.hint}</span>
+            <ChevronRight size={16} strokeWidth={1.75} />
+          </button>
+        ))}
       </div>
       <ExternalApps />
     </div>
