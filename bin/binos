@@ -46,7 +46,7 @@ case "$1" in
     ;;
   deploy)
     # 每个版本由它自己的上线脚本上线：坏掉的上线脚本只影响它自己，修复它的版本照样能上线
-    cd "$BINOS_ROOT/System/source/main"
+    cd "$BINOS_ROOT/Library/Apps/code/repositories/binos/main"
     git fetch -q origin
     git merge -q --ff-only origin/main
     exec node scripts/deploy.ts deploy
