@@ -1,24 +1,29 @@
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { getVersion } from '../../api.ts'
 import { useConnected } from '../../events.ts'
 import { useApps } from '../index.ts'
 import type { AppContext, AppManifest } from '../types.ts'
+import { AgentAccounts } from './AgentAccounts.tsx'
 import { ExternalApps } from './ExternalApps.tsx'
 import styles from './SystemApp.module.css'
 
-// /：系统概况和各个 app 的设置入口；/<app 的 id>：这个 app 的设置页
+// 系统自己的页面：路由 → 标题、说明和内容
+const pages: Record<string, { title: string; hint: string; component: (props: { back(): void }) => ReactNode }> = {
+  '/agent': { title: 'Agent', hint: '账号、额度和登录凭证', component: AgentAccounts },
+}
+
+// /：系统概况和各页入口；/agent 这类：系统自己的页面；/apps/<app 的 id>：这个 app 的设置页
 export function SystemApp({ ctx }: { ctx: AppContext }) {
   const apps = useApps().filter((app) => app.settings)
-  const app = apps.find((item) => ctx.route === `/${item.id}`)
+  const page = pages[ctx.route]
+  const app = apps.find((item) => ctx.route === `/apps/${item.id}`)
   const { setTitle } = ctx
-  const title = app?.name ?? ''
+  const title = page?.title ?? app?.name ?? ''
   useEffect(() => setTitle(title), [setTitle, title])
-  if (app) {
-    const Settings = app.settings!.component
-    return <Settings back={ctx.back} />
-  }
-  return <Home apps={apps} onOpen={ctx.navigate} />
+  const Page = page?.component ?? app?.settings?.component
+  return Page ? <Page back={ctx.back} /> : <Home apps={apps} onOpen={ctx.navigate} />
 }
 
 function Home({ apps, onOpen }: { apps: AppManifest[]; onOpen: (route: string) => void }) {
@@ -45,10 +50,13 @@ function Home({ apps, onOpen }: { apps: AppManifest[]; onOpen: (route: string) =
         </div>
       </dl>
       <div className={styles.links}>
-        {apps.map((app) => (
-          <button key={app.id} type="button" className={styles.link} onClick={() => onOpen(`/${app.id}`)}>
-            <span>{app.name}</span>
-            <span className={styles.linkHint}>{app.settings!.hint}</span>
+        {[
+          ...Object.entries(pages).map(([route, { title, hint }]) => ({ route, title, hint })),
+          ...apps.map((app) => ({ route: `/apps/${app.id}`, title: app.name, hint: app.settings!.hint })),
+        ].map(({ route, title, hint }) => (
+          <button key={route} type="button" className={styles.link} onClick={() => onOpen(route)}>
+            <span>{title}</span>
+            <span className={styles.linkHint}>{hint}</span>
             <ChevronRight size={16} strokeWidth={1.75} />
           </button>
         ))}

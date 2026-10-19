@@ -10,7 +10,7 @@ export type AppManifest = {
   component: ComponentType<{ ctx: AppContext }>
   // 放在桌面上的 widget，键是 widget 的 id
   widgets?: Record<string, WidgetManifest>
-  // 「系统」app 里这个 app 的设置页，路由是 /<app 的 id>
+  // 「系统」app 里这个 app 的设置页，路由是 /apps/<app 的 id>
   settings?: SettingsManifest
 }
 
