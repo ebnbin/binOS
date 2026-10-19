@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
@@ -69,7 +69,13 @@ if (readJson<PreviewInfo>(infoPath)?.commit === commit && runningPreviewServer(p
 const buildDir = path.join(paths.dir, commit)
 if (!existsSync(buildDir)) {
   console.log(`构建 ${short(commit)}`)
-  buildCommit(repoDir, commit, buildDir)
+  const workDir = `${buildDir}.tmp`
+  rmSync(workDir, { recursive: true, force: true })
+  try {
+    renameSync(buildCommit(repoDir, commit, workDir), buildDir)
+  } finally {
+    rmSync(workDir, { recursive: true, force: true })
+  }
 }
 await stopPreviewServer(paths.serverLock)
 const port = await freePort()
