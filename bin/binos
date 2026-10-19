@@ -10,7 +10,7 @@ usage() {
 
   server    运行 binOS 的后端
   tunnel    运行 Cloudflare Tunnel，把 binos.app 的请求转给后端
-  deploy    拉取 main 的最新提交，交给它自己的上线脚本上线；已经在运行它时什么都不做
+  deploy    main 有新提交时取它的源码，交给它自己的上线脚本上线；已经在运行它、或者它上线失败过时什么都不做
   version   这份构建的提交号
 EOF
 }
@@ -45,11 +45,22 @@ case "$1" in
     TUNNEL_TOKEN=$token exec cloudflared tunnel run
     ;;
   deploy)
+    # 每分钟只问一次 GitHub 上 main 的最新提交，有新提交才克隆。
     # 每个版本由它自己的上线脚本上线：坏掉的上线脚本只影响它自己，修复它的版本照样能上线
-    cd "$BINOS_ROOT/Library/Apps/code/repositories/binos/main"
-    git fetch -q origin
-    git merge -q --ff-only origin/main
-    exec node scripts/deploy.ts deploy
+    repo=https://github.com/ebnbin/binos.git
+    deploy_dir="$BINOS_ROOT/Library/Services/deploy"
+    commit=$(git ls-remote "$repo" refs/heads/main | cut -f1)
+    if [ -z "$commit" ]; then
+      echo "查不到 main 的最新提交" >&2
+      exit 1
+    fi
+    if [ "$commit" = "$(cat "$BINOS_ROOT/System/binos/VERSION" 2>/dev/null)" ] || [ "$commit" = "$(cat "$deploy_dir/failed" 2>/dev/null)" ]; then
+      exit 0
+    fi
+    mkdir -p "$deploy_dir/tmp"
+    work=$(mktemp -d "$deploy_dir/tmp/XXXXXX")
+    git clone -q --depth 1 "$repo" "$work/repo"
+    exec node "$work/repo/scripts/deploy.ts" deploy
     ;;
   version)
     cat "$build/VERSION"

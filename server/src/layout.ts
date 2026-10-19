@@ -5,9 +5,8 @@ export function rootLayout(root: string) {
   const libraryDir = path.join(rootDir, 'Library')
   return {
     rootDir,
-    // 正在运行的 binOS：指向 builds/ 里的某个构建，launchd 运行其中的 bin/binos
+    // 正在运行的 binOS：上线服务装进来的构建，launchd 运行其中的 bin/binos
     binosDir: path.join(rootDir, 'System', 'binos'),
-    buildsDir: path.join(rootDir, 'System', 'builds'),
     previewsDir: path.join(rootDir, 'System', 'previews'),
     libraryDir,
     // 第三方 agent 自己的目录，每个 agent 一个子目录
@@ -17,6 +16,8 @@ export function rootLayout(root: string) {
     statePath: path.join(libraryDir, 'state.json'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
     appsDir: path.join(libraryDir, 'Apps'),
+    // 上线服务的数据：上一个版本、上线过程中的临时文件、上线失败的提交和锁
+    deployDir: path.join(libraryDir, 'Services', 'deploy'),
   }
 }
 
