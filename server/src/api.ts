@@ -5,7 +5,7 @@ import type { MiddlewareHandler } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { requireOwner } from './access.js'
-import { agentApi } from './apps/agent/api.js'
+import { serverApps } from './apps/index.js'
 import { onChange } from './events.js'
 import { codeDir } from './paths.js'
 import { connectedPreamble, keepAlive } from './sse.js'
@@ -39,7 +39,6 @@ export const api = new Hono()
   .use(requireOwner, requirePreflight)
   .get('/state', (c) => c.json(readState()))
   .post('/state', stateBody, (c) => c.json({ version: applyChanges(c.req.valid('json').changes) }, 200))
-  .route('/apps/agent', agentApi)
   // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
   .get('/events', (c) =>
     streamSSE(c, async (stream) => {
@@ -49,5 +48,10 @@ export const api = new Hono()
       await keepAlive(stream)
     }),
   )
+
+// app 的路由不在 AppType 里，页面用各个 app 自己导出的类型
+for (const app of serverApps) {
+  api.route(`/apps/${app.id}`, app.api)
+}
 
 export type AppType = typeof api

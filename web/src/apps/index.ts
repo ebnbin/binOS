@@ -6,7 +6,7 @@ import { externalAppsKey, readExternalApps } from './external/list.ts'
 import { placeholderApp } from './placeholder/index.ts'
 import type { AppManifest } from './types.ts'
 
-const systemApps: AppManifest[] = [
+const builtinApps: AppManifest[] = [
   {
     id: 'agent',
     name: 'Agent',
@@ -18,6 +18,10 @@ const systemApps: AppManifest[] = [
         sizes: ['2x2', '4x2', '4x4'],
         component: lazy(() => import('./agent/AgentWidget.tsx').then((module) => ({ default: module.AgentWidget }))),
       },
+    },
+    settings: {
+      hint: '账号、额度和登录凭证',
+      component: lazy(() => import('./agent/AgentAccounts.tsx').then((module) => ({ default: module.AgentAccounts }))),
     },
   },
   {
@@ -46,7 +50,7 @@ const placeholderApps: AppManifest[] = [
 // 内置的 app 加上系统状态里的外部 app，按这个顺序排列
 export function useApps(): AppManifest[] {
   const value = useStateValue(externalAppsKey)
-  return useMemo(() => [...systemApps, ...readExternalApps(value).map(externalApp), ...placeholderApps], [value])
+  return useMemo(() => [...builtinApps, ...readExternalApps(value).map(externalApp), ...placeholderApps], [value])
 }
 
 export const findApp = (apps: AppManifest[], id: string) => apps.find((app) => app.id === id)

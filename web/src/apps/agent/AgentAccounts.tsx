@@ -6,9 +6,9 @@ import type { ReactNode } from 'react'
 import { useStateValue } from '../../state.ts'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
-import { agentAccounts } from '../agent/api.ts'
-import { current, formatReset, level, windowsOf } from '../agent/quota.ts'
-import { providerNames } from '../agent/providers.ts'
+import { agentAccounts } from './api.ts'
+import { current, formatReset, level, windowsOf } from './quota.ts'
+import { providerNames } from './providers.ts'
 import styles from './AgentAccounts.module.css'
 
 const dateTime = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -26,7 +26,7 @@ function relative(iso: string) {
 const formatTime = (iso: string) => `${dateTime.format(new Date(iso))}（${relative(iso)}）`
 
 // 各个 agent 的账号、登录凭证、额度和用量。打开时现查，令牌本身不经过页面
-export function AgentAccounts({ onBack }: { onBack: () => void }) {
+export function AgentAccounts({ back }: { back: () => void }) {
   // loadedAt：读到的时间，判断令牌是否已过期以它为准
   const [result, setResult] = useState<{ accounts: AgentAccount[] | null; loadedAt: number }>()
   const [loading, setLoading] = useState(true)
@@ -48,7 +48,7 @@ export function AgentAccounts({ onBack }: { onBack: () => void }) {
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <IconButton icon={ChevronLeft} label="返回" onClick={onBack} />
+        <IconButton icon={ChevronLeft} label="返回" onClick={back} />
         <h1>Agent</h1>
         <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
       </header>

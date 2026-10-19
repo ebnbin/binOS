@@ -10,6 +10,8 @@ export type AppManifest = {
   component: ComponentType<{ ctx: AppContext }>
   // 放在桌面上的 widget，键是 widget 的 id
   widgets?: Record<string, WidgetManifest>
+  // 「系统」app 里这个 app 的设置页，路由是 /<app 的 id>
+  settings?: SettingsManifest
 }
 
 // app 只通过它和 Shell 打交道，不知道自己是占满屏幕还是分屏。route 是 app 内部的路由，由 app 自己解释
@@ -34,4 +36,10 @@ export type WidgetManifest = {
 export type WidgetProps = {
   size: WidgetSize
   open(route?: string): void
+}
+
+// hint：「系统」app 列表里这一项的说明
+export type SettingsManifest = {
+  hint: string
+  component: ComponentType<{ back(): void }>
 }
