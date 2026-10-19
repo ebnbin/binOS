@@ -1,4 +1,4 @@
-import type { PullRequest } from '@binos/server/apps/kita/types'
+import type { PullRequest } from '@binos/server/apps/code/types'
 import type { Context } from '@binos/server/services/agent/types'
 import { ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'

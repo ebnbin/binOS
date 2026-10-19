@@ -124,7 +124,7 @@ async function send(sessionId: number | undefined, text: string, attachments: At
   return id === undefined ? ({ error: 'unavailable' } as const) : { id }
 }
 
-export const kitaApi = new Hono()
+export const codeApi = new Hono()
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
   .get('/sessions', async (c) => {
     const query = c.req.query('q')?.trim()
@@ -240,4 +240,4 @@ export const kitaApi = new Hono()
     })
   })
 
-export type KitaApi = typeof kitaApi
+export type CodeApi = typeof codeApi

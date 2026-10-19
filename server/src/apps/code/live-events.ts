@@ -1,4 +1,4 @@
-// 每个 session 的实时推送：/api/apps/kita/sessions/:id/stream 的订阅者
+// 每个 session 的实时推送：/api/apps/code/sessions/:id/stream 的订阅者
 import type { LiveEvent } from './types.js'
 
 const listeners = new Map<number, Set<(event: LiveEvent) => void>>()

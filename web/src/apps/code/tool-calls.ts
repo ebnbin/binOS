@@ -1,4 +1,4 @@
-import type { TranscriptRecord } from '@binos/server/apps/kita/types'
+import type { TranscriptRecord } from '@binos/server/apps/code/types'
 import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 

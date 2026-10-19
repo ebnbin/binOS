@@ -1,4 +1,4 @@
-import { CalendarDays, Cat, CloudSun, Folder, Gauge, Music, NotebookPen } from 'lucide-react'
+import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Music, NotebookPen } from 'lucide-react'
 import { lazy, useMemo } from 'react'
 import { useStateValue } from '../state.ts'
 import { externalApp } from './external/index.ts'
@@ -8,15 +8,15 @@ import type { AppManifest } from './types.ts'
 
 const builtinApps: AppManifest[] = [
   {
-    id: 'kita',
-    name: '喜多',
-    icon: Cat,
-    component: lazy(() => import('./kita/KitaApp.tsx').then((module) => ({ default: module.KitaApp }))),
+    id: 'code',
+    name: 'Code',
+    icon: CodeXml,
+    component: lazy(() => import('./code/CodeApp.tsx').then((module) => ({ default: module.CodeApp }))),
     widgets: {
       recent: {
         name: '最近的对话',
         sizes: ['2x2', '4x2', '4x4'],
-        component: lazy(() => import('./kita/KitaWidget.tsx').then((module) => ({ default: module.KitaWidget }))),
+        component: lazy(() => import('./code/CodeWidget.tsx').then((module) => ({ default: module.CodeWidget }))),
       },
     },
   },

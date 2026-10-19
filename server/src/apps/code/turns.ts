@@ -12,7 +12,7 @@ import type { Attachment, Live, TranscriptRecord } from './types.js'
 import { moveUploads, promptWithAttachments } from './uploads.js'
 
 // 一轮回答是 agent 的一次运行。session 编号就是运行的 ref
-const owner = 'kita'
+const owner = 'code'
 
 // 输入已经关上、agent 正在退出时发来的话，等它退出后开始新的一轮；等不到就结束它，反正已经答完了
 const exitWait = 5000

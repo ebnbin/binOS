@@ -1,4 +1,4 @@
-import type { SessionSummary } from '@binos/server/apps/kita/types'
+import type { SessionSummary } from '@binos/server/apps/code/types'
 import { useEffect, useRef, useState } from 'react'
 import { listSessions } from './api.ts'
 import { onChange } from '../../events.ts'
