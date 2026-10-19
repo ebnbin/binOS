@@ -12,7 +12,7 @@ const agentsDir = path.join(os.homedir(), 'Library', 'LaunchAgents')
 const domain = `gui/${os.userInfo().uid}`
 const binos = path.join(binOSDir, 'bin', 'binos')
 
-// command：运行的子命令，输出写进 var/log/<command>.log；interval：每隔多少秒运行一次，没有的是常驻服务，退出后自动拉起
+// command：运行的子命令，输出写进日志目录下的 <command>.log；interval：每隔多少秒运行一次，没有的是常驻服务，退出后自动拉起
 type Service = { label: string; command: string; interval?: number }
 
 const services: Service[] = [
