@@ -1,4 +1,4 @@
-import { limitsKeys } from '@binos/server/services/agent/types'
+import { agents } from '@binos/server/services/agent/types'
 import type { AgentAccount, Limits } from '@binos/server/services/agent/types'
 import { ChevronLeft, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -7,7 +7,6 @@ import { useStateValue } from '../../state.ts'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { agentAccounts } from '../../services/agent/api.ts'
-import { providerNames } from '../../services/agent/providers.ts'
 import { current, formatReset, level, windowsOf } from '../../services/agent/quota.ts'
 import styles from './AgentAccounts.module.css'
 
@@ -66,12 +65,12 @@ export function AgentAccounts({ back }: { back: () => void }) {
 }
 
 function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: number }) {
-  const limits = useStateValue(limitsKeys[account.provider]) as Limits | null
+  const limits = useStateValue(agents[account.provider].limitsKey) as Limits | null
   const { token } = account
   return (
     <section className={styles.section}>
       <header className={styles.header}>
-        <h2>{providerNames[account.provider]}</h2>
+        <h2>{agents[account.provider].name}</h2>
         <span className={styles.status} data-ok={account.loggedIn}>
           {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
         </span>

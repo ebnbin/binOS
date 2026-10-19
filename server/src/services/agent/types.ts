@@ -2,16 +2,20 @@ export type Context = { tokens: number; window: number }
 // 用掉的 token：输入、输出、读缓存、写缓存
 export type Tokens = { input: number; output: number; cacheRead: number; cacheWrite: number }
 
-// 运行 agent 的程序：Claude Code 或 Codex
-export const providers = ['claude', 'codex'] as const
-export type Provider = (typeof providers)[number]
+// 运行 agent 的程序：显示的名字，额度存在系统状态的哪一项。怎么接入在服务端的 adapters.ts，按同样的 id 对应
+export const agents = {
+  claude: { name: 'Claude', limitsKey: 'agent/limits' },
+  codex: { name: 'Codex', limitsKey: 'agent/codex-limits' },
+} as const satisfies Record<string, { name: string; limitsKey: string }>
+export type Provider = keyof typeof agents
+export const providers = Object.keys(agents) as Provider[]
+// 没有写明 agent 的记录（有多个 agent 之前的数据）和没选 agent 的新对话用它
+export const defaultProvider: Provider = 'claude'
 
-// Claude 的模型用 Claude Code 的别名，总是对应各系列最新的模型
-export const claudeModels = ['fable', 'opus', 'sonnet', 'haiku'] as const
-export const claudeEfforts = ['low', 'medium', 'high', 'xhigh', 'max'] as const
-
-// Codex 的模型由 codex 列出，各自支持的思考程度不同；isDefault 是 codex 默认用的
-export type CodexModel = { id: string; name: string; efforts: string[]; defaultEffort: string; isDefault: boolean }
+// 能选的模型：efforts 是它支持的思考程度，isDefault 是不指定模型时 agent 用的
+export type AgentModel = { id: string; name: string; efforts: string[]; isDefault?: boolean }
+// 一个 agent 能不能用（装了、登录了），能选哪些模型；efforts 是不指定模型时能选的思考程度
+export type AgentCatalog = { provider: Provider; available: boolean; models: AgentModel[]; efforts: string[] }
 
 // offset 是产生它的那一行在这次运行的原始输出里的结束位置，接上运行时从调用方记下的最后一个 offset 之后接着给；
 // 运行结束时补的没有 offset。parent 是子 agent 的记录所属的那次工具调用
@@ -79,10 +83,9 @@ export type LiveEvent =
   | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
 
 // 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
-// agent 运行时报告，按 agent 存在系统状态里
+// agent 运行时报告，按 agent 存在系统状态里（agents 的 limitsKey）
 export type QuotaWindow = { utilization: number; resetsAt: number }
 export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
-export const limitsKeys: Record<Provider, string> = { claude: 'agent/limits', codex: 'agent/codex-limits' }
 
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {

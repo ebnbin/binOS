@@ -1,16 +1,21 @@
 import path from 'node:path'
-import { codexHome } from '../../../paths.js'
+import { agentConfigRoot } from '../../../paths.js'
 import type { Adapter } from '../adapter.js'
 import { commandOutput, isoFromSeconds, parseJson, readText } from '../cli.js'
 import { saveLimits } from '../limits.js'
-import { askCodex, codexLimits } from './app-server.js'
+import { askCodex, codexCatalog, codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
 import { CodexOutput } from './output.js'
+
+const configDir = path.join(agentConfigRoot, 'codex')
 
 // 转接进程和这个模块在一起，开发时是 .ts
 const bridge = path.join(import.meta.dirname, `bridge${path.extname(import.meta.filename)}`)
 
 export const codex: Adapter = {
+  configDir,
+  env: { CODEX_HOME: configDir },
+  inheritedEnv: /^(CODEX|OPENAI)/,
   command: ({ sessionId, model, effort, instructions }) => [
     process.execPath,
     bridge,
@@ -19,6 +24,14 @@ export const codex: Adapter = {
   output: (options) => new CodexOutput(options),
   viewHint: '自己查看，图片用 view_image 工具',
   partialLimits: true,
+  // 不指定模型时能选的是默认模型的思考程度。顺便更新额度
+  catalog: async (env) => {
+    const { limits, ...catalog } = await codexCatalog(env)
+    if (limits) {
+      saveLimits('codex', limits)
+    }
+    return { ...catalog, efforts: catalog.models.find((model) => model.isDefault)?.efforts ?? [] }
+  },
   account,
 }
 
@@ -26,10 +39,11 @@ type CodexAuth = { tokens?: { access_token?: string; refresh_token?: string }; l
 type ResetCredit = { status: string; expiresAt: number | null }
 
 // 访问令牌是 JWT，过期时间直接从里面读，不校验签名
-async function account() {
+async function account(env: NodeJS.ProcessEnv) {
   const [version, live] = await Promise.all([
-    commandOutput('codex', ['--version']),
+    commandOutput('codex', ['--version'], env),
     askCodex(
+      env,
       async (request) => {
         const [account, limits] = await Promise.all([
           request<{ account: { email?: string; planType?: string } | null }>('account/read', {}),
@@ -44,7 +58,7 @@ async function account() {
   if (snapshot) {
     saveLimits('codex', snapshot)
   }
-  const auth = parseJson<CodexAuth>(readText(path.join(codexHome, 'auth.json')))
+  const auth = parseJson<CodexAuth>(readText(path.join(configDir, 'auth.json')))
   const expiresAt = isoFromSeconds(jwtClaims(auth?.tokens?.access_token)?.exp)
   const credits = (live.limits?.rateLimitResetCredits?.credits ?? []).filter((credit) => credit.status === 'available')
   const firstExpiry = Math.min(...credits.flatMap((credit) => (credit.expiresAt ? [credit.expiresAt] : [])))
@@ -61,7 +75,7 @@ async function account() {
       },
     }),
     ...(credits.length > 0 && { resetCredits: { count: credits.length, ...(Number.isFinite(firstExpiry) && { expiresAt: isoFromSeconds(firstExpiry) }) } }),
-    configDir: codexHome,
+    configDir,
   }
 }
 

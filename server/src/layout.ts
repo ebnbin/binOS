@@ -14,8 +14,6 @@ export function rootLayout(root: string) {
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
     sessionsDir: path.join(libraryDir, 'kita', 'sessions'),
     uploadsDir: path.join(libraryDir, 'kita', 'uploads'),
-    claudeConfigDir: path.join(libraryDir, 'claude'),
-    codexHome: path.join(libraryDir, 'codex'),
   }
 }
 

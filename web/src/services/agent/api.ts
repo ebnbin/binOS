@@ -9,8 +9,8 @@ export async function agentAccounts() {
   return res?.ok ? (await res.json()).accounts : undefined
 }
 
-// 读不到时当作不能用
-export async function codexCatalog() {
-  const res = await client.codex.$get().catch(() => undefined)
-  return res?.ok ? await res.json() : { available: false, models: [] }
+// 各个 agent 能不能用、有哪些模型；读不到时返回空列表
+export async function agentCatalogs() {
+  const res = await client.agents.$get().catch(() => undefined)
+  return res?.ok ? (await res.json()).agents : []
 }

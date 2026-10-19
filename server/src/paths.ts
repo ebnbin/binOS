@@ -10,6 +10,5 @@ export const { agentRunsDir, libraryDir, previewsDir, sessionsDir, statePath, up
 export const codeDir = path.resolve(import.meta.dirname, '../..')
 // 喜多里 agent 的工作目录：正式版是 main/，测试实例是被测试的 worktree，预览由启动方指定为它的 worktree
 export const repoDir = process.env.BINOS_REPO_DIR ?? (isTestInstance ? codeDir : layout.mainDir)
-// 测试实例借用正式版的 Claude Code 和 Codex 配置，沿用它们的登录
-export const claudeConfigDir = process.env.BINOS_CLAUDE_CONFIG_DIR ?? layout.claudeConfigDir
-export const codexHome = process.env.BINOS_CODEX_HOME ?? layout.codexHome
+// agent 的登录和配置，每个 agent 一个子目录。测试实例和预览借用正式版的，沿用它们的登录
+export const agentConfigRoot = process.env.BINOS_AGENT_CONFIG_ROOT ?? layout.libraryDir

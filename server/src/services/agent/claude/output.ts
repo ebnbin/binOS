@@ -35,6 +35,9 @@ type Block = {
   is_error?: boolean
   content?: string | ContentPart[]
 }
+// Claude Code 在命令输出后面附加的说明，不是命令本身的输出
+const harnessNote = /^Shell cwd was reset to .*$/gm
+
 // claude --output-format stream-json 的一行里用到的字段
 type Line = {
   type: string
@@ -388,6 +391,7 @@ export class ClaudeOutput implements AgentOutput {
     const text = parts
       .flatMap((part) => (part.type === 'text' && part.text ? [part.text] : []))
       .join('\n')
+      .replace(harnessNote, '')
       .trimEnd()
     const images = parts.flatMap((part, index) => {
       const extension = part.type === 'image' && part.source?.type === 'base64' && imageExtensions[part.source.media_type ?? '']

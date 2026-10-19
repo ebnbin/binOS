@@ -2,7 +2,6 @@ import { execFileSync, spawn } from 'node:child_process'
 import { closeSync, constants, existsSync, openSync, readFileSync, rmSync } from 'node:fs'
 import { open } from 'node:fs/promises'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { claudeConfigDir, codexHome } from '../../paths.js'
 
 // 一次运行用到的文件：给 agent 发消息的管道（FIFO）、转发进程的进程号、agent 的输出和错误信息
 export type RunFiles = { input: string; relay: string; output: string; errors: string }
@@ -15,7 +14,7 @@ const relayScript = 'F=$1; R=$2; shift 2; exec "$@" < <(exec sh -c \'echo $$ > "
 
 // 输出直接写进文件，自成一个进程组（转发进程也在里面）：后端重启时 launchd 结束的是后端所在的进程组，agent 不受影响，
 // 后端重启后接着读文件、接着往管道里写。bash 执行脚本后 exec 成 agent，进程号就是 agent 的
-export function spawnAgent(files: RunFiles, command: string[], cwd: string): number | undefined {
+export function spawnAgent(files: RunFiles, command: string[], cwd: string, env: NodeJS.ProcessEnv): number | undefined {
   for (const file of [files.input, files.relay]) {
     rmSync(file, { force: true })
   }
@@ -25,7 +24,7 @@ export function spawnAgent(files: RunFiles, command: string[], cwd: string): num
   try {
     const child = spawn('/bin/bash', ['-c', relayScript, 'binos', files.input, files.relay, ...command], {
       cwd,
-      env: agentEnv(),
+      env,
       stdio: ['ignore', stdout, stderr],
       detached: true,
     })
@@ -36,14 +35,6 @@ export function spawnAgent(files: RunFiles, command: string[], cwd: string): num
     closeSync(stdout)
     closeSync(stderr)
   }
-}
-
-// 后端可能是从 Claude Code 或 Codex 里启动的（比如测试实例），agent 不能继承那里的设置
-export function agentEnv(): NodeJS.ProcessEnv {
-  const env = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !/^(CLAUDE|ANTHROPIC|CODEX|OPENAI)/.test(key)),
-  )
-  return { ...env, CLAUDE_CONFIG_DIR: claudeConfigDir, CODEX_HOME: codexHome }
 }
 
 // 同时写的两条消息可能交错，按顺序一条条写

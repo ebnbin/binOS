@@ -8,7 +8,7 @@ import { ToolBody } from './ToolBody.tsx'
 
 // 收起时显示的输出行数
 const previewLines = 2
-// Claude Code 在命令输出后面附加的说明，不是命令本身的输出
+// 旧记录里 Claude Code 在命令输出后面附加的说明，不是命令本身的输出；新记录在读输出时就去掉了
 const harnessNote = /^Shell cwd was reset to /
 
 // 文件路径太长时只留后面几段
@@ -50,7 +50,7 @@ function lineChanges(use: ToolUse): { added: number; removed: number } | undefin
   return undefined
 }
 
-// Codex 改文件：新建和删除时 diff 是整个文件的内容，修改时是统一格式的 diff
+// Patch 改文件：新建和删除时 diff 是整个文件的内容，修改时是统一格式的 diff
 function patchChanges({ kind, diff }: { kind?: unknown; diff?: unknown }): { added: number; removed: number } | undefined {
   if (typeof diff !== 'string') {
     return undefined

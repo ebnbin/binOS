@@ -1,4 +1,5 @@
 import type { Attachment, SessionSummary } from '@binos/server/apps/kita/types'
+import { defaultProvider } from '@binos/server/services/agent/types'
 import type { Provider } from '@binos/server/services/agent/types'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
@@ -29,7 +30,7 @@ export function Conversation({
   const running = live !== null
   // 下一轮用的模型和思考程度，没选过就沿用这个 session 最近一轮的
   const [picked, setPicked] = useState<Choice>()
-  const choice = picked ?? { provider: session?.provider ?? 'claude', model: session?.model, effort: session?.effort }
+  const choice = picked ?? { provider: session?.provider ?? defaultProvider, model: session?.model, effort: session?.effort }
 
   // 正在看、又没在回答：记为已读（打开时，以及这一轮答完时）
   useEffect(() => {

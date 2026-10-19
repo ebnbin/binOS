@@ -1,11 +1,11 @@
 import { ArrowUp, Paperclip, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
-import { claudeEfforts, claudeModels } from '@binos/server/services/agent/types'
+import { agents } from '@binos/server/services/agent/types'
 import { PendingAttachments } from './Attachments.tsx'
 import type { PendingFile } from './Attachments.tsx'
 import type { Choice } from './Conversation.tsx'
-import { claudeModelNames, effortName, providerNames, useCodexCatalog } from '../../../services/agent/providers.ts'
+import { effortName, useAgentCatalogs } from '../../../services/agent/providers.ts'
 import styles from './Composer.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
@@ -40,13 +40,12 @@ export function Composer({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasContent = input.trim() !== '' || pending.length > 0
-  const codex = useCodexCatalog()
-  const codexModel = codex.models.find((model) => model.id === choice.model) ?? codex.models.find((model) => model.isDefault)
-  const models =
-    choice.provider === 'codex'
-      ? codex.models.map((model) => ({ id: model.id, name: model.name }))
-      : claudeModels.map((model) => ({ id: model, name: claudeModelNames[model] }))
-  const efforts: readonly string[] = choice.provider === 'codex' ? (codexModel?.efforts ?? []) : claudeEfforts
+  const catalogs = useAgentCatalogs()
+  // 能选的 agent：能用的，加上这个对话正在用的
+  const choosable = catalogs.filter((catalog) => catalog.available || catalog.provider === choice.provider)
+  const catalog = catalogs.find((item) => item.provider === choice.provider)
+  const models = catalog?.models ?? []
+  const efforts = models.find((model) => model.id === choice.model)?.efforts ?? catalog?.efforts ?? []
   const canSend = !sending && hasContent
 
   function addFiles(files: File[]) {
@@ -196,7 +195,7 @@ export function Composer({
             onClick={() => fileInputRef.current?.click()}
           />
           {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
-          {(codex.available || choice.provider === 'codex') && (
+          {choosable.length > 1 && (
             <select
               className={styles.choice}
               value={choice.provider}
@@ -205,8 +204,11 @@ export function Composer({
               aria-label="agent"
               onChange={(event) => onChoice({ provider: event.target.value as Choice['provider'] })}
             >
-              <option value="claude">{providerNames.claude}</option>
-              <option value="codex">{providerNames.codex}</option>
+              {choosable.map(({ provider }) => (
+                <option key={provider} value={provider}>
+                  {agents[provider].name}
+                </option>
+              ))}
             </select>
           )}
           <select
