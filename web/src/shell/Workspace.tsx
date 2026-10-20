@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useApps } from '../apps/index.ts'
 import { AppHost } from './AppHost.tsx'
 import type { OpenWindow } from './Shell.tsx'
@@ -10,11 +10,10 @@ type Drag = { pointer: number; start: number; length: number; position: number; 
 
 // 所有窗口保留挂载，退出布局后滚动位置和输入仍然保留。
 export function Workspace({
-  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, placing, onPlace, onDismissPlacement,
+  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, picking, unavailableApps,
 }: {
-  placing: string | null
-  onPlace: (slot: number) => void
-  onDismissPlacement: () => void
+  picking: boolean
+  unavailableApps: string[]
   windows: OpenWindow[]
   panes: (string | null)[]
   layout: LayoutId
@@ -30,6 +29,11 @@ export function Workspace({
   onTitle: (id: string, title: string) => void
 }) {
   const apps = useApps()
+  const picker = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (picking) picker.current?.querySelector('button')?.focus()
+  }, [picking])
+
   const [offset, setOffset] = useState<number | null>(null)
   const drag = useRef<Drag | null>(null)
   const sizes = paneSizes(layout, size)
@@ -53,7 +57,7 @@ export function Workspace({
         const slot = panes.indexOf(item.id)
         return (
           <section key={item.id} className={styles.pane} hidden={slot < 0} style={position(slot)}
-            data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
+            inert={picking} data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
             <div className={styles.content}><AppHost id={item.id} window={item.window} onTitle={onTitle} /></div>
             {preview(slot)}
           </section>
@@ -61,10 +65,20 @@ export function Workspace({
       })}
       {layout !== '1' && panes.map((id, slot) => id === null && (
         <section key={slot} className={styles.pane} style={position(slot)} data-exiting={exiting === slot} aria-label="选择第二个 app">
-          <div className={styles.picker}>
+          <div ref={picker} className={styles.picker} onKeyDown={(event) => {
+            if (event.key === 'Escape') { event.preventDefault(); onCancel() }
+            if (event.key === 'Tab') {
+              const buttons = [...event.currentTarget.querySelectorAll('button')]
+              const first = buttons[0]
+              const last = buttons.at(-1)
+              if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+              else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+            }
+          }}>
             <p>选择第二个 app</p>
+            <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
-              {apps.filter((app) => !windows.some((item) => item.window.app === app.id && panes.includes(item.id))).map((app) => (
+              {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.app === app.id && panes.includes(item.id))).map((app) => (
                 <button key={app.id} type="button" onClick={() => onPick(app.id, slot)}><app.icon size={20} />{app.name}</button>
               ))}
             </div>
@@ -73,26 +87,11 @@ export function Workspace({
           {preview(slot)}
         </section>
       ))}
-      {placing && (
-        <>
-          <div className={styles.placementBar}>
-            <span role="status">将 {placing} 放在哪边？</span>
-            <button type="button" onClick={onDismissPlacement}>取消</button>
-          </div>
-          {panes.map((_, slot) => (
-            <div key={slot} className={styles.placementTarget} style={position(slot)}>
-              <button type="button" onClick={() => onPlace(slot)}>
-                {portrait ? (slot === 0 ? '放在上侧' : '放在下侧') : (slot === 0 ? '放在左侧' : '放在右侧')}
-              </button>
-            </div>
-          ))}
-        </>
-      )}
       {exiting !== null && (
         <div className={styles.exitHint} role="status">{panes[exiting] ? '松手退到后台' : '松手取消分屏'}</div>
       )}
       {layout !== '1' && (
-        <div className={styles.divider}
+        <div className={styles.divider} inert={picking}
           style={portrait ? { top: first - 5, height: paneGap + 10 } : { left: first - 5, width: paneGap + 10 }}
           role="separator" aria-label="调整分屏，双击交换位置" aria-orientation={portrait ? 'horizontal' : 'vertical'}
           aria-valuemin={0} aria-valuemax={length - paneGap} aria-valuenow={Math.round(first)} tabIndex={0}

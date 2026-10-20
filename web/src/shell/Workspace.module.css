@@ -128,57 +128,5 @@
   .pane, .divider, .content, .handle { transition: none; }
 }
 
-.placementBar {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  z-index: 4;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: calc(100% - 32px);
-  padding: 8px 8px 8px 16px;
-  border-radius: 16px;
-  transform: translateX(-50%);
-  background: var(--bg);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--border), var(--shadow);
-}
-
-.placementBar span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 14px;
-}
-
-.placementBar button, .placementTarget button {
-  flex: none;
-  padding: 10px 16px;
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--hairline);
-}
-
-.placementTarget {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 24px;
-  border-radius: var(--radius);
-  box-shadow: inset 0 0 0 2px var(--border);
-  pointer-events: none;
-}
-
-.placementTarget button {
-  pointer-events: auto;
-  box-shadow: 0 0 0 1px var(--border), var(--shadow);
-}
-
-.placementTarget button:hover, .placementBar button:hover {
-  background: var(--bg);
-}
+.pane[inert] .content { opacity: 0.55; }
+.picker small { color: var(--muted); text-align: center; }

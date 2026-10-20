@@ -174,13 +174,20 @@ export function arrange(workspace: Workspace, layout: LayoutId, focused: string 
   return workspace.slots.slice(0, count)
 }
 
-// 把窗口放到某个位置；它已经在别的位置上时，和原来的窗口对调
-export function place(workspace: Workspace, id: string, slot: number): Workspace {
-  const slots = [...workspace.slots]
-  const from = slots.indexOf(id)
-  if (from >= 0) {
-    slots[from] = slots[slot]
-  }
-  slots[slot] = id
-  return { ...workspace, slots }
+export type SplitGroup = Workspace & { id: string; slots: [string, string] }
+
+export function normalizeGroups(value: JsonValue, ids: string[]): SplitGroup[] {
+  if (!Array.isArray(value)) return []
+  const used = new Set<string>()
+  const groupIds = new Set<string>()
+  return value.flatMap((item) => {
+    const workspace = normalizeWorkspace(item, ids)
+    const id = (item as { id?: string } | null)?.id
+    const [first, second] = workspace.slots
+    if (typeof id !== 'string' || groupIds.has(id) || workspace.layout === '1' || !first || !second || used.has(first) || used.has(second)) return []
+    used.add(first)
+    used.add(second)
+    groupIds.add(id)
+    return [{ id, layout: workspace.layout, slots: [first, second] as [string, string] }]
+  })
 }

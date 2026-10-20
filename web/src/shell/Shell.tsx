@@ -8,11 +8,11 @@ import { Desktop } from './Desktop.tsx'
 import { restoreRoute } from './history.ts'
 import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
-import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place } from './layout.ts'
-import type { LayoutId } from './layout.ts'
+import { allowedLayouts, arrange, fitLayout, isPortrait } from './layout.ts'
+import type { LayoutId, Workspace as WorkspaceState } from './layout.ts'
 import { TaskBar } from './TaskBar.tsx'
 import { Workspace } from './Workspace.tsx'
-import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, useWindows } from './windows.ts'
+import { closeWindow, createGroup, dissolveGroup, ensureWindow, setRoute, updateGroup, useWindows } from './windows.ts'
 import type { WindowState } from './windows.ts'
 
 export type OpenWindow = { id: string; window: WindowState; title: string }
@@ -41,7 +41,7 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
-  const [placing, setPlacing] = useState<string | null>(null)
+  const [draft, setDraft] = useState<WorkspaceState | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -54,17 +54,17 @@ export function Shell() {
     .sort((a, b) => appOrder(apps, a.window.app) - appOrder(apps, b.window.app))
   const ids = windows.map((item) => item.id)
 
-  const { workspace } = stored
   const allowed: LayoutId[] = size ? allowedLayouts(size) : ['1']
-  const layout = fitLayout(workspace.layout, allowed, workspace.slots.indexOf(view.focused))
   const portrait = size ? isPortrait(size) : false
-  const count = layouts[layout].length
   const recent = view.recent.filter((id) => ids.includes(id))
   const focusedWindow = view.focused && ids.includes(view.focused) ? view.focused : (recent[0] ?? null)
+  const group = stored.groups.find((item) => focusedWindow && item.slots.includes(focusedWindow))
+  const workspace: WorkspaceState = draft ?? group ?? { layout: '1', slots: [focusedWindow, null] }
+  const layout = fitLayout(workspace.layout, allowed, workspace.slots.indexOf(focusedWindow))
   const panes = arrange(workspace, layout, focusedWindow)
-  const slot = panes[Math.min(view.slot, count - 1)] ? Math.min(view.slot, count - 1) : Math.max(0, panes.findIndex((id) => id !== null))
+  const slot = Math.max(0, panes.indexOf(focusedWindow))
   const focused = panes[slot]
-  const home = view.home || panes.every((id) => id === null)
+  const home = !draft && (view.home || panes.every((id) => id === null))
 
   const focus = (id: string | null, at: number) =>
     setView((prev) =>
@@ -73,68 +73,38 @@ export function Shell() {
         : { home: false, focused: id ?? prev.focused, slot: at, recent: id ? [id, ...prev.recent.filter((item) => item !== id)].slice(0, 20) : prev.recent },
     )
 
-  // 分屏已有两个 app 时，新的 app 等用户选好位置再放入。
-  // 只有一个位置时只改显示哪个
-  const show = (id: string, target?: number) => {
-    if (count === 1) {
-      setPlacing(null)
-      focus(id, 0)
-      return
-    }
-    const at = panes.indexOf(id)
-    const empty = panes.indexOf(null)
-    if (target === undefined && at < 0 && empty < 0) {
-      setPlacing(id)
-      setView((prev) => ({ ...prev, home: false }))
-      return
-    }
-    setPlacing(null)
-    const to = target ?? (at >= 0 ? at : empty >= 0 ? empty : slot)
-    if (at !== to) {
-      updateWorkspace((current) => place(current, id, to))
-    }
-    focus(id, to)
+  const show = (id: string) => {
+    if (draft) return
+    const target = stored.groups.find((item) => item.slots.includes(id))
+    focus(id, target?.slots.indexOf(id) ?? 0)
   }
 
-  const open = (appId: string, route?: string, target?: number) => {
+  const open = (appId: string, route?: string) => {
+    if (draft) return
     const id = ensureWindow(appId)
-    if (route) {
-      setRoute(id, route)
-    }
-    show(id, target)
+    if (route) setRoute(id, route)
+    show(id)
   }
 
   const chooseLayout = (next: LayoutId) => {
-    if (next !== workspace.layout) saveWorkspace({ ...workspace, layout: next })
+    if (!draft && group && next !== group.layout) updateGroup(group.id, { ...group, layout: next })
   }
 
   const exitSplit = (keep: number) => {
-    setPlacing(null)
+    if (draft) { setDraft(null); return }
     const id = panes[keep]
-    saveWorkspace({ layout: '1', slots: [id, null] })
+    if (group) dissolveGroup(group.id)
     if (id) focus(id, 0)
-    else setView((prev) => ({ ...prev, home: true, focused: null, slot: 0 }))
   }
 
   const close = () => {
-    setPlacing(null)
-    if (!focused) return
-    const next = count > 1 ? panes.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
+    if (draft || !focused) return
+    const next = group ? group.slots.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
     closeWindow(focused)
-    saveWorkspace({ layout: '1', slots: [next, null] })
     setView((prev) => ({ ...prev, home: !next, focused: next, slot: 0 }))
   }
 
-  if (count === 1 && placing !== null) setPlacing(null)
-
-  useEffect(() => {
-    if (!placing) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setPlacing(null)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [placing])
+  if (draft && (!allowed.includes(draft.layout) || !stored.windows[draft.slots[0]!])) setDraft(null)
 
   // 浏览器返回时，恢复那条记录的窗口和路由
   useEffect(() => {
@@ -164,18 +134,26 @@ export function Shell() {
               onFocus={focus}
               onLayout={chooseLayout}
               onExit={exitSplit}
-              onPick={(appId, at) => open(appId, undefined, at)}
+              onPick={(appId) => {
+                if (!draft || !draft.slots[0]) return
+                const existing = windows.find((item) => item.window.app === appId)
+                if (existing && stored.groups.some((item) => item.slots.includes(existing.id))) return
+                const id = ensureWindow(appId)
+                createGroup({ layout: draft.layout, slots: [draft.slots[0], id] })
+                setDraft(null)
+                focus(id, 1)
+              }}
+              picking={draft !== null}
+              unavailableApps={windows.filter((item) => stored.groups.some((group) => group.slots.includes(item.id))).map((item) => item.window.app)}
               onSwap={() => {
-                saveWorkspace({ ...workspace, slots: [...workspace.slots].reverse() })
+                if (draft || !group) return
+                updateGroup(group.id, { ...group, slots: [...group.slots].reverse() })
                 if (focused) focus(focused, 1 - slot)
               }}
               onCancel={() => exitSplit(slot)}
               size={size}
               portrait={portrait}
               onTitle={onTitle}
-              placing={count > 1 && !panes.includes(placing) ? windows.find((item) => item.id === placing)?.title ?? null : null}
-              onPlace={(at) => placing && show(placing, at)}
-              onDismissPlacement={() => setPlacing(null)}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
           </>
@@ -185,6 +163,8 @@ export function Shell() {
         <TaskBar
           placement={placement}
           windows={windows}
+          groups={stored.groups}
+          locked={draft !== null}
           panes={panes}
           focused={focused}
           focusedSlot={slot}
@@ -192,17 +172,12 @@ export function Shell() {
           layout={layout}
           allowed={allowed}
           portrait={portrait}
-          onHome={() => { setPlacing(null); setView((prev) => ({ ...prev, home: !home })) }}
+          onHome={() => { if (!draft) setView((prev) => ({ ...prev, home: !home })) }}
           onShow={show}
           onSplit={() => {
-            setPlacing(null)
-            if (!focused) return
-            if (count > 1) {
-              exitSplit(slot)
-              return
-            }
-            saveWorkspace({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
-            focus(focused, 0)
+            if (draft || !focused) return
+            if (group) { exitSplit(slot); return }
+            setDraft({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
           }}
           onClose={close}
         />

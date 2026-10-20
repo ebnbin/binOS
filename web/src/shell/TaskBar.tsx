@@ -3,7 +3,7 @@ import { findApp, useApps } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
 import type { BarPlacement } from './bar-placement.ts'
 import { layouts } from './layout.ts'
-import type { LayoutId } from './layout.ts'
+import type { LayoutId, SplitGroup } from './layout.ts'
 import type { OpenWindow } from './Shell.tsx'
 import styles from './TaskBar.module.css'
 
@@ -22,6 +22,8 @@ function LayoutGlyph({ layout, portrait, active }: { layout: LayoutId; portrait:
 export function TaskBar({
   placement,
   windows,
+  groups,
+  locked,
   panes,
   focused,
   focusedSlot,
@@ -36,6 +38,8 @@ export function TaskBar({
 }: {
   placement: Exclude<BarPlacement, 'hidden'>
   windows: OpenWindow[]
+  groups: SplitGroup[]
+  locked: boolean
   panes: (string | null)[]
   focused: string | null
   focusedSlot: number
@@ -54,27 +58,36 @@ export function TaskBar({
   const canPick = !home && allowed.length > 1
 
   return (
-    <nav className={styles.bar} data-placement={placement}>
+    <nav inert={locked} className={styles.bar} data-placement={placement}>
       <div className={styles.dock}>
         <button type="button" className={styles.item} aria-label="桌面" title="桌面" aria-pressed={home} onClick={onHome}>
           <BrandMark size={22} inverted />
         </button>
         {windows.length > 0 && <span className={styles.separator} />}
         <div className={styles.apps}>
-          {windows.map((item) => {
-            const app = findApp(apps, item.window.app)
+          {windows.filter((item) => {
+            const group = groups.find((group) => group.slots.includes(item.id))
+            return !group || group.slots[0] === item.id
+          }).map((item) => {
+            const group = groups.find((group) => group.slots.includes(item.id))
+            const members = group ? group.slots.map((id) => windows.find((win) => win.id === id)!).filter(Boolean) : [item]
+            const title = members.map((member) => member.title).join(' + ')
             return (
               <button
-                key={item.id}
+                key={group?.id ?? item.id}
                 type="button"
                 className={styles.item}
-                aria-label={item.title}
-                title={item.title}
-                aria-pressed={!home && item.id === focused}
-                data-visible={!home && panes.includes(item.id)}
-                onClick={() => onShow(item.id)}
+                data-group={!!group}
+                aria-label={title}
+                title={title}
+                aria-pressed={!home && members.some((member) => member.id === focused)}
+                data-visible={!home && members.some((member) => panes.includes(member.id))}
+                onClick={() => onShow(members.find((member) => member.id === focused)?.id ?? item.id)}
               >
-                {app && <app.icon size={21} strokeWidth={1.75} />}
+                {members.map((member) => {
+                  const app = findApp(apps, member.window.app)
+                  return app && <app.icon key={member.id} size={group ? 18 : 21} strokeWidth={1.75} />
+                })}
               </button>
             )
           })}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allowedLayouts, arrange, desktopColumns, fitLayout, normalizeWorkspace, packColumn, place, paneSizes, snapLayout, splitColumns } from './layout.ts'
+import { allowedLayouts, arrange, desktopColumns, fitLayout, normalizeGroups, normalizeWorkspace, packColumn, paneSizes, snapLayout, splitColumns } from './layout.ts'
 
 describe('desktopColumns', () => {
   it('一栏 360～480，最多 3 栏，多出来的留给左右两边', () => {
@@ -90,13 +90,6 @@ describe('arrange', () => {
   })
 })
 
-describe('place', () => {
-  it('已经在别的位置上时对调', () => {
-    expect(place({ layout: '1:1', slots: ['a', 'b'] }, 'b', 0).slots).toEqual(['b', 'a'])
-    expect(place({ layout: '1:1', slots: ['a', 'b'] }, 'c', 1).slots).toEqual(['a', 'c'])
-  })
-})
-
 describe('分屏尺寸和吸附', () => {
   it('小窗口固定最小尺寸，大窗口占剩余空间', () => {
     expect(paneSizes('1:2', { width: 1600, height: 900 })).toEqual([{ width: 360, height: 900 }, { width: 1234, height: 900 }])
@@ -145,5 +138,29 @@ describe('分屏缓冲区', () => {
     expect(allowedLayouts({ width: 600, height: 816 })).toEqual(['1', '1:2', '2:1'])
     expect(paneSizes('1:2', { width: 816, height: 600 }).map((size) => size.width)).toEqual([360, 450])
     expect(paneSizes('2:1', { width: 600, height: 816 }).map((size) => size.height)).toEqual([450, 360])
+  })
+})
+
+
+describe('分屏组', () => {
+  it('保留多个完整分屏组，窗口不能重复归组', () => {
+    const a = { id: 'one', layout: '1:2', slots: ['a', 'b'] }
+    const b = { id: 'two', layout: '2:1', slots: ['c', 'd'] }
+    expect(normalizeGroups([a, { id: 'overlap', layout: '1:1', slots: ['b', 'c'] }, b], ['a', 'b', 'c', 'd'])).toEqual([a, b])
+  })
+
+  it('窗口被关闭或数据不完整时解散该组', () => {
+    expect(normalizeGroups([
+      { id: 'missing', layout: '1:1', slots: ['a', 'gone'] },
+      { id: 'empty', layout: '1:1', slots: ['a', null] },
+      { id: 'duplicate', layout: '1:1', slots: ['a', 'a'] },
+      { id: 'single', layout: '1', slots: ['a', 'b'] },
+    ], ['a', 'b'])).toEqual([])
+  })
+
+  it('重复组 id 不会占用后续合法分组的窗口', () => {
+    const a = { id: 'one', layout: '1:1', slots: ['a', 'b'] }
+    const b = { id: 'two', layout: '1:1', slots: ['c', 'd'] }
+    expect(normalizeGroups([a, { ...b, id: 'one' }, b], ['a', 'b', 'c', 'd'])).toEqual([a, b])
   })
 })

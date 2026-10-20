@@ -140,3 +140,12 @@
   opacity: 1;
   background: #fff;
 }
+
+.item[data-group='true'] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 58px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
+}
