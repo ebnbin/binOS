@@ -1,5 +1,5 @@
 import { notifyChange } from '../../events.js'
-import { createThread, onThreadEvent } from '../../services/agent/index.js'
+import { createThread, isPriced, onThreadEvent } from '../../services/agent/index.js'
 import { defaultAgent } from '../../services/agent/types.js'
 import type { AgentId } from '../../services/agent/types.js'
 import { pushQueue, readQueue, takeQueue, unshiftQueue } from './queue.js'
@@ -38,7 +38,7 @@ onThreadEvent(owner, (thread, event) => {
   } else if (event.type === 'item' && event.item.type === 'turn_end') {
     waitingSessions.delete(id)
     // 先记下额度的点，页面收到通知读到的用量才是新的
-    if (threadOf(id).summary().agent === 'claude') {
+    if (isPriced(threadOf(id).summary().agent)) {
       recordQuotaSample()
     }
     notifyChange({ type: 'session', id })

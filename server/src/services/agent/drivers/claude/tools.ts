@@ -1,16 +1,7 @@
 import type { ToolDetail } from '../../types.js'
+import { mcpTool } from '../tools.js'
 
 const text = (value: unknown) => (typeof value === 'string' ? value : '')
-
-// Claude in Chrome 的工具：action 取工具名，target 取这个参数
-const browserPrefix = 'mcp__claude-in-chrome__'
-const browserTargets: Record<string, string> = {
-  navigate: 'url',
-  computer: 'action',
-  javascript_tool: 'text',
-  find: 'query',
-  read_console_messages: 'pattern',
-}
 
 // Claude Code 的工具调用归类。参数都已经在 tool 里的，不再带原始的 input
 export function claudeTool(name: string, input: Record<string, unknown>): { tool: ToolDetail; input?: unknown } {
@@ -56,14 +47,10 @@ export function claudeTool(name: string, input: Record<string, unknown>): { tool
         },
       }
   }
-  if (name.startsWith(browserPrefix)) {
-    const action = name.slice(browserPrefix.length)
-    const target = browserTargets[action] && input[browserTargets[action]]
-    return { tool: { kind: 'browser', action, ...(typeof target === 'string' && { target }) }, input }
-  }
+  // MCP 工具的名字是 mcp__服务__工具
   const mcp = /^mcp__(.+?)__(.+)$/.exec(name)
   if (mcp) {
-    return { tool: { kind: 'mcp', server: mcp[1], tool: mcp[2] }, input }
+    return mcpTool(mcp[1], mcp[2], input)
   }
   return { tool: { kind: 'other' }, input }
 }

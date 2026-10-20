@@ -66,3 +66,19 @@ export function dateGroup(date: Date, now = new Date()) {
   }
   return days < 30 ? '30 天内' : '更早'
 }
+
+const dateTime = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+
+// 离现在多久：3 小时后、2 天前
+function relative(date: Date, now: number) {
+  const minutes = Math.round((date.getTime() - now) / 60_000)
+  const amount = Math.abs(minutes)
+  const text = amount < 60 ? `${amount} 分钟` : amount < 48 * 60 ? `${Math.round(amount / 60)} 小时` : `${Math.round(amount / 60 / 24)} 天`
+  return minutes >= 0 ? `${text}后` : `${text}前`
+}
+
+// 某个时刻和离现在多久：10/26 08:00（3 天后）
+export function formatMoment(iso: string, now = Date.now()) {
+  const date = new Date(iso)
+  return `${dateTime.format(date)}（${relative(date, now)}）`
+}

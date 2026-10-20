@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import { notifyChange } from '../../events.js'
+import { isPriced } from '../../services/agent/index.js'
 import { agentIds } from '../../services/agent/types.js'
 import type { AgentId } from '../../services/agent/types.js'
 import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } from './messages.js'
@@ -102,6 +103,7 @@ async function summary(id: number): Promise<SessionSummary> {
     ...(thread.model && { model: thread.model }),
     ...(thread.effort && { effort: thread.effort }),
     turns: thread.turns,
+    priced: isPriced(thread.agent),
     ...sessionUsage(id),
     prs,
     queue: readQueue(id),
@@ -133,7 +135,7 @@ export const codeApi = new Hono()
     )
     return c.json({ sessions })
   })
-  // 这 7 天 binOS 大约用了周额度的多少，Claude 的一轮结束时会变（随会话的通知重新读取）
+  // 这 7 天 binOS 大约用了周额度的多少，能折算花费的 agent 的一轮结束时会变（随会话的通知重新读取）
   .get('/usage', (c) => c.json({ usage: codeUsage() ?? null }))
   // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
   .post('/uploads', async (c) => {

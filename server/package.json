@@ -10,6 +10,8 @@
     "./types": "./src/types.ts",
     "./services/agent/api": "./src/services/agent/api.ts",
     "./services/agent/types": "./src/services/agent/types.ts",
+    "./services/agent/drivers/claude/api": "./src/services/agent/drivers/claude/api.ts",
+    "./services/agent/drivers/codex/api": "./src/services/agent/drivers/codex/api.ts",
     "./apps/code/api": "./src/apps/code/api.ts",
     "./apps/code/types": "./src/apps/code/types.ts"
   },

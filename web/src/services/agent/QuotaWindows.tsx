@@ -8,17 +8,17 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
   const blocking = blockingWindow(limits, now)
   return (
     <div className={styles.windows}>
-      {limits.status !== 'allowed' && (
+      {limits.limited && (
         <p className={styles.limited}>
           {blocking
             ? `已被限流：${blocking.name}额度用满了，${formatReset(blocking.window.resetsAt, now).replace('重置', '恢复')}`
             : '已被限流'}
         </p>
       )}
-      {windowsOf(limits).map(({ key, name, window, length }) => {
+      {windowsOf(limits).map(({ key, longest, name, window, length }) => {
         const { used, left, expected, pace, runsOut } = windowState(window, length, now)
         return (
-          <div key={key} className={styles.window} data-window={key}>
+          <div key={key} className={styles.window} data-longest={longest || undefined}>
             <div className={styles.windowLine}>
               <span className={styles.windowName}>
                 <span className={styles.swatch} />

@@ -1,4 +1,5 @@
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
+import { agents } from '@binos/server/services/agent/types'
 import { useEffect, useRef, useState } from 'react'
 import { codeUsage } from '../api.ts'
 import { formatTokens } from '../../../ui/format.ts'
@@ -6,21 +7,21 @@ import { formatQuota } from '../format.ts'
 import { useAgentStatus } from '../../../services/agent/status.ts'
 import styles from './Usage.module.css'
 
-// 输入框里的上下文圆环：圈是上下文占了多少，快满时 Claude Code 会压缩历史，前面的细节可能丢失。
+// 输入框里的上下文圆环：圈是上下文占了多少，快满时 agent 会压缩历史，前面的细节可能丢失。
 // 点开是这个会话的用量：上下文、一共用掉的 token 和各部分、大约占订阅周额度多少，
 // 以及这 7 天里 binOS 大约用了多少（订阅是共用的，其余是别处用的）
 export function Usage({ session }: { session: SessionSummary }) {
   const [open, setOpen] = useState(false)
   // 这 7 天 binOS 用了多少：打开面板时读
-  const [week, setWeek] = useState<CodeUsage>()
-  const limits = useAgentStatus()?.limits.claude
+  const [usage, setUsage] = useState<CodeUsage>()
+  const week = useAgentStatus()?.limits[session.agent]?.windows.find((window) => window.minutes === 7 * 24 * 60)
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) {
       return
     }
     let cancelled = false
-    void codeUsage().then((usage) => !cancelled && setWeek(usage))
+    void codeUsage().then((result) => !cancelled && setUsage(result))
     const onPointerDown = (event: PointerEvent) => {
       if (!ref.current?.contains(event.target as Node)) {
         setOpen(false)
@@ -94,24 +95,24 @@ export function Usage({ session }: { session: SessionSummary }) {
               <span>输出 {formatTokens(tokens.output)}</span>
             </div>
           )}
-          {session.agent === 'claude' && (
+          {session.priced && (
             <>
               <div className={styles.line}>
                 <span className={styles.label}>约占周额度</span>
                 {quota !== undefined ? <span>{formatQuota(quota)}</span> : <span className={styles.muted}>还估不出来</span>}
               </div>
-              {week?.week !== undefined && limits?.sevenDay?.resetsAt === week.resetsAt && (
+              {usage?.week !== undefined && week?.resetsAt === usage.resetsAt && (
                 <div className={styles.line}>
                   <span className={styles.label}>这 7 天</span>
                   <span>
-                    binOS 约 {formatQuota(week.week)}
-                    <span className={styles.muted}> · 订阅共 {Math.round(limits.sevenDay.utilization * 100)}%</span>
+                    binOS 约 {formatQuota(usage.week)}
+                    <span className={styles.muted}> · 订阅共 {Math.round(week.utilization * 100)}%</span>
                   </span>
                 </div>
               )}
               <p className={styles.note}>
                 {quota !== undefined
-                  ? '订阅是 Claude 自己的 app、claude.ai 和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高'
+                  ? `订阅是 ${agents[session.agent].name} 自己的 app、网页版和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高`
                   : 'binOS 的用量让 7 天额度涨过 3% 后才估得出来'}
               </p>
             </>

@@ -5,20 +5,13 @@ import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { agentAccounts, agentCatalogs } from './accounts.js'
-import { claudeAuth } from './drivers/claude/auth.js'
-import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './drivers/claude/login.js'
-import type { ClaudeLoginKind } from './drivers/claude/login.js'
-import { codexAuth } from './drivers/codex/auth.js'
-import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './drivers/codex/login.js'
+import { drivers } from './drivers/index.js'
 import { allLimits } from './limits.js'
 import { filesDir } from './store.js'
 import { getThread } from './threads.js'
+import { agentIds } from './types.js'
 import type { AgentStatus, ThreadEvent } from './types.js'
 
-const loginBody = validator('json', (value, c) => {
-  const kind = (value as { kind?: unknown } | null)?.kind
-  return kind === 'login' || kind === 'token' ? { kind: kind as ClaudeLoginKind } : c.text('Bad Request', 400)
-})
 
 const threadParam = validator('param', (value: Record<string, string>, c) => {
   const id = value.id ?? ''
@@ -40,58 +33,19 @@ const inlineTypes: Record<string, string> = {
   json: 'text/plain; charset=utf-8',
 }
 
-const codeBody = validator('json', (value, c) => {
-  const code = (value as { code?: unknown } | null)?.code
-  return typeof code === 'string' && /^[\w#.~-]{1,500}$/.test(code.trim()) ? { code } : c.text('Bad Request', 400)
-})
 
-const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-// 页面用到的 agent 服务：系统 app 显示账号、登录 Claude 和 Codex，app 里选 agent 和模型、显示 thread 的内容。
-// 建 thread、说话由各个 app 在后端调用
+// 页面用到的 agent 服务：系统 app 显示账号，app 里选 agent 和模型、显示 thread 的内容。
+// 建 thread、说话由各个 app 在后端调用；各个 agent 自己的接口（比如在网页上登录）在 /<agent 的 id> 下
 export const agentApi = new Hono()
   // 各个 agent 最近报告的额度和登录的状况，页面收到 agent 通知时重新读取
-  .get('/status', (c) => c.json({ limits: allLimits(), claude: claudeAuth(), codex: codexAuth() } satisfies AgentStatus))
+  .get('/status', (c) =>
+    c.json({ limits: allLimits(), auth: Object.fromEntries(agentIds.map((agent) => [agent, drivers[agent].auth()])) as AgentStatus['auth'] } satisfies AgentStatus),
+  )
   // 各个 agent 的账号、登录凭证和用量
   .get('/accounts', async (c) => c.json({ accounts: await agentAccounts() }))
   // 各个 agent 能不能用、有哪些模型
   .get('/agents', async (c) => c.json({ agents: await agentCatalogs() }))
-  // 开始在网页上登录 Claude（见 claude/login.ts），返回授权链接
-  .post('/claude/login', loginBody, async (c) => {
-    try {
-      return c.json(await startClaudeLogin(c.req.valid('json').kind), 200)
-    } catch (error) {
-      return c.json({ error: errorText(error) }, 500)
-    }
-  })
-  // 贴回授权后的代码，完成登录
-  .post('/claude/login/:id', codeBody, async (c) => {
-    try {
-      await finishClaudeLogin(c.req.param('id'), c.req.valid('json').code)
-      return c.json({ ok: true as const }, 200)
-    } catch (error) {
-      return c.json({ error: errorText(error) }, 500)
-    }
-  })
-  .post('/claude/login/:id/cancel', (c) => {
-    cancelClaudeLogin(c.req.param('id'))
-    return c.json({ ok: true as const }, 200)
-  })
-  // 开始在网页上重新登录 Codex（见 codex/login.ts），返回网址和一次性的码
-  .post('/codex/login', async (c) => {
-    try {
-      return c.json(await startCodexLogin(), 200)
-    } catch (error) {
-      return c.json({ error: errorText(error) }, 500)
-    }
-  })
-  // 页面轮询：用户授权了没有
-  .get('/codex/login/:id', (c) => c.json(codexLoginStatus(c.req.param('id'))))
-  .post('/codex/login/:id/cancel', (c) => {
-    cancelCodexLogin(c.req.param('id'))
-    return c.json({ ok: true as const }, 200)
-  })
-
   // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
   .get('/threads/:id/stream', threadParam, (c) => {
     const thread = getThread(c.req.valid('param').id)!
@@ -125,5 +79,10 @@ export const agentApi = new Hono()
       'Cache-Control': 'private, max-age=31536000, immutable',
     })
   })
+
+// 各个 agent 的接口，页面用 driver 各自导出的类型
+for (const driver of Object.values(drivers)) {
+  agentApi.route(`/${driver.id}`, driver.api)
+}
 
 export type AgentApi = typeof agentApi

@@ -374,19 +374,19 @@ export class ClaudeDecoder implements Decoder {
   }
 }
 
-function windowOf(line: Line, name: string): QuotaWindow | undefined {
-  const window = line.rate_limit_info?.unifiedWindows?.[name]
-  return typeof window?.utilization === 'number' && typeof window.resetsAt === 'number'
-    ? { utilization: window.utilization, resetsAt: window.resetsAt }
-    : undefined
-}
+// Claude 报告的各个窗口按名字对应窗口的长度
+const windowMinutes: Record<string, number> = { five_hour: 5 * 60, seven_day: 7 * 24 * 60 }
 
 function limitsOf(line: Line): Limits | undefined {
   const status = line.rate_limit_info?.status
   if (!status) {
     return undefined
   }
-  const fiveHour = windowOf(line, 'five_hour')
-  const sevenDay = windowOf(line, 'seven_day')
-  return { status, ...(fiveHour && { fiveHour }), ...(sevenDay && { sevenDay }), updatedAt: line.timestamp ?? new Date().toISOString() }
+  const windows = Object.entries(windowMinutes).flatMap(([id, minutes]): QuotaWindow[] => {
+    const window = line.rate_limit_info?.unifiedWindows?.[id]
+    return typeof window?.utilization === 'number' && typeof window.resetsAt === 'number'
+      ? [{ id, minutes, utilization: window.utilization, resetsAt: window.resetsAt }]
+      : []
+  })
+  return { limited: status !== 'allowed', windows, updatedAt: line.timestamp ?? new Date().toISOString() }
 }

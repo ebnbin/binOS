@@ -1,4 +1,4 @@
-import type { Attachment, Item, Live, Status } from '@binos/server/services/agent/types'
+import type { AgentId, Attachment, Item, Live, Status } from '@binos/server/services/agent/types'
 import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
@@ -6,7 +6,7 @@ import { Alert } from '../../../ui/Alert.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
 import { formatDuration, formatTokens, useNow } from '../../../ui/format.ts'
 import { formatClock, formatDivider, formatFull, sameDay } from '../../../ui/time.ts'
-import { formatModel } from '../models.ts'
+import { modelName } from '../views.ts'
 import { AttachmentList } from './Attachments.tsx'
 import { Markdown } from './Markdown.tsx'
 import { SubagentCall } from './SubagentCall.tsx'
@@ -44,6 +44,7 @@ type Step =
 // 整个 thread 共用的：工具结果按调用 id，子 agent 的条目按它所属的调用 id
 type Context = {
   thread: string
+  agent: AgentId | undefined
   results: Map<string, ToolResult>
   children: Map<string, Entry[]>
   live: Live | null
@@ -196,7 +197,7 @@ function renderBlocks(blocks: Block[], context: Context, last: Block | undefined
           </div>
         )
       case 'turn_end':
-        return <TurnEnd key={block.key} thread={thread} item={block.item} reply={block.reply} edits={block.edits} />
+        return <TurnEnd key={block.key} thread={thread} agent={context.agent} item={block.item} reply={block.reply} edits={block.edits} />
     }
   })
 }
@@ -297,14 +298,14 @@ function compactText({ trigger, preTokens, postTokens }: CompactItem) {
 }
 
 // 一轮的结尾：停止、出错，以及这一轮的统计
-function TurnEnd({ thread, item, reply, edits }: { thread: string; item: TurnEndItem; reply: string; edits: CallState[] }) {
+function TurnEnd({ thread, agent, item, reply, edits }: { thread: string; agent: AgentId | undefined; item: TurnEndItem; reply: string; edits: CallState[] }) {
   const files = fileChanges(edits)
   const { durationMs, outputTokens, context, model, outcome, error } = item
   const stats = [
     `用时 ${formatDuration(durationMs)}`,
     outputTokens !== undefined && `输出 ${formatTokens(outputTokens)} token`,
     context && `上下文 ${Math.round((context.tokens / context.window) * 100)}%`,
-    model && formatModel(model),
+    model && (agent ? modelName(agent, model) : model),
   ].filter(Boolean)
   const changes = files.length > 0 && <TurnChanges thread={thread} files={files} />
   if (outcome === 'stopped') {
@@ -381,7 +382,8 @@ export function Transcript({ thread, items, live }: { thread: string; items: Ite
       main.push({ item, index })
     }
   })
-  const context: Context = { thread, results, children, live, now }
+  const agent = items[0]?.type === 'thread' ? items[0].agent : undefined
+  const context: Context = { thread, agent, results, children, live, now }
   const runningTool = main.findLast(({ item }) => item.type === 'tool_call' && !results.has(item.id))?.item
   // 这一轮从最后一个 mode 为 start 的 input 开始
   const turnStart = items.findLast((item) => item.type === 'input' && item.mode === 'start')?.time

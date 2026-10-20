@@ -158,10 +158,11 @@ export type ThreadSummary = {
   costs: [time: string, cost: number][]
 }
 
-// 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
-// agent 运行时报告，按 agent 存在 agent 服务的数据目录里（见 limits.ts）
-export type QuotaWindow = { utilization: number; resetsAt: number }
-export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
+// 订阅额度的一个窗口：id 是 agent 自己的标识，minutes 是窗口多长，用了多少（0 到 1），什么时候重置（秒级时间戳）；
+// label：一样长的窗口不止一个时用来区分
+export type QuotaWindow = { id: string; minutes: number; label?: string; utilization: number; resetsAt: number }
+// 一个 agent 的订阅额度：limited 是已被限流。agent 运行时报告，按 agent 存在 agent 服务的数据目录里（见 limits.ts）
+export type Limits = { limited: boolean; windows: QuotaWindow[]; updatedAt: string }
 
 // Claude 的两份登录：完整登录（/login，续期令牌约 4 周后到期，过了只能重新登录）和备用的一年期 token
 // （setup-token 生成，只能调模型，没有 claude.ai 的连接器）。mode 是现在启动 Claude 用哪份，none 是都用不了。
@@ -175,8 +176,14 @@ export type ClaudeAuth = {
 // Codex 的 ChatGPT 登录：访问令牌由 Codex 自己续，没有备用的。broken：回答时认证失败了，重新登录后不算。每次读取时从登录文件现查
 export type CodexAuth = { loggedIn: boolean; broken?: true }
 
+// 各个 agent 登录的状况，各家的登录方式不同，形状也不同，页面上由各自的组件显示
+export type AgentAuths = { claude: ClaudeAuth; codex: CodexAuth }
+
 // 页面看到的 agent 的状况：各 agent 最近报告的额度和登录。有变化时后端发 agent 通知，页面重新读取
-export type AgentStatus = { limits: Partial<Record<AgentId, Limits>>; claude: ClaudeAuth; codex: CodexAuth }
+export type AgentStatus = { limits: Partial<Record<AgentId, Limits>>; auth: Partial<AgentAuths> }
+
+// 账号的一项信息，各家独有的（比如组织、额度重置次数）都用它，页面逐行原样显示
+export type AccountDetail = { label: string; value: string; note?: string }
 
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {
@@ -184,13 +191,11 @@ export type AgentAccount = {
   version?: string
   loggedIn: boolean
   email?: string
-  organization?: string
   // 订阅的套餐，原样显示
   plan?: string
-  // 登录凭证：访问令牌什么时候过期、上次续期的时间，有刷新令牌时到期前会自动续
+  // 访问令牌什么时候过期、上次续期的时间，有刷新令牌时到期前会自动续；令牌的到期不是要看的（比如会自动频繁续期）时没有
   token?: { expiresAt?: string; refreshedAt?: string; refreshable: boolean }
-  // Codex 送的额度重置次数，最早的那次什么时候过期
-  resetCredits?: { count: number; expiresAt?: string }
+  details: AccountDetail[]
   // 登录和配置存放的目录
   configDir: string
   // 正在回答的 thread 数，不分是哪个 app 的
