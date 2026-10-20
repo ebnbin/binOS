@@ -2,6 +2,7 @@ import path from 'node:path'
 import { commandOutput, isoFromSeconds, parseJson, readText } from '../../cli.js'
 import { saveLimits } from '../../limits.js'
 import type { Driver } from '../types.js'
+import { browserMcpServer } from '../browser.js'
 import { askCodex, codexCatalog, codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
 import { codexApi } from './api.js'
@@ -17,7 +18,7 @@ export const codex: Driver = {
   inheritedEnv: /^(CODEX|OPENAI)/,
   host: ({ agentSession, model, effort, instructions }) => ({
     agent: 'codex',
-    args: { thread: agentSession, model, effort, instructions } satisfies CodexHostArgs,
+    args: { thread: agentSession, model, effort, instructions, mcpServers: { 'claude-in-chrome': browserMcpServer } } satisfies CodexHostArgs,
   }),
   decoder: (options) => new CodexDecoder(options),
   fileHint: '自己查看，图片用 view_image 工具',

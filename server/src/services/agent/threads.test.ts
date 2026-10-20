@@ -47,7 +47,7 @@ class FakeDecoder {
 }
 drivers.claude = {
   ...drivers.claude,
-  host: () => ({ agent: 'claude', args: [process.execPath, ${JSON.stringify(agentScript)}] }),
+  host: ({ effort }) => ({ agent: 'claude', args: [process.execPath, ${JSON.stringify(agentScript)}, ...(effort ? [effort] : [])] }),
   decoder: () => new FakeDecoder(),
   authEnv: undefined,
 }

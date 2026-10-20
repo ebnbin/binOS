@@ -6,8 +6,14 @@ import type { HostAgentRunner, HostCommand, HostReply } from '../../host/protoco
 // 在 host 进程里运行：只依赖 Node 自带的模块和 host 的约定，启动时一次加载完。
 // 持有一个 codex app-server，用 JSON-RPC 建立或接上会话，命令转成对应的请求；app-server 的输出原样交给 host
 
-// thread：接着这个会话，没有就开一个新的；instructions：追加的系统提示
-export type CodexHostArgs = { thread?: string; model?: string; effort?: string; instructions: string }
+// thread：接着这个会话，没有就开一个新的；instructions：追加的系统提示；mcpServers：另外给它的 MCP 服务
+export type CodexHostArgs = {
+  thread?: string
+  model?: string
+  effort?: string
+  instructions: string
+  mcpServers: Record<string, { command: string; args: string[]; env: Record<string, string> }>
+}
 type Response = { id?: number; result?: { thread?: { id: string } }; error?: { message?: string } }
 type Notification = { method?: string; params?: { threadId?: string; turn?: { id: string } } }
 
@@ -46,7 +52,7 @@ async function establish(fail: (message: string) => void) {
     ...permissions,
     developerInstructions: options.instructions,
     // 默认不给思考的摘要
-    config: { model_reasoning_summary: 'detailed' },
+    config: { model_reasoning_summary: 'detailed', mcp_servers: options.mcpServers },
     ...(options.model && { model: options.model }),
   }
   const response = options.thread

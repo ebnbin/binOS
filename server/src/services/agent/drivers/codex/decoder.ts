@@ -1,7 +1,7 @@
-import { constants, copyFileSync, mkdirSync } from 'node:fs'
+import { constants, copyFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Limits, LiveEvent, ToolDetail, Tokens } from '../../types.js'
-import { LiveState, truncatedOutput } from '../decoder.js'
+import { imageExtensions, LiveState, truncatedOutput } from '../decoder.js'
 import { mcpTool } from '../tools.js'
 import type { DecodedItem, Decoder, DecoderOptions } from '../types.js'
 import { codexLimits } from './app-server.js'
@@ -23,7 +23,7 @@ type CodexItem = {
   server?: string
   tool?: string
   arguments?: unknown
-  result?: { content?: { type?: string; text?: string }[] } | null
+  result?: { content?: { type?: string; text?: string; data?: string; mimeType?: string }[] } | null
   error?: { message?: string } | null
   query?: string
   prompt?: string | null
@@ -311,7 +311,8 @@ export class CodexDecoder implements Decoder {
         break
       case 'mcpToolCall': {
         const output = item.error?.message ?? (item.result?.content ?? []).flatMap((part) => (part.text ? [part.text] : [])).join('\n')
-        this.toolResult(item, time, emit, { status: failed ? 'error' : 'done', ...truncatedOutput(output) })
+        const images = this.resultImages(item)
+        this.toolResult(item, time, emit, { status: failed ? 'error' : 'done', ...truncatedOutput(output), ...(images.length > 0 && { images }) })
         this.live.status(null, events)
         break
       }
@@ -330,6 +331,20 @@ export class CodexDecoder implements Decoder {
         this.live.status(null, events)
         break
     }
+  }
+
+  // MCP 工具结果里的图片（比如浏览器截图）存成文件，按条目和位置命名：重读同一份输出时写出同样的文件
+  private resultImages(item: CodexItem): string[] {
+    return (item.result?.content ?? []).flatMap((part, index) => {
+      const extension = part.type === 'image' && imageExtensions[part.mimeType ?? '']
+      if (!extension || !part.data) {
+        return []
+      }
+      const name = `${item.id}-${index}.${extension}`
+      mkdirSync(this.filesDir, { recursive: true })
+      writeFileSync(path.join(this.filesDir, name), Buffer.from(part.data, 'base64'))
+      return [name]
+    })
   }
 
   // 按条目命名：重读同一份输出时写出同样的文件

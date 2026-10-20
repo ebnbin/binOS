@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto'
 import { commandOutput, parseJson } from '../../cli.js'
 import type { Driver } from '../types.js'
 import { claudeApi } from './api.js'
@@ -42,7 +41,7 @@ export const claude: Driver = {
       '--append-system-prompt', instructions,
       ...(model ? ['--model', model] : []),
       ...(effort ? ['--effort', effort] : []),
-      ...(agentSession ? ['--resume', agentSession] : ['--session-id', randomUUID()]),
+      ...(agentSession ? ['--resume', agentSession] : []),
     ],
   }),
   decoder: (options) => new ClaudeDecoder(options),

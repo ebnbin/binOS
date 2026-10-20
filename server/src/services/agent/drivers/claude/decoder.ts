@@ -1,16 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Limits, LiveEvent, QuotaWindow, Status, Tokens } from '../../types.js'
-import { LiveState, truncatedOutput } from '../decoder.js'
+import { imageExtensions, LiveState, truncatedOutput } from '../decoder.js'
 import type { DecodedItem, Decoder, DecoderOptions } from '../types.js'
 import { claudeTool } from './tools.js'
 
-const imageExtensions: Record<string, string> = {
-  'image/png': 'png',
-  'image/jpeg': 'jpg',
-  'image/gif': 'gif',
-  'image/webp': 'webp',
-}
 
 type Usage = {
   input_tokens?: number
@@ -388,5 +382,6 @@ function limitsOf(line: Line): Limits | undefined {
       ? [{ id, minutes, utilization: window.utilization, resetsAt: window.resetsAt }]
       : []
   })
-  return { limited: status !== 'allowed', windows, updatedAt: line.timestamp ?? new Date().toISOString() }
+  // allowed_warning 是快用完了的提醒，照样能用；rejected 才是被限流了
+  return { limited: status === 'rejected', windows, updatedAt: line.timestamp ?? new Date().toISOString() }
 }

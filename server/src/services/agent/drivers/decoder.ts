@@ -1,6 +1,9 @@
 import type { Live, LiveEvent, Status, TaskProgress } from '../types.js'
 import type { DecodedItem } from './types.js'
 
+// 工具结果里能显示的图片：媒体类型 → 存成文件的扩展名
+export const imageExtensions: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' }
+
 // 工具结果的文字只留末尾这么多：出错时要看的报错一般在最后
 const outputLimit = 64 * 1024
 

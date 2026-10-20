@@ -196,7 +196,8 @@ export class Thread {
     const driver = drivers[info.agent]
     const instructions = [transcriptPrompt, info.instructions].filter(Boolean).join('\n\n')
     const env = { ...agentEnv(info.agent), ...driver.authEnv?.() }
-    const stamp = launchStamp([model, effort, instructions, driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
+    // 启动参数里接着哪个会话不算：那是 agent 自己记着的，第一轮之后才有
+    const stamp = launchStamp([driver.host({ model, effort, instructions }), driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
     if (this.host?.running() && this.host.stamp === stamp) {
       return true
     }
@@ -407,7 +408,7 @@ export class Thread {
 
 const removeOriginals = (input: ThreadInput) => input.attachments?.forEach((file) => rmSync(file.path, { force: true }))
 
-// 启动 agent 进程时定下、之后改不了的东西：选项、AGENTS.md 这类说明文件、agent 的版本。任何一个变了就要换一个进程
+// 启动 agent 进程时定下、之后改不了的东西：启动参数、AGENTS.md 这类说明文件、agent 的版本。任何一个变了就要换一个进程
 function launchStamp(options: unknown[], dirs: string[], command: string): string {
   const stat = (file: string) => {
     try {
