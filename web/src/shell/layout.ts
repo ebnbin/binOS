@@ -93,17 +93,16 @@ export function splitColumns(sizes: Size[], count: number): number[] {
   return best.starts
 }
 
-// 窗口只能按这几种比例分屏：横屏左右分，竖屏上下分
-export type LayoutId = '1' | '1:1' | '1:2' | '2:1' | '1:1:1'
+// 横屏左右分，竖屏上下分；不均分时较小窗口固定为最小尺寸。
+export type LayoutId = '1' | '1:1' | '1:2' | '2:1'
 export const layouts: Record<LayoutId, number[]> = {
   '1': [1],
   '1:1': [1, 1],
   '1:2': [1, 2],
   '2:1': [2, 1],
-  '1:1:1': [1, 1, 1],
 }
 export const layoutIds = Object.keys(layouts) as LayoutId[]
-export const maxPanes = 3
+export const maxPanes = 2
 
 // 分屏时每个窗口至少这么大；只有一个窗口时不限制
 export const minPane = { width: 360, height: 480 }
@@ -112,15 +111,19 @@ export const paneGap = 6
 
 export const isPortrait = (size: Size) => size.height > size.width
 
+export function snapLayout(position: number, length: number, minimum: number): LayoutId {
+  const available = length - paneGap
+  const positions: [LayoutId, number][] = [['1:2', minimum], ['1:1', available / 2], ['2:1', available - minimum]]
+  return positions.reduce((best, option) => Math.abs(option[1] + paneGap / 2 - position) < Math.abs(best[1] + paneGap / 2 - position) ? option : best)[0]
+}
+
 export function paneSizes(layout: LayoutId, size: Size): Size[] {
-  const parts = layouts[layout]
-  const total = parts.reduce((sum, part) => sum + part, 0)
-  const gaps = paneGap * (parts.length - 1)
-  return parts.map((part) =>
-    isPortrait(size)
-      ? { width: size.width, height: ((size.height - gaps) * part) / total }
-      : { width: ((size.width - gaps) * part) / total, height: size.height },
-  )
+  if (layout === '1') return [size]
+  const portrait = isPortrait(size)
+  const available = (portrait ? size.height : size.width) - paneGap
+  const minimum = portrait ? minPane.height : minPane.width
+  const first = layout === '1:2' ? minimum : layout === '2:1' ? available - minimum : available / 2
+  return [first, available - first].map((length) => portrait ? { width: size.width, height: length } : { width: length, height: size.height })
 }
 
 export function allowedLayouts(size: Size): LayoutId[] {
@@ -147,7 +150,7 @@ export function normalizeWorkspace(value: JsonValue, ids: string[]): Workspace {
     const id = stored?.slots?.[index]
     return id && ids.includes(id) ? id : null
   })
-  return { layout, slots }
+  return { layout: layout !== '1' && (!slots[0] || !slots[1] || slots[0] === slots[1]) ? '1' : layout, slots }
 }
 
 // 实际显示的窗口。只有一个位置时显示聚焦的窗口，不动记下的布局；分屏时按记下的位置
@@ -157,30 +160,6 @@ export function arrange(workspace: Workspace, layout: LayoutId, focused: string 
     return [focused ?? workspace.slots.find((id) => id !== null) ?? null]
   }
   return workspace.slots.slice(0, count)
-}
-
-// 换成分屏布局时，聚焦的窗口一定在里面，空位用最近用过的窗口补上
-export function relayout(workspace: Workspace, layout: LayoutId, focused: string | null, recent: string[]): Workspace {
-  const count = layouts[layout].length
-  if (count === 1) {
-    return { ...workspace, layout }
-  }
-  const slots = [...workspace.slots]
-  if (focused && !slots.slice(0, count).includes(focused)) {
-    const empty = slots.slice(0, count).indexOf(null)
-    slots[empty >= 0 ? empty : 0] = focused
-  }
-  for (const id of recent) {
-    const empty = slots.slice(0, count).indexOf(null)
-    if (empty < 0) {
-      break
-    }
-    if (!slots.slice(0, count).includes(id)) {
-      slots[empty] = id
-    }
-  }
-  // 同一个窗口只出现一次，前面的位置优先
-  return { layout, slots: slots.map((id, index) => (id && slots.indexOf(id) === index ? id : null)) }
 }
 
 // 把窗口放到某个位置；它已经在别的位置上时，和原来的窗口对调

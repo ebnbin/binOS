@@ -25,6 +25,7 @@ function load(): Stored {
 let stored = load()
 
 function save(next: Stored) {
+  next = { ...next, workspace: normalizeWorkspace(next.workspace, Object.keys(next.windows)) }
   stored = next
   localStorage.setItem(storageKey, JSON.stringify(next))
   listeners.forEach((listener) => listener())

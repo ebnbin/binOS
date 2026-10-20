@@ -8,8 +8,9 @@ import { Desktop } from './Desktop.tsx'
 import { restoreRoute } from './history.ts'
 import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
-import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place, relayout } from './layout.ts'
+import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place } from './layout.ts'
 import type { LayoutId } from './layout.ts'
+import { SplitPicker } from './SplitPicker.tsx'
 import { TaskBar } from './TaskBar.tsx'
 import { Workspace } from './Workspace.tsx'
 import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, useWindows } from './windows.ts'
@@ -41,6 +42,7 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
+  const [split, setSplit] = useState<string | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -56,7 +58,7 @@ export function Shell() {
   const { workspace } = stored
   const allowed: LayoutId[] = size ? allowedLayouts(size) : ['1']
   const layout = fitLayout(workspace.layout, allowed)
-  const portrait = size ? isPortrait(size) : true
+  const portrait = size ? isPortrait(size) : false
   const count = layouts[layout].length
   const recent = view.recent.filter((id) => ids.includes(id))
   const focusedWindow = view.focused && ids.includes(view.focused) ? view.focused : (recent[0] ?? null)
@@ -96,26 +98,21 @@ export function Shell() {
   }
 
   const chooseLayout = (next: LayoutId) => {
-    const result = relayout(workspace, next, focused ?? focusedWindow, recent)
-    saveWorkspace(result)
-    const at = layouts[next].length === 1 ? 0 : result.slots.indexOf(focused ?? focusedWindow)
-    setView((prev) => ({ ...prev, slot: Math.max(at, 0) }))
+    if (next !== workspace.layout) saveWorkspace({ ...workspace, layout: next })
   }
 
-  // 分屏时关掉的位置留空，可以再选一个 app；只有一个位置时换成最近用过的
+  const exitSplit = (keep: number) => {
+    const id = panes[keep]
+    saveWorkspace({ layout: '1', slots: [id, null] })
+    focus(id, 0)
+  }
+
   const close = () => {
-    if (!focused) {
-      return
-    }
+    if (!focused) return
+    const next = count > 1 ? panes.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
     closeWindow(focused)
-    const next = recent.find((id) => id !== focused) ?? null
-    if (count > 1) {
-      if (panes.every((id) => id === null || id === focused)) {
-        setView((prev) => ({ ...prev, home: true }))
-      }
-    } else {
-      setView((prev) => (next ? { ...prev, focused: next } : { ...prev, home: true, focused: null }))
-    }
+    saveWorkspace({ layout: '1', slots: [next, null] })
+    setView((prev) => ({ ...prev, home: !next, focused: next, slot: 0 }))
   }
 
   // 浏览器返回时，恢复那条记录的窗口和路由
@@ -142,13 +139,29 @@ export function Shell() {
               windows={windows}
               panes={panes}
               layout={layout}
-              portrait={portrait}
               hidden={home}
               onFocus={focus}
-              onPick={(appId, at) => open(appId, undefined, at)}
+              onLayout={chooseLayout}
+              onExit={exitSplit}
+              size={size}
+              portrait={portrait}
               onTitle={onTitle}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
+            {split && stored.windows[split] && allowed.includes('1:1') && (
+              <SplitPicker
+                app={stored.windows[split].app}
+                portrait={portrait}
+                onCancel={() => setSplit(null)}
+                onChoose={(appId, side) => {
+                  const second = ensureWindow(appId)
+                  const slots = side === 0 ? [split, second] : [second, split]
+                  saveWorkspace({ layout: '1:1', slots })
+                  focus(split, side)
+                  setSplit(null)
+                }}
+              />
+            )}
           </>
         )}
       </div>
@@ -165,7 +178,7 @@ export function Shell() {
           portrait={portrait}
           onHome={() => setView((prev) => ({ ...prev, home: !home }))}
           onShow={show}
-          onLayout={chooseLayout}
+          onSplit={() => focused && setSplit(focused)}
           onClose={close}
         />
       )}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allowedLayouts, arrange, desktopColumns, fitLayout, normalizeWorkspace, packColumn, place, relayout, splitColumns } from './layout.ts'
+import { allowedLayouts, arrange, desktopColumns, fitLayout, normalizeWorkspace, packColumn, place, paneSizes, snapLayout, splitColumns } from './layout.ts'
 
 describe('desktopColumns', () => {
   it('一栏 360～480，最多 3 栏，多出来的留给左右两边', () => {
@@ -47,37 +47,37 @@ describe('allowedLayouts', () => {
   })
 
   it('横屏左右分，竖屏上下分', () => {
-    expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:1'])
+    expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 576, height: 890 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:1'])
-    expect(allowedLayouts({ width: 1092, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
-    expect(allowedLayouts({ width: 1032, height: 1452 })).toEqual(['1', '1:1', '1:2', '2:1', '1:1:1'])
+    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 1092, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 1032, height: 1452 })).toEqual(['1', '1:1', '1:2', '2:1'])
   })
 
   it('窗口之间的缝不算在窗口的尺寸里', () => {
     expect(allowedLayouts({ width: 720, height: 600 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:1'])
-    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:1'])
+    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
   })
 })
 
 describe('fitLayout', () => {
   it('放不下时先降为平分，再降为一个', () => {
-    expect(fitLayout('1:1:1', ['1', '1:1'])).toBe('1:1')
+    expect(fitLayout('1:2', ['1', '1:1'])).toBe('1:1')
     expect(fitLayout('1:2', ['1'])).toBe('1')
-    expect(fitLayout('2:1', ['1', '1:1', '1:2', '2:1', '1:1:1'])).toBe('2:1')
+    expect(fitLayout('2:1', ['1', '1:1', '1:2', '2:1'])).toBe('2:1')
   })
 })
 
 describe('normalizeWorkspace', () => {
-  it('去掉已经关掉的窗口，补齐 3 个位置', () => {
-    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'gone'] }, ['a', 'b'])).toEqual({ layout: '1:1', slots: ['a', null, null] })
-    expect(normalizeWorkspace(null, [])).toEqual({ layout: '1', slots: [null, null, null] })
+  it('去掉已经关掉的窗口，补齐两个位置并取消不完整分屏', () => {
+    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'gone'] }, ['a', 'b'])).toEqual({ layout: '1', slots: ['a', null] })
+    expect(normalizeWorkspace(null, [])).toEqual({ layout: '1', slots: [null, null] })
   })
 })
 
 describe('arrange', () => {
-  const workspace = { layout: '1:1:1' as const, slots: ['a', 'b', 'c'] }
+  const workspace = { layout: '1:1' as const, slots: ['a', 'b'] }
 
   it('降级后按位置取前面的窗口', () => {
     expect(arrange(workspace, '1:1', 'c')).toEqual(['a', 'b'])
@@ -89,17 +89,28 @@ describe('arrange', () => {
   })
 })
 
-describe('relayout', () => {
-  it('换成分屏时，聚焦的窗口在里面，空位用最近用过的补上', () => {
-    expect(relayout({ layout: '1', slots: [null, null, null] }, '1:1', 'a', ['a', 'b', 'c'])).toEqual({ layout: '1:1', slots: ['a', 'b', null] })
-    expect(relayout({ layout: '1:1', slots: ['b', 'c', null] }, '1:1:1', 'a', ['a', 'b'])).toEqual({ layout: '1:1:1', slots: ['b', 'c', 'a'] })
-    expect(relayout({ layout: '1:1', slots: ['b', 'c', 'a'] }, '1:1', 'a', [])).toEqual({ layout: '1:1', slots: ['a', 'c', null] })
+describe('place', () => {
+  it('已经在别的位置上时对调', () => {
+    expect(place({ layout: '1:1', slots: ['a', 'b'] }, 'b', 0).slots).toEqual(['b', 'a'])
+    expect(place({ layout: '1:1', slots: ['a', 'b'] }, 'c', 1).slots).toEqual(['a', 'c'])
   })
 })
 
-describe('place', () => {
-  it('已经在别的位置上时对调', () => {
-    expect(place({ layout: '1:1', slots: ['a', 'b', null] }, 'b', 0).slots).toEqual(['b', 'a', null])
-    expect(place({ layout: '1:1', slots: ['a', 'b', null] }, 'c', 1).slots).toEqual(['a', 'c', null])
+describe('分屏尺寸和吸附', () => {
+  it('小窗口固定最小尺寸，大窗口占剩余空间', () => {
+    expect(paneSizes('1:2', { width: 1600, height: 900 })).toEqual([{ width: 360, height: 900 }, { width: 1234, height: 900 }])
+    expect(paneSizes('2:1', { width: 800, height: 1600 })).toEqual([{ width: 800, height: 1114 }, { width: 800, height: 480 }])
+  })
+
+  it('按当前方向吸附到最近的三个位置', () => {
+    expect(snapLayout(400, 1600, 360)).toBe('1:2')
+    expect(snapLayout(800, 1600, 360)).toBe('1:1')
+    expect(snapLayout(1200, 1600, 360)).toBe('2:1')
+    expect(snapLayout(500, 1600, 480)).toBe('1:2')
+  })
+
+  it('旧三窗口布局和重复窗口不会恢复为分屏', () => {
+    expect(normalizeWorkspace({ layout: '1:1:1', slots: ['a', 'b', 'c'] }, ['a', 'b', 'c'])).toEqual({ layout: '1', slots: ['a', 'b'] })
+    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'a'] }, ['a'])).toEqual({ layout: '1', slots: ['a', 'a'] })
   })
 })

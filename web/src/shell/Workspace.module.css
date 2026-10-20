@@ -2,7 +2,6 @@
 .workspace {
   position: absolute;
   inset: 0;
-  display: grid;
   background: #000;
 }
 
@@ -12,7 +11,10 @@
 }
 
 .pane {
-  position: relative;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: left 180ms ease, width 180ms ease, top 180ms ease, height 180ms ease;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -20,43 +22,45 @@
   background: var(--bg);
 }
 
-.picker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  height: 100%;
-  padding: 24px;
-  color: var(--muted);
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+  transition: left 180ms ease, top 180ms ease;
 }
 
-.picker p {
-  margin: 0;
+.divider::after {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: calc(50% - 24px);
+  width: 4px;
+  height: 48px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 35%);
 }
 
-.choices {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  max-width: 420px;
+.workspace[data-dragging='true'] .pane {
+  pointer-events: none;
 }
 
-.choices button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--hairline);
-  font-size: 14px;
+@media (prefers-reduced-motion: reduce) {
+  .pane, .divider { transition: none; }
 }
 
-@media (hover: hover) {
-  .choices button:hover {
-    box-shadow: 0 0 0 1px var(--border), var(--shadow);
-  }
+.workspace[data-portrait='true'] .divider {
+  left: 0;
+  right: 0;
+  bottom: auto;
+  cursor: row-resize;
+}
+
+.workspace[data-portrait='true'] .divider::after {
+  top: 6px;
+  left: calc(50% - 24px);
+  width: 48px;
+  height: 4px;
 }
