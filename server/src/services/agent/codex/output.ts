@@ -44,7 +44,7 @@ type Line = {
     summaryIndex?: number
     startedAtMs?: number
     completedAtMs?: number
-    error?: { message: string }
+    error?: { message: string; additionalDetails?: string | null; codexErrorInfo?: unknown }
     willRetry?: boolean
     tokenUsage?: { total: TokenBreakdown; last: TokenBreakdown; modelContextWindow: number | null }
     rateLimits?: RateLimits
@@ -87,7 +87,7 @@ export class CodexOutput implements AgentOutput {
     return this.live
   }
 
-  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits } {
+  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits; authFailed?: true } {
     const records: AgentRecord[] = []
     const events: LiveEvent[] = []
     let line: Line
@@ -124,6 +124,11 @@ export class CodexOutput implements AgentOutput {
     // 子 agent 的会话也在同一个连接上，只看自己的
     if (params.threadId && params.threadId !== this.threadId) {
       return { records, events }
+    }
+
+    // 请求因为登录无效被拒绝：Codex 自己还会重试几次，第一次就报告
+    if (fresh && line.method === 'error' && isUnauthorized(params.error)) {
+      return { records, events, authFailed: true }
     }
 
     switch (line.method) {
@@ -397,4 +402,8 @@ function truncated(text: string): { output?: string; truncated?: true } {
     ...(trimmed && { output: trimmed.slice(-outputLimit) }),
     ...(trimmed.length > outputLimit && { truncated: true as const }),
   }
+}
+
+function isUnauthorized(error: { message: string; additionalDetails?: string | null; codexErrorInfo?: unknown } | undefined) {
+  return Boolean(error) && (error!.codexErrorInfo === 'unauthorized' || /unauthorized \(401\)|\b401 Unauthorized\b/i.test(`${error!.message} ${error!.additionalDetails ?? ''}`))
 }

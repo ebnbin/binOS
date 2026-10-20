@@ -31,3 +31,18 @@ export async function finishClaudeLogin(id: string, code: string): Promise<{ ok:
 export async function cancelClaudeLogin(id: string) {
   await client.claude.login[':id'].cancel.$post({ param: { id } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }
+
+// 在网页上重新登录 Codex（设备码登录）：拿到网址和码，用户去授权，页面轮询结果
+export async function startCodexLogin(): Promise<{ id: string; url: string; code: string } | { error: string }> {
+  const res = await client.codex.login.$post({}, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
+  return res ? await res.json() : { error: '网络错误' }
+}
+
+export async function codexLoginStatus(id: string): Promise<{ status: 'waiting' | 'done' } | { status: 'failed'; error: string } | undefined> {
+  const res = await client.codex.login[':id'].$get({ param: { id } }).catch(() => undefined)
+  return res?.ok ? await res.json() : undefined
+}
+
+export async function cancelCodexLogin(id: string) {
+  await client.codex.login[':id'].cancel.$post({ param: { id } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
+}

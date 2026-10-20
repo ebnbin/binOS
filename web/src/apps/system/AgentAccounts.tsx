@@ -8,8 +8,9 @@ import { IconButton } from '../../ui/IconButton.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { agentAccounts } from '../../services/agent/api.ts'
 import type { ClaudeLoginKind } from '../../services/agent/api.ts'
-import { authAttention, daysLeft, useClaudeAuth } from '../../services/agent/claude-auth.ts'
+import { authAttention, codexAttention, daysLeft, useClaudeAuth, useCodexAuth } from '../../services/agent/auth.ts'
 import { ClaudeLogin } from '../../services/agent/ClaudeLogin.tsx'
+import { CodexLogin } from '../../services/agent/CodexLogin.tsx'
 import { useMinuteNow } from '../../services/agent/quota.ts'
 import { QuotaWindows } from '../../services/agent/QuotaWindows.tsx'
 import styles from './AgentAccounts.module.css'
@@ -85,6 +86,7 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
         {account.organization && <Row label="组织">{account.organization}</Row>}
         {account.plan && <Row label="套餐">{planNames[account.plan] ?? account.plan}</Row>}
         {account.provider === 'claude' && <ClaudeAuthRows loadedAt={loadedAt} />}
+        {account.provider === 'codex' && <CodexAuthRows />}
         {/* Claude 的访问令牌几个小时就自动续一次，要看的是上面完整登录的到期时间 */}
         {token && account.provider !== 'claude' && (
           <Row label="访问令牌">
@@ -167,6 +169,29 @@ function ClaudeAuthRows({ loadedAt }: { loadedAt: number }) {
           </button>
           <button type="button" onClick={() => setLogin('token')}>
             {backup ? '更新备用 token' : '生成备用 token'}
+          </button>
+        </div>
+      )}
+    </>
+  )
+}
+
+// Codex 的登录：回答时认证失败过就标出来，可以在这里重新登录（设备码登录）
+function CodexAuthRows() {
+  const auth = useCodexAuth()
+  const [login, setLogin] = useState(false)
+  const attention = codexAttention(auth)
+  return (
+    <>
+      {attention && <p className={styles.attention} data-tone={attention.tone}>{attention.text}，回答时认证失败了</p>}
+      {login ? (
+        <div className={styles.login}>
+          <CodexLogin onClose={() => setLogin(false)} />
+        </div>
+      ) : (
+        <div className={styles.loginActions}>
+          <button type="button" onClick={() => setLogin(true)}>
+            {auth?.loggedIn ? '重新登录' : '登录'}
           </button>
         </div>
       )}

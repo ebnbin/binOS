@@ -97,6 +97,11 @@ export type ClaudeAuth = {
 }
 export const claudeAuthKey = 'agent/claude-auth'
 
+// Codex 的 ChatGPT 登录：访问令牌由 Codex 自己续，没有备用的。broken：回答时认证失败了，重新登录后不算。
+// 存在系统状态的 codexAuthKey 下，登录有变化时更新
+export type CodexAuth = { loggedIn: boolean; broken?: true }
+export const codexAuthKey = 'agent/codex-auth'
+
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {
   provider: Provider

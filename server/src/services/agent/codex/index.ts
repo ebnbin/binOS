@@ -1,13 +1,11 @@
 import path from 'node:path'
-import { agentsDir } from '../../../paths.js'
 import type { Adapter } from '../adapter.js'
 import { commandOutput, isoFromSeconds, parseJson, readText } from '../cli.js'
 import { saveLimits } from '../limits.js'
 import { askCodex, codexCatalog, codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
+import { codexAuthFailed, configDir } from './auth.js'
 import { CodexOutput } from './output.js'
-
-const configDir = path.join(agentsDir, 'codex')
 
 // 转接进程和这个模块在一起，开发时是 .ts
 const bridge = path.join(import.meta.dirname, `bridge${path.extname(import.meta.filename)}`)
@@ -33,6 +31,7 @@ export const codex: Adapter = {
     return { ...catalog, efforts: catalog.models.find((model) => model.isDefault)?.efforts ?? [] }
   },
   account,
+  authFailed: codexAuthFailed,
 }
 
 type CodexAuth = { tokens?: { access_token?: string; refresh_token?: string }; last_refresh?: string }

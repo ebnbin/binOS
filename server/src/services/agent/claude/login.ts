@@ -1,53 +1,23 @@
-import { spawn } from 'node:child_process'
-import type { ChildProcessWithoutNullStreams } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 import { agentEnv } from '../adapters.js'
+import { killTerminal, openTerminal, waitFor } from '../pty.js'
+import type { Terminal } from '../pty.js'
 import { publishAuth, storeToken } from './auth.js'
 
 // 在网页上登录 Claude（见 auth.ts 的两份登录）：
 // - login：重新完整登录，对 binOS 的 Claude 配置目录跑 `claude auth login`，它自己把登录存进钥匙串
 // - token：生成备用的一年期 token，在一个空的配置目录里跑 `claude setup-token`（不碰现有的登录），把它给出的令牌存进钥匙串
 // 两者都给出授权链接，用户在自己的浏览器里授权（哪台设备都行，授权后的页面直接显示代码），把代码贴回网页交给它。
-// 这些命令是交互式的，要在终端里跑：Node 没有伪终端，借系统自带的 python3 开一个，标准输入输出原样转发，退出码也传回来。
-// 终端设得很宽，链接和令牌不会被折行打断
+// 这些命令是交互式的，在伪终端里跑（见 ../pty.ts）
 
 export type LoginKind = 'login' | 'token'
 
-// 后端那头断了（标准输入读到结尾）就结束 claude，不留下等输入的进程
-const ptyScript = `
-import fcntl, os, pty, select, signal, struct, sys, termios
-pid, fd = pty.fork()
-if pid == 0:
-    os.execvp(sys.argv[1], sys.argv[1:])
-fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', 50, 2000, 0, 0))
-while True:
-    ready, _, _ = select.select([fd, 0], [], [])
-    if fd in ready:
-        try:
-            data = os.read(fd, 65536)
-        except OSError:
-            break
-        if not data:
-            break
-        os.write(1, data)
-    if 0 in ready:
-        data = os.read(0, 65536)
-        if not data:
-            os.kill(pid, signal.SIGTERM)
-            break
-        os.write(fd, data)
-sys.exit(os.waitstatus_to_exitcode(os.waitpid(pid, 0)[1]))
-`
-
-type Login = {
+type Login = Terminal & {
   kind: LoginKind
-  child: ChildProcessWithoutNullStreams
-  output: string
-  exitCode?: number | null
   // token 用的空配置目录，结束时删掉
   tempDir?: string
   finishing?: boolean
@@ -106,32 +76,10 @@ function end(id: string) {
   }
   logins.delete(id)
   clearTimeout(login.timer)
-  if (login.exitCode === undefined) {
-    try {
-      process.kill(-login.child.pid!, 'SIGTERM')
-    } catch {
-      // 已经退出了
-    }
-  }
+  killTerminal(login)
   if (login.tempDir) {
     rmSync(login.tempDir, { recursive: true, force: true })
   }
-}
-
-// 等输出里出现想要的东西；进程退出或超时时给 undefined
-async function waitFor<T>(login: Login, check: (output: string) => T | undefined, timeout: number): Promise<T | undefined> {
-  const deadline = Date.now() + timeout
-  while (Date.now() < deadline) {
-    const found = check(login.output)
-    if (found !== undefined) {
-      return found
-    }
-    if (login.exitCode !== undefined) {
-      return check(login.output)
-    }
-    await new Promise((resolve) => setTimeout(resolve, 200))
-  }
-  return undefined
 }
 
 // 开始登录：返回这次登录的编号和授权链接
@@ -140,14 +88,8 @@ export async function startLogin(kind: LoginKind): Promise<{ id: string; url: st
   const tempDir = kind === 'token' ? mkdtempSync(path.join(tmpdir(), 'binos-claude-token-')) : undefined
   const command = kind === 'login' ? ['claude', 'auth', 'login'] : ['claude', 'setup-token']
   // 不在这台 Mac 上打开浏览器，链接交给网页
-  const env = { ...agentEnv('claude'), ...(tempDir && { CLAUDE_CONFIG_DIR: tempDir }), BROWSER: '/usr/bin/true', TERM: 'xterm-256color' }
-  // 自己一个进程组，连同伪终端里的 claude 一起结束
-  const child = spawn('/usr/bin/python3', ['-I', '-c', ptyScript, ...command], { env, detached: true })
-  const login: Login = { kind, child, output: '', tempDir, timer: setTimeout(() => end(id), loginTimeout) }
-  child.stdout.on('data', (data: Buffer) => (login.output += data.toString()))
-  child.stderr.on('data', (data: Buffer) => (login.output += data.toString()))
-  child.on('close', (code) => (login.exitCode = code))
-  child.on('error', () => (login.exitCode = null))
+  const env = { ...agentEnv('claude'), ...(tempDir && { CLAUDE_CONFIG_DIR: tempDir }), BROWSER: '/usr/bin/true' }
+  const login: Login = Object.assign(openTerminal(command, env), { kind, tempDir, timer: setTimeout(() => end(id), loginTimeout) })
   logins.set(id, login)
   const url = await waitFor(login, authorizeUrl, 30_000)
   if (!url) {

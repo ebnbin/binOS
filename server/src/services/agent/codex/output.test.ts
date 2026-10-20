@@ -94,3 +94,17 @@ describe('CodexOutput', () => {
     ])
   })
 })
+
+describe('登录无效', () => {
+  it('第一条 401 的出错通知就报告', () => {
+    const filesDir = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
+    const output = new CodexOutput({ filesDir, recorded: 0, sessionId: undefined })
+    output.push(turn[0], 1)
+    const error = notify('error', {
+      error: { message: 'Reconnecting... 2/5', codexErrorInfo: { responseStreamDisconnected: { httpStatusCode: null } }, additionalDetails: 'workspace routing discovery unauthorized (401)' },
+      willRetry: true,
+    })
+    expect(output.push(error, 2).authFailed).toBe(true)
+    expect(output.push(notify('error', { error: { message: 'Reconnecting... 1/5', additionalDetails: 'stream disconnected' }, willRetry: true }), 3).authFailed).toBeUndefined()
+  })
+})
