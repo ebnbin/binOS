@@ -55,7 +55,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   gap: 16px;
   overflow: auto;
   padding: 20px;
@@ -64,14 +64,18 @@
 .picker p { margin: 0; }
 
 .choices {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
+  --gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 20px var(--gap);
+  width: 100%;
+  max-width: 440px;
   flex-shrink: 0;
 }
 
-.picker button {
+.choices button { aspect-ratio: 1; }
+
+.picker > button {
   display: inline-flex;
   align-items: center;
   gap: 8px;

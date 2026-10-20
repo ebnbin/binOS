@@ -5,6 +5,7 @@ import type { OpenWindow } from './Shell.tsx'
 import { allowedLayouts, minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
 import type { LayoutId, Size } from './layout.ts'
 import styles from './Workspace.module.css'
+import desktopStyles from './Desktop.module.css'
 
 type Drag = { pointer: number; start: number; length: number; position: number; origin: number }
 
@@ -81,7 +82,10 @@ export function Workspace({
             <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
               {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.app === app.id && panes.includes(item.id))).map((app) => (
-                <button key={app.id} type="button" onClick={() => onPick(app.id, slot)}><app.icon size={20} />{app.name}</button>
+                <button key={app.id} type="button" className={desktopStyles.icon} title={app.name} onClick={() => onPick(app.id, slot)}>
+                  <span className={desktopStyles.glyph}><app.icon strokeWidth={1.75} /></span>
+                  <span className={desktopStyles.label}>{app.name}</span>
+                </button>
               ))}
             </div>
             <button type="button" onClick={onCancel}>取消分屏</button>
