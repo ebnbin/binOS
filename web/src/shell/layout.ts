@@ -111,10 +111,15 @@ export const paneGap = 6
 
 export const isPortrait = (size: Size) => size.height > size.width
 
+function canEqualSplit(length: number, minimum: number) {
+  return length - paneGap >= minimum * 3
+}
+
 export function snapLayout(position: number, length: number, minimum: number): LayoutId {
   const available = length - paneGap
   const positions: [LayoutId, number][] = [['1:2', minimum], ['1:1', available / 2], ['2:1', available - minimum]]
-  return positions.reduce((best, option) => Math.abs(option[1] + paneGap / 2 - position) < Math.abs(best[1] + paneGap / 2 - position) ? option : best)[0]
+  const candidates = positions.filter(([id]) => id !== '1:1' || canEqualSplit(length, minimum))
+  return candidates.reduce((best, option) => Math.abs(option[1] + paneGap / 2 - position) < Math.abs(best[1] + paneGap / 2 - position) ? option : best)[0]
 }
 
 export function paneSizes(layout: LayoutId, size: Size): Size[] {
@@ -127,17 +132,21 @@ export function paneSizes(layout: LayoutId, size: Size): Size[] {
 }
 
 export function allowedLayouts(size: Size): LayoutId[] {
+  const portrait = isPortrait(size)
+  const equal = canEqualSplit(portrait ? size.height : size.width, portrait ? minPane.height : minPane.width)
   return layoutIds.filter(
-    (id) => id === '1' || paneSizes(id, size).every((pane) => pane.width >= minPane.width && pane.height >= minPane.height),
+    (id) => id === '1' || (id !== '1:1' || equal) && paneSizes(id, size).every((pane) => pane.width >= minPane.width && pane.height >= minPane.height),
   )
 }
 
-// 放不下时降级：多个窗口先降为平分，再降为一个
-export function fitLayout(layout: LayoutId, allowed: LayoutId[]): LayoutId {
+// 均分不可用时让指定位置占较大区域；分屏放不下时降为一个
+export function fitLayout(layout: LayoutId, allowed: LayoutId[], preferred = 0): LayoutId {
   if (allowed.includes(layout)) {
     return layout
   }
-  return layouts[layout].length > 1 && allowed.includes('1:1') ? '1:1' : '1'
+  if (layout === '1') return '1'
+  const fallback = preferred === 1 ? '1:2' : '2:1'
+  return allowed.includes(fallback) ? fallback : '1'
 }
 
 // 选的分屏布局和每个位置上的窗口 id（见 windows.ts）

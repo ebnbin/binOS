@@ -47,23 +47,24 @@ describe('allowedLayouts', () => {
   })
 
   it('横屏左右分，竖屏上下分', () => {
-    expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 576, height: 890 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 1092, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 1032, height: 1452 })).toEqual(['1', '1:1', '1:2', '2:1'])
   })
 
   it('窗口之间的缝不算在窗口的尺寸里', () => {
     expect(allowedLayouts({ width: 720, height: 600 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
-    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:2', '2:1'])
   })
 })
 
 describe('fitLayout', () => {
-  it('放不下时先降为平分，再降为一个', () => {
-    expect(fitLayout('1:2', ['1', '1:1'])).toBe('1:1')
+  it('均分不可用时保留聚焦窗口的大区域，放不下时降为一个', () => {
+    expect(fitLayout('1:1', ['1', '1:2', '2:1'])).toBe('2:1')
+    expect(fitLayout('1:1', ['1', '1:2', '2:1'], 1)).toBe('1:2')
     expect(fitLayout('1:2', ['1'])).toBe('1')
     expect(fitLayout('2:1', ['1', '1:1', '1:2', '2:1'])).toBe('2:1')
   })
@@ -112,5 +113,24 @@ describe('分屏尺寸和吸附', () => {
   it('旧三窗口布局和重复窗口不会恢复为分屏', () => {
     expect(normalizeWorkspace({ layout: '1:1:1', slots: ['a', 'b', 'c'] }, ['a', 'b', 'c'])).toEqual({ layout: '1', slots: ['a', 'b'] })
     expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'a'] }, ['a'])).toEqual({ layout: '1', slots: ['a', 'a'] })
+  })
+})
+
+describe('均分门槛', () => {
+  it('左右分屏扣除分割线后需容纳三个最小宽度', () => {
+    expect(allowedLayouts({ width: 1085, height: 600 })).not.toContain('1:1')
+    expect(allowedLayouts({ width: 1086, height: 600 })).toContain('1:1')
+    expect(paneSizes('1:2', { width: 900, height: 600 }).map((size) => size.width)).toEqual([360, 534])
+    expect(snapLayout(449, 900, 360)).toBe('1:2')
+    expect(snapLayout(451, 900, 360)).toBe('2:1')
+  })
+
+  it('上下分屏扣除分割线后需容纳三个最小高度', () => {
+    expect(allowedLayouts({ width: 800, height: 965 })).toEqual(['1'])
+    expect(allowedLayouts({ width: 800, height: 966 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 800, height: 1445 })).not.toContain('1:1')
+    expect(allowedLayouts({ width: 800, height: 1446 })).toContain('1:1')
+    expect(snapLayout(599, 1200, 480)).toBe('1:2')
+    expect(snapLayout(601, 1200, 480)).toBe('2:1')
   })
 })

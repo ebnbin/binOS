@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useApps } from '../apps/index.ts'
 import styles from './SplitPicker.module.css'
 
-export function SplitPicker({ app, portrait, onChoose, onCancel }: {
+export function SplitPicker({ app, portrait, equal, onChoose, onCancel }: {
   app: string
   portrait: boolean
+  equal: boolean
   onChoose: (app: string, side: number) => void
   onCancel: () => void
 }) {
@@ -20,7 +21,7 @@ export function SplitPicker({ app, portrait, onChoose, onCancel }: {
 
   return (
     <dialog ref={dialog} className={styles.picker} aria-label="选择分屏" onCancel={onCancel}>
-      <p>{side === null ? (portrait ? '选择当前 app 的位置 · 上下均分' : '选择当前 app 的位置 · 左右均分') : '选择第二个 app'}</p>
+      <p>{side === null ? ('选择当前 app 的位置 · ' + (equal ? (portrait ? '上下均分' : '左右均分') : '当前 app 占较大区域')) : '选择第二个 app'}</p>
       <div className={styles.choices}>
         {side === null ? [0, 1].map((position) => (
           <button key={position} type="button" onClick={() => setSide(position)}>

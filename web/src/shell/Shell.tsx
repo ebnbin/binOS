@@ -57,7 +57,7 @@ export function Shell() {
 
   const { workspace } = stored
   const allowed: LayoutId[] = size ? allowedLayouts(size) : ['1']
-  const layout = fitLayout(workspace.layout, allowed)
+  const layout = fitLayout(workspace.layout, allowed, workspace.slots.indexOf(view.focused))
   const portrait = size ? isPortrait(size) : false
   const count = layouts[layout].length
   const recent = view.recent.filter((id) => ids.includes(id))
@@ -148,15 +148,16 @@ export function Shell() {
               onTitle={onTitle}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
-            {split && stored.windows[split] && allowed.includes('1:1') && (
+            {split && stored.windows[split] && allowed.length > 1 && (
               <SplitPicker
                 app={stored.windows[split].app}
                 portrait={portrait}
+                equal={allowed.includes('1:1')}
                 onCancel={() => setSplit(null)}
                 onChoose={(appId, side) => {
                   const second = ensureWindow(appId)
                   const slots = side === 0 ? [split, second] : [second, split]
-                  saveWorkspace({ layout: '1:1', slots })
+                  saveWorkspace({ layout: fitLayout('1:1', allowed, side), slots })
                   focus(split, side)
                   setSplit(null)
                 }}

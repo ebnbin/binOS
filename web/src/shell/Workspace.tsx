@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { AppHost } from './AppHost.tsx'
 import type { OpenWindow } from './Shell.tsx'
-import { minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
+import { allowedLayouts, minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
 import type { LayoutId, Size } from './layout.ts'
 import styles from './Workspace.module.css'
 
@@ -81,9 +81,9 @@ export function Workspace({
             const forward = portrait ? 'ArrowDown' : 'ArrowRight'
             if (event.key === backward || event.key === forward) {
               event.preventDefault()
-              const choices: LayoutId[] = ['1:2', '1:1', '2:1']
+              const choices = (['1:2', '1:1', '2:1'] as LayoutId[]).filter((id) => allowedLayouts(size).includes(id))
               const index = choices.indexOf(layout)
-              onLayout(choices[Math.max(0, Math.min(2, index + (event.key === backward ? -1 : 1)))])
+              onLayout(choices[Math.max(0, Math.min(choices.length - 1, index + (event.key === backward ? -1 : 1)))])
             }
           }}
           onPointerDown={(event) => {
