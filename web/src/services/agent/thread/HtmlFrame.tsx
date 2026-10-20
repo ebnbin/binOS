@@ -1,4 +1,3 @@
-import { Download, Globe, Maximize2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { threadFileUrl } from '../api.ts'
 import styles from './HtmlFrame.module.css'
@@ -23,12 +22,14 @@ export function HtmlFrame({ thread, file, title }: { thread: string; file: strin
   const [failed, setFailed] = useState(false)
   const [height, setHeight] = useState(defaultHeight)
   const frame = useRef<HTMLIFrameElement>(null)
-  const container = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch(threadFileUrl(thread, file), { signal: controller.signal })
-      .then((res) => (res.ok ? res.text() : Promise.reject(new Error(res.statusText))))
+    fetch(threadFileUrl(thread, file), { signal: controller.signal, headers: { Range: 'bytes=0-1048576' } })
+      .then((res) => {
+        const size = Number(res.headers.get('Content-Range')?.split('/')[1] ?? res.headers.get('Content-Length'))
+        return res.ok && size <= 1_048_576 ? res.text() : Promise.reject(new Error('无法内嵌预览'))
+      })
       .then((text) => setHtml(text + reportHeight))
       .catch(() => controller.signal.aborted || setFailed(true))
     return () => controller.abort()
@@ -46,21 +47,9 @@ export function HtmlFrame({ thread, file, title }: { thread: string; file: strin
   }, [])
 
   return (
-    <span ref={container} className={styles.frame}>
-      <span className={styles.bar}>
-        <Globe size={14} strokeWidth={1.75} />
-        <span className={styles.title}>{title}</span>
-        {document.fullscreenEnabled && (
-          <button type="button" className={styles.action} title="全屏" onClick={() => void container.current?.requestFullscreen()}>
-            <Maximize2 size={14} strokeWidth={1.75} />
-          </button>
-        )}
-        <a className={styles.action} href={threadFileUrl(thread, file, `${title}.html`)} title="下载">
-          <Download size={14} strokeWidth={1.75} />
-        </a>
-      </span>
+    <span className={styles.frame}>
       {failed ? (
-        <span className={styles.status}>网页加载失败</span>
+        <span className={styles.status}>无法内嵌预览，请打开预览窗口或下载</span>
       ) : html === undefined ? (
         <span className={styles.status}>加载中…</span>
       ) : (

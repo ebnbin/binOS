@@ -9,7 +9,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { threadFileUrl } from '../api.ts'
 import { CodeBlock } from './CodeBlock.tsx'
-import { HtmlFrame } from './HtmlFrame.tsx'
+import { FileBlock } from '../../../ui/files/FileBlock.tsx'
 import styles from './Markdown.module.css'
 import { Mermaid } from './Mermaid.tsx'
 
@@ -50,8 +50,9 @@ function MarkdownImage({
   alt: string | undefined
 }) {
   const snapshot = typeof src === 'string' ? files?.[decodeReference(src)] : undefined
-  if (snapshot?.endsWith('.html')) {
-    return <HtmlFrame thread={thread} file={snapshot} title={alt || '网页'} />
+  if (snapshot) {
+    const name = typeof src === 'string' ? decodeReference(src).split('/').at(-1)! : alt || snapshot
+    return <FileBlock thread={thread} file={snapshot} name={name} path={String(src)} embedded />
   }
   const url = snapshot ? threadFileUrl(thread, snapshot) : typeof src === 'string' && /^https?:\/\//.test(src) ? src : undefined
   if (!url) {
@@ -81,7 +82,12 @@ export const Markdown = memo(function Markdown({
 }) {
   const components = useMemo<Components>(
     () => ({
-      a: ({ node: _node, ...props }) => <a {...props} target="_blank" rel="noreferrer" />,
+      a: ({ node: _node, href, children, ...props }) => {
+        const reference = href ? decodeReference(href) : ''
+        const file = files?.[reference]
+        return file ? <FileBlock thread={thread} file={file} name={reference.split('/').at(-1) || file} path={reference} />
+          : <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>
+      },
       img: ({ src, alt }) => <MarkdownImage thread={thread} files={files} src={src} alt={alt} />,
       pre: ({ children }) => <div className={styles.codeBlock}>{children}</div>,
       code: ({ className, children }) => <MarkdownCode className={className}>{children}</MarkdownCode>,

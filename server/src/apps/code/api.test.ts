@@ -67,6 +67,27 @@ describe('api', () => {
     expect(image.headers.get('Content-Disposition')).toBe('inline')
   })
 
+  it('文件流支持范围读取、元数据和强制下载', async () => {
+    const url = `/api/agent/threads/${thread}/files/a-0.png`
+    const range = await api.request(url, { headers: { Range: 'bytes=1-2' } })
+    expect(range.status).toBe(206)
+    expect(range.headers.get('Content-Range')).toBe('bytes 1-2/3')
+    expect(await range.text()).toBe('ng')
+    const suffix = await api.request(url, { headers: { Range: 'bytes=-1' } })
+    expect(await suffix.text()).toBe('g')
+    for (const value of ['bytes=3-', 'bytes=2-1', 'bytes=-', 'bytes=0-1,2-3']) {
+      expect((await api.request(url, { headers: { Range: value } })).status).toBe(416)
+    }
+    const metadata = await api.request(url + '?info=1')
+    expect(await metadata.json()).toMatchObject({ size: 3, type: 'image/png' })
+    const download = await api.request(url + '?name=photo.png')
+    expect(download.headers.get('Content-Disposition')).toBe("attachment; filename*=UTF-8''photo.png")
+    writeFileSync(path.join(filesDir(thread), 'empty'), '')
+    const empty = await api.request(`/api/agent/threads/${thread}/files/empty`)
+    expect(empty.status).toBe(200)
+    expect(await empty.text()).toBe('')
+  })
+
   it('只提供 thread 的 files/ 里的文件', async () => {
     const res = await api.request(`/api/agent/threads/${thread}/files/a-0.png`)
     expect(res.status).toBe(200)

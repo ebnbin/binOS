@@ -1,0 +1,39 @@
+.block { display: block; margin: 10px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); color: var(--text); font: 13px/1.5 var(--sans); text-align: left; }
+.bar, .toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.bar { border-bottom: 0; }
+.title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.badge { font-size: 10px; color: var(--muted); }
+.bar button, .bar a, .toolbar button, .toolbar a { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 30px; min-height: 30px; padding: 5px; border: 0; border-radius: 6px; color: var(--text-2); background: transparent; font: inherit; text-decoration: none; cursor: pointer; }
+.bar button:hover, .bar a:hover, .toolbar button:hover, .toolbar a:hover { background: var(--hover); }
+.thumbnail { display: block; width: 100%; padding: 0; border: 0; background: var(--code); cursor: zoom-in; }
+.thumbnail img { display: block; max-width: 100%; max-height: 420px; margin: auto; object-fit: contain; }
+.summary { display: flex; align-items: center; gap: 14px; width: 100%; padding: 18px; border: 0; border-top: 1px solid var(--border); background: transparent; color: var(--text-2); text-align: left; cursor: pointer; font: inherit; }
+.summary > span { flex: 1; overflow-wrap: anywhere; }
+.summary small { display: block; color: var(--muted); margin-top: 3px; }
+.summary:hover { background: var(--hover); }
+.dialog { width: min(1160px, calc(100vw - 48px)); height: min(820px, calc(100dvh - 64px)); max-width: none; max-height: none; padding: 0; border: 1px solid var(--border); border-radius: 16px; color: var(--text); background: var(--surface); box-shadow: var(--shadow); font: 13px/1.5 var(--sans); }
+.dialog::backdrop { background: var(--scrim); backdrop-filter: blur(6px); }
+.window { display: flex; flex-direction: column; height: 100%; }
+.toolbar { flex-shrink: 0; padding: 12px 16px; }
+.body { display: flex; min-height: 0; flex: 1; position: relative; }
+.preview { flex: 1; min-width: 0; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+.image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+.media { max-width: 100%; max-height: 100%; width: 100%; }
+audio.media { max-width: 560px; margin: 24px; }
+.document { width: 100%; height: 100%; border: 0; background: white; }
+.prose { width: 100%; align-self: stretch; padding: 32px; box-sizing: border-box; }
+.code { width: 100%; align-self: stretch; }
+.status { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px; color: var(--muted); text-align: center; overflow-wrap: anywhere; }
+.status strong { color: var(--text); }
+.info { width: 260px; flex-shrink: 0; padding: 20px; border-left: 1px solid var(--border); overflow: auto; background: var(--surface); }
+.info h3 { margin: 0 0 24px; font-size: 14px; font-weight: 500; }
+.info dt { color: var(--muted); font-size: 11px; margin-top: 20px; }
+.info dd { margin: 5px 0 0; overflow-wrap: anywhere; }
+.info small { display: block; color: var(--muted); margin-top: 4px; }
+@media (max-width: 640px) {
+  .dialog { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
+  .toolbar { gap: 6px; padding: 10px; }
+  .toolbar a span { display: none; }
+  .info { position: absolute; inset: 0 0 0 auto; width: min(260px, 75%); box-shadow: var(--shadow); }
+  .prose { padding: 18px; }
+}
