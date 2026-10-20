@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { findApp, useApps } from '../apps/index.ts'
+import { findApp, useApps, useAppsLoaded } from '../apps/index.ts'
 import type { AppManifest } from '../apps/types.ts'
-import { useStateLoaded } from '../state.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
 import { useBarPlacement } from './bar-placement.ts'
 import { ConnectionStatus } from './ConnectionStatus.tsx'
@@ -35,7 +34,7 @@ function loadView(): View {
 const appOrder = (apps: AppManifest[], appId: string) => apps.findIndex((app) => app.id === appId)
 
 export function Shell() {
-  const loaded = useStateLoaded()
+  const loaded = useAppsLoaded()
   const apps = useApps()
   const [main, size] = useElementSize<HTMLDivElement>()
   const stored = useWindows()
