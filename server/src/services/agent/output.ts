@@ -16,7 +16,7 @@ export interface AgentOutput {
   // 主对话里还在后台运行、没有结束的工具调用
   backgroundTasks(): number
   current(): Live
-  // offset 是这一行在输出文件里的结束位置；limits 是这一行报告的订阅额度
-  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits }
+  // offset 是这一行在输出文件里的结束位置；limits 是这一行报告的订阅额度；authFailed：请求因为登录无效被拒绝了
+  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits; authFailed?: true }
   finish(options: { startedAt: string; stopped: boolean; errors: string }): AgentRecord[]
 }

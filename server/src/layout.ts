@@ -14,6 +14,8 @@ export function rootLayout(root: string) {
     // launchd 服务的输出，一个服务一个文件。Library/binos 是 binOS 系统自己的数据
     logsDir: path.join(libraryDir, 'binos', 'logs'),
     statePath: path.join(libraryDir, 'state.json'),
+    // agent 服务的数据：运行，以及登录的状况
+    agentDataDir: path.join(libraryDir, 'agent'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
     appsDir: path.join(libraryDir, 'Apps'),
     // 上线服务的数据：上一个版本、上线过程中的临时文件、上线失败的提交和锁

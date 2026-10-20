@@ -47,8 +47,8 @@ export type Run = {
 }
 
 // 运行目录里的 state.json。owner、ref：发起的 app 和它用来认出这次运行的标识，后端重启后据此交还；
-// time：开始的时间；stopped：被停止了，结果记成停止而不是出错
-type RunState = { owner: string; ref: string; options: RunOptions; time: string; agent: ProcessIdentity; stopped?: true }
+// time：开始的时间；stopped：被停止了，结果记成停止而不是出错；failure：因为这个原因被结束了，结果记成出错
+type RunState = { owner: string; ref: string; options: RunOptions; time: string; agent: ProcessIdentity; stopped?: true; failure?: string }
 
 type Active = { state: RunState; output: AgentOutput; open: boolean; settledSince?: number }
 
@@ -105,7 +105,7 @@ export function startRun(owner: string, ref: string, options: RunOptions, prompt
   mkdirSync(runDir(id), { recursive: true })
   const { resume, model, effort, instructions } = fitted
   const command = adapters[fitted.provider].command({ sessionId: resume, model, effort, instructions })
-  const pid = spawnAgent(files, command, fitted.cwd, agentEnv(fitted.provider))
+  const pid = spawnAgent(files, command, fitted.cwd, { ...agentEnv(fitted.provider), ...adapters[fitted.provider].authEnv?.() })
   const startedAt = pid && processStartTime(pid)
   if (!pid || !startedAt) {
     rmSync(runDir(id), { recursive: true, force: true })
@@ -159,9 +159,12 @@ function follow(id: string, state: RunState, recorded: number, handler: RunHandl
   const reader = new LineReader(files.output)
   const readNew = () => {
     for (const line of reader.read()) {
-      const { records, events, limits } = output.push(line.text, line.end)
+      const { records, events, limits, authFailed } = output.push(line.text, line.end)
       if (limits) {
         saveLimits(provider, limits)
+      }
+      if (authFailed && !state.failure) {
+        end(adapters[provider].authFailed?.() ?? '登录无效，请求被拒绝了')
       }
       if (records.length > 0) {
         handler.records(records)
@@ -195,7 +198,7 @@ function follow(id: string, state: RunState, recorded: number, handler: RunHandl
     readNew()
     run.open = false
     const errors = existsSync(files.errors) ? readFileSync(files.errors, 'utf8').trim() : ''
-    const records = output.finish({ startedAt: state.time, stopped: Boolean(state.stopped), errors })
+    const records = output.finish({ startedAt: state.time, stopped: Boolean(state.stopped) && !state.failure, errors: state.failure ?? errors })
     if (records.length > 0) {
       handler.records(records)
     }
@@ -228,19 +231,25 @@ function follow(id: string, state: RunState, recorded: number, handler: RunHandl
       run.settledSince = undefined
       return true
     },
-    stop: () => {
-      if (!active.has(id)) {
-        return
-      }
-      run.open = false
-      state.stopped = true
-      writeState(id, state)
-      try {
-        process.kill(-state.agent.pid, 'SIGTERM')
-      } catch {
-        // 已经结束了
-      }
-    },
+    stop: () => end(),
     finished,
+  }
+
+  // 结束整个进程组；failure 是出错的原因，没有时是用户停止的
+  function end(failure?: string) {
+    if (!active.has(id)) {
+      return
+    }
+    run.open = false
+    state.stopped = true
+    if (failure) {
+      state.failure = failure
+    }
+    writeState(id, state)
+    try {
+      process.kill(-state.agent.pid, 'SIGTERM')
+    } catch {
+      // 已经结束了
+    }
   }
 }

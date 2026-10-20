@@ -24,4 +24,8 @@ export type Adapter = {
   // env 是 agentEnv 给的；能选的模型列表现查时由它自己缓存
   catalog(env: NodeJS.ProcessEnv): Promise<Omit<AgentCatalog, 'provider'>>
   account(env: NodeJS.ProcessEnv): Promise<Omit<AgentAccount, 'provider' | 'running'>>
+  // 启动时另加的环境变量，每次启动时现定（比如换用哪份登录）
+  authEnv?(): Record<string, string>
+  // 回答时请求被拒绝（登录无效）：处理后返回给用户看的原因，这次运行以它出错结束
+  authFailed?(): string
 }

@@ -87,6 +87,16 @@ export type LiveEvent =
 export type QuotaWindow = { utilization: number; resetsAt: number }
 export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
 
+// Claude 的两份登录：完整登录（/login，续期令牌约 4 周后到期，过了只能重新登录）和备用的一年期 token
+// （setup-token 生成，只能调模型，没有 claude.ai 的连接器）。mode 是现在启动 Claude 用哪份，none 是都用不了。
+// broken：完整登录没到期就在回答时认证失败了。存在系统状态的 claudeAuthKey 下，登录有变化时更新
+export type ClaudeAuth = {
+  mode: 'login' | 'token' | 'none'
+  login?: { expiresAt?: string; broken?: true }
+  backup?: { expiresAt?: string }
+}
+export const claudeAuthKey = 'agent/claude-auth'
+
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {
   provider: Provider

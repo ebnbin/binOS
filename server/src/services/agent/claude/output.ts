@@ -48,6 +48,7 @@ type Line = {
   model?: string
   status?: string | null
   attempt?: number
+  error_status?: number
   tool_use_id?: string
   is_backgrounded?: boolean
   owned_by_subagent?: boolean
@@ -107,8 +108,7 @@ export class ClaudeOutput implements AgentOutput {
     return this.live
   }
 
-  // offset 是这一行在输出文件里的结束位置；limits 是这一行报告的订阅额度
-  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits } {
+  push(text: string, offset: number): { records: AgentRecord[]; events: LiveEvent[]; limits?: Limits; authFailed?: true } {
     const records: AgentRecord[] = []
     const events: LiveEvent[] = []
     let line: Line
@@ -121,6 +121,10 @@ export class ClaudeOutput implements AgentOutput {
     if (line.type === 'rate_limit_event') {
       const limits = limitsOf(line)
       return fresh && limits ? { records, events, limits } : { records, events }
+    }
+    // 请求因为登录无效被拒绝：Claude 自己还会重试几次，第一次就报告
+    if (fresh && line.type === 'system' && line.subtype === 'api_retry' && line.error_status === 401) {
+      return { records, events, authFailed: true }
     }
     const parent = line.parent_tool_use_id ?? undefined
     const time = line.timestamp ?? new Date().toISOString()
