@@ -10,7 +10,8 @@ import { agentAccounts } from '../../services/agent/api.ts'
 import type { ClaudeLoginKind } from '../../services/agent/api.ts'
 import { authAttention, daysLeft, useClaudeAuth } from '../../services/agent/claude-auth.ts'
 import { ClaudeLogin } from '../../services/agent/ClaudeLogin.tsx'
-import { current, formatReset, level, windowsOf } from '../../services/agent/quota.ts'
+import { useMinuteNow } from '../../services/agent/quota.ts'
+import { QuotaWindows } from '../../services/agent/QuotaWindows.tsx'
 import styles from './AgentAccounts.module.css'
 
 const dateTime = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -174,23 +175,12 @@ function ClaudeAuthRows({ loadedAt }: { loadedAt: number }) {
 }
 
 function QuotaRows({ limits }: { limits: Limits }) {
-  const limited = limits.status !== 'allowed'
+  const now = useMinuteNow()
   return (
     <>
-      {windowsOf(limits).map(({ name, window }) => (
-        <Row key={name} label={`${name}额度`}>
-          <span className={styles.quota}>
-            <span className={styles.quotaLine}>
-              <span>{Math.round(current(window) * 100)}%</span>
-              <span className={styles.note}>{formatReset(window.resetsAt)}</span>
-            </span>
-            <span className={styles.meter} data-level={level(current(window), limited)}>
-              <span style={{ width: `${Math.min(current(window), 1) * 100}%` }} />
-            </span>
-          </span>
-        </Row>
-      ))}
-      {limited && <Row label="限流">已被限流</Row>}
+      <div className={styles.quotaWindows}>
+        <QuotaWindows limits={limits} now={now} />
+      </div>
       <Row label="额度更新于">{formatTime(limits.updatedAt)}</Row>
     </>
   )
