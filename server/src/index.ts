@@ -5,7 +5,7 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { api } from './api.js'
-import { codeDir, libraryDir } from './paths.js'
+import { codeDir, libraryDir, serverLockPath } from './paths.js'
 import { previewProxy } from './previews.js'
 import { acquireProcessLock } from './process.js'
 import { serverPort } from './production.js'
@@ -14,7 +14,7 @@ import { migrate } from './migrations.js'
 import { startAgentService } from './services/agent/index.js'
 
 // 一个根目录的数据只能由一个后端读写：两个后端会同时跟进同一轮回答，重复写入记录
-const holder = acquireProcessLock(path.join(libraryDir, 'server.lock'))
+const holder = acquireProcessLock(serverLockPath)
 if (holder) {
   throw new Error(`根目录 ${path.dirname(libraryDir)} 已有后端在运行（进程 ${holder.pid}）`)
 }

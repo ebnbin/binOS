@@ -1,12 +1,13 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { agentDataDir, agentRunsDir, appDir, libraryDir, registryPath } from './paths.js'
+import { accessPath, agentDataDir, agentRunsDir, appDir, libraryDir, registryPath } from './paths.js'
 import { parseExternalApp, writeRegistry } from './registry.js'
 
 // 后端启动时、各 app 启动前执行的数据迁移。每一步都先看是否已经做过，可以重复执行
 export function migrate() {
   moveCodeToApps()
   removeState()
+  moveAccessConfig()
 }
 
 // Code 的数据从 Library/code 挪到 Library/Apps/code。进行中的 agent 运行记着工具结果图片的存放目录，跟着改
@@ -60,6 +61,18 @@ function removeState() {
   }
 
   rmSync(file)
+}
+
+// Library/config.json 改为 Library/binos/access.json，去掉 access 这一层。
+// 原文件留着：上线失败回退到旧版本时，旧版本还要读它
+function moveAccessConfig() {
+  const old = readJson<{ access: { teamDomain: string; aud: string }; ownerEmail: string }>(path.join(libraryDir, 'config.json'))
+  if (!old || existsSync(accessPath)) {
+    return
+  }
+  mkdirSync(path.dirname(accessPath), { recursive: true })
+  writeFileSync(`${accessPath}.tmp`, JSON.stringify({ ...old.access, ownerEmail: old.ownerEmail }, null, 2) + '\n')
+  renameSync(`${accessPath}.tmp`, accessPath)
 }
 
 function readJson<T>(file: string): T | undefined {

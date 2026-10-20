@@ -13,7 +13,7 @@ export function previewPaths(previewsDir: string, pr: number) {
   return {
     dir,
     lock: path.join(dir, '.preview.lock'),
-    serverLock: path.join(rootLayout(dir).libraryDir, 'server.lock'),
+    serverLock: rootLayout(dir).serverLockPath,
     serverLog: path.join(dir, 'server.log'),
   }
 }
