@@ -116,4 +116,12 @@ describe('ClaudeDecoder', () => {
     expect(result.images).toEqual(['t9-1.png'])
     expect(readFileSync(path.join(filesDir, 't9-1.png'))).toEqual(data)
   })
+
+  it('额度快用完的提醒不算限流，rejected 才算', () => {
+    const { decoder } = run([])
+    const limits = (status: string) =>
+      decoder.push(JSON.stringify({ type: 'rate_limit_event', rate_limit_info: { status, unifiedWindows: { seven_day: { utilization: 0.76, resetsAt: 1 } } } }), 1).limits
+    expect(limits('allowed_warning')).toMatchObject({ limited: false, windows: [{ id: 'seven_day', minutes: 10080, utilization: 0.76 }] })
+    expect(limits('rejected')).toMatchObject({ limited: true })
+  })
 })
