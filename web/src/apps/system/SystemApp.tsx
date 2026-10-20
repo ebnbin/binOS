@@ -1,67 +1,96 @@
-import { ChevronRight } from 'lucide-react'
+import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
-import { getVersion } from '../../api.ts'
-import { useConnected } from '../../events.ts'
 import { useApps } from '../index.ts'
-import type { AppContext, AppManifest } from '../types.ts'
+import type { AppContext } from '../types.ts'
 import { AgentAccounts } from './AgentAccounts.tsx'
-import { ExternalApps } from './ExternalApps.tsx'
-import styles from './SystemApp.module.css'
+import { BinosMonitor } from './BinosMonitor.tsx'
+import { HostMonitor } from './HostMonitor.tsx'
+import { moment } from './format.ts'
+import { refreshMonitor, systemRequest, useMonitor } from './monitor.ts'
+import styles from './Monitor.module.css'
 
-// 系统自己的页面：路由 → 标题、说明和内容
-const pages: Record<string, { title: string; hint: string; component: (props: { back(): void }) => ReactNode }> = {
-  '/agent': { title: 'Agent', hint: '账号、额度和登录凭证', component: AgentAccounts },
-}
-
-// /：系统概况和各页入口；/agent 这类：系统自己的页面；/apps/<app 的 id>：这个 app 的设置页
 export function SystemApp({ ctx }: { ctx: AppContext }) {
+  const { status, error, lastSuccess, now } = useMonitor()
+  const [refreshing, setRefreshing] = useState(false)
+  const [actionError, setActionError] = useState('')
   const apps = useApps().filter((app) => app.settings)
-  const page = pages[ctx.route]
   const app = apps.find((item) => ctx.route === `/apps/${item.id}`)
+  const section = ctx.route === '/agent' ? 'agent' : ctx.route.startsWith('/binos') || app ? 'binos' : 'host'
+
   const { setTitle } = ctx
-  const title = page?.title ?? app?.name ?? ''
-  useEffect(() => setTitle(title), [setTitle, title])
-  const Page = page?.component ?? app?.settings?.component
-  return Page ? <Page back={ctx.back} /> : <Home apps={apps} onOpen={ctx.navigate} />
-}
-
-function Home({ apps, onOpen }: { apps: AppManifest[]; onOpen: (route: string) => void }) {
-  const [version, setVersion] = useState<string>()
-  const connected = useConnected()
-
-  useEffect(() => {
-    void getVersion().then(setVersion)
-  }, [connected])
-
+  useEffect(() => setTitle(section === 'host' ? '宿主 Mac' : section === 'agent' ? 'Agent' : 'binOS'), [setTitle, section])
+  const snapshot = status?.snapshot
+  const stale = snapshot && now - snapshot.at > 30_000
+  const refresh = async () => {
+    setRefreshing(true)
+    setActionError('')
+    try {
+      await systemRequest('/refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      await refreshMonitor()
+    } catch (e) {
+      setActionError(String(e))
+    } finally {
+      setRefreshing(false)
+    }
+  }
+  const Settings = app?.settings?.component
   return (
     <div className={styles.app}>
-      <dl className={styles.list}>
-        <div className={styles.row}>
-          <dt>版本</dt>
-          <dd className={styles.mono}>{version ? version.slice(0, 7) : '…'}</dd>
+      <header className={styles.top}>
+        <div>
+          <strong>系统</strong>
+          <span className={styles.freshness} data-stale={!!error || stale || !!status?.collectionError}>
+            {error ? '监控连接异常' : stale ? '数据已过期' : status?.collectionError ? '采集异常' : snapshot ? '正在监控' : '首次采集中'}
+            <small>{snapshot ? `采样 ${new Date(snapshot.at).toLocaleTimeString('zh-CN')}` : ''}</small>
+          </span>
         </div>
-        <div className={styles.row}>
-          <dt>连接</dt>
-          <dd>
-            <span className={styles.dot} data-connected={connected} />
-            {connected ? '已连接' : '已断开，正在重连'}
-          </dd>
+        <div className={styles.actions}>
+          <button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
+            <RefreshCw size={16} className={refreshing ? styles.spin : ''} />
+          </button>
         </div>
-      </dl>
-      <div className={styles.links}>
+      </header>
+      <nav className={styles.sections} aria-label="系统分区">
         {[
-          ...Object.entries(pages).map(([route, { title, hint }]) => ({ route, title, hint })),
-          ...apps.map((app) => ({ route: `/apps/${app.id}`, title: app.name, hint: app.settings!.hint })),
-        ].map(({ route, title, hint }) => (
-          <button key={route} type="button" className={styles.link} onClick={() => onOpen(route)}>
-            <span>{title}</span>
-            <span className={styles.linkHint}>{hint}</span>
-            <ChevronRight size={16} strokeWidth={1.75} />
+          { id: 'host', name: '宿主 Mac', hint: '硬件与 macOS', icon: Monitor, route: '/' },
+          { id: 'agent', name: 'Agent', hint: '账号与额度', icon: Bot, route: '/agent' },
+          { id: 'binos', name: 'binOS', hint: '运行与维护', icon: Activity, route: '/binos' },
+        ].map((item) => (
+          <button key={item.id} aria-current={section === item.id ? 'page' : undefined} onClick={() => ctx.navigate(item.route)}>
+            <item.icon size={20} />
+            <span>
+              {item.name}
+              <small>{item.hint}</small>
+            </span>
           </button>
         ))}
+      </nav>
+      {(error || stale || actionError) && (
+        <div className={styles.warning} role="alert">
+          {actionError || error || '监控采样超过 30 秒未更新'}。
+          {error || stale ? `最后成功连接 ${moment(lastSuccess)}；保留的数据可能已过期，无法确认宿主当前正常。` : ''}
+        </div>
+      )}
+      {status?.collectionError && (
+        <div className={styles.warning} role="alert">
+          {status.collectionError}
+        </div>
+      )}
+      <div className={styles.body}>
+        {section === 'agent' ? (
+          <AgentAccounts back={() => ctx.navigate('/')} />
+        ) : section === 'binos' ? (
+          Settings ? (
+            <Settings back={() => ctx.navigate('/binos')} />
+          ) : (
+            <BinosMonitor status={status} navigate={ctx.navigate} />
+          )
+        ) : status ? (
+          <HostMonitor status={status} />
+        ) : (
+          <p className={styles.empty}>{error ? '暂时无法读取宿主状态。页面会自动重试。' : '正在连接宿主监控…'}</p>
+        )}
       </div>
-      <ExternalApps />
     </div>
   )
 }
