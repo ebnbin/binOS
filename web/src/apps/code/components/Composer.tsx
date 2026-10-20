@@ -126,13 +126,7 @@ export function Composer({
     }
   }
 
-  // 正在回答、又没写东西时，Esc 停止
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Escape' && running && !hasContent) {
-      event.preventDefault()
-      onStop()
-      return
-    }
     if (enterSends && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault()
       void send()
@@ -270,7 +264,7 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title={enterSends ? '停止（Esc）' : '停止'}>
+            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
               <span className={styles.stopIcon} />
             </button>
           ) : (
