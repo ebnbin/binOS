@@ -55,7 +55,7 @@ export function TaskBar({
   const apps = useApps()
   // 外部 app 的窗口可以在新标签页打开，比如要在那里重新登录
   const focusedUrl = findApp(apps, windows.find((item) => item.id === focused)?.window.app ?? '')?.url
-  const canPick = !home && !locked && allowed.length > 1
+  const canPick = !home && !locked && !groups.some((group) => focused && group.slots.includes(focused)) && allowed.length > 1
 
   return (
     <nav inert={locked} className={styles.bar} data-placement={placement}>
@@ -86,7 +86,11 @@ export function TaskBar({
               >
                 {members.map((member) => {
                   const app = findApp(apps, member.window.app)
-                  return app && <app.icon key={member.id} size={group ? 18 : 21} strokeWidth={1.75} />
+                  return app && (
+                    <span key={member.id} className={styles.member} data-focused={!!group && !home && member.id === focused}>
+                      <app.icon size={group ? 18 : 21} strokeWidth={1.75} />
+                    </span>
+                  )
                 })}
               </button>
             )

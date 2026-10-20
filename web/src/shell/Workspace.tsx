@@ -10,10 +10,8 @@ type Drag = { pointer: number; start: number; length: number; position: number; 
 
 // 所有窗口保留挂载，退出布局后滚动位置和输入仍然保留。
 export function Workspace({
-  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, picking, editing, onRemove, unavailableApps,
+  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, picking, unavailableApps,
 }: {
-  editing: boolean
-  onRemove: (slot: number) => void
   picking: boolean
   unavailableApps: string[]
   windows: OpenWindow[]
@@ -32,10 +30,9 @@ export function Workspace({
 }) {
   const apps = useApps()
   const picker = useRef<HTMLDivElement>(null)
-  const choosing = picking || editing
   useEffect(() => {
-    if (choosing) picker.current?.querySelector<HTMLButtonElement>('[data-selection] button')?.focus()
-  }, [choosing])
+    if (picking) picker.current?.querySelector('button')?.focus()
+  }, [picking])
 
   const [offset, setOffset] = useState<number | null>(null)
   const drag = useRef<Drag | null>(null)
@@ -57,42 +54,39 @@ export function Workspace({
   const preview = (slot: number) => exiting === slot && <div className={styles.exitPreview} />
 
   return (
-    <div ref={picker} className={styles.workspace} hidden={hidden} data-dragging={offset !== null} data-portrait={portrait}
-      onKeyDown={(event) => {
-        if (!choosing) return
-        if (event.key === 'Escape') { event.preventDefault(); onCancel() }
-        if (event.key === 'Tab') {
-          const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('[data-selection] button')]
-          const first = buttons[0]
-          const last = buttons.at(-1)
-          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
-          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
-        }
-      }}>
+    <div className={styles.workspace} hidden={hidden} data-dragging={offset !== null} data-portrait={portrait}>
       {windows.map((item) => {
         const slot = panes.indexOf(item.id)
         return (
           <section key={item.id} className={styles.pane} hidden={slot < 0} style={position(slot)}
-            inert={choosing} data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
+            inert={picking} data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
             <div className={styles.content}><AppHost id={item.id} window={item.window} onTitle={onTitle} /></div>
             {preview(slot)}
           </section>
         )
       })}
-      {layout !== '1' && panes.map((id, slot) => (id === null || editing) && (
-        <section key={slot} data-selection className={styles.selection} style={position(slot)}
-          aria-label={editing ? (portrait ? (slot === 0 ? '编辑上侧分屏' : '编辑下侧分屏') : (slot === 0 ? '编辑左侧分屏' : '编辑右侧分屏')) : '选择第二个 app'}>
-          <div className={styles.picker}>
-            <p>{editing ? '选择替换此侧的 app' : '选择第二个 app'}</p>
-            <small>{editing ? '选择后立即完成，也可以移除此侧' : '选择后完成分屏，也可以取消'}</small>
+      {layout !== '1' && panes.map((id, slot) => id === null && (
+        <section key={slot} className={styles.pane} style={position(slot)} data-exiting={exiting === slot} aria-label="选择第二个 app">
+          <div ref={picker} className={styles.picker} onKeyDown={(event) => {
+            if (event.key === 'Escape') { event.preventDefault(); onCancel() }
+            if (event.key === 'Tab') {
+              const buttons = [...event.currentTarget.querySelectorAll('button')]
+              const first = buttons[0]
+              const last = buttons.at(-1)
+              if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+              else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+            }
+          }}>
+            <p>选择第二个 app</p>
+            <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
               {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.app === app.id && panes.includes(item.id))).map((app) => (
                 <button key={app.id} type="button" onClick={() => onPick(app.id, slot)}><app.icon size={20} />{app.name}</button>
               ))}
             </div>
-            {editing && <button type="button" onClick={() => onRemove(slot)}>移除此侧分屏</button>}
-            <button type="button" onClick={onCancel}>{editing ? '取消编辑' : '取消分屏'}</button>
+            <button type="button" onClick={onCancel}>取消分屏</button>
           </div>
+          {preview(slot)}
         </section>
       ))}
       {picking && <div className={styles.waitingMask} style={position(0)} />}
@@ -100,7 +94,7 @@ export function Workspace({
         <div className={styles.exitHint} role="status">{panes[exiting] ? '松手退到后台' : '松手取消分屏'}</div>
       )}
       {layout !== '1' && (
-        <div className={styles.divider} inert={choosing}
+        <div className={styles.divider} inert={picking}
           style={portrait ? { top: first - 5, height: paneGap + 10 } : { left: first - 5, width: paneGap + 10 }}
           role="separator" aria-label="调整分屏，双击交换位置" aria-orientation={portrait ? 'horizontal' : 'vertical'}
           aria-valuemin={0} aria-valuemax={length - paneGap} aria-valuenow={Math.round(first)} tabIndex={0}

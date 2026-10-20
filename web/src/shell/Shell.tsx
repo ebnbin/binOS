@@ -42,7 +42,6 @@ export function Shell() {
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
   const [draft, setDraft] = useState<WorkspaceState | null>(null)
-  const [editing, setEditing] = useState<string | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -60,8 +59,6 @@ export function Shell() {
   const recent = view.recent.filter((id) => ids.includes(id))
   const focusedWindow = view.focused && ids.includes(view.focused) ? view.focused : (recent[0] ?? null)
   const group = stored.groups.find((item) => focusedWindow && item.slots.includes(focusedWindow))
-  const editingGroup = !!group && editing === group.id
-  const locked = draft !== null || editingGroup
   const workspace: WorkspaceState = draft ?? group ?? { layout: '1', slots: [focusedWindow, null] }
   const layout = fitLayout(workspace.layout, allowed, workspace.slots.indexOf(focusedWindow))
   const panes = arrange(workspace, layout, focusedWindow)
@@ -77,24 +74,23 @@ export function Shell() {
     )
 
   const show = (id: string) => {
-    if (locked) return
+    if (draft) return
     const target = stored.groups.find((item) => item.slots.includes(id))
     focus(id, target?.slots.indexOf(id) ?? 0)
   }
 
   const open = (appId: string, route?: string) => {
-    if (locked) return
+    if (draft) return
     const id = ensureWindow(appId)
     if (route) setRoute(id, route)
     show(id)
   }
 
   const chooseLayout = (next: LayoutId) => {
-    if (!locked && group && next !== group.layout) updateGroup(group.id, { ...group, layout: next })
+    if (!draft && group && next !== group.layout) updateGroup(group.id, { ...group, layout: next })
   }
 
   const exitSplit = (keep: number) => {
-    setEditing(null)
     if (draft) { setDraft(null); return }
     const id = panes[keep]
     if (group) dissolveGroup(group.id)
@@ -102,7 +98,7 @@ export function Shell() {
   }
 
   const close = () => {
-    if (locked || !focused) return
+    if (draft || !focused) return
     const next = group ? group.slots.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
     closeWindow(focused)
     setView((prev) => ({ ...prev, home: !next, focused: next, slot: 0 }))
@@ -110,12 +106,10 @@ export function Shell() {
 
   if (draft && (!allowed.includes(draft.layout) || !stored.windows[draft.slots[0]!])) setDraft(null)
 
-  if (editing && (!group || editing !== group.id || layout === '1')) setEditing(null)
-
   // 浏览器返回时，恢复那条记录的窗口和路由
   useEffect(() => {
     const onPopState = () => {
-      if (locked) return
+      if (draft) return
       const state = window.history.state as HistoryState
       if (state && ids.includes(state.window)) {
         restoreRoute(state.window, state.route)
@@ -141,33 +135,23 @@ export function Shell() {
               onFocus={focus}
               onLayout={chooseLayout}
               onExit={exitSplit}
-              onPick={(appId, at) => {
-                if ((!draft || !draft.slots[0]) && !editingGroup) return
+              onPick={(appId) => {
+                if (!draft || !draft.slots[0]) return
                 const existing = windows.find((item) => item.window.app === appId)
                 if (existing && stored.groups.some((item) => item.slots.includes(existing.id))) return
                 const id = ensureWindow(appId)
-                if (editingGroup && group) {
-                  const slots = [...group.slots]
-                  slots[at] = id
-                  updateGroup(group.id, { ...group, slots })
-                  setEditing(null)
-                  focus(id, at)
-                } else if (draft) {
-                  createGroup({ layout: draft.layout, slots: [draft.slots[0], id] })
-                  setDraft(null)
-                  focus(id, 1)
-                }
+                createGroup({ layout: draft.layout, slots: [draft.slots[0], id] })
+                setDraft(null)
+                focus(id, 1)
               }}
               picking={draft !== null}
-              editing={editingGroup}
-              onRemove={(at) => exitSplit(1 - at)}
               unavailableApps={windows.filter((item) => stored.groups.some((group) => group.slots.includes(item.id))).map((item) => item.window.app)}
               onSwap={() => {
-                if (locked || !group) return
+                if (draft || !group) return
                 updateGroup(group.id, { ...group, slots: [...group.slots].reverse() })
                 if (focused) focus(focused, 1 - slot)
               }}
-              onCancel={() => { setDraft(null); setEditing(null) }}
+              onCancel={() => exitSplit(slot)}
               size={size}
               portrait={portrait}
               onTitle={onTitle}
@@ -181,7 +165,7 @@ export function Shell() {
           placement={placement}
           windows={windows}
           groups={stored.groups}
-          locked={locked}
+          locked={draft !== null}
           panes={panes}
           focused={focused}
           focusedSlot={slot}
@@ -189,11 +173,11 @@ export function Shell() {
           layout={layout}
           allowed={allowed}
           portrait={portrait}
-          onHome={() => { if (!locked) setView((prev) => ({ ...prev, home: !home })) }}
+          onHome={() => { if (!draft) setView((prev) => ({ ...prev, home: !home })) }}
           onShow={show}
           onSplit={() => {
-            if (locked || !focused) return
-            if (group) { setEditing(group.id); return }
+            if (draft || !focused) return
+            if (group) return
             setDraft({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
           }}
           onClose={close}
