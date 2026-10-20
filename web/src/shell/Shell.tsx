@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { findApp, useApps } from '../apps/index.ts'
 import type { AppManifest } from '../apps/types.ts'
-import { useStateList, useStateLoaded, useStateValue } from '../state.ts'
+import { useStateLoaded } from '../state.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
 import { useBarPlacement } from './bar-placement.ts'
 import { ConnectionStatus } from './ConnectionStatus.tsx'
@@ -9,16 +9,16 @@ import { Desktop } from './Desktop.tsx'
 import { restoreRoute } from './history.ts'
 import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
-import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, normalizeWorkspace, place, relayout } from './layout.ts'
+import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place, relayout } from './layout.ts'
 import type { LayoutId } from './layout.ts'
 import { TaskBar } from './TaskBar.tsx'
 import { Workspace } from './Workspace.tsx'
-import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, windowPrefix, workspaceKey } from './windows.ts'
+import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, useWindows } from './windows.ts'
 import type { WindowState } from './windows.ts'
 
 export type OpenWindow = { id: string; window: WindowState; title: string }
 
-// 这台设备自己的界面状态，不同步：显示桌面还是窗口、聚焦的窗口和分屏位置、最近用过的窗口
+// 这台设备自己的界面状态（窗口和分屏布局见 windows.ts）：显示桌面还是窗口、聚焦的窗口和分屏位置、最近用过的窗口
 type View = { home: boolean; focused: string | null; slot: number; recent: string[] }
 
 const viewKey = 'binos.view'
@@ -38,8 +38,7 @@ export function Shell() {
   const loaded = useStateLoaded()
   const apps = useApps()
   const [main, size] = useElementSize<HTMLDivElement>()
-  const entries = useStateList(windowPrefix)
-  const storedWorkspace = useStateValue(workspaceKey)
+  const stored = useWindows()
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
@@ -47,17 +46,15 @@ export function Shell() {
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
 
-  const windows: OpenWindow[] = entries
-    .map(([key, value]) => {
-      const id = key.slice(windowPrefix.length)
-      const win = value as WindowState
+  const windows: OpenWindow[] = Object.entries(stored.windows)
+    .map(([id, win]) => {
       const appName = findApp(apps, win.app)?.name ?? win.app
       return { id, window: win, title: titles[id] ? `${appName} · ${titles[id]}` : appName }
     })
     .sort((a, b) => appOrder(apps, a.window.app) - appOrder(apps, b.window.app))
   const ids = windows.map((item) => item.id)
 
-  const workspace = normalizeWorkspace(storedWorkspace, ids)
+  const { workspace } = stored
   const allowed: LayoutId[] = size ? allowedLayouts(size) : ['1']
   const layout = fitLayout(workspace.layout, allowed)
   const portrait = size ? isPortrait(size) : true
@@ -77,7 +74,7 @@ export function Shell() {
     )
 
   // 分屏时：指定了位置就挪到那里，和原来的窗口对调；没指定时，已经显示着就只聚焦，否则放进聚焦的位置。
-  // 只有一个位置时只改本设备显示哪个
+  // 只有一个位置时只改显示哪个
   const show = (id: string, target?: number) => {
     if (count === 1) {
       focus(id, 0)

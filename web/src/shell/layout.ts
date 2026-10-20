@@ -1,6 +1,6 @@
 import type { JsonValue } from '@binos/server/types'
 
-// 桌面分栏和窗口分屏的规格，只做计算，不读写系统状态
+// 桌面分栏和窗口分屏的规格，只做计算，不读写存储
 
 export type Size = { width: number; height: number }
 
@@ -137,7 +137,7 @@ export function fitLayout(layout: LayoutId, allowed: LayoutId[]): LayoutId {
   return layouts[layout].length > 1 && allowed.includes('1:1') ? '1:1' : '1'
 }
 
-// 系统状态 shell/workspace：选的分屏布局和每个位置上的窗口 id，所有设备共用
+// 选的分屏布局和每个位置上的窗口 id（见 windows.ts）
 export type Workspace = { layout: LayoutId; slots: (string | null)[] }
 
 export function normalizeWorkspace(value: JsonValue, ids: string[]): Workspace {
@@ -150,7 +150,7 @@ export function normalizeWorkspace(value: JsonValue, ids: string[]): Workspace {
   return { layout, slots }
 }
 
-// 实际显示的窗口。只有一个位置时显示本设备聚焦的窗口，不动共用的布局；分屏时按共用的位置
+// 实际显示的窗口。只有一个位置时显示聚焦的窗口，不动记下的布局；分屏时按记下的位置
 export function arrange(workspace: Workspace, layout: LayoutId, focused: string | null): (string | null)[] {
   const count = layouts[layout].length
   if (count === 1) {

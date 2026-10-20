@@ -2,10 +2,9 @@ import { Suspense } from 'react'
 import type { CSSProperties } from 'react'
 import { findApp, useApps } from '../apps/index.ts'
 import type { AppManifest } from '../apps/types.ts'
-import { useStateValue } from '../state.ts'
 import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
 import styles from './Desktop.module.css'
-import { desktopKey, itemSize, readDesktop } from './desktop-items.ts'
+import { desktopItems, itemSize } from './desktop-items.ts'
 import type { DesktopItem } from './desktop-items.ts'
 import { column, desktopColumns, packColumn, splitColumns } from './layout.ts'
 
@@ -16,7 +15,7 @@ const margin = (column.min - cell * 4 - gap * 3) / 2
 
 export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string, route?: string) => void }) {
   const apps = useApps()
-  const items = readDesktop(useStateValue(desktopKey), apps)
+  const items = desktopItems(apps)
   const { count, columnWidth, scale } = desktopColumns(width)
   const sizes = items.map(itemSize)
   const starts = splitColumns(sizes, count)
