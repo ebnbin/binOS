@@ -56,7 +56,7 @@ describe('allowedLayouts', () => {
 
   it('窗口之间的缝不算在窗口的尺寸里', () => {
     expect(allowedLayouts({ width: 720, height: 600 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 726, height: 600 })).toEqual(['1'])
     expect(allowedLayouts({ width: 1080, height: 600 })).toEqual(['1', '1:2', '2:1'])
   })
 })
@@ -127,10 +127,23 @@ describe('均分门槛', () => {
 
   it('上下分屏扣除分割线后需容纳三个最小高度', () => {
     expect(allowedLayouts({ width: 600, height: 725 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 600, height: 726 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 600, height: 726 })).toEqual(['1'])
     expect(allowedLayouts({ width: 800, height: 1085 })).not.toContain('1:1')
     expect(allowedLayouts({ width: 800, height: 1086 })).toContain('1:1')
     expect(snapLayout(449, 900)).toBe('1:2')
     expect(snapLayout(451, 900)).toBe('2:1')
+  })
+})
+
+describe('分屏缓冲区', () => {
+  it('两个方向都需要额外 90px 才允许分屏', () => {
+    for (const length of [726, 727, 815]) {
+      expect(allowedLayouts({ width: length, height: 600 })).toEqual(['1'])
+      expect(allowedLayouts({ width: 600, height: length })).toEqual(['1'])
+    }
+    expect(allowedLayouts({ width: 816, height: 600 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 600, height: 816 })).toEqual(['1', '1:2', '2:1'])
+    expect(paneSizes('1:2', { width: 816, height: 600 }).map((size) => size.width)).toEqual([360, 450])
+    expect(paneSizes('2:1', { width: 600, height: 816 }).map((size) => size.height)).toEqual([450, 360])
   })
 })

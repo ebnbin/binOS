@@ -108,6 +108,8 @@ export const maxPanes = 2
 export const minPane = 360
 // 分屏时窗口之间的黑缝。每个窗口是独立的圆角矩形，缝不占窗口自己的尺寸
 export const paneGap = 6
+// 两种不均分布局之间至少留出 90px 的拖动距离
+const splitBuffer = 90
 
 export const isPortrait = (size: Size) => size.height > size.width
 
@@ -132,7 +134,9 @@ export function paneSizes(layout: LayoutId, size: Size): Size[] {
 
 export function allowedLayouts(size: Size): LayoutId[] {
   const portrait = isPortrait(size)
-  const equal = canEqualSplit(portrait ? size.height : size.width)
+  const length = portrait ? size.height : size.width
+  if (length < minPane * 2 + paneGap + splitBuffer) return ['1']
+  const equal = canEqualSplit(length)
   return layoutIds.filter(
     (id) => id === '1' || (id !== '1:1' || equal) && paneSizes(id, size).every((pane) => pane.width >= minPane && pane.height >= minPane),
   )
