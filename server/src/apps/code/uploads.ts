@@ -77,6 +77,13 @@ export function moveUploads(sessionId: number, attachments: Attachment[]) {
   }
 }
 
+// 撤回了排队的消息，它的附件不再用了
+export function discardUploads(attachments: Attachment[]) {
+  for (const { file } of attachments) {
+    rmSync(path.join(uploadsDir, file), { force: true })
+  }
+}
+
 // 附件不直接放进消息，写上存放的路径，让 agent 自己查看：什么文件都能这样传
 export function promptWithAttachments(sessionId: number, text: string, attachments: Attachment[], provider: Provider): string {
   if (!attachments.length) {
