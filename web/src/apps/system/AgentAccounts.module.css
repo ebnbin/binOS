@@ -154,3 +154,39 @@
 .meter[data-level='danger'] span {
   background: var(--danger);
 }
+
+.attention {
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--live) 12%, transparent);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.attention[data-tone='bad'] {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.loginActions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 2px;
+}
+
+.loginActions button {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.login {
+  padding: 12px 0 2px;
+}

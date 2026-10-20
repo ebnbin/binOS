@@ -4,6 +4,7 @@ import { ChevronRight, CircleAlert, CircleStop, Clock, GitPullRequest, Hourglass
 import { Fragment, useEffect, useState } from 'react'
 import { listSessions } from '../api.ts'
 import { dateGroup, formatClock, formatTime } from '../time.ts'
+import { AuthBanner } from './AuthBanner.tsx'
 import { Quota } from './Quota.tsx'
 import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
 import styles from './SessionList.module.css'
@@ -30,6 +31,7 @@ export function SessionList({
         <span className={styles.wordmark}>Code</span>
         <Quota />
       </header>
+      <AuthBanner />
       <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
         <SquarePen size={16} strokeWidth={1.75} />
         新对话
