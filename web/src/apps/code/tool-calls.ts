@@ -1,4 +1,5 @@
 import type { TranscriptRecord } from '@binos/server/apps/code/types'
+import { diffLines } from 'diff'
 import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -70,4 +71,71 @@ export function toolKind(name: string): ToolKind {
     return { icon: AppWindow, verb, category: 'browser', detailKey }
   }
   return kinds[name] ?? { icon: Wrench, verb: name.replace(/^mcp__/, '').replaceAll('__', ' '), category: 'other' }
+}
+
+// 修改和写入文件增删了多少行
+export function lineChanges(use: ToolUse): { added: number; removed: number } | undefined {
+  const input = use.input as { old_string?: unknown; new_string?: unknown; content?: unknown }
+  if (use.name === 'Edit' && typeof input.old_string === 'string' && typeof input.new_string === 'string') {
+    let added = 0
+    let removed = 0
+    for (const part of diffLines(input.old_string, input.new_string)) {
+      if (part.added) {
+        added += part.count ?? 0
+      } else if (part.removed) {
+        removed += part.count ?? 0
+      }
+    }
+    return { added, removed }
+  }
+  if (use.name === 'Patch') {
+    return patchChanges(use.input as { kind?: unknown; diff?: unknown })
+  }
+  if (use.name === 'Write' && typeof input.content === 'string') {
+    return { added: input.content.replace(/\n$/, '').split('\n').length, removed: 0 }
+  }
+  return undefined
+}
+
+// Patch 改文件：新建和删除时 diff 是整个文件的内容，修改时是统一格式的 diff
+function patchChanges({ kind, diff }: { kind?: unknown; diff?: unknown }): { added: number; removed: number } | undefined {
+  if (typeof diff !== 'string') {
+    return undefined
+  }
+  const lines = diff.replace(/\n$/, '').split('\n')
+  if (kind === 'add' || kind === 'delete') {
+    const count = diff ? lines.length : 0
+    return kind === 'add' ? { added: count, removed: 0 } : { added: 0, removed: count }
+  }
+  const body = lines.filter((line) => !line.startsWith('+++') && !line.startsWith('---'))
+  return { added: body.filter((line) => line.startsWith('+')).length, removed: body.filter((line) => line.startsWith('-')).length }
+}
+
+// 一轮里改过的一个文件：增删的行数合计，以及改它的每一次调用。kind 是 Patch 新建或删除了它
+export type FileChange = { path: string; added: number; removed: number; kind?: 'add' | 'delete'; calls: ToolCallItem[] }
+
+const editTools = new Set(['Edit', 'Write', 'NotebookEdit', 'Patch'])
+
+export const isFileEdit = (use: ToolUse) => editTools.has(use.name)
+
+// 成功的修改按文件合并，顺序是第一次改它的顺序
+export function fileChanges(calls: ToolCallItem[]): FileChange[] {
+  const files = new Map<string, FileChange>()
+  for (const call of calls) {
+    const input = call.use.input as { file_path?: unknown; notebook_path?: unknown; kind?: unknown }
+    const path = input.file_path ?? input.notebook_path
+    if (call.result?.status !== 'done' || typeof path !== 'string') {
+      continue
+    }
+    const file = files.get(path) ?? { path, added: 0, removed: 0, calls: [] }
+    const changes = lineChanges(call.use)
+    file.added += changes?.added ?? 0
+    file.removed += changes?.removed ?? 0
+    if (input.kind === 'add' || input.kind === 'delete') {
+      file.kind = input.kind
+    }
+    file.calls.push(call)
+    files.set(path, file)
+  }
+  return [...files.values()]
 }

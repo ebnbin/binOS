@@ -1,8 +1,41 @@
+.viewport {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+
+.toBottom {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-2);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transform: translateX(-50%);
+  animation: appear 0.2s var(--ease) both;
+}
+
+@media (hover: hover) {
+  .toBottom:hover {
+    color: var(--text);
+  }
 }
 
 .column {
@@ -47,6 +80,13 @@
   }
 }
 
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+}
+
 @container agent (width < 600px) {
   .column {
     gap: 26px;
@@ -55,7 +95,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .empty {
+  .empty,
+  .toBottom {
     animation: none;
   }
 }

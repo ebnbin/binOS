@@ -7,7 +7,7 @@
 
 .user {
   position: relative;
-  padding: 10px 56px 10px 14px;
+  padding: 10px 84px 10px 14px;
   border-radius: 10px;
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--hairline);
@@ -19,10 +19,13 @@
   margin-top: 4px;
 }
 
-.userTime {
+.userMeta {
   position: absolute;
-  top: 11px;
-  right: 14px;
+  top: 7px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
   font-size: 11.5px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -30,12 +33,13 @@
   transition: opacity 0.15s;
 }
 
-.user:hover .userTime {
+.user:hover .userMeta,
+.userMeta:focus-within {
   opacity: 1;
 }
 
 @media (hover: none) {
-  .userTime {
+  .userMeta {
     opacity: 1;
   }
 }

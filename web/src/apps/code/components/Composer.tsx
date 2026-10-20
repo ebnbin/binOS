@@ -15,10 +15,14 @@ const enterSends = !window.matchMedia('(pointer: coarse)').matches
 
 let nextKey = 0
 
+// 没发出去的文字按对话存在浏览器里，切走再回来、刷新页面都还在
+const draftStorageKey = (key: number | 'new') => `code/draft/${key}`
+
 const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
-// providerFixed：已有的 session，agent 不能换
+// draftKey：草稿属于哪个对话；providerFixed：已有的 session，agent 不能换
 export function Composer({
+  draftKey,
   running,
   choice,
   providerFixed,
@@ -26,6 +30,7 @@ export function Composer({
   onSend,
   onStop,
 }: {
+  draftKey: number | 'new'
   running: boolean
   choice: Choice
   providerFixed: boolean
@@ -33,7 +38,7 @@ export function Composer({
   onSend: (text: string, files: File[], interrupt: boolean) => Promise<boolean>
   onStop: () => void
 }) {
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(() => localStorage.getItem(draftStorageKey(draftKey)) ?? '')
   const [pending, setPending] = useState<PendingFile[]>([])
   const [sending, setSending] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -63,6 +68,14 @@ export function Composer({
     pending.filter((item) => !keep(item) && item.preview).forEach((item) => URL.revokeObjectURL(item.preview!))
     setPending(pending.filter(keep))
   }
+
+  useEffect(() => {
+    if (input) {
+      localStorage.setItem(draftStorageKey(draftKey), input)
+    } else {
+      localStorage.removeItem(draftStorageKey(draftKey))
+    }
+  }, [draftKey, input])
 
   // 切到别的 session 时释放还没发出的预览
   const pendingRef = useRef(pending)
@@ -106,6 +119,8 @@ export function Composer({
     const ok = await onSend(input.trim(), pending.map((item) => item.file), interrupt)
     setSending(false)
     if (ok) {
+      // 新对话发出后这个输入框就换成了那个对话的，等不到下面的 effect
+      localStorage.removeItem(draftStorageKey(draftKey))
       setInput('')
       clearPending()
     }

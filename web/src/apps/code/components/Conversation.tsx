@@ -1,6 +1,7 @@
 import type { Attachment, SessionSummary } from '@binos/server/apps/code/types'
 import { defaultProvider } from '@binos/server/services/agent/types'
 import type { Provider } from '@binos/server/services/agent/types'
+import { ArrowDown } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { useSession } from '../useSession.ts'
@@ -41,6 +42,8 @@ export function Conversation({
   const [notice, setNotice] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
+  // 往上翻看时，右下角出现回到底部的按钮
+  const [awayFromBottom, setAwayFromBottom] = useState(false)
 
   useLayoutEffect(() => {
     const el = scrollRef.current
@@ -83,30 +86,43 @@ export function Conversation({
     return true
   }
 
+  function scrollToBottom() {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+  }
+
   return (
     <>
-      <div
-        className={styles.scroll}
-        ref={scrollRef}
-        onScroll={(event) => {
-          const el = event.currentTarget
-          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < stickThreshold
-        }}
-      >
-        <div className={styles.column}>
-          {sessionId === null ? (
-            <div className={styles.empty}>
-              <BrandMark size={44} />
-              <h1>想让 binOS 做点什么？</h1>
-              <p>你说的每一句话，都可能改变这个系统本身</p>
-            </div>
-          ) : (
-            <Transcript sessionId={sessionId} records={records} live={live} />
-          )}
-          {notice && <Alert>{notice}</Alert>}
+      <div className={styles.viewport}>
+        <div
+          className={styles.scroll}
+          ref={scrollRef}
+          onScroll={(event) => {
+            const el = event.currentTarget
+            stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < stickThreshold
+            setAwayFromBottom(!stick.current)
+          }}
+        >
+          <div className={styles.column}>
+            {sessionId === null ? (
+              <div className={styles.empty}>
+                <BrandMark size={44} />
+                <h1>想让 binOS 做点什么？</h1>
+                <p>你说的每一句话，都可能改变这个系统本身</p>
+              </div>
+            ) : (
+              <Transcript sessionId={sessionId} records={records} live={live} />
+            )}
+            {notice && <Alert>{notice}</Alert>}
+          </div>
         </div>
+        {awayFromBottom && (
+          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
+            <ArrowDown size={16} strokeWidth={2} />
+          </button>
+        )}
       </div>
       <Composer
+        draftKey={sessionId ?? 'new'}
         running={running}
         choice={choice}
         providerFixed={sessionId !== null}
