@@ -8,7 +8,7 @@ import { Markdown } from '../../services/agent/thread/Markdown.tsx'
 import { languageOf } from '../../services/agent/thread/highlight.ts'
 import styles from './FileBlock.module.css'
 
-export type SavedFile = { thread: string; file: string; name: string; path?: string }
+export type SavedFile = { thread: string; file: string; name: string; path?: string; url?: string }
 type Metadata = { size: number; modified: string; type: string }
 const extension = (name: string) => name.split('.').at(-1)?.toLowerCase() ?? ''
 function kind(name: string) {
@@ -26,10 +26,15 @@ function sizeLabel(size: number) {
   return size < 1024 ? `${size} B` : size < 1024 * 1024 ? `${(size / 1024).toFixed(1)} KB` : `${(size / 1024 / 1024).toFixed(1)} MB`
 }
 
+function fileUrl(item: SavedFile, download = false) {
+  if (item.url) return item.url + (download ? `&name=${encodeURIComponent(item.name)}` : '')
+  return threadFileUrl(item.thread, item.file, download ? item.name : undefined)
+}
+
 function Preview({ item, type, source }: { item: SavedFile; type: string; source: boolean }) {
   const [text, setText] = useState<string>()
   const [error, setError] = useState('')
-  const url = threadFileUrl(item.thread, item.file)
+  const url = fileUrl(item)
   useEffect(() => {
     if (!['text', 'markdown', 'html'].includes(type)) return
     const controller = new AbortController()
@@ -60,28 +65,29 @@ function Preview({ item, type, source }: { item: SavedFile; type: string; source
   return <div className={styles.code}><CodeBlock code={text} lang={languageOf(item.name)} startLine={1} label={item.name} /></div>
 }
 
-function FilePreview({ item, close }: { item: SavedFile; close: () => void }) {
+export function FilePreview({ item, close }: { item: SavedFile; close: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [info, setInfo] = useState(false)
   const [source, setSource] = useState(false)
   const [metadata, setMetadata] = useState<Metadata>()
   const [error, setError] = useState(false)
   const type = kind(item.name)
+  const url = fileUrl(item)
   useEffect(() => {
     dialog.current?.showModal()
     const controller = new AbortController()
-    fetch(threadFileUrl(item.thread, item.file) + '?info=1', { signal: controller.signal })
+    fetch(url + (url.includes('?') ? '&' : '?') + 'info=1', { signal: controller.signal })
       .then(async (res) => { if (!res.ok) throw new Error(); setMetadata(await res.json() as Metadata) })
       .catch(() => { if (!controller.signal.aborted) setError(true) })
     return () => controller.abort()
-  }, [item.thread, item.file])
+  }, [url])
   return createPortal(
     <dialog ref={dialog} className={styles.dialog} onClose={close} onClick={(event) => { if (event.target === dialog.current) close() }} aria-label={item.name}>
       <div className={styles.window}>
         <header className={styles.toolbar}>
           <File size={18} /><strong className={styles.title}>{item.name}</strong>
           {['markdown', 'html'].includes(type) && <button type="button" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
-          <a href={threadFileUrl(item.thread, item.file, item.name)} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
+          <a href={fileUrl(item, true)} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
           <button type="button" onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info size={17} /></button>
           <button type="button" onClick={close} aria-label="关闭预览" autoFocus><X size={19} /></button>
         </header>
@@ -92,7 +98,7 @@ function FilePreview({ item, close }: { item: SavedFile; close: () => void }) {
             <dt>类型</dt><dd>{extension(item.name).toUpperCase() || '文件'}{metadata && <small>{metadata.type}</small>}</dd>
             <dt>大小</dt><dd>{metadata ? `${sizeLabel(metadata.size)}（${metadata.size.toLocaleString()} 字节）` : error ? '读取失败' : '加载中…'}</dd>
             <dt>修改时间</dt><dd>{metadata ? new Date(metadata.modified).toLocaleString() : '—'}</dd>
-            <dt>来源</dt><dd>会话文件</dd>
+            <dt>来源</dt><dd>{item.url ? '本机文件' : '会话文件'}</dd>
             {item.path && <><dt>原始路径</dt><dd>{item.path}</dd></>}
           </dl></aside>}
         </div>

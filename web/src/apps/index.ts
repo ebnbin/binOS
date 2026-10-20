@@ -6,6 +6,7 @@ import { useExternalApps } from './registry.ts'
 import type { AppManifest } from './types.ts'
 
 const builtinApps: AppManifest[] = [
+  { id: 'files', name: '文件', icon: Folder, component: lazy(() => import('./files/FilesApp.tsx').then((module) => ({ default: module.FilesApp }))) },
   {
     id: 'code',
     name: 'Code',
@@ -39,7 +40,6 @@ const placeholderApps: AppManifest[] = [
   placeholderApp('calendar', '日历', CalendarDays),
   placeholderApp('weather', '天气', CloudSun),
   placeholderApp('music', '音乐', Music),
-  placeholderApp('files', '文件', Folder),
 ]
 
 // 内置的 app 加上 app 注册表里的外部 app，按这个顺序排列
