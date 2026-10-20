@@ -3,6 +3,8 @@ import path from 'node:path'
 export function rootLayout(root: string) {
   const rootDir = path.resolve(root)
   const libraryDir = path.join(rootDir, 'Library')
+  // binOS 系统自己的数据
+  const systemDataDir = path.join(libraryDir, 'binos')
   return {
     rootDir,
     // 正在运行的 binOS：上线服务装进来的构建，launchd 运行其中的 bin/binos
@@ -11,10 +13,14 @@ export function rootLayout(root: string) {
     libraryDir,
     // 第三方 agent 自己的目录，每个 agent 一个子目录
     agentsDir: path.join(rootDir, 'Agents'),
-    // launchd 服务的输出，一个服务一个文件。Library/binos 是 binOS 系统自己的数据
-    logsDir: path.join(libraryDir, 'binos', 'logs'),
+    // launchd 服务的输出，一个服务一个文件
+    logsDir: path.join(systemDataDir, 'logs'),
     // app 注册表：装了哪些外部 app
-    registryPath: path.join(libraryDir, 'binos', 'apps.json'),
+    registryPath: path.join(systemDataDir, 'apps.json'),
+    // 访问控制：Cloudflare Access 的设置和主人的邮箱，手动填写
+    accessPath: path.join(systemDataDir, 'access.json'),
+    // 后端的根目录锁
+    serverLockPath: path.join(systemDataDir, 'server.lock'),
     // agent 服务的数据：运行，以及登录的状况
     agentDataDir: path.join(libraryDir, 'agent'),
     agentRunsDir: path.join(libraryDir, 'agent', 'runs'),
