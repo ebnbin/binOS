@@ -103,10 +103,11 @@ function handler(sessionId: number): RunHandler {
       waitingSessions.delete(sessionId)
       liveFiles.delete(sessionId)
       emit(sessionId, { type: 'live', live: null })
-      notifyChange({ type: 'session', id: sessionId })
+      // 先记下额度的点，页面收到通知读到的用量才是新的
       if (sessionInfo(sessionId).provider === 'claude') {
         recordQuotaSample()
       }
+      notifyChange({ type: 'session', id: sessionId })
       // 被停止、出错的一轮不接着发，排着的话留给用户决定
       if (!sessionInfo(sessionId).outcome) {
         drainQueue(sessionId)

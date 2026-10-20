@@ -1,8 +1,13 @@
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import { agentAccounts, agentCatalogs } from './accounts.js'
+import { claudeAuth } from './claude/auth.js'
+import { codexAuth } from './codex/auth.js'
+import { allLimits } from './limits.js'
+import type { AgentStatus } from './types.js'
 import { cancelLogin, finishLogin, startLogin } from './claude/login.js'
 import type { LoginKind } from './claude/login.js'
+import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './codex/login.js'
 
 const loginBody = validator('json', (value, c) => {
   const kind = (value as { kind?: unknown } | null)?.kind
@@ -16,8 +21,10 @@ const codeBody = validator('json', (value, c) => {
 
 const errorText = (error: unknown) => (error instanceof Error ? error.message : String(error))
 
-// 页面用到的 agent 服务：系统 app 显示账号、登录 Claude，app 里选 agent 和模型
+// 页面用到的 agent 服务：系统 app 显示账号、登录 Claude 和 Codex，app 里选 agent 和模型
 export const agentApi = new Hono()
+  // 各个 agent 最近报告的额度和登录的状况，页面收到 agent 通知时重新读取
+  .get('/status', (c) => c.json({ limits: allLimits(), claude: claudeAuth(), codex: codexAuth() } satisfies AgentStatus))
   // 各个 agent 的账号、登录凭证和用量
   .get('/accounts', async (c) => c.json({ accounts: await agentAccounts() }))
   // 各个 agent 能不能用、有哪些模型
@@ -41,6 +48,20 @@ export const agentApi = new Hono()
   })
   .post('/claude/login/:id/cancel', (c) => {
     cancelLogin(c.req.param('id'))
+    return c.json({ ok: true as const }, 200)
+  })
+  // 开始在网页上重新登录 Codex（见 codex/login.ts），返回网址和一次性的码
+  .post('/codex/login', async (c) => {
+    try {
+      return c.json(await startCodexLogin(), 200)
+    } catch (error) {
+      return c.json({ error: errorText(error) }, 500)
+    }
+  })
+  // 页面轮询：用户授权了没有
+  .get('/codex/login/:id', (c) => c.json(codexLoginStatus(c.req.param('id'))))
+  .post('/codex/login/:id/cancel', (c) => {
+    cancelCodexLogin(c.req.param('id'))
     return c.json({ ok: true as const }, 200)
   })
 

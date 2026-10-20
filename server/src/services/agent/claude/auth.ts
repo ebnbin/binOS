@@ -3,8 +3,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { agentDataDir, agentsDir } from '../../../paths.js'
-import { applyChanges, readState } from '../../../state.js'
-import { claudeAuthKey } from '../types.js'
+import { notifyChange } from '../../../events.js'
 import type { ClaudeAuth } from '../types.js'
 
 // 启动 Claude 时用哪份登录（两份见 ClaudeAuth）：平时用完整登录；它快过期、读不出来或者认证失败过时，
@@ -87,20 +86,27 @@ function decide(): { auth: ClaudeAuth; env: Record<string, string> } {
   return { auth, env: auth.mode === 'token' ? { CLAUDE_CODE_OAUTH_TOKEN: token!.token } : {} }
 }
 
-// 登录的状况变了才写进系统状态，各个页面随即收到
-export function publishAuth(): ClaudeAuth {
-  const { auth } = decide()
-  const current = readState().entries.find((entry) => entry.key === claudeAuthKey)?.value
-  if (JSON.stringify(current) !== JSON.stringify(auth)) {
-    applyChanges([{ key: claudeAuthKey, value: auth }])
+// 上次看到的状况：变了就通知页面重新读取（比如快到期了自动换成备用 token）
+let lastSeen: string | undefined
+
+function seen(auth: ClaudeAuth) {
+  const text = JSON.stringify(auth)
+  if (lastSeen !== undefined && text !== lastSeen) {
+    notifyChange({ type: 'agent' })
   }
+  lastSeen = text
+}
+
+export function claudeAuth(): ClaudeAuth {
+  const { auth } = decide()
+  seen(auth)
   return auth
 }
 
 // 启动 Claude 时要加的环境变量。每次启动时决定，换登录不用重启后端
 export function authEnv(): Record<string, string> {
-  const { env } = decide()
-  publishAuth()
+  const { auth, env } = decide()
+  seen(auth)
   return env
 }
 
@@ -112,7 +118,7 @@ export function authFailed(): string {
     mkdirSync(path.dirname(brokenPath), { recursive: true })
     writeFileSync(brokenPath, fingerprint(login))
   }
-  const after = publishAuth()
+  const after = claudeAuth()
   if (before.auth.mode === 'login' && after.mode === 'token') {
     return 'Claude 的登录失效了，已经换成备用 token，重新发送就能接着答。去「系统」→ Agent 重新登录后会自动换回来'
   }
@@ -132,5 +138,5 @@ export function storeToken(token: string) {
     timeout: 5000,
     stdio: ['pipe', 'ignore', 'pipe'],
   })
-  publishAuth()
+  claudeAuth()
 }

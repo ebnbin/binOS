@@ -37,6 +37,12 @@ export async function sendMessage(
   return { error: res?.status === 503 ? '消息没能交给 agent，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }
 
+// 这 7 天 binOS 大约用了周额度的多少；估不出来时没有
+export async function codeUsage() {
+  const res = await client.usage.$get().catch(() => undefined)
+  return res?.ok ? ((await res.json()).usage ?? undefined) : undefined
+}
+
 // 和后端一致
 export const maxUploadBytes = 50 * 1024 * 1024
 

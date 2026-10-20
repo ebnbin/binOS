@@ -1,7 +1,6 @@
-import { claudeAuthKey } from '@binos/server/services/agent/types'
-import type { ClaudeAuth } from '@binos/server/services/agent/types'
+import type { ClaudeAuth, CodexAuth } from '@binos/server/services/agent/types'
 import { useEffect, useState } from 'react'
-import { useStateValue } from '../../state.ts'
+import { useAgentStatus } from './status.ts'
 
 const day = 86_400_000
 // 完整登录剩不到这么多天时提醒重新登录，备用 token 剩不到这么多天时提醒更新
@@ -9,8 +8,15 @@ const loginWarnDays = 7
 const backupWarnDays = 30
 
 export function useClaudeAuth(): ClaudeAuth | undefined {
-  return (useStateValue(claudeAuthKey) as ClaudeAuth | null) ?? undefined
+  return useAgentStatus()?.claude
 }
+
+export function useCodexAuth(): CodexAuth | undefined {
+  return useAgentStatus()?.codex
+}
+
+// 要做的登录：Claude 重新登录、生成备用 token，或者 Codex 重新登录
+export type LoginFix = 'login' | 'token' | 'codex'
 
 // 到期提醒按天算，现在的时间每小时更新一次就够
 export function useHourlyNow(): number {
@@ -26,7 +32,9 @@ export function useHourlyNow(): number {
 export const daysLeft = (iso: string, now: number) => Math.max(Math.floor((Date.parse(iso) - now) / day), 0)
 
 // 要留意的事：一句话和程度（bad 是用不了了，warn 是还能用但要处理）；没有时是 undefined。fix 是该做的登录
-export function authAttention(auth: ClaudeAuth | undefined, now: number): { text: string; tone: 'bad' | 'warn'; fix: 'login' | 'token' } | undefined {
+export type Attention = { text: string; tone: 'bad' | 'warn'; fix: LoginFix }
+
+export function authAttention(auth: ClaudeAuth | undefined, now: number): Attention | undefined {
   if (!auth) {
     return undefined
   }
@@ -46,4 +54,9 @@ export function authAttention(auth: ClaudeAuth | undefined, now: number): { text
     return { text: `Claude 的备用 token 还有 ${daysLeft(backupExpiry, now)} 天到期`, tone: 'warn', fix: 'token' }
   }
   return undefined
+}
+
+// Codex 只在回答时认证失败过才提醒：没登录过 Codex 也照样能用 Claude
+export function codexAttention(auth: CodexAuth | undefined): Attention | undefined {
+  return auth?.broken ? { text: 'Codex 的登录失效了', tone: 'bad', fix: 'codex' } : undefined
 }

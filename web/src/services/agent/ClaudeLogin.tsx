@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
-import styles from './ClaudeLogin.module.css'
+import styles from './Login.module.css'
 
 type Step = { name: 'starting' } | { name: 'code'; id: string; url: string } | { name: 'finishing'; id: string; url: string } | { name: 'done' } | { name: 'failed'; error: string }
 

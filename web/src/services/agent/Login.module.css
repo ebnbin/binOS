@@ -106,3 +106,15 @@
   color: var(--danger);
   overflow-wrap: anywhere;
 }
+
+.deviceCode {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  user-select: all;
+}
