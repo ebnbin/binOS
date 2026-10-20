@@ -3,12 +3,11 @@ import { existsSync, readFileSync, realpathSync, rmSync, statSync } from 'node:f
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { LineReader } from '../../line-reader.js'
-import type { AgentProcess } from './agent-process.js'
 import { agentEnv, drivers, fitOptions } from './drivers/index.js'
 import type { Decoder } from './drivers/types.js'
 import { copyAttachments, promptWithAttachments, snapshotFiles, transcriptPrompt } from './files.js'
 import { attachHost, startHost } from './host/client.js'
-import { legacyRun } from './legacy-runs.js'
+import type { Host } from './host/client.js'
 import { saveLimits } from './limits.js'
 import { addUsage, appendItems, createThread as createThreadDir, filesDir, hostDir, listThreads, readItems, threadExists, threadInfo } from './store.js'
 import type { AgentId, Item, Live, ThreadEvent, ThreadState, ThreadSummary } from './types.js'
@@ -44,7 +43,7 @@ const ownerListeners = new Map<string, Set<(threadId: string, event: ThreadEvent
 
 export class Thread {
   readonly id: string
-  private process: AgentProcess | undefined
+  private host: Host | undefined
   private decoder: Decoder | undefined
   private reader: LineReader | undefined
   // 这个进程的输出里已经记成条目的最大 offset：后端重启后从头重读，不重复记
@@ -119,8 +118,8 @@ export class Thread {
       return false
     }
     this.turn.stopped = true
-    if (this.process) {
-      this.process.kill()
+    if (this.host) {
+      this.host.kill()
     } else if (!this.busy) {
       this.endTurn({ stopped: true })
     }
@@ -147,16 +146,16 @@ export class Thread {
     this.liveFiles = {}
     this.emit({ type: 'live', live: this.live() })
     active.add(this)
-    if (!(await this.ensureProcess(model, effort))) {
+    if (!(await this.ensureHost(model, effort))) {
       this.endTurn({ stopped: false, error: 'agent 启动失败' })
       return true
     }
-    const process = this.process!
+    const host = this.host!
     if (this.turn.stopped) {
-      process.kill()
+      host.kill()
       return true
     }
-    const reply = await process.send({ type: 'message', text: promptWithAttachments(this.id, this.agent, input.text, attachments) })
+    const reply = await host.send({ type: 'message', text: promptWithAttachments(this.id, this.agent, input.text, attachments) })
     if (!reply.ok) {
       this.fail(reply.error)
     }
@@ -164,15 +163,15 @@ export class Thread {
   }
 
   private async steer(input: ThreadInput, interrupt: boolean): Promise<boolean> {
-    const process = this.process
-    if (!process?.commandable || !process.running()) {
+    const host = this.host
+    if (!host?.commandable || !host.running()) {
       return false
     }
     const attachments = copyAttachments(this.id, input.attachments ?? [])
-    if (interrupt && !(await process.send({ type: 'interrupt' })).ok) {
+    if (interrupt && !(await host.send({ type: 'interrupt' })).ok) {
       return false
     }
-    if (!(await process.send({ type: 'message', text: promptWithAttachments(this.id, this.agent, input.text, attachments) })).ok) {
+    if (!(await host.send({ type: 'message', text: promptWithAttachments(this.id, this.agent, input.text, attachments) })).ok) {
       return false
     }
     this.append([
@@ -191,32 +190,32 @@ export class Thread {
     return true
   }
 
-  // 有能接着用的 agent 进程就用它；启动时定下的东西变了就换一个。启动失败时返回 false
-  private async ensureProcess(model: string | undefined, effort: string | undefined): Promise<boolean> {
+  // 有能接着用的 host 就用它；启动时定下的东西变了就换一个。启动失败时返回 false
+  private async ensureHost(model: string | undefined, effort: string | undefined): Promise<boolean> {
     const info = threadInfo(this.id)
     const driver = drivers[info.agent]
     const instructions = [transcriptPrompt, info.instructions].filter(Boolean).join('\n\n')
     const env = { ...agentEnv(info.agent), ...driver.authEnv?.() }
     const stamp = launchStamp([model, effort, instructions, driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
-    if (this.process?.running() && this.process.stamp === stamp) {
+    if (this.host?.running() && this.host.stamp === stamp) {
       return true
     }
-    if (this.process) {
+    if (this.host) {
       await this.retire()
     }
     const { agent, args } = driver.host({ agentSession: info.agentSession, model, effort, instructions })
-    const process = startHost(hostDir(this.id), { agent, args, cwd: info.cwd, env, stamp, itemsFrom: info.count })
-    if (!process) {
+    const host = startHost(hostDir(this.id), { agent, args, cwd: info.cwd, env, stamp, itemsFrom: info.count })
+    if (!host) {
       return false
     }
-    this.attach(process, 0, new Set())
+    this.attach(host, 0, new Set())
     return true
   }
 
-  // 接上一个 agent 进程，从头读它的输出：offset 不超过 recorded 的只用来恢复状态
-  attach(process: AgentProcess, recorded: number, turnEnds: Set<number>) {
-    this.process = process
-    this.reader = new LineReader(process.output)
+  // 接上一个 host，从头读它的输出：offset 不超过 recorded 的只用来恢复状态
+  attach(host: Host, recorded: number, turnEnds: Set<number>) {
+    this.host = host
+    this.reader = new LineReader(host.output)
     this.decoder = drivers[this.agent].decoder({ filesDir: filesDir(this.id), agentSession: threadInfo(this.id).agentSession })
     this.recorded = recorded
     this.turnEnds = turnEnds
@@ -231,18 +230,18 @@ export class Thread {
     active.add(this)
   }
 
-  // 让 agent 进程退出：处理完已经交过去的就退出，等不到就结束它
+  // 让 host 退出：agent 处理完已经交过去的就退出，等不到就结束它
   private async retire() {
-    const process = this.process!
-    if (process.running() && process.commandable) {
-      await process.send({ type: 'close' })
+    const host = this.host!
+    if (host.running() && host.commandable) {
+      await host.send({ type: 'close' })
       const deadline = Date.now() + closeWait
-      while (process.running() && Date.now() < deadline) {
+      while (host.running() && Date.now() < deadline) {
         await sleep(100)
       }
     }
-    if (process.running()) {
-      process.kill()
+    if (host.running()) {
+      host.kill()
       await sleep(200)
     }
     this.readNew()
@@ -250,8 +249,8 @@ export class Thread {
   }
 
   private release() {
-    this.process?.dispose()
-    this.process = undefined
+    this.host?.dispose()
+    this.host = undefined
     this.decoder = undefined
     this.reader = undefined
   }
@@ -261,7 +260,7 @@ export class Thread {
     if (this.turn && !this.turn.failure) {
       this.turn.failure = reason
     }
-    this.process?.kill()
+    this.host?.kill()
   }
 
   private readNew() {
@@ -337,11 +336,11 @@ export class Thread {
             ...(options.stopped ? { outcome: 'stopped' as const } : { outcome: 'error' as const, error: options.error ?? 'agent 异常结束' }),
           },
         ]
-    if (this.process) {
+    if (this.host) {
       this.turnEnds.add(this.offset)
     }
     this.turn = undefined
-    this.append(items.map((item) => (item.type === 'turn_end' && this.process ? { ...item, offset: this.offset } : item)))
+    this.append(items.map((item) => (item.type === 'turn_end' && this.host ? { ...item, offset: this.offset } : item)))
     this.liveFiles = {}
     this.idleSince = Date.now()
     this.emit({ type: 'live', live: null })
@@ -353,16 +352,16 @@ export class Thread {
     if (this.busy) {
       return
     }
-    const process = this.process
-    if (process && !process.running()) {
+    const host = this.host
+    if (host && !host.running()) {
       this.readNew()
       if (this.turn) {
-        const errors = existsSync(process.errors) ? readFileSync(process.errors, 'utf8').trim() : ''
+        const errors = existsSync(host.errors) ? readFileSync(host.errors, 'utf8').trim() : ''
         const answered = this.decoder?.answered && !this.turn.failure
         this.endTurn({ stopped: Boolean(this.turn.stopped) && !this.turn.failure, error: this.turn.failure ?? (answered ? undefined : errors || undefined) })
       }
       this.release()
-    } else if (process && this.turn && this.decoder) {
+    } else if (host && this.turn && this.decoder) {
       const turn = this.turn
       if (!this.decoder.answered || this.decoder.backgroundTasks() > 0 || turn.stopped || turn.failure) {
         turn.settledSince = undefined
@@ -372,13 +371,13 @@ export class Thread {
           this.endTurn({ stopped: false })
         }
       }
-    } else if (process && (process.stamp === undefined || Date.now() - this.idleSince >= idleTimeout)) {
-      // 不能接着用的进程这一轮结束就让它退出
+    } else if (host && (host.stamp === undefined || Date.now() - this.idleSince >= idleTimeout)) {
+      // 不能接着用的 host 这一轮结束就让它退出
       void this.exclusive(() => this.retire())
-    } else if (!process && this.turn) {
+    } else if (!host && this.turn) {
       this.endTurn({ stopped: Boolean(this.turn.stopped), error: '回答被中断：agent 没能启动' })
     }
-    if (!this.process && !this.turn) {
+    if (!this.host && !this.turn) {
       active.delete(this)
     }
   }
@@ -470,17 +469,15 @@ export function startThreads() {
   for (const id of listThreads()) {
     const info = threadInfo(id)
     const host = attachHost(hostDir(id))
-    const legacy = host ? undefined : legacyRun(id)
-    const process = host ?? legacy
-    if (!process && !info.inTurn) {
+    if (!host && !info.inTurn) {
       continue
     }
     const thread = getThread(id)!
-    if (process) {
-      const items = readItems(id, process.itemsFrom)
+    if (host) {
+      const items = readItems(id, host.itemsFrom)
       const recorded = Math.max(0, ...items.map((item) => ('offset' in item && item.offset) || 0))
       const turnEnds = new Set(items.flatMap((item) => (item.type === 'turn_end' && item.offset !== undefined ? [item.offset] : [])))
-      thread.attach(process, recorded, turnEnds)
+      thread.attach(host, recorded, turnEnds)
     }
     if (info.inTurn) {
       thread.resumeTurn(info.turnStartedAt ?? info.updatedAt)
