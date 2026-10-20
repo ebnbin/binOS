@@ -1,12 +1,12 @@
-import { Activity, Bot, Download, Monitor, RefreshCw } from 'lucide-react'
+import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useApps } from '../index.ts'
 import type { AppContext } from '../types.ts'
 import { AgentAccounts } from './AgentAccounts.tsx'
 import { BinosMonitor } from './BinosMonitor.tsx'
 import { HostMonitor } from './HostMonitor.tsx'
-import { hostTabs, moment } from './format.ts'
-import { refreshMonitor, systemRequest, systemUrl, useMonitor } from './monitor.ts'
+import { moment } from './format.ts'
+import { refreshMonitor, systemRequest, useMonitor } from './monitor.ts'
 import styles from './Monitor.module.css'
 
 export function SystemApp({ ctx }: { ctx: AppContext }) {
@@ -16,7 +16,7 @@ export function SystemApp({ ctx }: { ctx: AppContext }) {
   const apps = useApps().filter((app) => app.settings)
   const app = apps.find((item) => ctx.route === `/apps/${item.id}`)
   const section = ctx.route === '/agent' ? 'agent' : ctx.route.startsWith('/binos') || app ? 'binos' : 'host'
-  const tab = hostTabs.some(([key]) => ctx.route === `/host/${key}`) ? ctx.route.split('/')[2] : 'overview'
+
   const { setTitle } = ctx
   useEffect(() => setTitle(section === 'host' ? '宿主 Mac' : section === 'agent' ? 'Agent' : 'binOS'), [setTitle, section])
   const snapshot = status?.snapshot
@@ -45,9 +45,6 @@ export function SystemApp({ ctx }: { ctx: AppContext }) {
           </span>
         </div>
         <div className={styles.actions}>
-          <a href={systemUrl + '/report'} title="下载诊断报告" aria-label="下载诊断报告">
-            <Download size={16} />
-          </a>
           <button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
             <RefreshCw size={16} className={refreshing ? styles.spin : ''} />
           </button>
@@ -79,21 +76,6 @@ export function SystemApp({ ctx }: { ctx: AppContext }) {
           {status.collectionError}
         </div>
       )}
-      {status?.storageError && (
-        <div className={styles.warning} role="alert">
-          {status.storageError}
-        </div>
-      )}
-      {section === 'host' && (
-        <nav className={styles.tabs} aria-label="宿主监控分类">
-          {hostTabs.map(([key, name]) => (
-            <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => ctx.navigate(`/host/${key}`)}>
-              {name}
-              {key === 'alerts' && status?.alerts.some((a) => !a.resolved) ? ` (${status.alerts.filter((a) => !a.resolved).length})` : ''}
-            </button>
-          ))}
-        </nav>
-      )}
       <div className={styles.body}>
         {section === 'agent' ? (
           <AgentAccounts back={() => ctx.navigate('/')} />
@@ -104,7 +86,7 @@ export function SystemApp({ ctx }: { ctx: AppContext }) {
             <BinosMonitor status={status} navigate={ctx.navigate} />
           )
         ) : status ? (
-          <HostMonitor status={status} tab={tab} />
+          <HostMonitor status={status} />
         ) : (
           <p className={styles.empty}>{error ? '暂时无法读取宿主状态。页面会自动重试。' : '正在连接宿主监控…'}</p>
         )}

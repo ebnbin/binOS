@@ -23,7 +23,6 @@ export function SystemWidget({ size, open }: WidgetProps) {
   const { status, error, now: sampledNow } = useMonitor()
   const snapshot = status?.snapshot
   const version = snapshot?.runtime.version
-  const alerts = status?.alerts.filter((a) => !a.resolved).length || 0
   const fresh = snapshot && sampledNow - snapshot.at < 30_000 && !error && !status?.collectionError
 
   return (
@@ -46,8 +45,8 @@ export function SystemWidget({ size, open }: WidgetProps) {
         </span>
       )}
       <span className={styles.status}>
-        <span className={styles.dot} data-connected={!!fresh && connected && !alerts} />
-        {!fresh ? '监控待确认' : alerts ? `${alerts} 项告警` : '监控中'}
+        <span className={styles.dot} data-connected={!!fresh && connected} />
+        {!fresh ? '状态待更新' : '已连接'}
         {version && <span className={styles.version}>{version.slice(0, 7)}</span>}
       </span>
     </button>
