@@ -1,4 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, statSync, createReadStream } from 'node:fs'
+import { Readable } from 'node:stream'
 import path from 'node:path'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
@@ -20,6 +21,15 @@ const threadParam = validator('param', (value: Record<string, string>, c) => {
 
 // thread 的文件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
 const inlineTypes: Record<string, string> = {
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  mov: 'video/quicktime',
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  m4a: 'audio/mp4',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
@@ -71,12 +81,41 @@ export const agentApi = new Hono()
     }
     const inline = match[1] && inlineTypes[match[1].toLowerCase()]
     const name = c.req.query('name')
-    const disposition = (inline ? 'inline' : 'attachment') + (name ? `; filename*=UTF-8''${encodeURIComponent(name)}` : '')
-    return c.body(readFileSync(filePath), 200, {
+    const disposition = (inline && !name ? 'inline' : 'attachment') + (name ? `; filename*=UTF-8''${encodeURIComponent(name)}` : '')
+    const info = statSync(filePath)
+    if (!info.isFile()) return c.text('Not Found', 404)
+    if (c.req.query('info') === '1') {
+      return c.json({ size: info.size, modified: info.mtime.toISOString(), type: inline || 'application/octet-stream' })
+    }
+    const headers = {
       'Content-Type': inline || 'application/octet-stream',
       'Content-Disposition': disposition,
       'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'private, max-age=31536000, immutable',
+      'Accept-Ranges': 'bytes',
+    }
+    const range = c.req.header('Range')
+    let start = 0
+    let end = info.size - 1
+    if (range) {
+      const parsed = /^bytes=(\d*)-(\d*)$/.exec(range)
+      if (!parsed || (!parsed[1] && !parsed[2])) {
+        return c.body(null, 416, { 'Content-Range': `bytes */${info.size}` })
+      }
+      start = parsed[1] ? Number(parsed[1]) : Math.max(0, info.size - Number(parsed[2]))
+      end = parsed[1] && parsed[2] ? Math.min(Number(parsed[2]), end) : end
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start > end || start >= info.size) {
+        return c.body(null, 416, { 'Content-Range': `bytes */${info.size}` })
+      }
+    }
+    if (info.size === 0) {
+      return c.body(null, 200, { ...headers, 'Content-Length': '0' })
+    }
+    const body = Readable.toWeb(createReadStream(filePath, { start, end })) as ReadableStream<Uint8Array>
+    return c.body(body, range ? 206 : 200, {
+      ...headers,
+      'Content-Length': String(end - start + 1),
+      ...(range ? { 'Content-Range': `bytes ${start}-${end}/${info.size}` } : {}),
     })
   })
 

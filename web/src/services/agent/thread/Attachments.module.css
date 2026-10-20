@@ -5,6 +5,8 @@
 }
 
 .sent {
+  flex-direction: column;
+  width: 420px;
   align-self: flex-end;
   justify-content: flex-end;
   max-width: 78%;

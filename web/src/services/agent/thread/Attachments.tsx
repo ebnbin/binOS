@@ -1,12 +1,11 @@
 import type { Attachment } from '@binos/server/services/agent/types'
 import { FileText, X } from 'lucide-react'
 import { useState } from 'react'
-import { threadFileUrl } from '../api.ts'
+import { FileBlock } from '../../../ui/files/FileBlock.tsx'
 import styles from './Attachments.module.css'
 
 // 附件的两种样子：浏览器能显示的图片是方形缩略图，其他文件是带文件名的卡片
 
-const isImage = (name: string) => /\.(png|jpe?g|gif|webp)$/i.test(name)
 
 function FileCard({ name }: { name: string }) {
   return (
@@ -21,17 +20,7 @@ function FileCard({ name }: { name: string }) {
 export function AttachmentList({ thread, attachments }: { thread: string; attachments: Attachment[] }) {
   return (
     <div className={`${styles.list} ${styles.sent}`}>
-      {attachments.map(({ file, name }) =>
-        isImage(file) ? (
-          <a key={file} className={styles.thumb} href={threadFileUrl(thread, file)} target="_blank" rel="noreferrer" title={name}>
-            <img src={threadFileUrl(thread, file)} alt={name} loading="lazy" />
-          </a>
-        ) : (
-          <a key={file} className={styles.link} href={threadFileUrl(thread, file, name)} target="_blank" rel="noreferrer" title={name}>
-            <FileCard name={name} />
-          </a>
-        ),
-      )}
+      {attachments.map(({ file, name }) => <FileBlock key={file} thread={thread} file={file} name={name} />)}
     </div>
   )
 }
