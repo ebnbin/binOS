@@ -176,9 +176,8 @@ export function Shell() {
               exitSplit(slot)
               return
             }
-            const at = portrait ? 0 : 1
-            saveWorkspace({ layout: fitLayout('1:1', allowed, at), slots: at === 0 ? [focused, null] : [null, focused] })
-            focus(focused, at)
+            saveWorkspace({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
+            focus(focused, 0)
           }}
           onClose={close}
         />
