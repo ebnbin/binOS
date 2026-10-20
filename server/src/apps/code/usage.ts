@@ -1,35 +1,105 @@
-import { readState } from '../../state.js'
+import { appendFileSync, readFileSync, statSync } from 'node:fs'
+import path from 'node:path'
+import { applyChanges, readState } from '../../state.js'
 import { agents } from '../../services/agent/types.js'
 import type { Limits, Tokens } from '../../services/agent/types.js'
-import { addUsage, sessionInfo } from './sessions.js'
+import { addUsage, dataDir, listSessions, sessionInfo } from './sessions.js'
+import { codeUsageKey } from './types.js'
+import type { CodeUsage } from './types.js'
 
-const week = 7 * 86_400_000
-// 7 天窗口用得太少时估不准
-const minUtilization = 0.2
+// 会话大约占订阅周额度多少。额度怎么算没有公开，只知道 7 天窗口用了百分之几（精确到 1%），而且这个窗口是整个订阅共用的：
+// Claude 自己的 app、claude.ai、别的应用也在用。binOS 能知道的只有自己每一轮按 API 价格折算的花费（见 sessions.ts 的 costs）。
+// 每次 Claude 的一轮结束时记一个点：当时 7 天窗口的用量和 binOS 到这时为止一共花了多少。同一个窗口里任取两个点，
+// 窗口涨的不会少于 binOS 这段时间花的折算成的用量（别处只会让它多涨），所以「涨幅 ÷ 花费」的最小值就是每美元占周额度多少的估计：
+// 有过只有 binOS 在用的一段时间，估得就准；别处一直在用时偏高。会话的花费乘以它就是会话占的比例
+const samplesPath = path.join(dataDir, 'quota-samples.jsonl')
 
-// 订阅额度怎么算没有公开，只知道 7 天窗口用了百分之几。把这个窗口里 binOS 的 Claude 每一轮的花费（按 API 价格折算）加起来，
-// 除以用了的比例，就是一周额度用满大约值多少；会话的花费除以它，就是会话大约占了周额度多少。
-// 同一个订阅在别处（claude.ai、自己终端里的 Claude）也在用时，估出来的一周额度偏小，会话占的比例偏高。估不了时没有
-export function weeklyBudget(ids: number[], now = Date.now()): number | undefined {
+export type Sample = { time: string; resetsAt: number; utilization: number; cost: number }
+
+// 窗口用量只精确到 1%：涨幅按多算 1% 算，涨得太少的区间不用
+const precision = 0.01
+const minRise = 0.03
+
+const totalCost = () => listSessions().reduce((sum, id) => sum + sessionInfo(id).costs.reduce((s, [, cost]) => s + cost, 0), 0)
+
+function claudeWeek(now: number) {
   const limits = readState().entries.find((entry) => entry.key === agents.claude.limitsKey)?.value as Limits | undefined
   const window = limits?.sevenDay
-  if (!window || window.resetsAt * 1000 <= now || window.utilization < minUtilization) {
-    return undefined
+  return window && window.resetsAt * 1000 > now ? window : undefined
+}
+
+function readSamples(): Sample[] {
+  try {
+    return readFileSync(samplesPath, 'utf8')
+      .split('\n')
+      .flatMap((line) => {
+        try {
+          return [JSON.parse(line) as Sample]
+        } catch {
+          return []
+        }
+      })
+  } catch {
+    return []
   }
-  const start = window.resetsAt * 1000 - week
-  let spent = 0
-  for (const id of ids) {
-    for (const [time, cost] of sessionInfo(id).costs) {
-      if (Date.parse(time) >= start) {
-        spent += cost
+}
+
+// 每美元占周额度多少：同一个窗口里任两个点之间「涨幅 ÷ 花费」的最小值。还没有涨够的区间时没有
+export function estimateRate(samples: Sample[]): number | undefined {
+  let rate: number | undefined
+  for (const window of Map.groupBy(samples, (sample) => sample.resetsAt).values()) {
+    for (let i = 0; i < window.length; i++) {
+      for (let j = i + 1; j < window.length; j++) {
+        const rise = window[j].utilization - window[i].utilization
+        const spent = window[j].cost - window[i].cost
+        if (rise >= minRise && spent > 0) {
+          rate = Math.min(rate ?? Infinity, (rise + precision) / spent)
+        }
       }
     }
   }
-  return spent > 0 ? spent / window.utilization : undefined
+  return rate
+}
+
+let cached: { size: number; rate: number | undefined } | undefined
+function quotaRate(): number | undefined {
+  let size = 0
+  try {
+    size = statSync(samplesPath).size
+  } catch {
+    return undefined
+  }
+  if (cached?.size === size) {
+    return cached.rate
+  }
+  const rate = estimateRate(readSamples())
+  cached = { size, rate }
+  return rate
+}
+
+// Claude 的一轮结束了：记一个点，并更新这个窗口里 binOS 大约用了多少（写进系统状态，页面随即收到）
+export function recordQuotaSample(now = Date.now()) {
+  const week = claudeWeek(now)
+  if (!week) {
+    return
+  }
+  const sample: Sample = { time: new Date(now).toISOString(), resetsAt: week.resetsAt, utilization: week.utilization, cost: totalCost() }
+  const last = readSamples().at(-1)
+  if (!last || last.resetsAt !== sample.resetsAt || last.utilization !== sample.utilization || last.cost !== sample.cost) {
+    appendFileSync(samplesPath, JSON.stringify(sample) + '\n')
+  }
+  const rate = quotaRate()
+  const start = week.resetsAt * 1000 - 7 * 86_400_000
+  const spent = listSessions().reduce(
+    (sum, id) => sum + sessionInfo(id).costs.reduce((s, [time, cost]) => (Date.parse(time) >= start ? s + cost : s), 0),
+    0,
+  )
+  const usage: CodeUsage = rate === undefined ? { resetsAt: week.resetsAt } : { resetsAt: week.resetsAt, week: Math.min(spent * rate, week.utilization) }
+  applyChanges([{ key: codeUsageKey, value: usage }])
 }
 
 // 会话一共用掉的 token（各个模型加在一起），和它大约占周额度多少
-export function sessionUsage(id: number, budget: number | undefined): { tokens?: Tokens; quota?: number } {
+export function sessionUsage(id: number): { tokens?: Tokens; quota?: number } {
   const info = sessionInfo(id)
   const models = Object.values(addUsage(info.usageBefore, info.usageLatest))
   const total = models.reduce(
@@ -42,8 +112,9 @@ export function sessionUsage(id: number, budget: number | undefined): { tokens?:
     { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   )
   const cost = info.costs.reduce((sum, [, value]) => sum + value, 0)
+  const rate = quotaRate()
   return {
     ...(models.length > 0 && { tokens: total }),
-    ...(budget && cost > 0 && { quota: cost / budget }),
+    ...(rate !== undefined && cost > 0 && { quota: cost * rate }),
   }
 }

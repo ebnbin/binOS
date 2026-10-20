@@ -13,7 +13,7 @@ import { readQueue } from './queue.js'
 import { isAnswering, isWaiting, liveState, queueMessage, renameSession, sendMessage, sendQueued, stopTurn, unqueueMessage } from './turns.js'
 import type { MessageOptions } from './turns.js'
 import { pullRequests } from './pull-requests.js'
-import { sessionUsage, weeklyBudget } from './usage.js'
+import { sessionUsage } from './usage.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
@@ -86,8 +86,8 @@ const editBody = validator('json', (value, c) => {
   return edit
 })
 
-// PR 的状态查到有变化时，通知页面重新读取列表。budget：一周额度大约值多少，见 usage.ts
-async function summary(id: number, budget: number | undefined): Promise<SessionSummary> {
+// PR 的状态查到有变化时，通知页面重新读取列表
+async function summary(id: number): Promise<SessionSummary> {
   const info = sessionInfo(id)
   const prs = await pullRequests(info.prs, () => notifyChange({ type: 'session', id }))
   const waiting = isWaiting(id)
@@ -107,7 +107,7 @@ async function summary(id: number, budget: number | undefined): Promise<SessionS
     ...(info.model && { model: info.model }),
     ...(info.effort && { effort: info.effort }),
     turns: info.turns,
-    ...sessionUsage(id, budget),
+    ...sessionUsage(id),
     prs,
     queue: readQueue(id),
   }
@@ -146,8 +146,7 @@ export const codeApi = new Hono()
     const query = c.req.query('q')?.trim()
     const ids = listSessions()
     const matched = query ? searchSessions(ids, query) : undefined
-    const budget = weeklyBudget(ids)
-    const sessions = (await Promise.all(ids.filter((id) => !matched || matched.has(id)).map((id) => summary(id, budget)))).sort((a, b) =>
+    const sessions = (await Promise.all(ids.filter((id) => !matched || matched.has(id)).map(summary))).sort((a, b) =>
       b.updatedAt.localeCompare(a.updatedAt),
     )
     return c.json({ sessions })

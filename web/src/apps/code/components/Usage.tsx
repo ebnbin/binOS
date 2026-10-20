@@ -1,12 +1,19 @@
-import type { SessionSummary } from '@binos/server/apps/code/types'
+import { codeUsageKey } from '@binos/server/apps/code/types'
+import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
+import { agents } from '@binos/server/services/agent/types'
+import type { Limits } from '@binos/server/services/agent/types'
 import { useEffect, useRef, useState } from 'react'
 import { formatQuota, formatTokens } from '../format.ts'
+import { useStateValue } from '../../../state.ts'
 import styles from './Usage.module.css'
 
 // 输入框里的上下文圆环：圈是上下文占了多少，快满时 Claude Code 会压缩历史，前面的细节可能丢失。
-// 点开是这个会话的用量：上下文、一共用掉的 token 和各部分、大约占订阅周额度多少
+// 点开是这个会话的用量：上下文、一共用掉的 token 和各部分、大约占订阅周额度多少，
+// 以及这 7 天里 binOS 大约用了多少（订阅是共用的，其余是别处用的）
 export function Usage({ session }: { session: SessionSummary }) {
   const [open, setOpen] = useState(false)
+  const week = useStateValue(codeUsageKey) as CodeUsage | null
+  const limits = useStateValue(agents.claude.limitsKey) as Limits | null
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) {
@@ -83,16 +90,27 @@ export function Usage({ session }: { session: SessionSummary }) {
             </div>
           )}
           {session.provider === 'claude' && (
-            <div className={styles.line}>
-              <span className={styles.label}>约占周额度</span>
-              {quota !== undefined ? (
-                <span>{formatQuota(quota)}</span>
-              ) : (
-                <span className={styles.muted}>7 天额度用到 20% 后才估得出来</span>
+            <>
+              <div className={styles.line}>
+                <span className={styles.label}>约占周额度</span>
+                {quota !== undefined ? <span>{formatQuota(quota)}</span> : <span className={styles.muted}>还估不出来</span>}
+              </div>
+              {week?.week !== undefined && limits?.sevenDay?.resetsAt === week.resetsAt && (
+                <div className={styles.line}>
+                  <span className={styles.label}>这 7 天</span>
+                  <span>
+                    binOS 约 {formatQuota(week.week)}
+                    <span className={styles.muted}> · 订阅共 {Math.round(limits.sevenDay.utilization * 100)}%</span>
+                  </span>
+                </div>
               )}
-            </div>
+              <p className={styles.note}>
+                {quota !== undefined
+                  ? '订阅是 Claude 自己的 app、claude.ai 和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高'
+                  : 'binOS 的用量让 7 天额度涨过 3% 后才估得出来'}
+              </p>
+            </>
           )}
-          {quota !== undefined && <p className={styles.note}>按 API 价格折算估计；同一个订阅在别处也用时偏高</p>}
         </div>
       )}
     </div>
