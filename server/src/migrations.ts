@@ -1,13 +1,12 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
-import { agentDataDir, agentRunsDir, appDir, libraryDir } from './paths.js'
-import { applyChanges, readState } from './state.js'
+import { agentDataDir, agentRunsDir, appDir, libraryDir, registryPath } from './paths.js'
+import { parseExternalApp, writeRegistry } from './registry.js'
 
 // 后端启动时、各 app 启动前执行的数据迁移。每一步都先看是否已经做过，可以重复执行
 export function migrate() {
   moveCodeToApps()
-  moveAgentDataOutOfState()
-  removeShellState()
+  removeState()
 }
 
 // Code 的数据从 Library/code 挪到 Library/Apps/code。进行中的 agent 运行记着工具结果图片的存放目录，跟着改
@@ -35,32 +34,32 @@ function moveCodeToApps() {
   }
 }
 
-// agent 的额度从系统状态挪到 agent 服务自己的数据目录；登录的状况和 Code 的用量改为现查，系统状态里的删掉
-function moveAgentDataOutOfState() {
-  const entries = new Map(readState().entries.map((entry) => [entry.key, entry.value]))
-  const old = { claude: 'agent/limits', codex: 'agent/codex-limits' }
-  const keys = [...Object.values(old), 'agent/claude-auth', 'agent/codex-auth', 'code/usage'].filter((key) => entries.has(key))
-  if (keys.length === 0) {
+// 系统状态（Library/state.json）拆掉：agent 的额度挪到 agent 服务自己的数据目录，外部 app 的清单挪到 app 注册表。
+// 登录的状况和 Code 的用量改为现查，窗口和分屏布局改为每台设备自己记，其余的都不再使用
+function removeState() {
+  const file = path.join(libraryDir, 'state.json')
+  if (!existsSync(file)) {
     return
   }
+  const { entries } = JSON.parse(readFileSync(file, 'utf8')) as { entries: Record<string, { value: unknown }> }
+  const value = (key: string) => entries[key]?.value
+
   const limitsPath = path.join(agentDataDir, 'limits.json')
-  if (!existsSync(limitsPath)) {
-    const limits = Object.fromEntries(Object.entries(old).flatMap(([provider, key]) => (entries.has(key) ? [[provider, entries.get(key)]] : [])))
+  const limits = Object.fromEntries(Object.entries({ claude: value('agent/limits'), codex: value('agent/codex-limits') }).filter(([, item]) => item !== undefined))
+  if (Object.keys(limits).length > 0 && !existsSync(limitsPath)) {
     mkdirSync(agentDataDir, { recursive: true })
     writeFileSync(`${limitsPath}.tmp`, JSON.stringify(limits, null, 2) + '\n')
     renameSync(`${limitsPath}.tmp`, limitsPath)
   }
-  applyChanges(keys.map((key) => ({ key, value: null })))
-}
 
-// 窗口、分屏布局改为每台设备自己记，桌面用默认的摆放：系统状态里 shell/ 下的都删掉
-function removeShellState() {
-  const keys = readState()
-    .entries.map((entry) => entry.key)
-    .filter((key) => key.startsWith('shell/'))
-  if (keys.length > 0) {
-    applyChanges(keys.map((key) => ({ key, value: null })))
+  // 原来的清单里，图标不对的用默认图标，其他不完整的项跳过
+  const external = value('apps/external')
+  if (Array.isArray(external) && !existsSync(registryPath)) {
+    const apps = external.flatMap((item: object) => parseExternalApp(item) ?? parseExternalApp({ ...item, icon: 'app-window' }) ?? [])
+    writeRegistry({ external: apps })
   }
+
+  rmSync(file)
 }
 
 function readJson<T>(file: string): T | undefined {

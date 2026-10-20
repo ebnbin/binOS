@@ -1,9 +1,8 @@
 import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Music, NotebookPen } from 'lucide-react'
 import { lazy, useMemo } from 'react'
-import { useStateValue } from '../state.ts'
 import { externalApp } from './external/index.ts'
-import { externalAppsKey, readExternalApps } from './external/list.ts'
 import { placeholderApp } from './placeholder/index.ts'
+import { useExternalApps } from './registry.ts'
 import type { AppManifest } from './types.ts'
 
 const builtinApps: AppManifest[] = [
@@ -43,10 +42,13 @@ const placeholderApps: AppManifest[] = [
   placeholderApp('files', '文件', Folder),
 ]
 
-// 内置的 app 加上系统状态里的外部 app，按这个顺序排列
+// 内置的 app 加上 app 注册表里的外部 app，按这个顺序排列
 export function useApps(): AppManifest[] {
-  const value = useStateValue(externalAppsKey)
-  return useMemo(() => [...builtinApps, ...readExternalApps(value).map(externalApp), ...placeholderApps], [value])
+  const external = useExternalApps()
+  return useMemo(() => [...builtinApps, ...(external ?? []).map(externalApp), ...placeholderApps], [external])
 }
+
+// 读到 app 注册表之前，还不知道有哪些外部 app
+export const useAppsLoaded = () => useExternalApps() !== undefined
 
 export const findApp = (apps: AppManifest[], id: string) => apps.find((app) => app.id === id)

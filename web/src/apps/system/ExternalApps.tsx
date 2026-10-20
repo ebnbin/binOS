@@ -1,19 +1,26 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import { useStateValue } from '../../state.ts'
 import { icons, iconNames } from '../external/icons.ts'
-import { externalAppsKey, isWebUrl, readExternalApps, saveExternalApps } from '../external/list.ts'
-import type { ExternalAppConfig } from '../external/list.ts'
+import { saveExternalApps, useExternalApps } from '../registry.ts'
+import type { ExternalAppConfig } from '../registry.ts'
 import styles from './ExternalApps.module.css'
 
 // index 为 null 时是新加的
 type Editing = { index: number | null; draft: ExternalAppConfig }
 
+function isWebUrl(url: string) {
+  try {
+    return ['https:', 'http:'].includes(new URL(url).protocol)
+  } catch {
+    return false
+  }
+}
+
 const newApp = (): ExternalAppConfig => ({ id: crypto.randomUUID().slice(0, 8), name: '', icon: 'app-window', url: '' })
 
-// 外部 app 的清单：增删改后整份写回系统状态
+// 外部 app 的清单：增删改后整份写回 app 注册表
 export function ExternalApps() {
-  const list = readExternalApps(useStateValue(externalAppsKey))
+  const list = useExternalApps() ?? []
   const [editing, setEditing] = useState<Editing | null>(null)
 
   const save = ({ index, draft }: Editing) => {

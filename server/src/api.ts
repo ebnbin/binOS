@@ -10,7 +10,7 @@ import { onChange } from './events.js'
 import { agentApi } from './services/agent/api.js'
 import { codeDir } from './paths.js'
 import { connectedPreamble, keepAlive } from './sse.js'
-import { applyChanges, parseChanges, readState } from './state.js'
+import { parseExternalApps, readRegistry, saveRegistry } from './registry.js'
 import type { ChangeEvent } from './types.js'
 
 // VERSION 由上线脚本写进构建目录，开发时没有
@@ -25,12 +25,9 @@ const requirePreflight: MiddlewareHandler = async (c, next) => {
   await next()
 }
 
-const stateBody = validator('json', (value, c) => {
-  const changes = parseChanges((value as { changes?: unknown } | null)?.changes)
-  if (!changes) {
-    return c.text('Bad Request', 400)
-  }
-  return { changes }
+const registryBody = validator('json', (value, c) => {
+  const external = parseExternalApps((value as { external?: unknown } | null)?.external)
+  return external ? { external } : c.text('Bad Request', 400)
 })
 
 export const api = new Hono()
@@ -38,8 +35,12 @@ export const api = new Hono()
   // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
   .get('/health', (c) => c.json({ version }))
   .use(requireOwner, requirePreflight)
-  .get('/state', (c) => c.json(readState()))
-  .post('/state', stateBody, (c) => c.json({ version: applyChanges(c.req.valid('json').changes) }, 200))
+  // app 注册表：整份读取，整份替换
+  .get('/apps', (c) => c.json(readRegistry()))
+  .put('/apps', registryBody, (c) => {
+    saveRegistry(c.req.valid('json'))
+    return c.json({ ok: true as const }, 200)
+  })
   .route('/agent', agentApi)
   // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
   .get('/events', (c) =>

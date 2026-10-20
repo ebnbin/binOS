@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import type { AppContext, AppManifest } from '../types.ts'
 import { ExternalApp } from './ExternalApp.tsx'
 import { icons } from './icons.ts'
-import type { ExternalAppConfig } from './list.ts'
+import type { ExternalAppConfig } from '../registry.ts'
 
 // 同样的配置返回同一个对象：组件换了，React 会重新挂载 iframe，正在用的 app 会重新加载
 const cache = new Map<string, AppManifest>()
