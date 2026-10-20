@@ -41,8 +41,10 @@ export function Workspace({
   const length = portrait ? size.height : size.width
   const exiting = offset === null ? null : offset + paneGap / 2 < minPane / 2 ? 0 : offset + paneGap / 2 > length - minPane / 2 ? 1 : null
   const position = (slot: number) => {
-    const start = slot === 0 ? 0 : first + paneGap
-    const extent = layout === '1' ? length : slot === 0 ? first : length - first - paneGap
+    const visible = slot === 0 ? first : length - first - paneGap
+    const extent = layout === '1' ? length : Math.max(minPane, visible)
+    // 靠前的窗口向起点移出，靠后的窗口向终点移出；app 视口保持最小尺寸。
+    const start = slot === 0 ? first - extent : first + paneGap
     return portrait ? { top: start, height: extent, left: 0, width: size.width } : { left: start, width: extent, top: 0, height: size.height }
   }
   const stop = () => {

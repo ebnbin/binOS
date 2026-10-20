@@ -176,7 +176,7 @@ export function Shell() {
           onShow={show}
           onSplit={() => {
             if (draft || !focused) return
-            if (group) { exitSplit(slot); return }
+            if (group) return
             setDraft({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
           }}
           onClose={close}
