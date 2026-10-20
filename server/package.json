@@ -13,7 +13,8 @@
     "./services/agent/drivers/claude/api": "./src/services/agent/drivers/claude/api.ts",
     "./services/agent/drivers/codex/api": "./src/services/agent/drivers/codex/api.ts",
     "./apps/code/api": "./src/apps/code/api.ts",
-    "./apps/code/types": "./src/apps/code/types.ts"
+    "./apps/code/types": "./src/apps/code/types.ts",
+    "./apps/system/types": "./src/apps/system/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -1,3 +1,4 @@
+import { SystemNotice } from '../apps/system/SystemNotice.tsx'
 import { useCallback, useEffect, useState } from 'react'
 import { findApp, useApps, useAppsLoaded } from '../apps/index.ts'
 import type { AppManifest } from '../apps/types.ts'
@@ -169,6 +170,7 @@ export function Shell() {
           onClose={close}
         />
       )}
+      <SystemNotice onOpen={() => open('system', '/host/alerts')} />
       <ConnectionStatus />
     </div>
   )
