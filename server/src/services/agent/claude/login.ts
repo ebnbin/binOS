@@ -67,15 +67,32 @@ const plain = (text: string) => stripVTControlCharacters(text.replace(csi, ' '))
 
 const authorizeUrl = (output: string) => /https:\/\/\S+\/oauth\/authorize\?\S+/.exec(plain(output))?.[0]
 
-// 成功时先打一行「Long-lived authentication token created successfully!」，下一行是令牌；后面跟着空白才算完整
-const findToken = (text: string) => /created successfully!?\s+([\w-]{40,})\s/.exec(text)?.[1]
+// 成功时先打一行「Long-lived authentication token created successfully!」，接着是令牌，再是「Store this token securely」。
+// 令牌在它的界面里会被折成几行，所以取两句之间从 sk-ant- 开始的部分，去掉换行、缩进和边框再拼起来；第二句出来了才算完整
+export function findToken(text: string): string | undefined {
+  const start = text.search(/created successfully/i)
+  const end = start < 0 ? -1 : text.indexOf('Store this token', start)
+  if (end < 0) {
+    return undefined
+  }
+  const segment = text.slice(start, end)
+  const at = segment.indexOf('sk-ant-')
+  const token = at < 0 ? '' : segment.slice(at).replace(/[^\w-]/g, '')
+  return /^sk-ant-[\w-]{60,}$/.test(token) ? token : undefined
+}
+
+// 出错时给用户看的话里不能带出令牌：令牌出现之后的不要，剩下的里像令牌的长串也遮掉
+export function redact(text: string) {
+  const start = text.search(/created successfully/i)
+  return (start < 0 ? text : text.slice(0, start)).replace(/[\w-]{24,}/g, '…')
+}
 
 // 失败时它打出来的那句
 const failure = /(?:OAuth error|Login failed|Invalid code|error)[^\n]*/i
 
 // 出错时给用户看的：它最后说的几句
 function lastWords(login: Login, from: number) {
-  return plain(login.output.slice(from))
+  return redact(plain(login.output.slice(from)))
     .replace(/[✢✳✶✻✽·*]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -179,7 +196,9 @@ export async function finishLogin(id: string, code: string): Promise<void> {
         90_000,
       )
       if (!result || 'error' in result) {
-        throw new Error(`没拿到令牌，claude 最后说：「${lastWords(login, from) || '（什么都没说）'}」。重新开始`)
+        // 已经给出了令牌、只是没认出来时，不复述它说的话，免得带出令牌的一部分
+        const shown = /created successfully/i.test(plain(login.output.slice(from)))
+        throw new Error(shown ? '令牌生成了，但没能从输出里认出来。重新开始' : `没拿到令牌，claude 最后说：「${lastWords(login, from) || '（什么都没说）'}」。重新开始`)
       }
       storeToken(result.token)
     }
