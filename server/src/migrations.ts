@@ -7,6 +7,7 @@ import { applyChanges, readState } from './state.js'
 export function migrate() {
   moveCodeToApps()
   moveAgentDataOutOfState()
+  removeShellState()
 }
 
 // Code 的数据从 Library/code 挪到 Library/Apps/code。进行中的 agent 运行记着工具结果图片的存放目录，跟着改
@@ -50,6 +51,16 @@ function moveAgentDataOutOfState() {
     renameSync(`${limitsPath}.tmp`, limitsPath)
   }
   applyChanges(keys.map((key) => ({ key, value: null })))
+}
+
+// 窗口、分屏布局改为每台设备自己记，桌面用默认的摆放：系统状态里 shell/ 下的都删掉
+function removeShellState() {
+  const keys = readState()
+    .entries.map((entry) => entry.key)
+    .filter((key) => key.startsWith('shell/'))
+  if (keys.length > 0) {
+    applyChanges(keys.map((key) => ({ key, value: null })))
+  }
 }
 
 function readJson<T>(file: string): T | undefined {
