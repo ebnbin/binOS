@@ -41,6 +41,7 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
+  const [placing, setPlacing] = useState<string | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -72,15 +73,22 @@ export function Shell() {
         : { home: false, focused: id ?? prev.focused, slot: at, recent: id ? [id, ...prev.recent.filter((item) => item !== id)].slice(0, 20) : prev.recent },
     )
 
-  // 分屏时：指定了位置就挪到那里，和原来的窗口对调；没指定时，已经显示着就只聚焦，否则放进聚焦的位置。
+  // 分屏已有两个 app 时，新的 app 等用户选好位置再放入。
   // 只有一个位置时只改显示哪个
   const show = (id: string, target?: number) => {
     if (count === 1) {
+      setPlacing(null)
       focus(id, 0)
       return
     }
     const at = panes.indexOf(id)
     const empty = panes.indexOf(null)
+    if (target === undefined && at < 0 && empty < 0) {
+      setPlacing(id)
+      setView((prev) => ({ ...prev, home: false }))
+      return
+    }
+    setPlacing(null)
     const to = target ?? (at >= 0 ? at : empty >= 0 ? empty : slot)
     if (at !== to) {
       updateWorkspace((current) => place(current, id, to))
@@ -101,6 +109,7 @@ export function Shell() {
   }
 
   const exitSplit = (keep: number) => {
+    setPlacing(null)
     const id = panes[keep]
     saveWorkspace({ layout: '1', slots: [id, null] })
     if (id) focus(id, 0)
@@ -108,12 +117,24 @@ export function Shell() {
   }
 
   const close = () => {
+    setPlacing(null)
     if (!focused) return
     const next = count > 1 ? panes.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
     closeWindow(focused)
     saveWorkspace({ layout: '1', slots: [next, null] })
     setView((prev) => ({ ...prev, home: !next, focused: next, slot: 0 }))
   }
+
+  if (count === 1 && placing !== null) setPlacing(null)
+
+  useEffect(() => {
+    if (!placing) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setPlacing(null)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [placing])
 
   // 浏览器返回时，恢复那条记录的窗口和路由
   useEffect(() => {
@@ -152,6 +173,9 @@ export function Shell() {
               size={size}
               portrait={portrait}
               onTitle={onTitle}
+              placing={count > 1 && !panes.includes(placing) ? windows.find((item) => item.id === placing)?.title ?? null : null}
+              onPlace={(at) => placing && show(placing, at)}
+              onDismissPlacement={() => setPlacing(null)}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
           </>
@@ -168,9 +192,10 @@ export function Shell() {
           layout={layout}
           allowed={allowed}
           portrait={portrait}
-          onHome={() => setView((prev) => ({ ...prev, home: !home }))}
+          onHome={() => { setPlacing(null); setView((prev) => ({ ...prev, home: !home })) }}
           onShow={show}
           onSplit={() => {
+            setPlacing(null)
             if (!focused) return
             if (count > 1) {
               exitSplit(slot)

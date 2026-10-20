@@ -10,8 +10,11 @@ type Drag = { pointer: number; start: number; length: number; position: number; 
 
 // 所有窗口保留挂载，退出布局后滚动位置和输入仍然保留。
 export function Workspace({
-  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle,
+  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, placing, onPlace, onDismissPlacement,
 }: {
+  placing: string | null
+  onPlace: (slot: number) => void
+  onDismissPlacement: () => void
   windows: OpenWindow[]
   panes: (string | null)[]
   layout: LayoutId
@@ -70,6 +73,21 @@ export function Workspace({
           {preview(slot)}
         </section>
       ))}
+      {placing && (
+        <>
+          <div className={styles.placementBar}>
+            <span role="status">将 {placing} 放在哪边？</span>
+            <button type="button" onClick={onDismissPlacement}>取消</button>
+          </div>
+          {panes.map((_, slot) => (
+            <div key={slot} className={styles.placementTarget} style={position(slot)}>
+              <button type="button" onClick={() => onPlace(slot)}>
+                {portrait ? (slot === 0 ? '放在上侧' : '放在下侧') : (slot === 0 ? '放在左侧' : '放在右侧')}
+              </button>
+            </div>
+          ))}
+        </>
+      )}
       {exiting !== null && (
         <div className={styles.exitHint} role="status">{panes[exiting] ? '松手退到后台' : '松手取消分屏'}</div>
       )}
