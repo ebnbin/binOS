@@ -7,7 +7,6 @@ import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { isRunning, processStartTime } from '../../../process.js'
 import type { ProcessIdentity } from '../../../process.js'
-import type { AgentProcess } from '../agent-process.js'
 import { hostProtocol } from './protocol.js'
 import type { HostAgent, HostCommand, HostLaunch, HostReply } from './protocol.js'
 
@@ -35,7 +34,7 @@ const socketPath = (dir: string) => path.join(os.tmpdir(), `binos-${createHash('
 export function startHost(
   dir: string,
   options: { agent: HostAgent; args: unknown; cwd: string; env: NodeJS.ProcessEnv; stamp: string; itemsFrom: number },
-): AgentProcess | undefined {
+): Host | undefined {
   rmSync(dir, { recursive: true, force: true })
   mkdirSync(dir, { recursive: true })
   const paths = files(dir)
@@ -71,7 +70,7 @@ export function startHost(
 }
 
 // 后端重启后接上 dir 里的 host；没有 host 时返回 undefined
-export function attachHost(dir: string): AgentProcess | undefined {
+export function attachHost(dir: string): Host | undefined {
   try {
     return new Host(dir, JSON.parse(readFileSync(files(dir).state, 'utf8')) as HostState)
   } catch {
@@ -79,7 +78,11 @@ export function attachHost(dir: string): AgentProcess | undefined {
   }
 }
 
-class Host implements AgentProcess {
+// 一个 host 进程：agent 的输出一行行写在 output 文件里，错误信息在 errors 文件里。
+// itemsFrom：它启动时 thread 已经有几条，之后带 offset 的条目都出自它的输出。
+// stamp：启动时就定下的东西（模型、思考程度、agent 版本、AGENTS.md……），变了要换一个；undefined 表示不能接着用，这一轮结束就让它退出。
+// commandable：能接着发命令；false 时只跟着读完它的输出
+export class Host {
   readonly output: string
   readonly errors: string
   readonly itemsFrom: number
@@ -120,6 +123,7 @@ class Host implements AgentProcess {
     }
   }
 
+  // 结束整个进程组，包括 agent 在后台启动的任务
   kill() {
     try {
       process.kill(-this.state.process.pid, 'SIGTERM')
@@ -128,6 +132,7 @@ class Host implements AgentProcess {
     }
   }
 
+  // 进程已经结束，删掉它的文件
   dispose() {
     rmSync(this.dir, { recursive: true, force: true })
   }
