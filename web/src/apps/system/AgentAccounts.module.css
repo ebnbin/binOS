@@ -120,41 +120,6 @@
   font-size: 12.5px;
 }
 
-.row dd > .quota {
-  width: min(220px, 100%);
-  align-items: stretch;
-  gap: 5px;
-}
-
-.quotaLine {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-variant-numeric: tabular-nums;
-}
-
-.meter {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--hover);
-}
-
-.meter span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ink);
-}
-
-.meter[data-level='warning'] span {
-  background: var(--live);
-}
-
-.meter[data-level='danger'] span {
-  background: var(--danger);
-}
-
 .attention {
   margin: 10px 0 0;
   padding: 8px 12px;
@@ -189,4 +154,9 @@
 
 .login {
   padding: 12px 0 2px;
+}
+
+.quotaWindows {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
 }

@@ -1,0 +1,108 @@
+/* 内圈 5 小时是绿色，外圈 7 天是黄色，快满了是红色 */
+.ring {
+  flex: none;
+  transform: rotate(-90deg);
+}
+
+.ring [data-window='fiveHour'],
+.window[data-window='fiveHour'] {
+  --window: #2fa84f;
+}
+
+.ring [data-window='sevenDay'],
+.window[data-window='sevenDay'] {
+  --window: var(--live);
+}
+
+.ring g {
+  color: var(--window);
+}
+
+.ring [data-full] {
+  color: var(--danger);
+}
+
+.windows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.limited {
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.windowLine {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.windowLine > :last-child {
+  margin-left: auto;
+}
+
+.windowName {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+.swatch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--window);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--hover);
+}
+
+.bar span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--window);
+}
+
+.bar[data-full] span {
+  background: var(--danger);
+}
+
+/* 匀速线 */
+.bar i {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text-2);
+}

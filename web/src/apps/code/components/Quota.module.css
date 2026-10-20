@@ -4,8 +4,8 @@
 
 .summary {
   display: flex;
-  gap: 8px;
-  padding: 3px 8px;
+  gap: 10px;
+  padding: 3px 9px 3px 6px;
   border: 0;
   border-radius: 999px;
   background: var(--hover);
@@ -16,11 +16,14 @@
   cursor: pointer;
 }
 
-.summary [data-level='warning'] {
-  color: var(--live);
+.agent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }
 
-.summary [data-level='danger'] {
+.agent[data-alert] {
   color: var(--danger);
 }
 
@@ -32,50 +35,22 @@
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 16px;
+  padding: 12px 14px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.bar {
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--hover);
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ink);
-}
-
-.bar[data-level='warning'] span {
-  background: var(--live);
-}
-
-.bar[data-level='danger'] span {
-  background: var(--danger);
-}
-
-.reset {
+.details h3 {
+  margin: 0 0 10px;
   font-size: 12px;
+  font-weight: 500;
   color: var(--muted);
+}
+
+.details section + section {
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline);
 }
