@@ -1,4 +1,4 @@
-import type { AgentRecord, Context, Live as AgentLive, LiveEvent as AgentLiveEvent, Provider } from '../../services/agent/types.js'
+import type { AgentRecord, Context, Live as AgentLive, LiveEvent as AgentLiveEvent, Provider, Tokens } from '../../services/agent/types.js'
 
 // 用户发消息时附上的文件。file 是 session 的 files/ 里的文件名，name 是原来的文件名
 export type Attachment = { file: string; name: string }
@@ -52,6 +52,9 @@ export type SessionSummary = {
   effort?: string
   // 开始过几轮
   turns: number
+  // 一共用掉的 token；quota 是大约占订阅周额度多少（0 到 1，只有 Claude 的、估得出来时才有，见 usage.ts）
+  tokens?: Tokens
+  quota?: number
   prs: PullRequest[]
   queue: QueuedMessage[]
 }

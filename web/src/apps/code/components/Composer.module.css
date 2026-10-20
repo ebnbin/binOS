@@ -4,6 +4,7 @@
 }
 
 .card {
+  position: relative;
   max-width: 724px;
   margin: 0 auto;
   padding: 12px 12px 10px 18px;
