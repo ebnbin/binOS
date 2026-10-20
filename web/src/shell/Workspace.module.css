@@ -1,25 +1,83 @@
-/* 每个窗口是独立的圆角矩形，中间是黑缝 */
 .workspace {
   position: absolute;
   inset: 0;
   background: #000;
 }
 
-.workspace[hidden],
-.pane[hidden] {
-  display: none;
-}
+.workspace[hidden], .pane[hidden] { display: none; }
 
 .pane {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  transition: left 180ms ease, width 180ms ease, top 180ms ease, height 180ms ease;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius);
   background: var(--bg);
+  transition: left 180ms ease, width 180ms ease, top 180ms ease, height 180ms ease;
+}
+
+.content {
+  position: absolute;
+  inset: 0;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.pane[data-exiting='true'] .content, .pane[data-exiting='true'] .picker {
+  transform: scale(0.92);
+  opacity: 0.4;
+}
+
+.exitPreview {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgb(0 0 0 / 35%);
+  pointer-events: none;
+}
+
+.exitHint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 80%);
+  color: #fff;
+  font-size: 14px;
+  pointer-events: none;
+}
+
+.picker {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  overflow: auto;
+  padding: 20px;
+}
+
+.picker p { margin: 0; }
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.picker button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--hairline);
 }
 
 .divider {
@@ -27,29 +85,34 @@
   top: 0;
   bottom: 0;
   z-index: 2;
+  display: grid;
+  place-items: center;
   cursor: col-resize;
   touch-action: none;
+  user-select: none;
   transition: left 180ms ease, top 180ms ease;
 }
 
-.divider::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: calc(50% - 24px);
+.handle {
   width: 4px;
   height: 48px;
-  border-radius: 4px;
-  background: rgb(255 255 255 / 35%);
-}
-
-.workspace[data-dragging='true'] .pane {
+  border-radius: 8px;
+  background: rgb(255 255 255 / 40%);
+  transition: width 120ms ease, height 120ms ease, background-color 120ms ease;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pane, .divider { transition: none; }
+.divider:hover .handle, .divider:focus-visible .handle { background: #fff; }
+
+.workspace[data-dragging='true'] .handle {
+  width: 8px;
+  height: 64px;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 60%);
 }
+
+.workspace[data-dragging='true'] .pane { pointer-events: none; }
+.workspace[data-dragging='true'] .pane, .workspace[data-dragging='true'] .divider { transition: none; }
 
 .workspace[data-portrait='true'] .divider {
   left: 0;
@@ -58,9 +121,9 @@
   cursor: row-resize;
 }
 
-.workspace[data-portrait='true'] .divider::after {
-  top: 6px;
-  left: calc(50% - 24px);
-  width: 48px;
-  height: 4px;
+.workspace[data-portrait='true'] .handle { width: 48px; height: 4px; }
+.workspace[data-portrait='true'][data-dragging='true'] .handle { width: 64px; height: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pane, .divider, .content, .handle { transition: none; }
 }

@@ -160,9 +160,9 @@ export function normalizeWorkspace(value: JsonValue, ids: string[]): Workspace {
   const layout = stored?.layout && stored.layout in layouts ? stored.layout : '1'
   const slots = Array.from({ length: maxPanes }, (_, index) => {
     const id = stored?.slots?.[index]
-    return id && ids.includes(id) ? id : null
+    return id && ids.includes(id) && stored?.slots?.indexOf(id) === index ? id : null
   })
-  return { layout: layout !== '1' && (!slots[0] || !slots[1] || slots[0] === slots[1]) ? '1' : layout, slots }
+  return { layout: layout !== '1' && slots.every((id) => id === null) ? '1' : layout, slots }
 }
 
 // 实际显示的窗口。只有一个位置时显示聚焦的窗口，不动记下的布局；分屏时按记下的位置

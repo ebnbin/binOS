@@ -10,7 +10,6 @@ import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
 import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place } from './layout.ts'
 import type { LayoutId } from './layout.ts'
-import { SplitPicker } from './SplitPicker.tsx'
 import { TaskBar } from './TaskBar.tsx'
 import { Workspace } from './Workspace.tsx'
 import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, useWindows } from './windows.ts'
@@ -42,7 +41,6 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
-  const [split, setSplit] = useState<string | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -63,7 +61,7 @@ export function Shell() {
   const recent = view.recent.filter((id) => ids.includes(id))
   const focusedWindow = view.focused && ids.includes(view.focused) ? view.focused : (recent[0] ?? null)
   const panes = arrange(workspace, layout, focusedWindow)
-  const slot = Math.min(view.slot, count - 1)
+  const slot = panes[Math.min(view.slot, count - 1)] ? Math.min(view.slot, count - 1) : Math.max(0, panes.findIndex((id) => id !== null))
   const focused = panes[slot]
   const home = view.home || panes.every((id) => id === null)
 
@@ -82,7 +80,8 @@ export function Shell() {
       return
     }
     const at = panes.indexOf(id)
-    const to = target ?? (at >= 0 ? at : slot)
+    const empty = panes.indexOf(null)
+    const to = target ?? (at >= 0 ? at : empty >= 0 ? empty : slot)
     if (at !== to) {
       updateWorkspace((current) => place(current, id, to))
     }
@@ -104,7 +103,8 @@ export function Shell() {
   const exitSplit = (keep: number) => {
     const id = panes[keep]
     saveWorkspace({ layout: '1', slots: [id, null] })
-    focus(id, 0)
+    if (id) focus(id, 0)
+    else setView((prev) => ({ ...prev, home: true, focused: null, slot: 0 }))
   }
 
   const close = () => {
@@ -143,26 +143,17 @@ export function Shell() {
               onFocus={focus}
               onLayout={chooseLayout}
               onExit={exitSplit}
+              onPick={(appId, at) => open(appId, undefined, at)}
+              onSwap={() => {
+                saveWorkspace({ ...workspace, slots: [...workspace.slots].reverse() })
+                if (focused) focus(focused, 1 - slot)
+              }}
+              onCancel={() => exitSplit(slot)}
               size={size}
               portrait={portrait}
               onTitle={onTitle}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
-            {split && stored.windows[split] && allowed.length > 1 && (
-              <SplitPicker
-                app={stored.windows[split].app}
-                portrait={portrait}
-                equal={allowed.includes('1:1')}
-                onCancel={() => setSplit(null)}
-                onChoose={(appId, side) => {
-                  const second = ensureWindow(appId)
-                  const slots = side === 0 ? [split, second] : [second, split]
-                  saveWorkspace({ layout: fitLayout('1:1', allowed, side), slots })
-                  focus(split, side)
-                  setSplit(null)
-                }}
-              />
-            )}
           </>
         )}
       </div>
@@ -179,7 +170,16 @@ export function Shell() {
           portrait={portrait}
           onHome={() => setView((prev) => ({ ...prev, home: !home }))}
           onShow={show}
-          onSplit={() => focused && setSplit(focused)}
+          onSplit={() => {
+            if (!focused) return
+            if (count > 1) {
+              exitSplit(slot)
+              return
+            }
+            const at = portrait ? 0 : 1
+            saveWorkspace({ layout: fitLayout('1:1', allowed, at), slots: at === 0 ? [focused, null] : [null, focused] })
+            focus(focused, at)
+          }}
           onClose={close}
         />
       )}

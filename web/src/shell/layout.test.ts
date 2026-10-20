@@ -71,8 +71,8 @@ describe('fitLayout', () => {
 })
 
 describe('normalizeWorkspace', () => {
-  it('去掉已经关掉的窗口，补齐两个位置并取消不完整分屏', () => {
-    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'gone'] }, ['a', 'b'])).toEqual({ layout: '1', slots: ['a', null] })
+  it('去掉已经关掉的窗口，补齐两个位置并保留等待选择的位置', () => {
+    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'gone'] }, ['a', 'b'])).toEqual({ layout: '1:1', slots: ['a', null] })
     expect(normalizeWorkspace(null, [])).toEqual({ layout: '1', slots: [null, null] })
   })
 })
@@ -110,9 +110,9 @@ describe('分屏尺寸和吸附', () => {
     expect(snapLayout(500, 1600)).toBe('1:2')
   })
 
-  it('旧三窗口布局和重复窗口不会恢复为分屏', () => {
+  it('旧三窗口布局恢复为单窗口，重复窗口恢复为待选择', () => {
     expect(normalizeWorkspace({ layout: '1:1:1', slots: ['a', 'b', 'c'] }, ['a', 'b', 'c'])).toEqual({ layout: '1', slots: ['a', 'b'] })
-    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'a'] }, ['a'])).toEqual({ layout: '1', slots: ['a', 'a'] })
+    expect(normalizeWorkspace({ layout: '1:1', slots: ['a', 'a'] }, ['a'])).toEqual({ layout: '1:1', slots: ['a', null] })
   })
 })
 
