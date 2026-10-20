@@ -1,10 +1,8 @@
 import { appendFileSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { applyChanges, readState } from '../../state.js'
-import { agents } from '../../services/agent/types.js'
-import type { Limits, Tokens } from '../../services/agent/types.js'
+import { allLimits } from '../../services/agent/index.js'
+import type { Tokens } from '../../services/agent/types.js'
 import { addUsage, dataDir, listSessions, sessionInfo } from './sessions.js'
-import { codeUsageKey } from './types.js'
 import type { CodeUsage } from './types.js'
 
 // 会话大约占订阅周额度多少。额度怎么算没有公开，只知道 7 天窗口用了百分之几（精确到 1%），而且这个窗口是整个订阅共用的：
@@ -23,8 +21,7 @@ const minRise = 0.03
 const totalCost = () => listSessions().reduce((sum, id) => sum + sessionInfo(id).costs.reduce((s, [, cost]) => s + cost, 0), 0)
 
 function claudeWeek(now: number) {
-  const limits = readState().entries.find((entry) => entry.key === agents.claude.limitsKey)?.value as Limits | undefined
-  const window = limits?.sevenDay
+  const window = allLimits().claude?.sevenDay
   return window && window.resetsAt * 1000 > now ? window : undefined
 }
 
@@ -77,7 +74,7 @@ function quotaRate(): number | undefined {
   return rate
 }
 
-// Claude 的一轮结束了：记一个点，并更新这个窗口里 binOS 大约用了多少（写进系统状态，页面随即收到）
+// Claude 的一轮结束了：记一个点
 export function recordQuotaSample(now = Date.now()) {
   const week = claudeWeek(now)
   if (!week) {
@@ -88,14 +85,24 @@ export function recordQuotaSample(now = Date.now()) {
   if (!last || last.resetsAt !== sample.resetsAt || last.utilization !== sample.utilization || last.cost !== sample.cost) {
     appendFileSync(samplesPath, JSON.stringify(sample) + '\n')
   }
+}
+
+// 当前这个 7 天窗口里 binOS 大约用了周额度的多少；没有 Claude 的额度或者窗口已经过了时没有
+export function codeUsage(now = Date.now()): CodeUsage | undefined {
+  const week = claudeWeek(now)
+  if (!week) {
+    return undefined
+  }
   const rate = quotaRate()
+  if (rate === undefined) {
+    return { resetsAt: week.resetsAt }
+  }
   const start = week.resetsAt * 1000 - 7 * 86_400_000
   const spent = listSessions().reduce(
     (sum, id) => sum + sessionInfo(id).costs.reduce((s, [time, cost]) => (Date.parse(time) >= start ? s + cost : s), 0),
     0,
   )
-  const usage: CodeUsage = rate === undefined ? { resetsAt: week.resetsAt } : { resetsAt: week.resetsAt, week: Math.min(spent * rate, week.utilization) }
-  applyChanges([{ key: codeUsageKey, value: usage }])
+  return { resetsAt: week.resetsAt, week: Math.min(spent * rate, week.utilization) }
 }
 
 // 会话一共用掉的 token（各个模型加在一起），和它大约占周额度多少

@@ -3,7 +3,7 @@ import { stripVTControlCharacters } from 'node:util'
 import { agentEnv } from '../adapters.js'
 import { killTerminal, openTerminal, waitFor } from '../pty.js'
 import type { Terminal } from '../pty.js'
-import { publishCodexAuth } from './auth.js'
+import { codexAuth } from './auth.js'
 
 // 在网页上重新登录 Codex：对 binOS 的 Codex 配置目录跑 `codex login --device-auth`（设备码登录），
 // 它给出网址和一次性的码，用户在自己的设备上打开网址、输入码授权；授权后它自己写好登录并退出，不用贴回什么。
@@ -66,7 +66,7 @@ export function codexLoginStatus(id: string): { status: 'waiting' | 'done' } | {
   if (login.exitCode !== 0) {
     return { status: 'failed', error: `登录没成功，codex 最后说：「${tail || '（什么都没说）'}」` }
   }
-  publishCodexAuth()
+  codexAuth()
   return { status: 'done' }
 }
 

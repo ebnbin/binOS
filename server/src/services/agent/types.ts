@@ -2,11 +2,11 @@ export type Context = { tokens: number; window: number }
 // 用掉的 token：输入、输出、读缓存、写缓存
 export type Tokens = { input: number; output: number; cacheRead: number; cacheWrite: number }
 
-// 运行 agent 的程序：显示的名字，额度存在系统状态的哪一项。怎么接入在服务端的 adapters.ts，按同样的 id 对应
+// 运行 agent 的程序和显示的名字。怎么接入在服务端的 adapters.ts，按同样的 id 对应
 export const agents = {
-  claude: { name: 'Claude', limitsKey: 'agent/limits' },
-  codex: { name: 'Codex', limitsKey: 'agent/codex-limits' },
-} as const satisfies Record<string, { name: string; limitsKey: string }>
+  claude: { name: 'Claude' },
+  codex: { name: 'Codex' },
+} as const satisfies Record<string, { name: string }>
 export type Provider = keyof typeof agents
 export const providers = Object.keys(agents) as Provider[]
 // 没有写明 agent 的记录（有多个 agent 之前的数据）和没选 agent 的新对话用它
@@ -83,24 +83,24 @@ export type LiveEvent =
   | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
 
 // 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
-// agent 运行时报告，按 agent 存在系统状态里（agents 的 limitsKey）
+// agent 运行时报告，按 agent 存在 agent 服务的数据目录里（见 limits.ts）
 export type QuotaWindow = { utilization: number; resetsAt: number }
 export type Limits = { status: string; fiveHour?: QuotaWindow; sevenDay?: QuotaWindow; updatedAt: string }
 
 // Claude 的两份登录：完整登录（/login，续期令牌约 4 周后到期，过了只能重新登录）和备用的一年期 token
 // （setup-token 生成，只能调模型，没有 claude.ai 的连接器）。mode 是现在启动 Claude 用哪份，none 是都用不了。
-// broken：完整登录没到期就在回答时认证失败了。存在系统状态的 claudeAuthKey 下，登录有变化时更新
+// broken：完整登录没到期就在回答时认证失败了。每次读取时从钥匙串现查
 export type ClaudeAuth = {
   mode: 'login' | 'token' | 'none'
   login?: { expiresAt?: string; broken?: true }
   backup?: { expiresAt?: string }
 }
-export const claudeAuthKey = 'agent/claude-auth'
 
-// Codex 的 ChatGPT 登录：访问令牌由 Codex 自己续，没有备用的。broken：回答时认证失败了，重新登录后不算。
-// 存在系统状态的 codexAuthKey 下，登录有变化时更新
+// Codex 的 ChatGPT 登录：访问令牌由 Codex 自己续，没有备用的。broken：回答时认证失败了，重新登录后不算。每次读取时从登录文件现查
 export type CodexAuth = { loggedIn: boolean; broken?: true }
-export const codexAuthKey = 'agent/codex-auth'
+
+// 页面看到的 agent 的状况：各 agent 最近报告的额度和登录。有变化时后端发 agent 通知，页面重新读取
+export type AgentStatus = { limits: Partial<Record<Provider, Limits>>; claude: ClaudeAuth; codex: CodexAuth }
 
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {

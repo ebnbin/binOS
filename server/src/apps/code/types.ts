@@ -71,6 +71,5 @@ export type LiveEvent =
   | { type: 'file'; path: string; name: string }
 
 // 当前这个 7 天窗口（resetsAt 时重置）里 binOS 的 Claude 大约用了周额度的多少（0 到 1），估不出来时没有 week。
-// 窗口是整个订阅共用的，其余的是别处用的（见 usage.ts）。存在系统状态的 codeUsageKey 下
+// 窗口是整个订阅共用的，其余的是别处用的（见 usage.ts）。每次读取时现算
 export type CodeUsage = { resetsAt: number; week?: number }
-export const codeUsageKey = 'code/usage'

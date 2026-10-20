@@ -2,9 +2,8 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { agentDataDir, agentsDir } from '../../../paths.js'
-import { applyChanges, readState } from '../../../state.js'
+import { notifyChange } from '../../../events.js'
 import { parseJson, readText } from '../cli.js'
-import { codexAuthKey } from '../types.js'
 import type { CodexAuth } from '../types.js'
 
 export const configDir = path.join(agentsDir, 'codex')
@@ -36,13 +35,16 @@ function currentAuth(): CodexAuth {
   return { loggedIn: true, ...(broken && { broken: true as const }) }
 }
 
-// 登录的状况变了才写进系统状态，各个页面随即收到
-export function publishCodexAuth(): CodexAuth {
+// 上次看到的状况：变了就通知页面重新读取
+let lastSeen: string | undefined
+
+export function codexAuth(): CodexAuth {
   const auth = currentAuth()
-  const current = readState().entries.find((entry) => entry.key === codexAuthKey)?.value
-  if (JSON.stringify(current) !== JSON.stringify(auth)) {
-    applyChanges([{ key: codexAuthKey, value: auth }])
+  const text = JSON.stringify(auth)
+  if (lastSeen !== undefined && text !== lastSeen) {
+    notifyChange({ type: 'agent' })
   }
+  lastSeen = text
   return auth
 }
 
@@ -53,6 +55,6 @@ export function codexAuthFailed(): string {
     mkdirSync(path.dirname(brokenPath), { recursive: true })
     writeFileSync(brokenPath, fingerprint(tokens))
   }
-  publishCodexAuth()
+  codexAuth()
   return 'Codex 的登录失效了，去「系统」→ Agent 重新登录'
 }

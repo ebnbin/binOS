@@ -3,7 +3,6 @@ import type { AgentAccount, Limits } from '@binos/server/services/agent/types'
 import { ChevronLeft, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useStateValue } from '../../state.ts'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { agentAccounts } from '../../services/agent/api.ts'
@@ -13,6 +12,7 @@ import { ClaudeLogin } from '../../services/agent/ClaudeLogin.tsx'
 import { CodexLogin } from '../../services/agent/CodexLogin.tsx'
 import { useMinuteNow } from '../../services/agent/quota.ts'
 import { QuotaWindows } from '../../services/agent/QuotaWindows.tsx'
+import { useAgentStatus } from '../../services/agent/status.ts'
 import styles from './AgentAccounts.module.css'
 
 const dateTime = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -70,7 +70,7 @@ export function AgentAccounts({ back }: { back: () => void }) {
 }
 
 function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: number }) {
-  const limits = useStateValue(agents[account.provider].limitsKey) as Limits | null
+  const limits = useAgentStatus()?.limits[account.provider]
   const { token } = account
   return (
     <section className={styles.section}>

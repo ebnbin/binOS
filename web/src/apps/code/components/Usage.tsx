@@ -1,10 +1,8 @@
-import { codeUsageKey } from '@binos/server/apps/code/types'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
-import { agents } from '@binos/server/services/agent/types'
-import type { Limits } from '@binos/server/services/agent/types'
 import { useEffect, useRef, useState } from 'react'
+import { codeUsage } from '../api.ts'
 import { formatQuota, formatTokens } from '../format.ts'
-import { useStateValue } from '../../../state.ts'
+import { useAgentStatus } from '../../../services/agent/status.ts'
 import styles from './Usage.module.css'
 
 // 输入框里的上下文圆环：圈是上下文占了多少，快满时 Claude Code 会压缩历史，前面的细节可能丢失。
@@ -12,20 +10,26 @@ import styles from './Usage.module.css'
 // 以及这 7 天里 binOS 大约用了多少（订阅是共用的，其余是别处用的）
 export function Usage({ session }: { session: SessionSummary }) {
   const [open, setOpen] = useState(false)
-  const week = useStateValue(codeUsageKey) as CodeUsage | null
-  const limits = useStateValue(agents.claude.limitsKey) as Limits | null
+  // 这 7 天 binOS 用了多少：打开面板时读
+  const [week, setWeek] = useState<CodeUsage>()
+  const limits = useAgentStatus()?.limits.claude
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) {
       return
     }
+    let cancelled = false
+    void codeUsage().then((usage) => !cancelled && setWeek(usage))
     const onPointerDown = (event: PointerEvent) => {
       if (!ref.current?.contains(event.target as Node)) {
         setOpen(false)
       }
     }
     document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
+    return () => {
+      cancelled = true
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
   }, [open])
   const { context, tokens, quota } = session
   const ratio = context ? Math.min(context.tokens / context.window, 1) : 0

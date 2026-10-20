@@ -7,4 +7,5 @@ export type StateChange = { key: string; value: JsonValue }
 export type StateEntry = { key: string; value: JsonValue; version: number }
 
 // /api/events 推送的全局通知。session：对话新建、开始回答、回答结束，页面收到后重新读取列表；state：系统状态的改动
-export type ChangeEvent = { type: 'session'; id: number } | { type: 'state'; version: number; changes: StateChange[] }
+// agent：agent 的额度或登录有变化，页面重新读取 agent 的状况
+export type ChangeEvent = { type: 'session'; id: number } | { type: 'state'; version: number; changes: StateChange[] } | { type: 'agent' }

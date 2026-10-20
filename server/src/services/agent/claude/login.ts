@@ -6,7 +6,7 @@ import { stripVTControlCharacters } from 'node:util'
 import { agentEnv } from '../adapters.js'
 import { killTerminal, openTerminal, waitFor } from '../pty.js'
 import type { Terminal } from '../pty.js'
-import { publishAuth, storeToken } from './auth.js'
+import { claudeAuth, storeToken } from './auth.js'
 
 // 在网页上登录 Claude（见 auth.ts 的两份登录）：
 // - login：重新完整登录，对 binOS 的 Claude 配置目录跑 `claude auth login`，它自己把登录存进钥匙串
@@ -122,7 +122,7 @@ export async function finishLogin(id: string, code: string): Promise<void> {
       if (!exited || login.exitCode !== 0 || failure.test(plain(login.output.slice(from)))) {
         throw new Error(`登录没成功，claude 最后说：「${lastWords(login, from) || '（什么都没说）'}」。重新开始`)
       }
-      publishAuth()
+      claudeAuth()
     } else {
       const result = await waitFor(
         login,

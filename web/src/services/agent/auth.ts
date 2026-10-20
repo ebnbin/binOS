@@ -1,7 +1,6 @@
-import { claudeAuthKey, codexAuthKey } from '@binos/server/services/agent/types'
 import type { ClaudeAuth, CodexAuth } from '@binos/server/services/agent/types'
 import { useEffect, useState } from 'react'
-import { useStateValue } from '../../state.ts'
+import { useAgentStatus } from './status.ts'
 
 const day = 86_400_000
 // 完整登录剩不到这么多天时提醒重新登录，备用 token 剩不到这么多天时提醒更新
@@ -9,11 +8,11 @@ const loginWarnDays = 7
 const backupWarnDays = 30
 
 export function useClaudeAuth(): ClaudeAuth | undefined {
-  return (useStateValue(claudeAuthKey) as ClaudeAuth | null) ?? undefined
+  return useAgentStatus()?.claude
 }
 
 export function useCodexAuth(): CodexAuth | undefined {
-  return (useStateValue(codexAuthKey) as CodexAuth | null) ?? undefined
+  return useAgentStatus()?.codex
 }
 
 // 要做的登录：Claude 重新登录、生成备用 token，或者 Codex 重新登录

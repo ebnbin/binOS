@@ -13,7 +13,7 @@ import { readQueue } from './queue.js'
 import { isAnswering, isWaiting, liveState, queueMessage, renameSession, sendMessage, sendQueued, stopTurn, unqueueMessage } from './turns.js'
 import type { MessageOptions } from './turns.js'
 import { pullRequests } from './pull-requests.js'
-import { sessionUsage } from './usage.js'
+import { codeUsage, sessionUsage } from './usage.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
@@ -151,6 +151,8 @@ export const codeApi = new Hono()
     )
     return c.json({ sessions })
   })
+  // 这 7 天 binOS 大约用了周额度的多少，Claude 的一轮结束时会变（随会话的通知重新读取）
+  .get('/usage', (c) => c.json({ usage: codeUsage() ?? null }))
   // 请求体就是文件本身，原来的文件名 URL 编码后放在 X-File-Name 里
   .post('/uploads', async (c) => {
     const body = c.req.raw.body
