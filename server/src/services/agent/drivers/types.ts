@@ -1,5 +1,6 @@
+import type { Hono } from 'hono'
 import type { HostAgent } from '../host/protocol.js'
-import type { AgentAccount, AgentCatalog, AgentId, Item, Limits, Live, LiveEvent, Tokens } from '../types.js'
+import type { AgentAccount, AgentAuths, AgentCatalog, AgentId, Item, Limits, Live, LiveEvent, Tokens } from '../types.js'
 
 // agentSession：接着 agent 那边的这个会话，没有就开一个新的；model、effort 没有时用 agent 自己的默认；instructions：追加的系统提示
 export type Launch = { agentSession?: string; model?: string; effort?: string; instructions: string }
@@ -41,11 +42,13 @@ export type Driver = {
   // 能选的模型和思考程度，不在里面的不传给它；没有时由 agent 自己判断
   models?: readonly string[]
   efforts?: readonly string[]
-  // 报告的额度只有变了的窗口，要和之前的合并
-  partialLimits?: true
   // env 是 agentEnv 给的；能选的模型列表现查时由它自己缓存
   catalog(env: NodeJS.ProcessEnv): Promise<Omit<AgentCatalog, 'agent'>>
   account(env: NodeJS.ProcessEnv): Promise<Omit<AgentAccount, 'agent' | 'running'>>
+  // 登录的状况，每次读取时现查，变了就通知页面
+  auth(): AgentAuths[AgentId]
+  // 这个 agent 自己的接口（比如在网页上登录），挂在 /api/agent/<id> 下
+  api: Hono<any, any, any>
   // 启动时另加的环境变量，每次启动时现定（比如换用哪份登录）
   authEnv?(): Record<string, string>
   // 回答时请求被拒绝（登录无效）：处理后返回给用户看的原因，这一轮以它出错结束

@@ -1,16 +1,16 @@
-/* 内圈 5 小时是绿色，外圈 7 天是黄色，快满了是红色 */
+/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
 }
 
-.ring [data-window='fiveHour'],
-.window[data-window='fiveHour'] {
+.ring g,
+.window {
   --window: #2fa84f;
 }
 
-.ring [data-window='sevenDay'],
-.window[data-window='sevenDay'] {
+.ring [data-longest],
+.window[data-longest] {
   --window: var(--live);
 }
 

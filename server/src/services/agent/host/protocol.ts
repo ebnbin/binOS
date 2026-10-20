@@ -2,8 +2,10 @@
 // 后端遇到版本不同的 host，等它这一轮答完就让它退出，下一轮换新的
 export const hostProtocol = 1
 
+import type { AgentId } from '../types.js'
+
 // host 持有哪种 agent：host 进程里按它选择怎么启动 agent、怎么把命令交给它
-export type HostAgent = 'claude' | 'codex'
+export type HostAgent = AgentId
 
 // host 启动时读的配置。socket：后端发命令用的地址；output、errors：agent 的输出和错误信息写在这里
 export type HostLaunch = { agent: HostAgent; args: unknown; socket: string; output: string; errors: string }

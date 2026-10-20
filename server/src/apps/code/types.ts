@@ -31,13 +31,14 @@ export type SessionSummary = {
   effort?: string
   // 开始过几轮
   turns: number
-  // 一共用掉的 token；quota 是大约占订阅周额度多少（0 到 1，只有 Claude 的、估得出来时才有，见 usage.ts）
+  // 一共用掉的 token；priced：agent 能按 API 价格折算花费，才估得出大约占订阅周额度多少（quota，0 到 1，见 usage.ts）
   tokens?: Tokens
+  priced: boolean
   quota?: number
   prs: PullRequest[]
   queue: QueuedMessage[]
 }
 
-// 当前这个 7 天窗口（resetsAt 时重置）里 binOS 的 Claude 大约用了周额度的多少（0 到 1），估不出来时没有 week。
+// 当前这个 7 天窗口（resetsAt 时重置）里 binOS 用能折算花费的 agent 大约用了它周额度的多少（0 到 1），估不出来时没有 week。
 // 窗口是整个订阅共用的，其余的是别处用的（见 usage.ts）。每次读取时现算
 export type CodeUsage = { resetsAt: number; week?: number }

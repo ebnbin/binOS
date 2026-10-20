@@ -1,34 +1,38 @@
+import { agentIds } from '@binos/server/services/agent/types'
+import type { AgentId } from '@binos/server/services/agent/types'
 import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { authAttention, codexAttention, useClaudeAuth, useCodexAuth, useHourlyNow } from '../../../services/agent/auth.ts'
-import type { LoginFix } from '../../../services/agent/auth.ts'
-import { ClaudeLogin } from '../../../services/agent/ClaudeLogin.tsx'
-import { CodexLogin } from '../../../services/agent/CodexLogin.tsx'
+import { useHourlyNow } from '../../../services/agent/auth.ts'
+import { useAgentStatus } from '../../../services/agent/status.ts'
+import { agentView } from '../../../services/agent/views.ts'
 import styles from './AuthBanner.module.css'
 
-// agent 的登录要处理时（Claude 快到期、失效了、在用备用 token，Codex 失效了），列表上面一条提醒，点了就地登录。
-// 两个都要处理时先处理 Claude 的
+// agent 的登录要处理时（快到期、失效了、在用备用的登录……），列表上面一条提醒，点了就地登录。几个都要处理时按 agent 的顺序先处理前面的
 export function AuthBanner() {
-  const claude = useClaudeAuth()
-  const codex = useCodexAuth()
-  const attention = authAttention(claude, useHourlyNow()) ?? codexAttention(codex)
+  const status = useAgentStatus()
+  const now = useHourlyNow()
+  const first = agentIds.flatMap((agent) => {
+    const attention = agentView(agent, status).attention(now)
+    return attention ? [{ agent, attention }] : []
+  })[0]
   // 正在做的登录：登录好了提醒就没了，登录的过程还要留着显示结果
-  const [open, setOpen] = useState<LoginFix>()
-  if (!attention && !open) {
+  const [open, setOpen] = useState<{ agent: AgentId; fix: string }>()
+  if (!first && !open) {
     return null
   }
+  const Login = open && agentView(open.agent, status).Login
   return (
-    <div className={styles.banner} data-tone={attention?.tone}>
-      {open === 'codex' ? (
-        <CodexLogin onClose={() => setOpen(undefined)} />
-      ) : open ? (
-        <ClaudeLogin kind={open} onClose={() => setOpen(undefined)} />
+    <div className={styles.banner} data-tone={first?.attention.tone}>
+      {open && Login ? (
+        <Login fix={open.fix} onClose={() => setOpen(undefined)} />
       ) : (
-        <button type="button" className={styles.row} onClick={() => setOpen(attention?.fix)}>
-          <CircleAlert size={15} strokeWidth={1.75} />
-          <span>{attention?.text}</span>
-          <span className={styles.action}>{attention?.fix === 'token' ? '更新' : '重新登录'}</span>
-        </button>
+        first && (
+          <button type="button" className={styles.row} onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}>
+            <CircleAlert size={15} strokeWidth={1.75} />
+            <span>{first.attention.text}</span>
+            <span className={styles.action}>{first.attention.action}</span>
+          </button>
+        )
       )}
     </div>
   )

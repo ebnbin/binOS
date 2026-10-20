@@ -1,13 +1,15 @@
 import { appendFileSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { allLimits } from '../../services/agent/index.js'
+import { allLimits, isPriced } from '../../services/agent/index.js'
+import { agentIds } from '../../services/agent/types.js'
 import type { Tokens } from '../../services/agent/types.js'
 import { dataDir, listSessions, threadOf } from './sessions.js'
 import type { CodeUsage } from './types.js'
 
-// 会话大约占订阅周额度多少。额度怎么算没有公开，只知道 7 天窗口用了百分之几（精确到 1%），而且这个窗口是整个订阅共用的：
-// Claude 自己的 app、claude.ai、别的应用也在用。binOS 能知道的只有自己每一轮按 API 价格折算的花费（thread 的 costs）。
-// 每次 Claude 的一轮结束时记一个点：当时 7 天窗口的用量和 binOS 到这时为止一共花了多少。同一个窗口里任取两个点，
+// 会话大约占订阅周额度多少，只有能按 API 价格折算花费（thread 有 costs）的 agent 估得出来，这里的点都是它的。
+// 额度怎么算没有公开，只知道 7 天窗口用了百分之几（精确到 1%），而且这个窗口是整个订阅共用的：
+// agent 自己的 app、网页版、别的应用也在用。binOS 能知道的只有自己每一轮按 API 价格折算的花费。
+// 每次它的一轮结束时记一个点：当时 7 天窗口的用量和 binOS 到这时为止一共花了多少。同一个窗口里任取两个点，
 // 窗口涨的不会少于 binOS 这段时间花的折算成的用量（别处只会让它多涨），所以「涨幅 ÷ 花费」的最小值就是每美元占周额度多少的估计：
 // 有过只有 binOS 在用的一段时间，估得就准；别处一直在用时偏高。会话的花费乘以它就是会话占的比例
 const samplesPath = path.join(dataDir, 'quota-samples.jsonl')
@@ -18,11 +20,14 @@ export type Sample = { time: string; resetsAt: number; utilization: number; cost
 const precision = 0.01
 const minRise = 0.03
 
+const pricedAgent = agentIds.find(isPriced)
+const weekMinutes = 7 * 24 * 60
+
 const sessionCosts = (id: number) => threadOf(id).summary().costs
 const totalCost = () => listSessions().reduce((sum, id) => sum + sessionCosts(id).reduce((s, [, cost]) => s + cost, 0), 0)
 
-function claudeWeek(now: number) {
-  const window = allLimits().claude?.sevenDay
+function weekWindow(now: number) {
+  const window = pricedAgent && allLimits()[pricedAgent]?.windows.find((item) => item.minutes === weekMinutes)
   return window && window.resetsAt * 1000 > now ? window : undefined
 }
 
@@ -75,9 +80,9 @@ function quotaRate(): number | undefined {
   return rate
 }
 
-// Claude 的一轮结束了：记一个点
+// 能折算花费的 agent 的一轮结束了：记一个点
 export function recordQuotaSample(now = Date.now()) {
-  const week = claudeWeek(now)
+  const week = weekWindow(now)
   if (!week) {
     return
   }
@@ -88,9 +93,9 @@ export function recordQuotaSample(now = Date.now()) {
   }
 }
 
-// 当前这个 7 天窗口里 binOS 大约用了周额度的多少；没有 Claude 的额度或者窗口已经过了时没有
+// 当前这个 7 天窗口里 binOS 大约用了周额度的多少；没有能折算花费的 agent 的额度或者窗口已经过了时没有
 export function codeUsage(now = Date.now()): CodeUsage | undefined {
-  const week = claudeWeek(now)
+  const week = weekWindow(now)
   if (!week) {
     return undefined
   }

@@ -1,8 +1,8 @@
 import { ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Spinner } from '../../ui/Spinner.tsx'
+import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
-import styles from './Login.module.css'
+import styles from '../Login.module.css'
 
 type Step = { name: 'starting' } | { name: 'waiting'; id: string; url: string; code: string } | { name: 'done' } | { name: 'failed'; error: string }
 

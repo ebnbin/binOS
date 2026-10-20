@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
-import type { AgentModel, Limits } from '../../types.js'
+import type { AgentModel, Limits, QuotaWindow } from '../../types.js'
 
 // 能不能用 Codex、能选哪些模型：codex 没装或没登录时 available 为 false。顺便读一次额度
 type CodexCatalog = { available: boolean; models: AgentModel[]; limits?: Limits }
@@ -91,16 +91,15 @@ function readCatalog(env: NodeJS.ProcessEnv): Promise<CodexCatalog> {
   }, unavailable)
 }
 
-// usedPercent 是 0 到 100；按窗口长短对应到 5 小时和 7 天。只看 codex 自己的额度，别的（比如某个模型单独的）不管
+// usedPercent 是 0 到 100。只看 codex 自己的额度，别的（比如某个模型单独的）不管；报告的可能只有变了的窗口
 export function codexLimits(limits: RateLimits, time: string): Limits | undefined {
   if (limits.limitId && limits.limitId !== 'codex') {
     return undefined
   }
-  const windows: Pick<Limits, 'fiveHour' | 'sevenDay'> = {}
-  for (const window of [limits.primary, limits.secondary]) {
-    if (window?.resetsAt && window.windowDurationMins !== null) {
-      windows[window.windowDurationMins <= 5 * 60 ? 'fiveHour' : 'sevenDay'] = { utilization: window.usedPercent / 100, resetsAt: window.resetsAt }
-    }
-  }
-  return { status: limits.rateLimitReachedType ? 'rejected' : 'allowed', ...windows, updatedAt: time }
+  const windows = [limits.primary, limits.secondary].flatMap((window): QuotaWindow[] =>
+    window?.resetsAt && window.windowDurationMins !== null
+      ? [{ id: String(window.windowDurationMins), minutes: window.windowDurationMins, utilization: window.usedPercent / 100, resetsAt: window.resetsAt }]
+      : [],
+  )
+  return { limited: Boolean(limits.rateLimitReachedType), windows, updatedAt: time }
 }

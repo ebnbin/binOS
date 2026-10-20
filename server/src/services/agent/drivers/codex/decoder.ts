@@ -2,6 +2,7 @@ import { constants, copyFileSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import type { Limits, LiveEvent, ToolDetail, Tokens } from '../../types.js'
 import { LiveState, truncatedOutput } from '../decoder.js'
+import { mcpTool } from '../tools.js'
 import type { DecodedItem, Decoder, DecoderOptions } from '../types.js'
 import { codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
@@ -260,7 +261,7 @@ export class CodexDecoder implements Decoder {
         break
       case 'mcpToolCall': {
         const name = `${item.server}.${item.tool}`
-        this.toolCall(item, time, emit, [{ name, tool: { kind: 'mcp', server: item.server ?? '', tool: item.tool ?? '' }, input: item.arguments ?? {} }])
+        this.toolCall(item, time, emit, [{ name, ...mcpTool(item.server ?? '', item.tool ?? '', (item.arguments ?? {}) as Record<string, unknown>) }])
         this.live.status({ type: 'tool', name }, events)
         break
       }

@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { commandOutput, parseJson } from '../../cli.js'
 import type { Driver } from '../types.js'
-import { claudeAuthEnv, claudeAuthFailed, configDir, readLogin } from './auth.js'
+import { claudeApi } from './api.js'
+import { claudeAuth, claudeAuthEnv, claudeAuthFailed, configDir, readLogin } from './auth.js'
 import { ClaudeDecoder } from './decoder.js'
 import { tokenCost } from './prices.js'
 
@@ -54,23 +55,23 @@ export const claude: Driver = {
     efforts,
   }),
   account,
+  auth: claudeAuth,
+  api: claudeApi,
   authEnv: claudeAuthEnv,
   authFailed: claudeAuthFailed,
   cost: tokenCost,
 }
 
+// 访问令牌几个小时就自动续一次，要看的是完整登录的到期时间（在登录的状况里），不给 token
 async function account(env: NodeJS.ProcessEnv) {
   const [version, auth] = await Promise.all([commandOutput('claude', ['--version'], env), authStatus(env)])
-  const oauth = readLogin()
+  const plan = auth?.subscriptionType ?? readLogin()?.subscriptionType
   return {
     ...(version && { version: version.replace(/\s*\(Claude Code\)$/, '') }),
     loggedIn: auth?.loggedIn === true,
     ...(auth?.email && { email: auth.email }),
-    ...(auth?.orgName && { organization: auth.orgName }),
-    ...((auth?.subscriptionType ?? oauth?.subscriptionType) && { plan: auth?.subscriptionType ?? oauth?.subscriptionType }),
-    ...(oauth && {
-      token: { ...(oauth.expiresAt && { expiresAt: new Date(oauth.expiresAt).toISOString() }), refreshable: Boolean(oauth.refreshToken) },
-    }),
+    ...(plan && { plan }),
+    details: auth?.orgName ? [{ label: '组织', value: auth.orgName }] : [],
     configDir,
   }
 }

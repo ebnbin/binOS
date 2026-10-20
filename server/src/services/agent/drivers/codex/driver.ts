@@ -4,7 +4,8 @@ import { saveLimits } from '../../limits.js'
 import type { Driver } from '../types.js'
 import { askCodex, codexCatalog, codexLimits } from './app-server.js'
 import type { RateLimits } from './app-server.js'
-import { codexAuthFailed, configDir } from './auth.js'
+import { codexApi } from './api.js'
+import { codexAuth, codexAuthFailed, configDir } from './auth.js'
 import { CodexDecoder } from './decoder.js'
 import type { CodexHostArgs } from './host.js'
 
@@ -20,7 +21,6 @@ export const codex: Driver = {
   }),
   decoder: (options) => new CodexDecoder(options),
   fileHint: '自己查看，图片用 view_image 工具',
-  partialLimits: true,
   // 不指定模型时能选的是默认模型的思考程度。顺便更新额度
   catalog: async (env) => {
     const { limits, ...catalog } = await codexCatalog(env)
@@ -30,10 +30,14 @@ export const codex: Driver = {
     return { ...catalog, efforts: catalog.models.find((model) => model.isDefault)?.efforts ?? [] }
   },
   account,
+  auth: codexAuth,
+  api: codexApi,
   authFailed: codexAuthFailed,
 }
 
-type CodexAuth = { tokens?: { access_token?: string; refresh_token?: string }; last_refresh?: string }
+const dateTime = new Intl.DateTimeFormat('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+
+type LoginFile = { tokens?: { access_token?: string; refresh_token?: string }; last_refresh?: string }
 type ResetCredit = { status: string; expiresAt: number | null }
 
 // 访问令牌是 JWT，过期时间直接从里面读，不校验签名
@@ -56,7 +60,7 @@ async function account(env: NodeJS.ProcessEnv) {
   if (snapshot) {
     saveLimits('codex', snapshot)
   }
-  const auth = parseJson<CodexAuth>(readText(path.join(configDir, 'auth.json')))
+  const auth = parseJson<LoginFile>(readText(path.join(configDir, 'auth.json')))
   const expiresAt = isoFromSeconds(jwtClaims(auth?.tokens?.access_token)?.exp)
   const credits = (live.limits?.rateLimitResetCredits?.credits ?? []).filter((credit) => credit.status === 'available')
   const firstExpiry = Math.min(...credits.flatMap((credit) => (credit.expiresAt ? [credit.expiresAt] : [])))
@@ -72,7 +76,16 @@ async function account(env: NodeJS.ProcessEnv) {
         refreshable: Boolean(auth.tokens.refresh_token),
       },
     }),
-    ...(credits.length > 0 && { resetCredits: { count: credits.length, ...(Number.isFinite(firstExpiry) && { expiresAt: isoFromSeconds(firstExpiry) }) } }),
+    details:
+      credits.length > 0
+        ? [
+            {
+              label: '额度重置',
+              value: `还能重置 ${credits.length} 次`,
+              ...(Number.isFinite(firstExpiry) && { note: `最早一次 ${dateTime.format(new Date(firstExpiry * 1000))} 过期` }),
+            },
+          ]
+        : [],
     configDir,
   }
 }

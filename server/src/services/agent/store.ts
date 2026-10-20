@@ -16,6 +16,7 @@ import {
 import path from 'node:path'
 import { agentServiceDir } from '../../paths.js'
 import { drivers } from './drivers/index.js'
+import { defaultAgent } from './types.js'
 import type { AgentId, Context, Item, Tokens } from './types.js'
 
 // 每个 thread 一个目录：items.jsonl 是它的内容（只追加，唯一的真相），thread.json 是从内容算出的缓存，
@@ -112,7 +113,7 @@ function emptyInfo(): ThreadInfo {
     version: infoVersion,
     itemsSize: 0,
     count: 0,
-    agent: 'claude',
+    agent: defaultAgent,
     owner: '',
     cwd: '',
     createdAt: '',

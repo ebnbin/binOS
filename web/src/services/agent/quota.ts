@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react'
 const hour = 3600_000
 const weekday = new Intl.DateTimeFormat('zh-CN', { weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
 
-// 两个窗口：5 小时和 7 天
-export type WindowKey = 'fiveHour' | 'sevenDay'
-const windowInfo: { key: WindowKey; name: string; length: number }[] = [
-  { key: 'fiveHour', name: '5 小时', length: 5 * hour },
-  { key: 'sevenDay', name: '7 天', length: 7 * 24 * hour },
-]
+// 窗口的名字：5 小时、7 天，同样长的窗口不止一个时带上它的 label
+function windowName(window: QuotaWindow) {
+  const { minutes } = window
+  const length = minutes % (24 * 60) === 0 ? `${minutes / 24 / 60} 天` : minutes % 60 === 0 ? `${minutes / 60} 小时` : `${minutes} 分钟`
+  return window.label ? `${window.label} ${length}` : length
+}
 
 // 多久：45 分钟、3 小时、2 天
 export function formatSpan(ms: number) {
@@ -36,8 +36,16 @@ export function level(utilization: number, limited: boolean) {
   return limited || utilization >= 0.95 ? 'danger' : utilization >= 0.8 ? 'warning' : undefined
 }
 
+// 窗口从短到长；rank 是第几短，longest 是最长的那个，显示时按它们画圈、配色
 export function windowsOf(limits: Limits) {
-  return windowInfo.flatMap((info) => (limits[info.key] ? [{ ...info, window: limits[info.key]! }] : []))
+  return limits.windows.map((window, rank) => ({
+    key: window.id,
+    rank,
+    longest: rank === limits.windows.length - 1,
+    name: windowName(window),
+    length: window.minutes * 60_000,
+    window,
+  }))
 }
 
 // 一个窗口现在的情况：used 用了多少；left 还有多久重置（过了重置时间的没有）；expected 匀速用的话这时该用到多少；
@@ -59,7 +67,7 @@ export function windowState(window: QuotaWindow | undefined, length: number, now
 
 // 被限流时卡住的那个窗口：还没重置的窗口里用得最满的；看不出是哪个时没有
 export function blockingWindow(limits: Limits, now: number) {
-  if (limits.status === 'allowed') {
+  if (!limits.limited) {
     return undefined
   }
   return windowsOf(limits)
@@ -72,7 +80,7 @@ export function summary(limits: Limits, now: number) {
   const states = windowsOf(limits).map((item) => ({ ...item, ...windowState(item.window, item.length, now) }))
   const used = Math.max(0, ...states.map((state) => state.used))
   const runsOut = Math.min(...states.flatMap((state) => (state.runsOut === undefined ? [] : [state.runsOut])))
-  return { used, ...(Number.isFinite(runsOut) && { runsOut }), limited: limits.status !== 'allowed' }
+  return { used, ...(Number.isFinite(runsOut) && { runsOut }), limited: limits.limited }
 }
 
 // 额度按分钟变化，现在的时间每分钟更新一次就够
