@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { AppContext } from '../types.ts'
 import styles from './CodeApp.module.css'
 import { Conversation } from './components/Conversation.tsx'
@@ -24,6 +24,7 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
   const { sessions, failed } = useSessions()
   // 刚建好的 session 可能还没出现在列表里，不能当成不存在
   const [createdId, setCreatedId] = useState<number | null>(null)
+  const conversationScroll = useRef<HTMLDivElement>(null)
 
   const sessionId = route.name === 'session' ? route.id : null
   const session = sessions?.find((item) => item.id === sessionId)
@@ -47,6 +48,7 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
             session={session}
             onBack={ctx.back}
             onNew={() => ctx.navigate('/new')}
+            onScrollTop={() => conversationScroll.current?.scrollTo({ top: 0, behavior: 'smooth' })}
           />
           {missing ? (
             <div className={styles.missing}>
@@ -60,6 +62,7 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
               key={sessionId ?? 'new'}
               sessionId={sessionId}
               session={session}
+              scrollRef={conversationScroll}
               onCreated={(id) => {
                 setCreatedId(id)
                 ctx.navigate(sessionRoute(id), { replace: true })

@@ -15,10 +15,11 @@ export async function listSessions(query?: string) {
   return (await res.json()).sessions
 }
 
-// interrupt：正在回答时先打断正在做的事；provider：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
-export type SendOptions = { interrupt?: boolean; provider?: Provider; model?: string; effort?: string }
+// interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；
+// provider：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
+export type SendOptions = { interrupt?: boolean; queue?: true; provider?: Provider; model?: string; effort?: string }
 
-// 正在回答时交给 agent，没在回答时开始新的一轮
+// 正在回答时交给 agent 或者排队，没在回答时开始新的一轮
 export async function sendMessage(
   sessionId: number | null,
   text: string,
@@ -53,6 +54,19 @@ export async function uploadFile(file: File): Promise<Attachment | { error: stri
 }
 
 // 写操作都要带上 JSON 的 Content-Type，后端以此拒绝跨站请求
+const jsonHeaders = { headers: { 'Content-Type': 'application/json' } }
+
+// 撤回排队的消息，拿回它的文字；已经发出去了时是 undefined
+export async function withdrawQueued(sessionId: number, item: string): Promise<string | undefined> {
+  const res = await sessions[':id'].queue[':item'].withdraw.$post({ param: { id: String(sessionId), item } }, jsonHeaders).catch(() => undefined)
+  return res?.status === 200 ? (await res.json()).text : undefined
+}
+
+export async function sendQueued(sessionId: number, item: string) {
+  const res = await sessions[':id'].queue[':item'].send.$post({ param: { id: String(sessionId), item } }, jsonHeaders).catch(() => undefined)
+  return res?.ok ?? false
+}
+
 export async function stopSession(sessionId: number) {
   await sessions[':id'].stop.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }

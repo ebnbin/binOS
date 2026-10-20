@@ -3,6 +3,7 @@ import { defaultProvider } from '@binos/server/services/agent/types'
 import type { Provider } from '@binos/server/services/agent/types'
 import { ArrowDown } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { useSession } from '../useSession.ts'
 import { Alert } from './Alert.tsx'
@@ -14,17 +15,23 @@ import { BrandMark } from '../../../ui/BrandMark.tsx'
 // 离底部不超过这个距离时，新内容到来会自动滚到底；往上翻看时不打扰
 const stickThreshold = 80
 
+// 正在回答时：插话（agent 在下一步看到）、先打断再说、排到这一轮答完之后
+export type SendMode = 'send' | 'interrupt' | 'queue'
+
 // provider 只在新对话时能选，已有的 session 沿用它的
 export type Choice = { provider: Provider; model?: string; effort?: string }
 
 // session：列表里这个 session 的概况，新对话时没有
+// scrollRef：对话滚动的那一层，顶栏用它回到顶部
 export function Conversation({
   sessionId,
   session,
+  scrollRef,
   onCreated,
 }: {
   sessionId: number | null
   session: SessionSummary | undefined
+  scrollRef: RefObject<HTMLDivElement | null>
   onCreated: (id: number) => void
 }) {
   const { records, live } = useSession(sessionId)
@@ -40,9 +47,8 @@ export function Conversation({
     }
   }, [sessionId, running])
   const [notice, setNotice] = useState('')
-  const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
-  // 往上翻看时，右下角出现回到底部的按钮
+  // 往上翻看时，下方出现回到底部的按钮
   const [awayFromBottom, setAwayFromBottom] = useState(false)
 
   useLayoutEffect(() => {
@@ -50,7 +56,7 @@ export function Conversation({
     if (el && stick.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [records, live, notice])
+  }, [scrollRef, records, live, notice])
 
   function stop() {
     if (sessionId !== null) {
@@ -58,7 +64,7 @@ export function Conversation({
     }
   }
 
-  async function send(text: string, files: File[], interrupt: boolean) {
+  async function send(text: string, files: File[], mode: SendMode) {
     setNotice('')
     stick.current = true
     const tooLarge = files.find((file) => file.size > maxUploadBytes)
@@ -75,7 +81,7 @@ export function Conversation({
       }
       attachments.push(upload)
     }
-    const result = await sendMessage(sessionId, text, attachments, { interrupt, ...choice })
+    const result = await sendMessage(sessionId, text, attachments, { ...(mode === 'interrupt' && { interrupt: true }), ...(mode === 'queue' && { queue: true }), ...choice })
     if ('error' in result) {
       setNotice(result.error)
       return false
@@ -122,6 +128,8 @@ export function Conversation({
         )}
       </div>
       <Composer
+        sessionId={sessionId}
+        queue={session?.queue ?? []}
         draftKey={sessionId ?? 'new'}
         running={running}
         choice={choice}

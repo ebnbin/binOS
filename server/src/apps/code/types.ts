@@ -26,6 +26,9 @@ export type TranscriptRecord =
   // files：文字里引用的本机文件（原样的路径）对应的快照，在 files/ 里
   | (TextRecord & { files?: Record<string, string> })
 
+// 排着队、等这一轮答完再发的消息。model、effort 是排队时选的，开始新的一轮时用
+export type QueuedMessage = { id: string; time: string; text: string; attachments?: Attachment[]; model?: string; effort?: string }
+
 // session 里开的 PR；state、title 查到了才有，preview 是开着的 binOS 自己的 PR 正在运行的预览
 export type PullRequest = { url: string; number: number; state?: 'open' | 'merged' | 'closed'; title?: string; preview?: string }
 
@@ -47,7 +50,10 @@ export type SessionSummary = {
   // 最近一轮用的模型和思考程度
   model?: string
   effort?: string
+  // 开始过几轮
+  turns: number
   prs: PullRequest[]
+  queue: QueuedMessage[]
 }
 
 // 回答进行中只推给页面、不写进 transcript 的：agent 运行中的临时内容，加上正在写的文字引用的文件

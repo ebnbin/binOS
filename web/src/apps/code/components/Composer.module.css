@@ -131,8 +131,61 @@
   }
 }
 
+.interrupt + .interrupt {
+  margin-left: 0;
+}
+
 .interrupt + .action {
   margin-left: 8px;
+}
+
+/* 排队的消息：输入框里面最上面，一条一行 */
+.queue {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: -4px -4px 8px -8px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--hairline);
+  list-style: none;
+}
+
+.queue li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding-left: 8px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.queueIcon {
+  flex: none;
+  color: var(--muted);
+}
+
+.queueText {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.queueFiles {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.queueButton {
+  flex: none;
+  width: 28px;
+  height: 28px;
 }
 
 .busy {

@@ -8,8 +8,9 @@ import { emit } from './live-events.js'
 import { replyFilesPrompt, snapshotFiles } from './reply-files.js'
 import { repoDir } from './repositories.js'
 import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionExists, sessionInfo, setUserState } from './sessions.js'
-import type { Attachment, Live, TranscriptRecord } from './types.js'
-import { moveUploads, promptWithAttachments } from './uploads.js'
+import type { Attachment, Live, QueuedMessage, TranscriptRecord } from './types.js'
+import { pushQueue, readQueue, takeQueue, unshiftQueue } from './queue.js'
+import { discardUploads, moveUploads, promptWithAttachments } from './uploads.js'
 
 // 一轮回答是 agent 的一次运行。session 编号就是运行的 ref
 const owner = 'code'
@@ -18,6 +19,8 @@ const owner = 'code'
 const exitWait = 5000
 
 const turns = new Map<number, Run>()
+// 答完了在等后台任务的 session：刚进入这个状态时发出排着的话
+const waitingSessions = new Set<number>()
 // 正在写的那段文字里引用的本机文件的快照：路径 → 快照文件名
 const liveFiles = new Map<number, Record<string, string>>()
 
@@ -71,6 +74,18 @@ function handler(sessionId: number): RunHandler {
     },
     event: (event) => {
       emit(sessionId, event)
+      // 刚答完、开始等后台任务：排着的话交给 agent，它接着答
+      if (event.type === 'status') {
+        const waiting = event.status?.type === 'waiting'
+        if (waiting && !waitingSessions.has(sessionId)) {
+          drainQueue(sessionId)
+        }
+        if (waiting) {
+          waitingSessions.add(sessionId)
+        } else {
+          waitingSessions.delete(sessionId)
+        }
+      }
       // 文字里刚写完一个本机文件的引用，马上存快照，页面随即就能显示
       const run = turns.get(sessionId)
       if (event.type === 'text' && event.text.includes(')') && run) {
@@ -84,9 +99,14 @@ function handler(sessionId: number): RunHandler {
     },
     finished: () => {
       turns.delete(sessionId)
+      waitingSessions.delete(sessionId)
       liveFiles.delete(sessionId)
       emit(sessionId, { type: 'live', live: null })
       notifyChange({ type: 'session', id: sessionId })
+      // 被停止、出错的一轮不接着发，排着的话留给用户决定
+      if (!sessionInfo(sessionId).outcome) {
+        drainQueue(sessionId)
+      }
     },
   }
 }
@@ -173,6 +193,63 @@ function startTurn(sessionId: number | undefined, text: string, attachments: Att
   return id
 }
 
+// 排到这一轮答完之后再发；没在回答（包括答完了在等后台任务）时和直接发一样。返回 session 编号，交不过去时返回 undefined
+export async function queueMessage(sessionId: number, text: string, attachments: Attachment[], options: MessageOptions): Promise<number | undefined> {
+  if (!isAnswering(sessionId) || isWaiting(sessionId)) {
+    return sendMessage(sessionId, text, attachments, options)
+  }
+  const { model, effort } = options
+  pushQueue(sessionId, {
+    time: new Date().toISOString(),
+    text,
+    ...(attachments.length > 0 && { attachments }),
+    ...(model && { model }),
+    ...(effort && { effort }),
+  })
+  notifyChange({ type: 'session', id: sessionId })
+  return sessionId
+}
+
+// 撤回一条排队的消息，返回它的文字；已经发出去了时返回 undefined
+export function unqueueMessage(sessionId: number, itemId: string): string | undefined {
+  const message = takeQueue(sessionId, itemId)
+  if (!message) {
+    return undefined
+  }
+  discardUploads(message.attachments ?? [])
+  notifyChange({ type: 'session', id: sessionId })
+  return message.text
+}
+
+// 现在就发一条排队的消息（被停止或出错后留下的）
+export async function sendQueued(sessionId: number, itemId: string): Promise<number | undefined> {
+  const message = takeQueue(sessionId, itemId)
+  return message && sendTaken(sessionId, message)
+}
+
+// 把排在最前面的一条发出去，后面的等它答完再发
+function drainQueue(sessionId: number) {
+  const message = takeQueue(sessionId)
+  if (message) {
+    void sendTaken(sessionId, message).catch((error: unknown) => console.error(error))
+  }
+}
+
+// 发不出去就放回队列
+async function sendTaken(sessionId: number, message: QueuedMessage): Promise<number | undefined> {
+  const { text, attachments = [], model, effort } = message
+  let sent: number | undefined
+  try {
+    sent = await sendMessage(sessionId, text, attachments, { model, effort })
+  } finally {
+    if (sent === undefined) {
+      unshiftQueue(sessionId, message)
+      notifyChange({ type: 'session', id: sessionId })
+    }
+  }
+  return sent
+}
+
 export function stopTurn(sessionId: number): boolean {
   const run = turns.get(sessionId)
   run?.stop()
@@ -199,6 +276,10 @@ export function resumeTurns() {
   for (const id of listSessions()) {
     if (!turns.has(id) && sessionInfo(id).inTurn) {
       failTurn(id, '回答被中断：agent 没能启动')
+    }
+    // 后端在一轮答完、排着的话还没发出时重启了
+    if (!turns.has(id) && !sessionInfo(id).outcome && readQueue(id).length > 0) {
+      drainQueue(id)
     }
   }
 }

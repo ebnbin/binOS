@@ -9,7 +9,8 @@ import type { Provider } from '../../services/agent/types.js'
 import { connectedPreamble, keepAlive } from '../../sse.js'
 import { subscribe } from './live-events.js'
 import { filesDir, listSessions, readTranscript, searchSessions, sessionExists, sessionInfo, setUserState } from './sessions.js'
-import { isAnswering, isWaiting, liveState, renameSession, sendMessage, stopTurn } from './turns.js'
+import { readQueue } from './queue.js'
+import { isAnswering, isWaiting, liveState, queueMessage, renameSession, sendMessage, sendQueued, stopTurn, unqueueMessage } from './turns.js'
 import type { MessageOptions } from './turns.js'
 import { pullRequests } from './pull-requests.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
@@ -23,15 +24,24 @@ const sessionParam = validator('param', (value: Record<string, string>, c) => {
   return { id }
 })
 
+// 排队的一条消息
+const queueParam = validator('param', (value: Record<string, string>, c) => {
+  const id = Number(value.id)
+  if (!sessionExists(id)) {
+    return c.text('Not Found', 404)
+  }
+  return { id, item: value.item ?? '' }
+})
+
 const isProvider = (value: unknown): value is Provider => providers.includes(value as Provider)
 // 模型和思考程度是否适用于这个 agent，开始一轮时再看
 const isName = (value: unknown): value is string => typeof value === 'string' && /^[\w.-]{1,64}$/.test(value)
 
 // attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。
-// interrupt：正在回答时先打断正在做的事；provider：新的 session 用哪个 agent，不给是默认的；
+// interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；provider：新的 session 用哪个 agent，不给是默认的；
 // model、effort：开始新的一轮时用，不给就是 agent 的默认
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; provider?: unknown; model?: unknown; effort?: unknown } | null
+  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; queue?: unknown; provider?: unknown; model?: unknown; effort?: unknown } | null
   const attachments = parseAttachments(body?.attachments)
   if (
     typeof body?.text !== 'string' ||
@@ -43,9 +53,10 @@ const messageBody = validator('json', (value, c) => {
   ) {
     return c.text('Bad Request', 400)
   }
-  const message: { text: string; attachments: Attachment[] } & MessageOptions = {
+  const message: { text: string; attachments: Attachment[]; queue?: true } & MessageOptions = {
     text: body.text,
     attachments,
+    ...(body.queue === true && { queue: true as const }),
     interrupt: body.interrupt === true,
     ...(isProvider(body.provider) && { provider: body.provider }),
     ...(isName(body.model) && { model: body.model }),
@@ -94,7 +105,9 @@ async function summary(id: number): Promise<SessionSummary> {
     provider: info.provider,
     ...(info.model && { model: info.model }),
     ...(info.effort && { effort: info.effort }),
+    turns: info.turns,
     prs,
+    queue: readQueue(id),
   }
 }
 
@@ -119,9 +132,10 @@ const inlineTypes: Record<string, string> = {
   json: 'text/plain; charset=utf-8',
 }
 
+const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id })
+
 async function send(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions) {
-  const id = await sendMessage(sessionId, text, attachments, options)
-  return id === undefined ? ({ error: 'unavailable' } as const) : { id }
+  return toResult(await sendMessage(sessionId, text, attachments, options))
 }
 
 export const codeApi = new Hono()
@@ -157,14 +171,30 @@ export const codeApi = new Hono()
     }
   })
   .post('/sessions', messageBody, async (c) => {
-    const { text, attachments, ...options } = c.req.valid('json')
+    const { text, attachments, queue: _queue, ...options } = c.req.valid('json')
     const result = await send(undefined, text, attachments, { ...options, interrupt: false })
     return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
-  // 正在回答时交给 agent，没在回答时开始新的一轮
+  // 正在回答时交给 agent 或者排队，没在回答时开始新的一轮
   .post('/sessions/:id/messages', sessionParam, messageBody, async (c) => {
-    const { text, attachments, ...options } = c.req.valid('json')
-    const result = await send(c.req.valid('param').id, text, attachments, options)
+    const { text, attachments, queue, ...options } = c.req.valid('json')
+    const id = c.req.valid('param').id
+    const result = queue ? toResult(await queueMessage(id, text, attachments, options)) : await send(id, text, attachments, options)
+    return 'id' in result ? c.json(result, 200) : c.json(result, 503)
+  })
+  // 撤回排队的消息，返回它的文字放回输入框；已经发出去了时 404
+  .post('/sessions/:id/queue/:item/withdraw', queueParam, (c) => {
+    const { id, item } = c.req.valid('param')
+    const text = unqueueMessage(id, item)
+    return text === undefined ? c.json({ error: 'gone' } as const, 404) : c.json({ text }, 200)
+  })
+  // 现在就发一条排队的消息：只在没在回答时（被停止或出错后）
+  .post('/sessions/:id/queue/:item/send', queueParam, async (c) => {
+    const { id, item } = c.req.valid('param')
+    if (isAnswering(id)) {
+      return c.json({ error: 'answering' } as const, 409)
+    }
+    const result = toResult(await sendQueued(id, item))
     return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
   // 改名记进 transcript；置顶、归档是用户的整理，记在 session.json

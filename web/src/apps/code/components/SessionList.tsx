@@ -1,5 +1,6 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronRight, CircleAlert, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
+import { agents, defaultProvider } from '@binos/server/services/agent/types'
+import { ChevronRight, CircleAlert, CircleStop, Clock, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 import { listSessions } from '../api.ts'
 import { dateGroup, formatClock, formatTime } from '../time.ts'
@@ -160,13 +161,17 @@ function SessionItem({
           aria-current={current ? 'page' : undefined}
           onClick={() => onNavigate(`/${session.id}`)}
         >
-          <span className={styles.title} data-unread={session.unread || undefined}>
-            {session.title || '（无内容）'}
+          <span className={styles.line}>
+            {session.running ? (
+              <span className={styles.live} aria-label="正在回答" />
+            ) : (
+              session.unread && <span className={styles.unread} aria-label="有新回复" />
+            )}
+            <span className={styles.title} data-unread={session.unread || undefined}>
+              {session.title || '（无内容）'}
+            </span>
           </span>
-          {session.prs.some((pr) => pr.state === 'open') && (
-            <GitPullRequest size={13} strokeWidth={2} className={styles.openPr} aria-label="有开着的 PR" />
-          )}
-          <SessionStatus session={session} clock={clock} />
+          <SessionMeta session={session} clock={clock} />
         </button>
       )}
       {!renaming && (
@@ -189,23 +194,45 @@ function SessionItem({
   )
 }
 
-// 正在回答、在等后台任务、出错、未读，都没有时显示时间
-function SessionStatus({ session, clock }: { session: SessionSummary; clock: boolean }) {
-  if (session.running) {
-    return <span className={styles.live} aria-label="正在回答" title="正在回答" />
-  }
-  if (session.waiting) {
-    return <Hourglass size={13} strokeWidth={1.75} className={styles.waiting} aria-label="等待后台任务" />
-  }
-  if (session.outcome === 'error') {
-    return <CircleAlert size={14} strokeWidth={1.75} className={styles.error} aria-label="出错了" />
-  }
-  if (session.unread) {
-    return <span className={styles.unread} aria-label="有新回复" title="有新回复" />
-  }
-  if (!session.updatedAt) {
-    return null
-  }
+// 标题下面一行：编号、不是默认的 agent、轮数、开着的 PR、排队的消息、停止或出错；最右边是在回答、在等后台任务，或者最后有动静的时间
+function SessionMeta({ session, clock }: { session: SessionSummary; clock: boolean }) {
+  const openPrs = session.prs.filter((pr) => pr.state === 'open')
   const date = new Date(session.updatedAt)
-  return <span className={styles.time}>{clock ? formatClock(date) : formatTime(date)}</span>
+  return (
+    <span className={styles.meta}>
+      <span>#{session.id}</span>
+      {session.provider !== defaultProvider && <span>{agents[session.provider].name}</span>}
+      {session.turns > 1 && <span>{session.turns} 轮</span>}
+      {openPrs.length > 0 && (
+        <span className={styles.openPr} title="开着的 PR">
+          <GitPullRequest size={12} strokeWidth={2} />
+          {openPrs.map((pr) => `#${pr.number}`).join(' ')}
+        </span>
+      )}
+      {session.queue.length > 0 && (
+        <span title="排队的消息">
+          <Clock size={12} strokeWidth={2} />
+          {session.queue.length}
+        </span>
+      )}
+      {session.outcome && !session.running && !session.waiting && (
+        <span className={session.outcome === 'error' ? styles.error : undefined}>
+          {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+          {session.outcome === 'error' ? '出错' : '已停止'}
+        </span>
+      )}
+      <span className={styles.side}>
+        {session.running ? (
+          <span className={styles.busy}>回答中</span>
+        ) : session.waiting ? (
+          <span className={styles.busy} title="答完了，在等后台任务">
+            <Hourglass size={12} strokeWidth={2} />
+            后台任务
+          </span>
+        ) : (
+          session.updatedAt && <time dateTime={session.updatedAt}>{clock ? formatClock(date) : formatTime(date)}</time>
+        )}
+      </span>
+    </span>
+  )
 }

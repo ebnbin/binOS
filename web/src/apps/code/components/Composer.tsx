@@ -1,10 +1,12 @@
-import { ArrowUp, Paperclip, Zap } from 'lucide-react'
+import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
+import type { QueuedMessage } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/agent/types'
 import { PendingAttachments } from './Attachments.tsx'
 import type { PendingFile } from './Attachments.tsx'
-import type { Choice } from './Conversation.tsx'
+import type { Choice, SendMode } from './Conversation.tsx'
+import { sendQueued, withdrawQueued } from '../api.ts'
 import { effortName, useAgentCatalogs } from '../../../services/agent/providers.ts'
 import styles from './Composer.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
@@ -20,8 +22,13 @@ const draftStorageKey = (key: number | 'new') => `code/draft/${key}`
 
 const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
-// draftKey：草稿属于哪个对话；providerFixed：已有的 session，agent 不能换
+// 有键盘的设备上 ⌘/Ctrl+回车：正在回答时排队，没在回答时发送
+const queueShortcut = navigator.platform.startsWith('Mac') ? '⌘↩' : 'Ctrl+↩'
+
+// queue：排着队、等这一轮答完再发的消息；draftKey：草稿属于哪个对话；providerFixed：已有的 session，agent 不能换
 export function Composer({
+  sessionId,
+  queue,
   draftKey,
   running,
   choice,
@@ -30,12 +37,14 @@ export function Composer({
   onSend,
   onStop,
 }: {
+  sessionId: number | null
+  queue: QueuedMessage[]
   draftKey: number | 'new'
   running: boolean
   choice: Choice
   providerFixed: boolean
   onChoice: (choice: Choice) => void
-  onSend: (text: string, files: File[], interrupt: boolean) => Promise<boolean>
+  onSend: (text: string, files: File[], mode: SendMode) => Promise<boolean>
   onStop: () => void
 }) {
   const [input, setInput] = useState(() => localStorage.getItem(draftStorageKey(draftKey)) ?? '')
@@ -110,13 +119,13 @@ export function Composer({
     }
   }, [])
 
-  // 正在回答时发出的是插话，agent 在下一次工具调用之间看到；interrupt 时先打断正在做的事
-  async function send(interrupt = false) {
+  // 正在回答时默认是插话，agent 在下一次工具调用之间看到
+  async function send(mode: SendMode = 'send') {
     if (!canSend) {
       return
     }
     setSending(true)
-    const ok = await onSend(input.trim(), pending.map((item) => item.file), interrupt)
+    const ok = await onSend(input.trim(), pending.map((item) => item.file), running ? mode : 'send')
     setSending(false)
     if (ok) {
       // 新对话发出后这个输入框就换成了那个对话的，等不到下面的 effect
@@ -126,7 +135,21 @@ export function Composer({
     }
   }
 
+  // 撤回排队的消息：文字回到输入框，接在已经写的后面
+  async function withdraw(item: string) {
+    const text = sessionId !== null ? await withdrawQueued(sessionId, item) : undefined
+    if (text) {
+      setInput((prev) => (prev.trim() ? `${prev.trimEnd()}\n${text}` : text))
+      textareaRef.current?.focus()
+    }
+  }
+
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.nativeEvent.isComposing) {
+      event.preventDefault()
+      void send('queue')
+      return
+    }
     if (enterSends && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault()
       void send()
@@ -170,6 +193,27 @@ export function Composer({
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
       >
+        {queue.length > 0 && sessionId !== null && (
+          <ul className={styles.queue} aria-label="排队的消息">
+            {queue.map((item) => (
+              <li key={item.id}>
+                <Clock size={13} strokeWidth={1.75} className={styles.queueIcon} aria-label="排队中" />
+                <span className={styles.queueText}>{item.text.trim() || item.attachments?.[0]?.name}</span>
+                {item.attachments?.length ? (
+                  <span className={styles.queueFiles}>
+                    <Paperclip size={12} strokeWidth={1.75} />
+                    {item.attachments.length}
+                  </span>
+                ) : null}
+                {/* 被停止或出错后留下的，可以现在就发 */}
+                {!running && (
+                  <IconButton icon={ArrowUp} label="现在发送" className={styles.queueButton} onClick={() => void sendQueued(sessionId, item.id)} />
+                )}
+                <IconButton icon={X} label="撤回到输入框" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
         {pending.length > 0 && (
           <div className={styles.attachments}>
             <PendingAttachments
@@ -270,16 +314,28 @@ export function Composer({
           ) : (
             <>
               {running && (
-                <button
-                  type="button"
-                  className={styles.interrupt}
-                  onClick={() => void send(true)}
-                  aria-label="打断并发送"
-                  title="打断正在做的事，马上处理这句话"
-                >
-                  <Zap size={14} strokeWidth={2} />
-                  打断
-                </button>
+                <>
+                  <button
+                    type="button"
+                    className={styles.interrupt}
+                    onClick={() => void send('interrupt')}
+                    aria-label="打断并发送"
+                    title="打断正在做的事，马上处理这句话"
+                  >
+                    <Zap size={14} strokeWidth={2} />
+                    打断
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.interrupt}
+                    onClick={() => void send('queue')}
+                    aria-label="排队"
+                    title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
+                  >
+                    <ListPlus size={14} strokeWidth={2} />
+                    排队
+                  </button>
+                </>
               )}
               <button
                 type="submit"

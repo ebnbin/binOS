@@ -6,26 +6,29 @@ import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 
-// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题。session：列表里这个 session 的概况，还没读到时没有
+// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题。session：列表里这个 session 的概况，还没读到时没有。
+// 点空白处回到对话顶部，和 iOS 点状态栏一样
 export function TopBar({
   title,
   sessionId,
   session,
   onBack,
   onNew,
+  onScrollTop,
 }: {
   title: string
   sessionId: number | null
   session: SessionSummary | undefined
   onBack: () => void
   onNew: () => void
+  onScrollTop: () => void
 }) {
   const prs = session?.prs ?? []
   const context = session?.context
   return (
-    <header className={styles.bar}>
+    <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
       <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
-      <div className={styles.heading}>
+      <div className={styles.heading} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
         {sessionId === null ? (
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
         ) : (
