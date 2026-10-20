@@ -41,15 +41,15 @@ describe('splitColumns', () => {
 })
 
 describe('allowedLayouts', () => {
-  it('分屏时每个窗口至少 360 宽、480 高，手机横竖都不能分屏', () => {
-    expect(allowedLayouts({ width: 440, height: 860 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 832, height: 419 })).toEqual(['1'])
+  it('分屏时每个窗口的宽高都至少为 360', () => {
+    expect(allowedLayouts({ width: 359, height: 860 })).toEqual(['1'])
+    expect(allowedLayouts({ width: 832, height: 359 })).toEqual(['1'])
   })
 
   it('横屏左右分，竖屏上下分', () => {
     expect(allowedLayouts({ width: 890, height: 576 })).toEqual(['1', '1:2', '2:1'])
-    expect(allowedLayouts({ width: 576, height: 890 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 576, height: 890 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 744, height: 1089 })).toEqual(['1', '1:1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 1092, height: 600 })).toEqual(['1', '1:1', '1:2', '2:1'])
     expect(allowedLayouts({ width: 1032, height: 1452 })).toEqual(['1', '1:1', '1:2', '2:1'])
   })
@@ -100,14 +100,14 @@ describe('place', () => {
 describe('分屏尺寸和吸附', () => {
   it('小窗口固定最小尺寸，大窗口占剩余空间', () => {
     expect(paneSizes('1:2', { width: 1600, height: 900 })).toEqual([{ width: 360, height: 900 }, { width: 1234, height: 900 }])
-    expect(paneSizes('2:1', { width: 800, height: 1600 })).toEqual([{ width: 800, height: 1114 }, { width: 800, height: 480 }])
+    expect(paneSizes('2:1', { width: 800, height: 1600 })).toEqual([{ width: 800, height: 1234 }, { width: 800, height: 360 }])
   })
 
   it('按当前方向吸附到最近的三个位置', () => {
-    expect(snapLayout(400, 1600, 360)).toBe('1:2')
-    expect(snapLayout(800, 1600, 360)).toBe('1:1')
-    expect(snapLayout(1200, 1600, 360)).toBe('2:1')
-    expect(snapLayout(500, 1600, 480)).toBe('1:2')
+    expect(snapLayout(400, 1600)).toBe('1:2')
+    expect(snapLayout(800, 1600)).toBe('1:1')
+    expect(snapLayout(1200, 1600)).toBe('2:1')
+    expect(snapLayout(500, 1600)).toBe('1:2')
   })
 
   it('旧三窗口布局和重复窗口不会恢复为分屏', () => {
@@ -121,16 +121,16 @@ describe('均分门槛', () => {
     expect(allowedLayouts({ width: 1085, height: 600 })).not.toContain('1:1')
     expect(allowedLayouts({ width: 1086, height: 600 })).toContain('1:1')
     expect(paneSizes('1:2', { width: 900, height: 600 }).map((size) => size.width)).toEqual([360, 534])
-    expect(snapLayout(449, 900, 360)).toBe('1:2')
-    expect(snapLayout(451, 900, 360)).toBe('2:1')
+    expect(snapLayout(449, 900)).toBe('1:2')
+    expect(snapLayout(451, 900)).toBe('2:1')
   })
 
   it('上下分屏扣除分割线后需容纳三个最小高度', () => {
-    expect(allowedLayouts({ width: 800, height: 965 })).toEqual(['1'])
-    expect(allowedLayouts({ width: 800, height: 966 })).toEqual(['1', '1:2', '2:1'])
-    expect(allowedLayouts({ width: 800, height: 1445 })).not.toContain('1:1')
-    expect(allowedLayouts({ width: 800, height: 1446 })).toContain('1:1')
-    expect(snapLayout(599, 1200, 480)).toBe('1:2')
-    expect(snapLayout(601, 1200, 480)).toBe('2:1')
+    expect(allowedLayouts({ width: 600, height: 725 })).toEqual(['1'])
+    expect(allowedLayouts({ width: 600, height: 726 })).toEqual(['1', '1:2', '2:1'])
+    expect(allowedLayouts({ width: 800, height: 1085 })).not.toContain('1:1')
+    expect(allowedLayouts({ width: 800, height: 1086 })).toContain('1:1')
+    expect(snapLayout(449, 900)).toBe('1:2')
+    expect(snapLayout(451, 900)).toBe('2:1')
   })
 })

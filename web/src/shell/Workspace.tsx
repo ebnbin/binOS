@@ -33,7 +33,6 @@ export function Workspace({
   const drag = useRef<{ pointer: number; start: number; length: number } | null>(null)
   const sizes = paneSizes(layout, size)
   const first = portrait ? sizes[0].height : sizes[0].width
-  const minimum = portrait ? minPane.height : minPane.width
   const length = portrait ? size.height : size.width
   const position = (slot: number) => portrait
     ? { top: slot === 0 ? 0 : first + paneGap, height: sizes[slot]?.height ?? 0, left: 0, width: size.width }
@@ -72,8 +71,8 @@ export function Workspace({
           role="separator"
           aria-label="调整分屏，拖到边缘取消"
           aria-orientation={portrait ? 'horizontal' : 'vertical'}
-          aria-valuemin={minimum}
-          aria-valuemax={length - paneGap - minimum}
+          aria-valuemin={minPane}
+          aria-valuemax={length - paneGap - minPane}
           aria-valuenow={first}
           tabIndex={0}
           onKeyDown={(event) => {
@@ -97,11 +96,11 @@ export function Workspace({
             const current = drag.current
             if (!current || current.pointer !== event.pointerId) return
             const x = (portrait ? event.clientY : event.clientX) - current.start
-            if (x < minimum / 2 || x > current.length - minimum / 2) {
+            if (x < minPane / 2 || x > current.length - minPane / 2) {
               stop()
-              onExit(x < minimum / 2 ? 1 : 0)
+              onExit(x < minPane / 2 ? 1 : 0)
             } else {
-              onLayout(snapLayout(x, current.length, minimum))
+              onLayout(snapLayout(x, current.length))
             }
           }}
           onPointerUp={stop}

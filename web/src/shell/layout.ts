@@ -105,20 +105,20 @@ export const layoutIds = Object.keys(layouts) as LayoutId[]
 export const maxPanes = 2
 
 // 分屏时每个窗口至少这么大；只有一个窗口时不限制
-export const minPane = { width: 360, height: 480 }
+export const minPane = 360
 // 分屏时窗口之间的黑缝。每个窗口是独立的圆角矩形，缝不占窗口自己的尺寸
 export const paneGap = 6
 
 export const isPortrait = (size: Size) => size.height > size.width
 
-function canEqualSplit(length: number, minimum: number) {
-  return length - paneGap >= minimum * 3
+function canEqualSplit(length: number) {
+  return length - paneGap >= minPane * 3
 }
 
-export function snapLayout(position: number, length: number, minimum: number): LayoutId {
+export function snapLayout(position: number, length: number): LayoutId {
   const available = length - paneGap
-  const positions: [LayoutId, number][] = [['1:2', minimum], ['1:1', available / 2], ['2:1', available - minimum]]
-  const candidates = positions.filter(([id]) => id !== '1:1' || canEqualSplit(length, minimum))
+  const positions: [LayoutId, number][] = [['1:2', minPane], ['1:1', available / 2], ['2:1', available - minPane]]
+  const candidates = positions.filter(([id]) => id !== '1:1' || canEqualSplit(length))
   return candidates.reduce((best, option) => Math.abs(option[1] + paneGap / 2 - position) < Math.abs(best[1] + paneGap / 2 - position) ? option : best)[0]
 }
 
@@ -126,16 +126,15 @@ export function paneSizes(layout: LayoutId, size: Size): Size[] {
   if (layout === '1') return [size]
   const portrait = isPortrait(size)
   const available = (portrait ? size.height : size.width) - paneGap
-  const minimum = portrait ? minPane.height : minPane.width
-  const first = layout === '1:2' ? minimum : layout === '2:1' ? available - minimum : available / 2
+  const first = layout === '1:2' ? minPane : layout === '2:1' ? available - minPane : available / 2
   return [first, available - first].map((length) => portrait ? { width: size.width, height: length } : { width: length, height: size.height })
 }
 
 export function allowedLayouts(size: Size): LayoutId[] {
   const portrait = isPortrait(size)
-  const equal = canEqualSplit(portrait ? size.height : size.width, portrait ? minPane.height : minPane.width)
+  const equal = canEqualSplit(portrait ? size.height : size.width)
   return layoutIds.filter(
-    (id) => id === '1' || (id !== '1:1' || equal) && paneSizes(id, size).every((pane) => pane.width >= minPane.width && pane.height >= minPane.height),
+    (id) => id === '1' || (id !== '1:1' || equal) && paneSizes(id, size).every((pane) => pane.width >= minPane && pane.height >= minPane),
   )
 }
 
