@@ -52,3 +52,19 @@ export async function codexLoginStatus(id: string): Promise<{ status: 'waiting' 
 export async function cancelCodexLogin(id: string) {
   await client.codex.login[':id'].cancel.$post({ param: { id } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }
+
+// thread 的内容：from 之后的条目，以及临时内容的变化
+export function threadStreamUrl(thread: string, from: number) {
+  const url = client.threads[':id'].stream.$url({ param: { id: thread } })
+  url.searchParams.set('from', String(from))
+  return url.href
+}
+
+// name：下载时用的文件名
+export function threadFileUrl(thread: string, file: string, name?: string) {
+  const url = client.threads[':id'].files[':file'].$url({ param: { id: thread, file } })
+  if (name) {
+    url.searchParams.set('name', name)
+  }
+  return url.pathname + url.search
+}

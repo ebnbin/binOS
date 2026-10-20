@@ -1,7 +1,8 @@
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { useEffect, useRef, useState } from 'react'
 import { codeUsage } from '../api.ts'
-import { formatQuota, formatTokens } from '../format.ts'
+import { formatTokens } from '../../../ui/format.ts'
+import { formatQuota } from '../format.ts'
 import { useAgentStatus } from '../../../services/agent/status.ts'
 import styles from './Usage.module.css'
 
@@ -93,7 +94,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               <span>输出 {formatTokens(tokens.output)}</span>
             </div>
           )}
-          {session.provider === 'claude' && (
+          {session.agent === 'claude' && (
             <>
               <div className={styles.line}>
                 <span className={styles.label}>约占周额度</span>

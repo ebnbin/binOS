@@ -3,12 +3,12 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/agent/types'
-import { PendingAttachments } from './Attachments.tsx'
+import { PendingAttachments } from '../../../services/agent/thread/Attachments.tsx'
 import { Usage } from './Usage.tsx'
-import type { PendingFile } from './Attachments.tsx'
+import type { PendingFile } from '../../../services/agent/thread/Attachments.tsx'
 import type { Choice, SendMode } from './Conversation.tsx'
 import { sendQueued, withdrawQueued } from '../api.ts'
-import { effortName, useAgentCatalogs } from '../../../services/agent/providers.ts'
+import { effortName, useAgentCatalogs } from '../../../services/agent/models.ts'
 import styles from './Composer.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
@@ -26,7 +26,7 @@ const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTra
 // 有键盘的设备上 ⌘/Ctrl+回车：正在回答时排队，没在回答时发送
 const queueShortcut = navigator.platform.startsWith('Mac') ? '⌘↩' : 'Ctrl+↩'
 
-// queue：排着队、等这一轮答完再发的消息；draftKey：草稿属于哪个对话；providerFixed：已有的 session，agent 不能换
+// queue：排着队、等这一轮答完再发的消息；draftKey：草稿属于哪个对话；agentFixed：已有的 session，agent 不能换
 export function Composer({
   sessionId,
   session,
@@ -34,7 +34,7 @@ export function Composer({
   draftKey,
   running,
   choice,
-  providerFixed,
+  agentFixed,
   onChoice,
   onSend,
   onStop,
@@ -46,7 +46,7 @@ export function Composer({
   draftKey: number | 'new'
   running: boolean
   choice: Choice
-  providerFixed: boolean
+  agentFixed: boolean
   onChoice: (choice: Choice) => void
   onSend: (text: string, files: File[], mode: SendMode) => Promise<boolean>
   onStop: () => void
@@ -60,8 +60,8 @@ export function Composer({
   const hasContent = input.trim() !== '' || pending.length > 0
   const catalogs = useAgentCatalogs()
   // 能选的 agent：能用的，加上这个对话正在用的
-  const choosable = catalogs.filter((catalog) => catalog.available || catalog.provider === choice.provider)
-  const catalog = catalogs.find((item) => item.provider === choice.provider)
+  const choosable = catalogs.filter((catalog) => catalog.available || catalog.agent === choice.agent)
+  const catalog = catalogs.find((item) => item.agent === choice.agent)
   const models = catalog?.models ?? []
   const efforts = models.find((model) => model.id === choice.model)?.efforts ?? catalog?.efforts ?? []
   const canSend = !sending && hasContent
@@ -261,15 +261,15 @@ export function Composer({
           {choosable.length > 1 && (
             <select
               className={styles.choice}
-              value={choice.provider}
-              disabled={providerFixed}
-              title={providerFixed ? '对话开始后不能换 agent' : 'agent'}
+              value={choice.agent}
+              disabled={agentFixed}
+              title={agentFixed ? '对话开始后不能换 agent' : 'agent'}
               aria-label="agent"
-              onChange={(event) => onChoice({ provider: event.target.value as Choice['provider'] })}
+              onChange={(event) => onChoice({ agent: event.target.value as Choice['agent'] })}
             >
-              {choosable.map(({ provider }) => (
-                <option key={provider} value={provider}>
-                  {agents[provider].name}
+              {choosable.map(({ agent }) => (
+                <option key={agent} value={agent}>
+                  {agents[agent].name}
                 </option>
               ))}
             </select>

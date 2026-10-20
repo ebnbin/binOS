@@ -63,19 +63,19 @@ export function AgentAccounts({ back }: { back: () => void }) {
       ) : accounts === null ? (
         <p className={styles.failed}>没能读取 agent 的信息</p>
       ) : (
-        accounts.map((account) => <Account key={account.provider} account={account} loadedAt={result!.loadedAt} />)
+        accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
       )}
     </div>
   )
 }
 
 function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: number }) {
-  const limits = useAgentStatus()?.limits[account.provider]
+  const limits = useAgentStatus()?.limits[account.agent]
   const { token } = account
   return (
     <section className={styles.section}>
       <header className={styles.header}>
-        <h2>{agents[account.provider].name}</h2>
+        <h2>{agents[account.agent].name}</h2>
         <span className={styles.status} data-ok={account.loggedIn}>
           {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
         </span>
@@ -85,10 +85,10 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
         {account.email && <Row label="账号">{account.email}</Row>}
         {account.organization && <Row label="组织">{account.organization}</Row>}
         {account.plan && <Row label="套餐">{planNames[account.plan] ?? account.plan}</Row>}
-        {account.provider === 'claude' && <ClaudeAuthRows loadedAt={loadedAt} />}
-        {account.provider === 'codex' && <CodexAuthRows />}
+        {account.agent === 'claude' && <ClaudeAuthRows loadedAt={loadedAt} />}
+        {account.agent === 'codex' && <CodexAuthRows />}
         {/* Claude 的访问令牌几个小时就自动续一次，要看的是上面完整登录的到期时间 */}
-        {token && account.provider !== 'claude' && (
+        {token && account.agent !== 'claude' && (
           <Row label="访问令牌">
             <span>
               {token.expiresAt ? (
@@ -100,7 +100,7 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
             </span>
           </Row>
         )}
-        {token?.refreshedAt && account.provider !== 'claude' && <Row label="上次续期">{formatTime(token.refreshedAt)}</Row>}
+        {token?.refreshedAt && account.agent !== 'claude' && <Row label="上次续期">{formatTime(token.refreshedAt)}</Row>}
         {limits && <QuotaRows limits={limits} />}
         {account.resetCredits && (
           <Row label="额度重置">

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -6,8 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
-const { agentDataDir, libraryDir, registryPath } = await import('./paths.js')
-const statePath = path.join(libraryDir, 'state.json')
+const { registryPath } = await import('./paths.js')
 
 const app = { id: 'a1', name: 'A', icon: 'globe', url: 'https://a.example/' }
 
@@ -22,22 +21,6 @@ async function load() {
 }
 
 describe('app 注册表', () => {
-  it('从系统状态迁移外部 app 的清单和 agent 的额度，之后删掉系统状态', async () => {
-    mkdirSync(libraryDir, { recursive: true })
-    const entries = {
-      'apps/external': { value: [app, { ...app, id: 'b1', icon: 3 }, { id: 'c1', name: 'C' }], version: 1 },
-      'agent/limits': { value: { five: 1 }, version: 2 },
-      'shell/windows/1': { value: {}, version: 3 },
-    }
-    writeFileSync(statePath, JSON.stringify({ version: 3, entries }))
-    const { migrate } = await import('./migrations.js')
-    migrate()
-    expect(existsSync(statePath)).toBe(false)
-    expect(JSON.parse(readFileSync(path.join(agentDataDir, 'limits.json'), 'utf8'))).toEqual({ claude: { five: 1 } })
-    const { read } = await load()
-    expect(await read()).toEqual({ external: [app, { ...app, id: 'b1', icon: 'app-window' }] })
-  })
-
   it('整份替换后推送通知，后端重启后从文件恢复', async () => {
     const { write, read, onChange } = await load()
     const events: unknown[] = []

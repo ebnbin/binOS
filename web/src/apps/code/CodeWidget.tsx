@@ -1,7 +1,7 @@
 import { SquarePen } from 'lucide-react'
 import type { WidgetProps } from '../types.ts'
 import styles from './CodeWidget.module.css'
-import { formatTime } from './time.ts'
+import { formatTime } from '../../ui/time.ts'
 import { useSessions } from './useSessions.ts'
 
 // 最近的对话，点一条直接打开

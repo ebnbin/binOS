@@ -23,12 +23,12 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
   const route = parseRoute(ctx.route)
   const { sessions, failed } = useSessions()
   // 刚建好的 session 可能还没出现在列表里，不能当成不存在
-  const [createdId, setCreatedId] = useState<number | null>(null)
+  const [created, setCreated] = useState<{ id: number; thread: string }>()
   const conversationScroll = useRef<HTMLDivElement>(null)
 
   const sessionId = route.name === 'session' ? route.id : null
   const session = sessions?.find((item) => item.id === sessionId)
-  const missing = sessionId !== null && sessions !== undefined && !session && sessionId !== createdId
+  const missing = sessionId !== null && sessions !== undefined && !session && sessionId !== created?.id
   const title = missing ? '对话不存在' : (session?.title ?? '')
 
   const { setTitle } = ctx
@@ -62,9 +62,10 @@ export function CodeApp({ ctx }: { ctx: AppContext }) {
               key={sessionId ?? 'new'}
               sessionId={sessionId}
               session={session}
+              thread={session?.thread ?? (sessionId === created?.id ? created.thread : undefined)}
               scrollRef={conversationScroll}
-              onCreated={(id) => {
-                setCreatedId(id)
+              onCreated={(id, thread) => {
+                setCreated({ id, thread })
                 ctx.navigate(sessionRoute(id), { replace: true })
               }}
             />

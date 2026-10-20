@@ -1,10 +1,10 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import { agents, defaultProvider } from '@binos/server/services/agent/types'
+import { agents, defaultAgent } from '@binos/server/services/agent/types'
 import { ChevronRight, CircleAlert, CircleStop, Clock, Gauge, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 import { listSessions } from '../api.ts'
 import { formatQuota } from '../format.ts'
-import { dateGroup, formatClock, formatTime } from '../time.ts'
+import { dateGroup, formatClock, formatTime } from '../../../ui/time.ts'
 import { AuthBanner } from './AuthBanner.tsx'
 import { Quota } from './Quota.tsx'
 import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
@@ -204,7 +204,7 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
   return (
     <span className={styles.meta}>
       <span>#{session.id}</span>
-      {session.provider !== defaultProvider && <span>{agents[session.provider].name}</span>}
+      {session.agent !== defaultAgent && <span>{agents[session.agent].name}</span>}
       {session.turns > 1 && <span>{session.turns} 轮</span>}
       {session.quota !== undefined && session.quota >= 0.005 && (
         <span title="大约占订阅周额度">
