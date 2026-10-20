@@ -1,78 +1,24 @@
-import {
-  appendFileSync,
-  closeSync,
-  existsSync,
-  fstatSync,
-  mkdirSync,
-  openSync,
-  readdirSync,
-  readFileSync,
-  readSync,
-  renameSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { appDir } from '../../paths.js'
-import { defaultProvider } from '../../services/agent/types.js'
-import { tokenCost } from '../../services/agent/claude/prices.js'
-import type { Context, Provider, Tokens } from '../../services/agent/types.js'
-import type { TranscriptRecord } from './types.js'
+import { getThread } from '../../services/agent/index.js'
+import type { Thread } from '../../services/agent/index.js'
 
-// session.json 里不是从 transcript 算出来的部分：用户在列表上的整理，重算时保留。readAt 是最后一次看这个 session 的时间
-export type UserState = { pinned?: true; archived?: true; readAt?: string }
-const userKeys = ['pinned', 'archived', 'readAt'] as const
-
-// session.json：除了 UserState，都是从 transcript 算出来的缓存，会话列表和启动 agent 时用。
-// transcriptSize 是算的时候 transcript 有多大，version 是算的方式，任何一个对不上就从头重算，丢了也能重建
-const infoVersion = 4
-
-export type SessionInfo = UserState & {
-  version: number
-  transcriptSize: number
-  count: number
-  title: string
-  createdAt: string
-  updatedAt: string
-  turns: number
-  // 最后一轮还没结束：之后的 user 是插话，不算新的一轮
-  inTurn: boolean
-  // 第一轮定下的 agent，之后的轮次都用它
-  provider: Provider
-  agent?: { provider: Provider; sessionId: string }
-  outcome?: 'stopped' | 'error'
-  context?: Context
-  // 最近一轮结束的时间
-  repliedAt?: string
-  // 最近一轮用的模型和思考程度
-  model?: string
-  effort?: string
-  // 这个 session 里开的 PR 的网址；creatingPrs 是还没有结果的 gh pr create 调用
+// session.json：对话对应的 thread 和用户在列表上的整理（改的名字、置顶、归档、最后一次看它的时间），
+// 以及从 thread 的条目里算出的（scanned 是算到了第几条）：默认的标题，开过的 PR 和还没有结果的 gh pr create 调用
+export type Session = {
+  thread: string
+  title?: string
+  pinned?: true
+  archived?: true
+  readAt?: string
+  scanned: number
+  defaultTitle: string
   prs: string[]
   creatingPrs: string[]
-  // 用掉的 token，按模型：agent 每次运行报告的是它那边的会话到这次为止的累计（usageLatest），
-  // agent 那边换了会话（比如接不上了重开）时，之前的累计并进 usageBefore
-  usageBefore: Record<string, Tokens>
-  usageLatest: Record<string, Tokens>
-  // Claude 每一轮按 API 价格折算的花费（美元）和这一轮结束的时间，估算占订阅周额度多少用（见 usage.ts）
-  costs: [time: string, cost: number][]
 }
 
-export function addUsage(a: Record<string, Tokens>, b: Record<string, Tokens>): Record<string, Tokens> {
-  const sum = { ...a }
-  for (const [model, tokens] of Object.entries(b)) {
-    const base = sum[model] ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
-    sum[model] = {
-      input: base.input + tokens.input,
-      output: base.output + tokens.output,
-      cacheRead: base.cacheRead + tokens.cacheRead,
-      cacheWrite: base.cacheWrite + tokens.cacheWrite,
-    }
-  }
-  return sum
-}
-
-const usageCost = (usage: Record<string, Tokens>) => Object.entries(usage).reduce((sum, [model, tokens]) => sum + tokenCost(model, tokens), 0)
+type UserState = Pick<Session, 'title' | 'pinned' | 'archived' | 'readAt'>
 
 const prUrlPattern = /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/g
 
@@ -80,9 +26,7 @@ export const dataDir = appDir('code')
 const sessionsDir = path.join(dataDir, 'sessions')
 
 export const sessionDir = (id: number) => path.join(sessionsDir, String(id))
-export const filesDir = (id: number) => path.join(sessionDir(id), 'files')
-const infoPath = (id: number) => path.join(sessionDir(id), 'session.json')
-const transcriptPath = (id: number) => path.join(sessionDir(id), 'transcript.jsonl')
+const sessionPath = (id: number) => path.join(sessionDir(id), 'session.json')
 
 export function listSessions(): number[] {
   if (!existsSync(sessionsDir)) {
@@ -96,209 +40,88 @@ export function listSessions(): number[] {
 }
 
 export function sessionExists(id: number): boolean {
-  return Number.isSafeInteger(id) && id > 0 && existsSync(transcriptPath(id))
-}
-
-// 只有这个后端写 session（根目录锁保证），同步地建目录、写第一条，编号不会被占
-export function createSession(first: TranscriptRecord): number {
-  const id = (listSessions()[0] ?? 0) + 1
-  mkdirSync(sessionDir(id), { recursive: true })
-  appendRecords(id, [first])
-  return id
-}
-
-// 最后一行可能是崩溃时没写完的半行，跳过
-export function readTranscript(id: number): TranscriptRecord[] {
-  if (!existsSync(transcriptPath(id))) {
-    return []
-  }
-  const records: TranscriptRecord[] = []
-  for (const line of readFileSync(transcriptPath(id), 'utf8').split('\n')) {
-    try {
-      records.push(JSON.parse(line))
-    } catch {
-      // 空行或没写完的半行
-    }
-  }
-  return records
-}
-
-function emptyInfo(): SessionInfo {
-  return {
-    version: infoVersion,
-    transcriptSize: 0,
-    count: 0,
-    title: '',
-    createdAt: '',
-    updatedAt: '',
-    turns: 0,
-    inTurn: false,
-    provider: defaultProvider,
-    prs: [],
-    creatingPrs: [],
-    usageBefore: {},
-    usageLatest: {},
-    costs: [],
-  }
-}
-
-function apply(info: SessionInfo, record: TranscriptRecord) {
-  info.count += 1
-  info.createdAt ||= record.time
-  // 改名不算有了动静，不把它顶到列表前面
-  if (record.type !== 'title') {
-    info.updatedAt = record.time
-  }
-  switch (record.type) {
-    case 'user':
-      if (info.turns === 0) {
-        info.title = (record.text.trim() || record.attachments?.[0]?.name || '').slice(0, 200)
-        info.provider = record.provider ?? defaultProvider
-      }
-      if (!info.inTurn) {
-        info.turns += 1
-        info.inTurn = true
-        delete info.outcome
-        info.model = record.model
-        info.effort = record.effort
-      }
-      break
-    case 'title':
-      info.title = record.title
-      break
-    case 'tool_use': {
-      const command = (record.input as { command?: unknown }).command
-      if (record.name === 'Bash' && typeof command === 'string' && command.includes('gh pr create')) {
-        info.creatingPrs.push(record.id)
-      }
-      break
-    }
-    case 'tool_result':
-      if (info.creatingPrs.includes(record.toolUseId)) {
-        info.creatingPrs = info.creatingPrs.filter((id) => id !== record.toolUseId)
-        for (const url of record.output?.match(prUrlPattern) ?? []) {
-          if (!info.prs.includes(url)) {
-            info.prs.push(url)
-          }
-        }
-      }
-      break
-    case 'agent':
-      if (info.agent && info.agent.sessionId !== record.sessionId) {
-        info.usageBefore = addUsage(info.usageBefore, info.usageLatest)
-        info.usageLatest = {}
-      }
-      info.agent = { provider: record.provider, sessionId: record.sessionId }
-      break
-    case 'result':
-      info.inTurn = false
-      info.repliedAt = record.time
-      if (record.outcome) {
-        info.outcome = record.outcome
-      }
-      if (record.context) {
-        info.context = record.context
-      }
-      if (record.sessionUsage) {
-        const cost = usageCost(record.sessionUsage) - usageCost(info.usageLatest)
-        info.usageLatest = record.sessionUsage
-        if (info.provider === 'claude' && cost > 0) {
-          info.costs.push([record.time, cost])
-        }
-      }
-      break
-  }
+  return Number.isSafeInteger(id) && id > 0 && existsSync(sessionPath(id))
 }
 
 // 先写临时文件再改名，不会出现写了一半的 session.json
-function writeInfo(id: number, info: SessionInfo) {
-  writeFileSync(`${infoPath(id)}.tmp`, JSON.stringify(info, null, 2) + '\n')
-  renameSync(`${infoPath(id)}.tmp`, infoPath(id))
+function writeSession(id: number, session: Session) {
+  writeFileSync(`${sessionPath(id)}.tmp`, JSON.stringify(session, null, 2) + '\n')
+  renameSync(`${sessionPath(id)}.tmp`, sessionPath(id))
 }
 
-function readInfoFile(id: number): SessionInfo | undefined {
-  try {
-    return JSON.parse(readFileSync(infoPath(id), 'utf8'))
-  } catch {
-    return undefined
-  }
+// 只有这个后端写 session（根目录锁保证），同步地建目录、写 session.json，编号不会被占
+export function createSession(thread: string): number {
+  const id = (listSessions()[0] ?? 0) + 1
+  mkdirSync(sessionDir(id), { recursive: true })
+  writeSession(id, { thread, scanned: 0, defaultTitle: '', prs: [], creatingPrs: [] })
+  sessionIds.set(thread, id)
+  return id
 }
 
-function transcriptSize(id: number): number {
-  try {
-    return statSync(transcriptPath(id)).size
-  } catch {
-    return 0
-  }
-}
+const sessions = new Map<number, Session>()
 
-// 内存里记着每个 session 算到哪了，追加时接着算；后端刚启动时先看 session.json，和 transcript 对得上就直接用
-const infos = new Map<number, SessionInfo>()
-
-export function sessionInfo(id: number): SessionInfo {
-  const size = transcriptSize(id)
-  const cached = infos.get(id) ?? readInfoFile(id)
-  if (cached?.transcriptSize === size && cached.version === infoVersion) {
-    infos.set(id, cached)
-    return cached
+// 从上次算到的地方接着看 thread 新增的条目
+export function readSession(id: number): Session {
+  const session = sessions.get(id) ?? (JSON.parse(readFileSync(sessionPath(id), 'utf8')) as Session)
+  sessions.set(id, session)
+  const items = sessionThread(id, session).items(session.scanned)
+  if (items.length === 0) {
+    return session
   }
-  const info = emptyInfo()
-  for (const record of readTranscript(id)) {
-    apply(info, record)
-  }
-  info.transcriptSize = size
-  for (const key of userKeys) {
-    if (cached?.[key] !== undefined) {
-      Object.assign(info, { [key]: cached[key] })
+  for (const item of items) {
+    if (item.type === 'input' && item.mode === 'start' && !session.defaultTitle) {
+      session.defaultTitle = (item.text.trim() || item.attachments?.[0]?.name || '').slice(0, 200)
+    } else if (item.type === 'tool_call' && item.tool.kind === 'command' && item.tool.command.includes('gh pr create')) {
+      session.creatingPrs.push(item.id)
+    } else if (item.type === 'tool_result' && session.creatingPrs.includes(item.callId)) {
+      session.creatingPrs = session.creatingPrs.filter((callId) => callId !== item.callId)
+      for (const url of item.output?.match(prUrlPattern) ?? []) {
+        if (!session.prs.includes(url)) {
+          session.prs.push(url)
+        }
+      }
     }
   }
-  writeInfo(id, info)
-  infos.set(id, info)
-  return info
+  session.scanned += items.length
+  writeSession(id, session)
+  return session
 }
 
-// 崩溃时没写完的半行后面先换行，不和新的记录连在一起
-function endsWithNewline(id: number): boolean {
-  const fd = openSync(transcriptPath(id), 'r')
-  try {
-    const size = fstatSync(fd).size
-    const last = Buffer.alloc(1)
-    return size === 0 || (readSync(fd, last, 0, 1, size - 1) === 1 && last[0] === 10)
-  } finally {
-    closeSync(fd)
+export const sessionTitle = (session: Session) => session.title ?? session.defaultTitle
+
+function sessionThread(id: number, session: Session): Thread {
+  const thread = getThread(session.thread)
+  if (!thread) {
+    throw new Error(`session ${id} 的 thread ${session.thread} 不存在`)
   }
+  return thread
 }
 
-// 同一行输出产生的几条记录一次写进去，后端重启时不会只记下其中一部分。返回第一条是第几条
-export function appendRecords(id: number, records: TranscriptRecord[]): number {
-  const exists = existsSync(transcriptPath(id))
-  const info = exists ? sessionInfo(id) : emptyInfo()
-  const index = info.count
-  const lines = records.map((record) => JSON.stringify(record) + '\n').join('')
-  appendFileSync(transcriptPath(id), exists && !endsWithNewline(id) ? '\n' + lines : lines)
-  for (const record of records) {
-    apply(info, record)
-  }
-  info.transcriptSize = transcriptSize(id)
-  writeInfo(id, info)
-  infos.set(id, info)
-  return index
-}
+export const threadOf = (id: number) => sessionThread(id, readSession(id))
 
 // 改用户的整理，值为 undefined 的去掉这一项
 export function setUserState(id: number, state: { [K in keyof UserState]?: UserState[K] | undefined }) {
-  const info = sessionInfo(id)
-  for (const key of userKeys) {
-    if (!(key in state)) {
-      continue
-    }
-    if (state[key] === undefined) {
-      delete info[key]
+  const session = readSession(id)
+  for (const [key, value] of Object.entries(state) as [keyof UserState, string | true | undefined][]) {
+    if (value === undefined) {
+      delete session[key]
     } else {
-      Object.assign(info, { [key]: state[key] })
+      Object.assign(session, { [key]: value })
     }
   }
-  writeInfo(id, info)
+  writeSession(id, session)
+}
+
+// thread → session 编号
+const sessionIds = new Map<string, number>()
+
+export function sessionOf(thread: string): number | undefined {
+  if (sessionIds.size === 0) {
+    for (const id of listSessions()) {
+      sessionIds.set(readSession(id).thread, id)
+    }
+  }
+  return sessionIds.get(thread)
 }
 
 // 标题、用户的话或回复的文字里含有 query（不分大小写）的 session
@@ -308,8 +131,10 @@ export function searchSessions(ids: number[], query: string): Set<number> {
   return new Set(
     ids.filter(
       (id) =>
-        includes(sessionInfo(id).title) ||
-        readTranscript(id).some((record) => (record.type === 'user' || (record.type === 'text' && !record.parent)) && includes(record.text)),
+        includes(sessionTitle(readSession(id))) ||
+        threadOf(id)
+          .items()
+          .some((item) => (item.type === 'input' || (item.type === 'text' && !item.parent)) && includes(item.text)),
     ),
   )
 }

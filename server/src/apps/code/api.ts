@@ -1,21 +1,16 @@
-import { existsSync, readFileSync } from 'node:fs'
-import path from 'node:path'
 import { Hono } from 'hono'
-import { streamSSE } from 'hono/streaming'
 import { validator } from 'hono/validator'
 import { notifyChange } from '../../events.js'
-import { providers } from '../../services/agent/types.js'
-import type { Provider } from '../../services/agent/types.js'
-import { connectedPreamble, keepAlive } from '../../sse.js'
-import { subscribe } from './live-events.js'
-import { filesDir, listSessions, readTranscript, searchSessions, sessionExists, sessionInfo, setUserState } from './sessions.js'
-import { readQueue } from './queue.js'
-import { isAnswering, isWaiting, liveState, queueMessage, renameSession, sendMessage, sendQueued, stopTurn, unqueueMessage } from './turns.js'
-import type { MessageOptions } from './turns.js'
+import { agentIds } from '../../services/agent/types.js'
+import type { AgentId } from '../../services/agent/types.js'
+import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } from './messages.js'
+import type { MessageOptions } from './messages.js'
 import { pullRequests } from './pull-requests.js'
+import { readQueue } from './queue.js'
+import { listSessions, readSession, searchSessions, sessionExists, sessionTitle, setUserState, threadOf } from './sessions.js'
+import type { SessionSummary, Upload } from './types.js'
+import { parseUploads, saveUpload, UploadTooLarge } from './uploads.js'
 import { codeUsage, sessionUsage } from './usage.js'
-import type { Attachment, LiveEvent, SessionSummary } from './types.js'
-import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
 const sessionParam = validator('param', (value: Record<string, string>, c) => {
   const id = Number(value.id)
@@ -34,32 +29,32 @@ const queueParam = validator('param', (value: Record<string, string>, c) => {
   return { id, item: value.item ?? '' }
 })
 
-const isProvider = (value: unknown): value is Provider => providers.includes(value as Provider)
+const isAgent = (value: unknown): value is AgentId => agentIds.includes(value as AgentId)
 // 模型和思考程度是否适用于这个 agent，开始一轮时再看
 const isName = (value: unknown): value is string => typeof value === 'string' && /^[\w.-]{1,64}$/.test(value)
 
 // attachments 的 file 是上传后拿到的文件名；有附件时可以不写字。
-// interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；provider：新的 session 用哪个 agent，不给是默认的；
+// interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；agent：新的 session 用哪个 agent，不给是默认的；
 // model、effort：开始新的一轮时用，不给就是 agent 的默认
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; queue?: unknown; provider?: unknown; model?: unknown; effort?: unknown } | null
-  const attachments = parseAttachments(body?.attachments)
+  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; queue?: unknown; agent?: unknown; model?: unknown; effort?: unknown } | null
+  const attachments = parseUploads(body?.attachments)
   if (
     typeof body?.text !== 'string' ||
     !attachments ||
     (!body.text.trim() && !attachments.length) ||
-    (body.provider !== undefined && !isProvider(body.provider)) ||
+    (body.agent !== undefined && !isAgent(body.agent)) ||
     (body.model !== undefined && !isName(body.model)) ||
     (body.effort !== undefined && !isName(body.effort))
   ) {
     return c.text('Bad Request', 400)
   }
-  const message: { text: string; attachments: Attachment[]; queue?: true } & MessageOptions = {
+  const message: { text: string; attachments: Upload[]; queue?: true } & MessageOptions = {
     text: body.text,
     attachments,
     ...(body.queue === true && { queue: true as const }),
     interrupt: body.interrupt === true,
-    ...(isProvider(body.provider) && { provider: body.provider }),
+    ...(isAgent(body.agent) && { agent: body.agent }),
     ...(isName(body.model) && { model: body.model }),
     ...(isName(body.effort) && { effort: body.effort }),
   }
@@ -88,25 +83,25 @@ const editBody = validator('json', (value, c) => {
 
 // PR 的状态查到有变化时，通知页面重新读取列表
 async function summary(id: number): Promise<SessionSummary> {
-  const info = sessionInfo(id)
-  const prs = await pullRequests(info.prs, () => notifyChange({ type: 'session', id }))
-  const waiting = isWaiting(id)
-  const running = isAnswering(id) && !waiting
+  const session = readSession(id)
+  const thread = threadOf(id).summary()
+  const prs = await pullRequests(session.prs, () => notifyChange({ type: 'session', id }))
   return {
     id,
-    title: info.title,
-    updatedAt: info.updatedAt,
-    running,
-    waiting,
+    thread: thread.id,
+    title: sessionTitle(session),
+    updatedAt: thread.updatedAt,
+    running: thread.state === 'running',
+    waiting: thread.state === 'waiting',
     unread: isUnread(id),
-    ...(info.outcome && { outcome: info.outcome }),
-    pinned: Boolean(info.pinned),
-    archived: Boolean(info.archived),
-    ...(info.context && { context: info.context }),
-    provider: info.provider,
-    ...(info.model && { model: info.model }),
-    ...(info.effort && { effort: info.effort }),
-    turns: info.turns,
+    ...(thread.outcome && { outcome: thread.outcome }),
+    pinned: Boolean(session.pinned),
+    archived: Boolean(session.archived),
+    ...(thread.context && { context: thread.context }),
+    agent: thread.agent,
+    ...(thread.model && { model: thread.model }),
+    ...(thread.effort && { effort: thread.effort }),
+    turns: thread.turns,
     ...sessionUsage(id),
     prs,
     queue: readQueue(id),
@@ -115,28 +110,15 @@ async function summary(id: number): Promise<SessionSummary> {
 
 // 页面正在看、又没在回答时才算看过
 function isUnread(id: number) {
-  const info = sessionInfo(id)
-  return !isAnswering(id) && Boolean(info.readAt && info.repliedAt && info.repliedAt > info.readAt)
+  const { readAt } = readSession(id)
+  const { state, repliedAt } = threadOf(id).summary()
+  return state === 'idle' && Boolean(readAt && repliedAt && repliedAt > readAt)
 }
 
-// 附件可能是任何文件，只有这些在页面里直接打开，其余一律下载：HTML、SVG 之类在这个域名下打开的话，里面的脚本就能以你的身份操作
-const inlineTypes: Record<string, string> = {
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  pdf: 'application/pdf',
-  txt: 'text/plain; charset=utf-8',
-  md: 'text/plain; charset=utf-8',
-  log: 'text/plain; charset=utf-8',
-  csv: 'text/plain; charset=utf-8',
-  json: 'text/plain; charset=utf-8',
-}
+// thread：页面用它显示对话的内容
+const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id, thread: readSession(id).thread })
 
-const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id })
-
-async function send(sessionId: number | undefined, text: string, attachments: Attachment[], options: MessageOptions) {
+async function send(sessionId: number | undefined, text: string, attachments: Upload[], options: MessageOptions) {
   return toResult(await sendMessage(sessionId, text, attachments, options))
 }
 
@@ -195,18 +177,18 @@ export const codeApi = new Hono()
   // 现在就发一条排队的消息：只在没在回答时（被停止或出错后）
   .post('/sessions/:id/queue/:item/send', queueParam, async (c) => {
     const { id, item } = c.req.valid('param')
-    if (isAnswering(id)) {
+    if (threadOf(id).state() !== 'idle') {
       return c.json({ error: 'answering' } as const, 409)
     }
     const result = toResult(await sendQueued(id, item))
     return 'id' in result ? c.json(result, 200) : c.json(result, 503)
   })
-  // 改名记进 transcript；置顶、归档是用户的整理，记在 session.json
+  // 改名、置顶、归档是用户的整理，记在 session.json
   .post('/sessions/:id/edit', sessionParam, editBody, (c) => {
     const id = c.req.valid('param').id
     const { title, pinned, archived } = c.req.valid('json')
-    if (title && title !== sessionInfo(id).title) {
-      renameSession(id, title)
+    if (title) {
+      setUserState(id, { title })
     }
     if (pinned !== undefined) {
       setUserState(id, { pinned: pinned || undefined })
@@ -228,50 +210,10 @@ export const codeApi = new Hono()
     return c.json({ ok: true }, 200)
   })
   .post('/sessions/:id/stop', sessionParam, (c) => {
-    if (!stopTurn(c.req.valid('param').id)) {
+    if (!stopSession(c.req.valid('param').id)) {
       return c.text('Not Found', 404)
     }
     return c.json({ ok: true }, 200)
-  })
-  // 文件名由后端生成，内容不会变，可以长期缓存。name 是下载时用的文件名
-  .get('/sessions/:id/files/:file', sessionParam, (c) => {
-    const file = c.req.param('file')
-    const match = /^[\w-]+(?:\.(\w+))?$/.exec(file)
-    const filePath = path.join(filesDir(c.req.valid('param').id), file)
-    if (!match || !existsSync(filePath)) {
-      return c.text('Not Found', 404)
-    }
-    const inline = match[1] && inlineTypes[match[1].toLowerCase()]
-    const name = c.req.query('name')
-    const disposition = (inline ? 'inline' : 'attachment') + (name ? `; filename*=UTF-8''${encodeURIComponent(name)}` : '')
-    return c.body(readFileSync(filePath), 200, {
-      'Content-Type': inline || 'application/octet-stream',
-      'Content-Disposition': disposition,
-      'X-Content-Type-Options': 'nosniff',
-      'Cache-Control': 'private, max-age=31536000, immutable',
-    })
-  })
-  // 记录的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
-  .get('/sessions/:id/stream', sessionParam, (c) => {
-    const id = c.req.valid('param').id
-    const from = Number(c.req.header('Last-Event-ID') ?? c.req.query('from') ?? 0) || 0
-    return streamSSE(c, async (stream) => {
-      const send = (event: LiveEvent) =>
-        void stream.writeSSE({
-          data: JSON.stringify(event),
-          id: event.type === 'record' ? String(event.index + 1) : undefined,
-        })
-      // 读取记录、补发、开始监听之间没有等待，不会漏掉或重复条目
-      await stream.write(connectedPreamble)
-      readTranscript(id).forEach((record, index) => {
-        if (index >= from) {
-          send({ type: 'record', index, record })
-        }
-      })
-      send({ type: 'live', live: liveState(id) })
-      stream.onAbort(subscribe(id, send))
-      await keepAlive(stream)
-    })
   })
 
 export type CodeApi = typeof codeApi

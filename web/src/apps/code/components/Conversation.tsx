@@ -1,16 +1,16 @@
-import type { Attachment, SessionSummary } from '@binos/server/apps/code/types'
-import { defaultProvider } from '@binos/server/services/agent/types'
-import type { Provider } from '@binos/server/services/agent/types'
+import type { SessionSummary, Upload } from '@binos/server/apps/code/types'
+import { defaultAgent } from '@binos/server/services/agent/types'
+import type { AgentId } from '@binos/server/services/agent/types'
 import { ArrowDown } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
+import { Transcript } from '../../../services/agent/thread/Transcript.tsx'
+import { useThread } from '../../../services/agent/thread/useThread.ts'
+import { Alert } from '../../../ui/Alert.tsx'
+import { BrandMark } from '../../../ui/BrandMark.tsx'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
-import { useSession } from '../useSession.ts'
-import { Alert } from './Alert.tsx'
 import { Composer } from './Composer.tsx'
 import styles from './Conversation.module.css'
-import { Transcript } from './Transcript.tsx'
-import { BrandMark } from '../../../ui/BrandMark.tsx'
 
 // 离底部不超过这个距离时，新内容到来会自动滚到底；往上翻看时不打扰
 const stickThreshold = 80
@@ -18,27 +18,29 @@ const stickThreshold = 80
 // 正在回答时：插话（agent 在下一步看到）、先打断再说、排到这一轮答完之后
 export type SendMode = 'send' | 'interrupt' | 'queue'
 
-// provider 只在新对话时能选，已有的 session 沿用它的
-export type Choice = { provider: Provider; model?: string; effort?: string }
+// agent 只在新对话时能选，已有的 session 沿用它的
+export type Choice = { agent: AgentId; model?: string; effort?: string }
 
-// session：列表里这个 session 的概况，新对话时没有
+// session：列表里这个 session 的概况，新对话时没有；thread：对话的内容所在的 thread，刚建好、列表里还没有时由建它的地方给出
 // scrollRef：对话滚动的那一层，顶栏用它回到顶部
 export function Conversation({
   sessionId,
   session,
+  thread,
   scrollRef,
   onCreated,
 }: {
   sessionId: number | null
   session: SessionSummary | undefined
+  thread: string | undefined
   scrollRef: RefObject<HTMLDivElement | null>
-  onCreated: (id: number) => void
+  onCreated: (id: number, thread: string) => void
 }) {
-  const { records, live } = useSession(sessionId)
+  const { items, live } = useThread(thread)
   const running = live !== null
   // 下一轮用的模型和思考程度，没选过就沿用这个 session 最近一轮的
   const [picked, setPicked] = useState<Choice>()
-  const choice = picked ?? { provider: session?.provider ?? defaultProvider, model: session?.model, effort: session?.effort }
+  const choice = picked ?? { agent: session?.agent ?? defaultAgent, model: session?.model, effort: session?.effort }
 
   // 正在看、又没在回答：记为已读（打开时，以及这一轮答完时）
   useEffect(() => {
@@ -56,7 +58,7 @@ export function Conversation({
     if (el && stick.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [scrollRef, records, live, notice])
+  }, [scrollRef, items, live, notice])
 
   function stop() {
     if (sessionId !== null) {
@@ -73,7 +75,7 @@ export function Conversation({
       return false
     }
     const uploads = await Promise.all(files.map(uploadFile))
-    const attachments: Attachment[] = []
+    const attachments: Upload[] = []
     for (const upload of uploads) {
       if ('error' in upload) {
         setNotice(upload.error)
@@ -87,7 +89,7 @@ export function Conversation({
       return false
     }
     if (sessionId === null) {
-      onCreated(result.id)
+      onCreated(result.id, result.thread)
     }
     return true
   }
@@ -116,7 +118,7 @@ export function Conversation({
                 <p>你说的每一句话，都可能改变这个系统本身</p>
               </div>
             ) : (
-              <Transcript sessionId={sessionId} records={records} live={live} />
+              thread && <Transcript thread={thread} items={items} live={live} />
             )}
             {notice && <Alert>{notice}</Alert>}
           </div>
@@ -134,7 +136,7 @@ export function Conversation({
         draftKey={sessionId ?? 'new'}
         running={running}
         choice={choice}
-        providerFixed={sessionId !== null}
+        agentFixed={sessionId !== null}
         onChoice={setPicked}
         onSend={send}
         onStop={stop}

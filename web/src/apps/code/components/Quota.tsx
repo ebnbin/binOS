@@ -1,5 +1,5 @@
-import { agents, providers } from '@binos/server/services/agent/types'
-import type { Limits, Provider } from '@binos/server/services/agent/types'
+import { agents, agentIds } from '@binos/server/services/agent/types'
+import type { Limits, AgentId } from '@binos/server/services/agent/types'
 import { useEffect, useRef, useState } from 'react'
 import { formatSpan, summary, useMinuteNow } from '../../../services/agent/quota.ts'
 import { useAgentStatus } from '../../../services/agent/status.ts'
@@ -27,9 +27,9 @@ export function Quota() {
     document.addEventListener('pointerdown', onPointerDown)
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [open])
-  const reported = providers.flatMap((provider): [Provider, Limits][] => {
-    const limits = status?.limits[provider]
-    return limits ? [[provider, limits]] : []
+  const reported = agentIds.flatMap((agent): [AgentId, Limits][] => {
+    const limits = status?.limits[agent]
+    return limits ? [[agent, limits]] : []
   })
   if (reported.length === 0) {
     return null
@@ -37,17 +37,17 @@ export function Quota() {
   return (
     <div ref={ref} className={styles.quota}>
       <button type="button" className={styles.summary} onClick={() => setOpen(!open)} aria-expanded={open} title="订阅额度">
-        {reported.map(([provider, limits]) => {
+        {reported.map(([agent, limits]) => {
           const { used, runsOut, limited } = summary(limits, now)
           return (
             <span
-              key={provider}
+              key={agent}
               className={styles.agent}
               data-alert={limited || runsOut !== undefined || undefined}
               title={runsOut !== undefined && !limited ? `按现在的速度 ${formatSpan(runsOut)}后用完` : undefined}
             >
               <QuotaRing limits={limits} now={now} />
-              {reported.length > 1 && `${agents[provider].name} `}
+              {reported.length > 1 && `${agents[agent].name} `}
               {limited ? '已限流' : `${Math.round(used * 100)}%`}
             </span>
           )
@@ -55,9 +55,9 @@ export function Quota() {
       </button>
       {open && (
         <div className={styles.details}>
-          {reported.map(([provider, limits]) => (
-            <section key={provider}>
-              <h3>{agents[provider].name}</h3>
+          {reported.map(([agent, limits]) => (
+            <section key={agent}>
+              <h3>{agents[agent].name}</h3>
               <QuotaWindows limits={limits} now={now} />
             </section>
           ))}

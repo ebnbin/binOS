@@ -1,6 +1,6 @@
 import type { CodeApi } from '@binos/server/apps/code/api'
-import type { Attachment } from '@binos/server/apps/code/types'
-import type { Provider } from '@binos/server/services/agent/types'
+import type { Upload } from '@binos/server/apps/code/types'
+import type { AgentId } from '@binos/server/services/agent/types'
 import { hc } from 'hono/client'
 
 const client = hc<CodeApi>(`${window.location.origin}/api/apps/code`)
@@ -16,16 +16,16 @@ export async function listSessions(query?: string) {
 }
 
 // interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；
-// provider：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
-export type SendOptions = { interrupt?: boolean; queue?: true; provider?: Provider; model?: string; effort?: string }
+// agent：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
+export type SendOptions = { interrupt?: boolean; queue?: true; agent?: AgentId; model?: string; effort?: string }
 
 // 正在回答时交给 agent 或者排队，没在回答时开始新的一轮
 export async function sendMessage(
   sessionId: number | null,
   text: string,
-  attachments: Attachment[],
+  attachments: Upload[],
   options: SendOptions,
-): Promise<{ id: number } | { error: string }> {
+): Promise<{ id: number; thread: string } | { error: string }> {
   const json = { text, attachments, ...options }
   const res = await (sessionId === null
     ? sessions.$post({ json })
@@ -46,7 +46,7 @@ export async function codeUsage() {
 // 和后端一致
 export const maxUploadBytes = 50 * 1024 * 1024
 
-export async function uploadFile(file: File): Promise<Attachment | { error: string }> {
+export async function uploadFile(file: File): Promise<Upload | { error: string }> {
   const res = await fetch(client.uploads.$url(), {
     method: 'POST',
     body: file,
@@ -86,19 +86,4 @@ export async function editSession(sessionId: number, edit: { title?: string; pin
 
 export async function markRead(sessionId: number) {
   await sessions[':id'].read.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
-}
-
-export function streamUrl(sessionId: number, from: number) {
-  const url = sessions[':id'].stream.$url({ param: { id: String(sessionId) } })
-  url.searchParams.set('from', String(from))
-  return url.href
-}
-
-// name：下载时用的文件名
-export function fileUrl(sessionId: number, file: string, name?: string) {
-  const url = sessions[':id'].files[':file'].$url({ param: { id: String(sessionId), file } })
-  if (name) {
-    url.searchParams.set('name', name)
-  }
-  return url.pathname + url.search
 }

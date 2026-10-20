@@ -2,11 +2,11 @@ import { appendFileSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { allLimits } from '../../services/agent/index.js'
 import type { Tokens } from '../../services/agent/types.js'
-import { addUsage, dataDir, listSessions, sessionInfo } from './sessions.js'
+import { dataDir, listSessions, threadOf } from './sessions.js'
 import type { CodeUsage } from './types.js'
 
 // 会话大约占订阅周额度多少。额度怎么算没有公开，只知道 7 天窗口用了百分之几（精确到 1%），而且这个窗口是整个订阅共用的：
-// Claude 自己的 app、claude.ai、别的应用也在用。binOS 能知道的只有自己每一轮按 API 价格折算的花费（见 sessions.ts 的 costs）。
+// Claude 自己的 app、claude.ai、别的应用也在用。binOS 能知道的只有自己每一轮按 API 价格折算的花费（thread 的 costs）。
 // 每次 Claude 的一轮结束时记一个点：当时 7 天窗口的用量和 binOS 到这时为止一共花了多少。同一个窗口里任取两个点，
 // 窗口涨的不会少于 binOS 这段时间花的折算成的用量（别处只会让它多涨），所以「涨幅 ÷ 花费」的最小值就是每美元占周额度多少的估计：
 // 有过只有 binOS 在用的一段时间，估得就准；别处一直在用时偏高。会话的花费乘以它就是会话占的比例
@@ -18,7 +18,8 @@ export type Sample = { time: string; resetsAt: number; utilization: number; cost
 const precision = 0.01
 const minRise = 0.03
 
-const totalCost = () => listSessions().reduce((sum, id) => sum + sessionInfo(id).costs.reduce((s, [, cost]) => s + cost, 0), 0)
+const sessionCosts = (id: number) => threadOf(id).summary().costs
+const totalCost = () => listSessions().reduce((sum, id) => sum + sessionCosts(id).reduce((s, [, cost]) => s + cost, 0), 0)
 
 function claudeWeek(now: number) {
   const window = allLimits().claude?.sevenDay
@@ -99,7 +100,7 @@ export function codeUsage(now = Date.now()): CodeUsage | undefined {
   }
   const start = week.resetsAt * 1000 - 7 * 86_400_000
   const spent = listSessions().reduce(
-    (sum, id) => sum + sessionInfo(id).costs.reduce((s, [time, cost]) => (Date.parse(time) >= start ? s + cost : s), 0),
+    (sum, id) => sum + sessionCosts(id).reduce((s, [time, cost]) => (Date.parse(time) >= start ? s + cost : s), 0),
     0,
   )
   return { resetsAt: week.resetsAt, week: Math.min(spent * rate, week.utilization) }
@@ -107,8 +108,8 @@ export function codeUsage(now = Date.now()): CodeUsage | undefined {
 
 // 会话一共用掉的 token（各个模型加在一起），和它大约占周额度多少
 export function sessionUsage(id: number): { tokens?: Tokens; quota?: number } {
-  const info = sessionInfo(id)
-  const models = Object.values(addUsage(info.usageBefore, info.usageLatest))
+  const { usage, costs } = threadOf(id).summary()
+  const models = Object.values(usage)
   const total = models.reduce(
     (sum, value) => ({
       input: sum.input + value.input,
@@ -118,7 +119,7 @@ export function sessionUsage(id: number): { tokens?: Tokens; quota?: number } {
     }),
     { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
   )
-  const cost = info.costs.reduce((sum, [, value]) => sum + value, 0)
+  const cost = costs.reduce((sum, [, value]) => sum + value, 0)
   const rate = quotaRate()
   return {
     ...(models.length > 0 && { tokens: total }),

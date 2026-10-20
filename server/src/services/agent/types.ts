@@ -2,38 +2,84 @@ export type Context = { tokens: number; window: number }
 // 用掉的 token：输入、输出、读缓存、写缓存
 export type Tokens = { input: number; output: number; cacheRead: number; cacheWrite: number }
 
-// 运行 agent 的程序和显示的名字。怎么接入在服务端的 adapters.ts，按同样的 id 对应
+// 能用的 agent 和显示的名字。怎么接入在服务端的 drivers/，按同样的 id 对应
 export const agents = {
   claude: { name: 'Claude' },
   codex: { name: 'Codex' },
 } as const satisfies Record<string, { name: string }>
-export type Provider = keyof typeof agents
-export const providers = Object.keys(agents) as Provider[]
-// 没有写明 agent 的记录（有多个 agent 之前的数据）和没选 agent 的新对话用它
-export const defaultProvider: Provider = 'claude'
+export type AgentId = keyof typeof agents
+export const agentIds = Object.keys(agents) as AgentId[]
+// 没选 agent 的新对话用它
+export const defaultAgent: AgentId = 'claude'
 
 // 能选的模型：efforts 是它支持的思考程度，isDefault 是不指定模型时 agent 用的
 export type AgentModel = { id: string; name: string; efforts: string[]; isDefault?: boolean }
 // 一个 agent 能不能用（装了、登录了），能选哪些模型；efforts 是不指定模型时能选的思考程度
-export type AgentCatalog = { provider: Provider; available: boolean; models: AgentModel[]; efforts: string[] }
+export type AgentCatalog = { agent: AgentId; available: boolean; models: AgentModel[]; efforts: string[] }
 
-// offset 是产生它的那一行在这次运行的原始输出里的结束位置，接上运行时从调用方记下的最后一个 offset 之后接着给；
-// 运行结束时补的没有 offset。parent 是子 agent 的记录所属的那次工具调用
+// 用户发消息时附上的文件。file 是 thread 的 files/ 里的文件名，name 是原来的文件名
+export type Attachment = { file: string; name: string }
+
+// 一次工具调用做的是什么，各个 agent 的工具都归到这几类。不认识的是 other，页面显示原始的工具名和参数
+export type ToolDetail =
+  | { kind: 'command'; command: string }
+  | { kind: 'read'; path: string }
+  // 没有 change 时（比如改 notebook）页面显示原始参数
+  | { kind: 'edit'; path: string; change?: FileChange }
+  // target：搜内容还是搜文件名
+  | { kind: 'search'; pattern: string; target: 'content' | 'files' }
+  | { kind: 'web_search'; query: string }
+  | { kind: 'web_fetch'; url: string; prompt?: string }
+  | { kind: 'image_view'; path: string }
+  // action 是浏览器工具的名字，target 是它操作的对象（网址、查找的文字……）
+  | { kind: 'browser'; action: string; target?: string }
+  | { kind: 'mcp'; server: string; tool: string }
+  | { kind: 'subagent'; description: string; prompt?: string; type?: string }
+  // 按需加载工具的定义
+  | { kind: 'tool_search'; query: string }
+  | { kind: 'skill'; name: string }
+  | { kind: 'todo' }
+  | { kind: 'other' }
+export type ToolKind = ToolDetail['kind']
+
+// 改一个文件：整个写入、替换一段（all：替换全部出现的地方）、按 diff 新建、修改或删除
+export type FileChange =
+  | { type: 'write'; content: string }
+  | { type: 'replace'; before: string; after: string; all?: true }
+  | { type: 'diff'; op: 'add' | 'update' | 'delete'; diff: string }
+
+// offset 是产生它的那一行在 agent 进程的输出里的结束位置，后端重启后据此接着记，不重复；
+// parent 是子 agent 的条目所属的那次工具调用
 type Produced = { offset?: number; parent?: string }
 
-// 一次运行产生的记录，以内容块为粒度：一段思考、一段文字、一次工具调用、一个工具结果各一条，运行结束时是 result
-export type AgentRecord =
-  // agent 那边的会话建立了，之后的运行用 resume 接着这个会话
-  | ({ type: 'agent'; time: string; provider: Provider; sessionId: string } & Produced)
+// thread 的内容，items.jsonl 的一行：只追加，发生时就写，是 thread 唯一的真相。
+// 一轮从 mode 为 start 的 input 开始，到 turn_end 结束；中间的 input 是回答中途插的话（interrupt：先打断了正在做的事）
+export type Item =
+  // 第一条：thread 用哪个 agent、属于哪个 app、在哪个目录里干活、追加的系统提示
+  | { type: 'thread'; time: string; agent: AgentId; owner: string; cwd: string; instructions?: string }
+  // model、effort：开始这一轮时选的，没有是 agent 的默认
+  | {
+      type: 'input'
+      time: string
+      mode: 'start' | 'steer' | 'interrupt'
+      text: string
+      attachments?: Attachment[]
+      model?: string
+      effort?: string
+    }
+  // agent 那边的会话建立了，agent 进程重新启动时接着这个会话
+  | ({ type: 'agent_session'; time: string; id: string } & Produced)
   // 思考的摘要；durationMs 是想了多久，不知道开始时间（后端重启时正在想）就没有
   | ({ type: 'thinking'; time: string; text: string; durationMs?: number } & Produced)
-  | ({ type: 'text'; time: string; text: string } & Produced)
-  | ({ type: 'tool_use'; time: string; id: string; name: string; input: unknown; background?: true } & Produced)
-  // output 是结果文字的末尾一段，truncated 表示前面还有被省略的；images 是结果里的图片，在运行的 filesDir 里
+  // files：文字里引用的本机文件（原样的路径）对应的快照，在 files/ 里
+  | ({ type: 'text'; time: string; text: string; files?: Record<string, string> } & Produced)
+  // name 是 agent 自己的工具名；tool 不足以显示全部参数时（mcp、browser、other，没有 change 的 edit）带着原始的 input
+  | ({ type: 'tool_call'; time: string; id: string; name: string; tool: ToolDetail; input?: unknown; background?: true } & Produced)
+  // output 是结果文字的末尾一段，truncated 表示前面还有被省略的；images 是结果里的图片，在 files/ 里
   | ({
       type: 'tool_result'
       time: string
-      toolUseId: string
+      callId: string
       status: 'done' | 'error'
       output?: string
       truncated?: true
@@ -41,9 +87,10 @@ export type AgentRecord =
     } & Produced)
   // 上下文被压缩了：手动还是自动，压缩前后各多少 token
   | ({ type: 'compact'; time: string; trigger: string; preTokens?: number; postTokens?: number } & Produced)
-  // outputTokens 含子 agent 的；context 是结束时的上下文大小；sessionUsage 是 agent 会话到这次运行为止按模型累计的用量
+  // outputTokens 含子 agent 的；context 是结束时的上下文大小；usage 是 agent 会话到这时为止按模型累计的用量。
+  // offset 是这一轮结束时读到的输出位置
   | {
-      type: 'result'
+      type: 'turn_end'
       time: string
       durationMs: number
       outcome?: 'stopped' | 'error'
@@ -51,10 +98,11 @@ export type AgentRecord =
       model?: string
       outputTokens?: number
       context?: Context
-      sessionUsage?: Record<string, Tokens>
+      usage?: Record<string, Tokens>
+      offset?: number
     }
 
-// 运行中不成为记录的临时内容：当前在做什么
+// 回答进行中不成为条目的临时内容：当前在做什么
 export type Status =
   | { type: 'requesting' }
   | { type: 'thinking' }
@@ -67,12 +115,14 @@ export type Status =
 // 子 agent 或后台任务正在做的一步，以及到目前为止调用了几次工具、用了多少 token
 export type TaskProgress = { activity?: string; toolUses?: number; tokens?: number }
 
-// 正在想的那段思考、正在写的那段文字，记成记录后清空；tasks 按对应的工具调用 id
+// 正在想的那段思考、正在写的那段文字，记成条目后清空；tasks 按对应的工具调用 id；
+// files 是正在写的文字引用的本机文件的快照
 export type Live = {
   thinking: string
   text: string
   status: Status | null
   tasks: Record<string, TaskProgress>
+  files: Record<string, string>
 }
 
 // 临时内容的变化
@@ -80,7 +130,33 @@ export type LiveEvent =
   | { type: 'thinking'; text: string }
   | { type: 'text'; text: string }
   | { type: 'status'; status: Status | null }
-  | { type: 'task'; toolUseId: string; progress: TaskProgress | null }
+  | { type: 'task'; callId: string; progress: TaskProgress | null }
+  | { type: 'file'; path: string; name: string }
+
+// 订阅 thread 收到的：条目带着它是第几条；live 是订阅时（以及一轮开始和结束时）的临时内容，null 表示没在回答；
+// 其余是临时内容的变化。记成条目的思考和文字取代对应的临时内容
+export type ThreadEvent = { type: 'item'; index: number; item: Item } | { type: 'live'; live: Live | null } | LiveEvent
+
+// idle：没在回答；running：正在回答；waiting：答完了，在等后台任务
+export type ThreadState = 'idle' | 'running' | 'waiting'
+
+// app 看到的 thread 的概况。model、effort 是最近一轮的；usage 是一共用掉的 token，按模型；
+// costs 是每一轮按 API 价格折算的花费（美元）和这一轮结束的时间，只有能折算的 agent 有
+export type ThreadSummary = {
+  id: string
+  agent: AgentId
+  createdAt: string
+  updatedAt: string
+  state: ThreadState
+  turns: number
+  outcome?: 'stopped' | 'error'
+  context?: Context
+  repliedAt?: string
+  model?: string
+  effort?: string
+  usage: Record<string, Tokens>
+  costs: [time: string, cost: number][]
+}
 
 // 订阅额度：5 小时和 7 天两个窗口各用了多少（0 到 1），什么时候重置（秒级时间戳）；status 不是 allowed 时已被限流。
 // agent 运行时报告，按 agent 存在 agent 服务的数据目录里（见 limits.ts）
@@ -100,11 +176,11 @@ export type ClaudeAuth = {
 export type CodexAuth = { loggedIn: boolean; broken?: true }
 
 // 页面看到的 agent 的状况：各 agent 最近报告的额度和登录。有变化时后端发 agent 通知，页面重新读取
-export type AgentStatus = { limits: Partial<Record<Provider, Limits>>; claude: ClaudeAuth; codex: CodexAuth }
+export type AgentStatus = { limits: Partial<Record<AgentId, Limits>>; claude: ClaudeAuth; codex: CodexAuth }
 
 // 系统 app 里 agent 的详细信息，每次打开时现查。没装、没登录或读不到的项没有
 export type AgentAccount = {
-  provider: Provider
+  agent: AgentId
   version?: string
   loggedIn: boolean
   email?: string
@@ -117,6 +193,6 @@ export type AgentAccount = {
   resetCredits?: { count: number; expiresAt?: string }
   // 登录和配置存放的目录
   configDir: string
-  // 正在运行的次数，不分是哪个 app 发起的
+  // 正在回答的 thread 数，不分是哪个 app 的
   running: number
 }
