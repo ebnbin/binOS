@@ -131,3 +131,19 @@
 
 .pane[inert] .content { opacity: 0.55; }
 .picker small { color: var(--muted); text-align: center; }
+
+.selection, .waitingMask {
+  position: absolute;
+  z-index: 3;
+  border-radius: var(--radius);
+  overflow: auto;
+  background: rgb(0 0 0 / 55%);
+  backdrop-filter: blur(6px);
+}
+
+.selection { color: #fff; }
+.selection .picker small { color: rgb(255 255 255 / 75%); }
+.selection .picker button { color: var(--text); }
+.waitingMask { pointer-events: none; }
+
+.selection .picker { height: auto; min-height: 100%; }
