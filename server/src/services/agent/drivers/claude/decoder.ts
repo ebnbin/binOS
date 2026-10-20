@@ -388,5 +388,6 @@ function limitsOf(line: Line): Limits | undefined {
       ? [{ id, minutes, utilization: window.utilization, resetsAt: window.resetsAt }]
       : []
   })
-  return { limited: status !== 'allowed', windows, updatedAt: line.timestamp ?? new Date().toISOString() }
+  // allowed_warning 是快用完了的提醒，照样能用；rejected 才是被限流了
+  return { limited: status === 'rejected', windows, updatedAt: line.timestamp ?? new Date().toISOString() }
 }
