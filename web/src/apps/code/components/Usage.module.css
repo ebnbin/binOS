@@ -1,0 +1,106 @@
+/* 面板相对整个输入框定位（见 Composer 的 .card），窄屏上也不会超出去 */
+.usage {
+  display: flex;
+}
+
+.ring {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ring svg {
+  transform: rotate(-90deg);
+}
+
+@media (hover: hover) {
+  .ring:hover {
+    background: var(--hover);
+  }
+}
+
+.ring[data-level='warning'] {
+  color: var(--live);
+}
+
+.ring[data-level='danger'] {
+  color: var(--danger);
+}
+
+.panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 12px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(280px, calc(100% - 24px));
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  font-weight: 550;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.bar {
+  height: 6px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: var(--hover);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--text-2);
+}
+
+.bar[data-level='warning'] span {
+  background: var(--live);
+}
+
+.bar[data-level='danger'] span {
+  background: var(--danger);
+}
+
+.parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: -4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.note {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--muted);
+}

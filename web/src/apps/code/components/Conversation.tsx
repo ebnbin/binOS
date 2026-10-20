@@ -129,6 +129,7 @@ export function Conversation({
       </div>
       <Composer
         sessionId={sessionId}
+        session={session}
         queue={session?.queue ?? []}
         draftKey={sessionId ?? 'new'}
         running={running}

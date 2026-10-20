@@ -1,8 +1,9 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultProvider } from '@binos/server/services/agent/types'
-import { ChevronRight, CircleAlert, CircleStop, Clock, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
+import { ChevronRight, CircleAlert, CircleStop, Clock, Gauge, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 import { listSessions } from '../api.ts'
+import { formatQuota } from '../format.ts'
 import { dateGroup, formatClock, formatTime } from '../time.ts'
 import { AuthBanner } from './AuthBanner.tsx'
 import { Quota } from './Quota.tsx'
@@ -196,7 +197,7 @@ function SessionItem({
   )
 }
 
-// 标题下面一行：编号、不是默认的 agent、轮数、开着的 PR、排队的消息、停止或出错；最右边是在回答、在等后台任务，或者最后有动静的时间
+// 标题下面一行：编号、不是默认的 agent、轮数、大约占周额度多少、开着的 PR、排队的消息、停止或出错；最右边是在回答、在等后台任务，或者最后有动静的时间
 function SessionMeta({ session, clock }: { session: SessionSummary; clock: boolean }) {
   const openPrs = session.prs.filter((pr) => pr.state === 'open')
   const date = new Date(session.updatedAt)
@@ -205,6 +206,12 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
       <span>#{session.id}</span>
       {session.provider !== defaultProvider && <span>{agents[session.provider].name}</span>}
       {session.turns > 1 && <span>{session.turns} 轮</span>}
+      {session.quota !== undefined && session.quota >= 0.005 && (
+        <span title="大约占订阅周额度">
+          <Gauge size={12} strokeWidth={2} />
+          {formatQuota(session.quota)}
+        </span>
+      )}
       {openPrs.length > 0 && (
         <span className={styles.openPr} title="开着的 PR">
           <GitPullRequest size={12} strokeWidth={2} />

@@ -1,9 +1,10 @@
 import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
-import type { QueuedMessage } from '@binos/server/apps/code/types'
+import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/agent/types'
 import { PendingAttachments } from './Attachments.tsx'
+import { Usage } from './Usage.tsx'
 import type { PendingFile } from './Attachments.tsx'
 import type { Choice, SendMode } from './Conversation.tsx'
 import { sendQueued, withdrawQueued } from '../api.ts'
@@ -28,6 +29,7 @@ const queueShortcut = navigator.platform.startsWith('Mac') ? '⌘↩' : 'Ctrl+�
 // queue：排着队、等这一轮答完再发的消息；draftKey：草稿属于哪个对话；providerFixed：已有的 session，agent 不能换
 export function Composer({
   sessionId,
+  session,
   queue,
   draftKey,
   running,
@@ -38,6 +40,8 @@ export function Composer({
   onStop,
 }: {
   sessionId: number | null
+  // 列表里这个 session 的概况，新对话时没有
+  session: SessionSummary | undefined
   queue: QueuedMessage[]
   draftKey: number | 'new'
   running: boolean
@@ -303,6 +307,7 @@ export function Composer({
             ))}
             {choice.effort && !efforts.includes(choice.effort) && <option value={choice.effort}>思考：{effortName(choice.effort)}</option>}
           </select>
+          {session && <Usage session={session} />}
           {sending ? (
             <span className={`${styles.action} ${styles.busy}`}>
               <Spinner />

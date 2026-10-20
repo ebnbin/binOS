@@ -9,6 +9,7 @@ import { replyFilesPrompt, snapshotFiles } from './reply-files.js'
 import { repoDir } from './repositories.js'
 import { appendRecords, createSession, filesDir, listSessions, readTranscript, sessionExists, sessionInfo, setUserState } from './sessions.js'
 import type { Attachment, Live, QueuedMessage, TranscriptRecord } from './types.js'
+import { recordQuotaSample } from './usage.js'
 import { pushQueue, readQueue, takeQueue, unshiftQueue } from './queue.js'
 import { discardUploads, moveUploads, promptWithAttachments } from './uploads.js'
 
@@ -103,6 +104,9 @@ function handler(sessionId: number): RunHandler {
       liveFiles.delete(sessionId)
       emit(sessionId, { type: 'live', live: null })
       notifyChange({ type: 'session', id: sessionId })
+      if (sessionInfo(sessionId).provider === 'claude') {
+        recordQuotaSample()
+      }
       // 被停止、出错的一轮不接着发，排着的话留给用户决定
       if (!sessionInfo(sessionId).outcome) {
         drainQueue(sessionId)

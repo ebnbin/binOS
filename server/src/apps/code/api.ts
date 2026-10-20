@@ -13,6 +13,7 @@ import { readQueue } from './queue.js'
 import { isAnswering, isWaiting, liveState, queueMessage, renameSession, sendMessage, sendQueued, stopTurn, unqueueMessage } from './turns.js'
 import type { MessageOptions } from './turns.js'
 import { pullRequests } from './pull-requests.js'
+import { sessionUsage } from './usage.js'
 import type { Attachment, LiveEvent, SessionSummary } from './types.js'
 import { parseAttachments, saveUpload, UploadTooLarge } from './uploads.js'
 
@@ -106,6 +107,7 @@ async function summary(id: number): Promise<SessionSummary> {
     ...(info.model && { model: info.model }),
     ...(info.effort && { effort: info.effort }),
     turns: info.turns,
+    ...sessionUsage(id),
     prs,
     queue: readQueue(id),
   }

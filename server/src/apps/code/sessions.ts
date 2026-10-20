@@ -15,7 +15,8 @@ import {
 import path from 'node:path'
 import { appDir } from '../../paths.js'
 import { defaultProvider } from '../../services/agent/types.js'
-import type { Context, Provider } from '../../services/agent/types.js'
+import { tokenCost } from '../../services/agent/claude/prices.js'
+import type { Context, Provider, Tokens } from '../../services/agent/types.js'
 import type { TranscriptRecord } from './types.js'
 
 // session.json 里不是从 transcript 算出来的部分：用户在列表上的整理，重算时保留。readAt 是最后一次看这个 session 的时间
@@ -24,7 +25,7 @@ const userKeys = ['pinned', 'archived', 'readAt'] as const
 
 // session.json：除了 UserState，都是从 transcript 算出来的缓存，会话列表和启动 agent 时用。
 // transcriptSize 是算的时候 transcript 有多大，version 是算的方式，任何一个对不上就从头重算，丢了也能重建
-const infoVersion = 3
+const infoVersion = 4
 
 export type SessionInfo = UserState & {
   version: number
@@ -49,7 +50,29 @@ export type SessionInfo = UserState & {
   // 这个 session 里开的 PR 的网址；creatingPrs 是还没有结果的 gh pr create 调用
   prs: string[]
   creatingPrs: string[]
+  // 用掉的 token，按模型：agent 每次运行报告的是它那边的会话到这次为止的累计（usageLatest），
+  // agent 那边换了会话（比如接不上了重开）时，之前的累计并进 usageBefore
+  usageBefore: Record<string, Tokens>
+  usageLatest: Record<string, Tokens>
+  // Claude 每一轮按 API 价格折算的花费（美元）和这一轮结束的时间，估算占订阅周额度多少用（见 usage.ts）
+  costs: [time: string, cost: number][]
 }
+
+export function addUsage(a: Record<string, Tokens>, b: Record<string, Tokens>): Record<string, Tokens> {
+  const sum = { ...a }
+  for (const [model, tokens] of Object.entries(b)) {
+    const base = sum[model] ?? { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
+    sum[model] = {
+      input: base.input + tokens.input,
+      output: base.output + tokens.output,
+      cacheRead: base.cacheRead + tokens.cacheRead,
+      cacheWrite: base.cacheWrite + tokens.cacheWrite,
+    }
+  }
+  return sum
+}
+
+const usageCost = (usage: Record<string, Tokens>) => Object.entries(usage).reduce((sum, [model, tokens]) => sum + tokenCost(model, tokens), 0)
 
 const prUrlPattern = /https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/pull\/\d+/g
 
@@ -113,6 +136,9 @@ function emptyInfo(): SessionInfo {
     provider: defaultProvider,
     prs: [],
     creatingPrs: [],
+    usageBefore: {},
+    usageLatest: {},
+    costs: [],
   }
 }
 
@@ -158,6 +184,10 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
       }
       break
     case 'agent':
+      if (info.agent && info.agent.sessionId !== record.sessionId) {
+        info.usageBefore = addUsage(info.usageBefore, info.usageLatest)
+        info.usageLatest = {}
+      }
       info.agent = { provider: record.provider, sessionId: record.sessionId }
       break
     case 'result':
@@ -168,6 +198,13 @@ function apply(info: SessionInfo, record: TranscriptRecord) {
       }
       if (record.context) {
         info.context = record.context
+      }
+      if (record.sessionUsage) {
+        const cost = usageCost(record.sessionUsage) - usageCost(info.usageLatest)
+        info.usageLatest = record.sessionUsage
+        if (info.provider === 'claude' && cost > 0) {
+          info.costs.push([record.time, cost])
+        }
       }
       break
   }

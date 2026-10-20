@@ -1,12 +1,11 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
 import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { formatTokens } from '../format.ts'
 import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 
-// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题。session：列表里这个 session 的概况，还没读到时没有。
+// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题，上下文的用量在输入框里。session：列表里这个 session 的概况，还没读到时没有。
 // 点空白处回到对话顶部，和 iOS 点状态栏一样
 export function TopBar({
   title,
@@ -24,7 +23,6 @@ export function TopBar({
   onScrollTop: () => void
 }) {
   const prs = session?.prs ?? []
-  const context = session?.context
   return (
     <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
       <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
@@ -36,11 +34,6 @@ export function TopBar({
             {session ? <SessionTitle key={session.id} session={session} /> : <span className={styles.title}>{title}</span>}
             <span className={styles.id}>#{sessionId}</span>
             {prs.length > 0 && <PrList prs={prs} />}
-            {context && (
-              <span className={styles.context} title={`上下文 ${formatTokens(context.tokens)} / ${formatTokens(context.window)} token`}>
-                上下文 {Math.round((context.tokens / context.window) * 100)}%
-              </span>
-            )}
           </>
         )}
       </div>
