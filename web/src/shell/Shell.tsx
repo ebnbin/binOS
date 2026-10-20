@@ -8,11 +8,11 @@ import { Desktop } from './Desktop.tsx'
 import { restoreRoute } from './history.ts'
 import type { HistoryState } from './history.ts'
 import styles from './Shell.module.css'
-import { allowedLayouts, arrange, fitLayout, isPortrait, layouts, place, relayout } from './layout.ts'
-import type { LayoutId } from './layout.ts'
+import { allowedLayouts, arrange, fitLayout, isPortrait } from './layout.ts'
+import type { LayoutId, Workspace as WorkspaceState } from './layout.ts'
 import { TaskBar } from './TaskBar.tsx'
 import { Workspace } from './Workspace.tsx'
-import { closeWindow, ensureWindow, saveWorkspace, setRoute, updateWorkspace, useWindows } from './windows.ts'
+import { closeWindow, createGroup, dissolveGroup, ensureWindow, setRoute, updateGroup, useWindows } from './windows.ts'
 import type { WindowState } from './windows.ts'
 
 export type OpenWindow = { id: string; window: WindowState; title: string }
@@ -41,6 +41,7 @@ export function Shell() {
   const [titles, setTitles] = useState<Record<string, string>>({})
   const onTitle = useCallback((id: string, title: string) => setTitles((prev) => (prev[id] === title ? prev : { ...prev, [id]: title })), [])
   const [view, setView] = useState(loadView)
+  const [draft, setDraft] = useState<WorkspaceState | null>(null)
   const placement = useBarPlacement()
 
   useEffect(() => localStorage.setItem(viewKey, JSON.stringify(view)), [view])
@@ -53,17 +54,17 @@ export function Shell() {
     .sort((a, b) => appOrder(apps, a.window.app) - appOrder(apps, b.window.app))
   const ids = windows.map((item) => item.id)
 
-  const { workspace } = stored
   const allowed: LayoutId[] = size ? allowedLayouts(size) : ['1']
-  const layout = fitLayout(workspace.layout, allowed)
-  const portrait = size ? isPortrait(size) : true
-  const count = layouts[layout].length
+  const portrait = size ? isPortrait(size) : false
   const recent = view.recent.filter((id) => ids.includes(id))
   const focusedWindow = view.focused && ids.includes(view.focused) ? view.focused : (recent[0] ?? null)
+  const group = stored.groups.find((item) => focusedWindow && item.slots.includes(focusedWindow))
+  const workspace: WorkspaceState = draft ?? group ?? { layout: '1', slots: [focusedWindow, null] }
+  const layout = fitLayout(workspace.layout, allowed, workspace.slots.indexOf(focusedWindow))
   const panes = arrange(workspace, layout, focusedWindow)
-  const slot = Math.min(view.slot, count - 1)
+  const slot = Math.max(0, panes.indexOf(focusedWindow))
   const focused = panes[slot]
-  const home = view.home || panes.every((id) => id === null)
+  const home = !draft && (view.home || panes.every((id) => id === null))
 
   const focus = (id: string | null, at: number) =>
     setView((prev) =>
@@ -72,55 +73,43 @@ export function Shell() {
         : { home: false, focused: id ?? prev.focused, slot: at, recent: id ? [id, ...prev.recent.filter((item) => item !== id)].slice(0, 20) : prev.recent },
     )
 
-  // 分屏时：指定了位置就挪到那里，和原来的窗口对调；没指定时，已经显示着就只聚焦，否则放进聚焦的位置。
-  // 只有一个位置时只改显示哪个
-  const show = (id: string, target?: number) => {
-    if (count === 1) {
-      focus(id, 0)
-      return
-    }
-    const at = panes.indexOf(id)
-    const to = target ?? (at >= 0 ? at : slot)
-    if (at !== to) {
-      updateWorkspace((current) => place(current, id, to))
-    }
-    focus(id, to)
+  const show = (id: string) => {
+    if (draft) return
+    const target = stored.groups.find((item) => item.slots.includes(id))
+    focus(id, target?.slots.indexOf(id) ?? 0)
   }
 
-  const open = (appId: string, route?: string, target?: number) => {
+  const open = (appId: string, route?: string) => {
+    if (draft) return
     const id = ensureWindow(appId)
-    if (route) {
-      setRoute(id, route)
-    }
-    show(id, target)
+    if (route) setRoute(id, route)
+    show(id)
   }
 
   const chooseLayout = (next: LayoutId) => {
-    const result = relayout(workspace, next, focused ?? focusedWindow, recent)
-    saveWorkspace(result)
-    const at = layouts[next].length === 1 ? 0 : result.slots.indexOf(focused ?? focusedWindow)
-    setView((prev) => ({ ...prev, slot: Math.max(at, 0) }))
+    if (!draft && group && next !== group.layout) updateGroup(group.id, { ...group, layout: next })
   }
 
-  // 分屏时关掉的位置留空，可以再选一个 app；只有一个位置时换成最近用过的
-  const close = () => {
-    if (!focused) {
-      return
-    }
-    closeWindow(focused)
-    const next = recent.find((id) => id !== focused) ?? null
-    if (count > 1) {
-      if (panes.every((id) => id === null || id === focused)) {
-        setView((prev) => ({ ...prev, home: true }))
-      }
-    } else {
-      setView((prev) => (next ? { ...prev, focused: next } : { ...prev, home: true, focused: null }))
-    }
+  const exitSplit = (keep: number) => {
+    if (draft) { setDraft(null); return }
+    const id = panes[keep]
+    if (group) dissolveGroup(group.id)
+    if (id) focus(id, 0)
   }
+
+  const close = () => {
+    if (draft || !focused) return
+    const next = group ? group.slots.find((id) => id !== focused) ?? null : recent.find((id) => id !== focused) ?? null
+    closeWindow(focused)
+    setView((prev) => ({ ...prev, home: !next, focused: next, slot: 0 }))
+  }
+
+  if (draft && (!allowed.includes(draft.layout) || !stored.windows[draft.slots[0]!])) setDraft(null)
 
   // 浏览器返回时，恢复那条记录的窗口和路由
   useEffect(() => {
     const onPopState = () => {
+      if (draft) return
       const state = window.history.state as HistoryState
       if (state && ids.includes(state.window)) {
         restoreRoute(state.window, state.route)
@@ -142,10 +131,29 @@ export function Shell() {
               windows={windows}
               panes={panes}
               layout={layout}
-              portrait={portrait}
               hidden={home}
               onFocus={focus}
-              onPick={(appId, at) => open(appId, undefined, at)}
+              onLayout={chooseLayout}
+              onExit={exitSplit}
+              onPick={(appId) => {
+                if (!draft || !draft.slots[0]) return
+                const existing = windows.find((item) => item.window.app === appId)
+                if (existing && stored.groups.some((item) => item.slots.includes(existing.id))) return
+                const id = ensureWindow(appId)
+                createGroup({ layout: draft.layout, slots: [draft.slots[0], id] })
+                setDraft(null)
+                focus(id, 1)
+              }}
+              picking={draft !== null}
+              unavailableApps={windows.filter((item) => stored.groups.some((group) => group.slots.includes(item.id))).map((item) => item.window.app)}
+              onSwap={() => {
+                if (draft || !group) return
+                updateGroup(group.id, { ...group, slots: [...group.slots].reverse() })
+                if (focused) focus(focused, 1 - slot)
+              }}
+              onCancel={() => exitSplit(slot)}
+              size={size}
+              portrait={portrait}
               onTitle={onTitle}
             />
             {home && <Desktop width={size.width} onOpen={open} />}
@@ -156,6 +164,8 @@ export function Shell() {
         <TaskBar
           placement={placement}
           windows={windows}
+          groups={stored.groups}
+          locked={draft !== null}
           panes={panes}
           focused={focused}
           focusedSlot={slot}
@@ -163,9 +173,13 @@ export function Shell() {
           layout={layout}
           allowed={allowed}
           portrait={portrait}
-          onHome={() => setView((prev) => ({ ...prev, home: !home }))}
+          onHome={() => { if (!draft) setView((prev) => ({ ...prev, home: !home })) }}
           onShow={show}
-          onLayout={chooseLayout}
+          onSplit={() => {
+            if (draft || !focused) return
+            if (group) return
+            setDraft({ layout: fitLayout('1:1', allowed), slots: [focused, null] })
+          }}
           onClose={close}
         />
       )}
