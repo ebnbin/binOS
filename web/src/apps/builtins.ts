@@ -1,6 +1,5 @@
-import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Globe, Music, NotebookPen, Smartphone, Terminal } from 'lucide-react'
+import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Smartphone, Terminal } from 'lucide-react'
 import { lazy } from 'react'
-import { placeholderApp } from './placeholder/index.ts'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
@@ -101,9 +100,4 @@ export const builtinApplications: ApplicationDefinition[] = [
     },
     widgets: { status: { name: '时间和状态', viewId: 'status', sizes: ['2x2', '4x2'] } },
   },
-]
-
-export const placeholderApplications: ApplicationDefinition[] = [
-  placeholderApp('notes', '笔记', NotebookPen),
-  placeholderApp('weather', '天气', CloudSun),
 ]
