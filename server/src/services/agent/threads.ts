@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, realpathSync, rmSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
+import { codeDir } from '../../paths.js'
 import { LineReader } from '../../line-reader.js'
 import { agentEnv, drivers, fitOptions } from './drivers/index.js'
 import type { Decoder } from './drivers/types.js'
@@ -194,8 +195,9 @@ export class Thread {
   private async ensureHost(model: string | undefined, effort: string | undefined): Promise<boolean> {
     const info = threadInfo(this.id)
     const driver = drivers[info.agent]
-    const instructions = [transcriptPrompt, info.instructions].filter(Boolean).join('\n\n')
-    const env = { ...agentEnv(info.agent), ...driver.authEnv?.() }
+    const devicePrompt = `开发验证设备通过 "$BINOS_DEVICES_CLI" devices 使用。先 acquire --platform android|ios|both --reason 用途，返回租约 ID；用 run --lease ID -- 命令 执行，自动续租并注入 ANDROID_SERIAL、BINOS_IOS_UDID 和 BINOS_IOS_DEVICE_SET。iOS 命令必须带 xcrun simctl --set "$BINOS_IOS_DEVICE_SET"，不要使用 booted。用 screenshot 只截租约里的设备，验证后 release --lease ID。无受管理设备时请告知用户，不要接管已有模拟器或自行 provision。`
+    const instructions = [transcriptPrompt, devicePrompt, info.instructions].filter(Boolean).join('\n\n')
+    const env = { ...agentEnv(info.agent), ...driver.authEnv?.(), BINOS_THREAD_ID: this.id, BINOS_DEVICES_CLI: path.join(codeDir, 'bin/binos') }
     const stamp = launchStamp([model, effort, instructions, driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
     if (this.host?.running() && this.host.stamp === stamp) {
       return true

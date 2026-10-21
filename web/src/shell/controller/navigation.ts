@@ -3,7 +3,7 @@ import { setRoute } from '../state/windows.ts'
 import { popBack, pushBack } from './history.ts'
 import type { HistoryState } from './history.ts'
 
-export function createWindowContext(id: string, route: string, onTitle: (id: string, title: string) => void): WindowContext {
+export function createWindowContext(id: string, route: string, onTitle: (id: string, title: string) => void, openApplication?: WindowContext['openApplication']): WindowContext {
   const navigate: WindowContext['navigate'] = (next, { replace = false } = {}) => {
     if (replace || next === route) {
       window.history.replaceState({ window: id, route: next } satisfies HistoryState, '', '/')
@@ -16,6 +16,7 @@ export function createWindowContext(id: string, route: string, onTitle: (id: str
     setRoute(id, next)
   }
   return {
+    openApplication,
     windowId: id,
     route,
     navigate,
