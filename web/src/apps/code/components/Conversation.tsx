@@ -1,3 +1,4 @@
+import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/agent/types'
 import type { AgentId } from '@binos/server/services/agent/types'
@@ -132,9 +133,15 @@ export function Conversation({
               <div className={styles.empty}>
                 <BrandMark size={44} />
                 <h1>开始新对话</h1>
-                <label className={styles.projectChoice}>项目 <select aria-label="对话所属项目" value={project} onChange={(event) => onProject(event.target.value)}>
-                  {projects?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </select></label>
+                <div className={styles.projectChoice}>
+                  项目
+                  <Select
+                    label="对话所属项目"
+                    value={project}
+                    onValueChange={onProject}
+                    options={projects?.map((item) => ({ value: item.id, label: item.name })) ?? []}
+                  />
+                </div>
               </div>
             ) : (
               thread && <Transcript thread={thread} items={items} live={live} />

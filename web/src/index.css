@@ -88,12 +88,19 @@ body {
 }
 
 button,
+input,
 textarea {
   font: inherit;
   color: inherit;
 }
 
+input,
+textarea {
+  appearance: none;
+}
+
 button {
+  appearance: none;
   padding: 0;
   border: 0;
   background: none;

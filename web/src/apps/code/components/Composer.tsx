@@ -1,3 +1,4 @@
+import { Select } from '../../../ui/Select.tsx'
 import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
@@ -260,54 +261,42 @@ export function Composer({
           />
           {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
           {choosable.length > 1 && (
-            <select
+            <Select
               className={styles.choice}
               value={choice.agent}
               disabled={agentFixed}
               title={agentFixed ? '对话开始后不能换 agent' : 'agent'}
-              aria-label="agent"
-              onChange={(event) => onChoice({ agent: event.target.value as Choice['agent'] })}
-            >
-              {choosable.map(({ agent }) => (
-                <option key={agent} value={agent}>
-                  {agents[agent].name}
-                </option>
-              ))}
-            </select>
+              label="agent"
+              onValueChange={(agent) => onChoice({ agent: agent as Choice['agent'] })}
+              options={choosable.map(({ agent }) => ({ value: agent, label: agents[agent].name }))}
+            />
           )}
-          <select
+          <Select
             className={styles.choice}
             value={choice.model ?? defaultModel?.id ?? ''}
             disabled={running}
             title={running ? '下一轮生效' : '模型'}
-            aria-label="模型"
-            onChange={(event) => onChoice({ ...choice, model: event.target.value === defaultModel?.id ? undefined : event.target.value || undefined })}
-          >
-            {!defaultModel && <option value="" disabled>模型信息暂不可用</option>}
-            {models.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.name}{model.id === defaultModel?.id ? '（默认）' : ''}
-              </option>
-            ))}
-            {/* 之前用过、现在列表里没有的模型 */}
-            {choice.model && !models.some((model) => model.id === choice.model) && <option value={choice.model}>{choice.model}</option>}
-          </select>
-          <select
+            label="模型"
+            onValueChange={(model) => onChoice({ ...choice, model: model === defaultModel?.id ? undefined : model || undefined })}
+            options={[
+              ...(!defaultModel ? [{ value: '', label: '模型信息暂不可用', disabled: true }] : []),
+              ...models.map((model) => ({ value: model.id, label: `${model.name}${model.id === defaultModel?.id ? '（默认）' : ''}` })),
+              ...(choice.model && !models.some((model) => model.id === choice.model) ? [{ value: choice.model, label: choice.model }] : []),
+            ]}
+          />
+          <Select
             className={styles.choice}
             value={choice.effort ?? ''}
             disabled={running}
             title={running ? '下一轮生效' : '思考程度'}
-            aria-label="思考程度"
-            onChange={(event) => onChoice({ ...choice, effort: event.target.value || undefined })}
-          >
-            <option value="">默认思考</option>
-            {efforts.map((effort) => (
-              <option key={effort} value={effort}>
-                思考：{effortName(effort)}
-              </option>
-            ))}
-            {choice.effort && !efforts.includes(choice.effort) && <option value={choice.effort}>思考：{effortName(choice.effort)}</option>}
-          </select>
+            label="思考程度"
+            onValueChange={(effort) => onChoice({ ...choice, effort: effort || undefined })}
+            options={[
+              { value: '', label: '默认思考' },
+              ...efforts.map((effort) => ({ value: effort, label: `思考：${effortName(effort)}` })),
+              ...(choice.effort && !efforts.includes(choice.effort) ? [{ value: choice.effort, label: `思考：${effortName(choice.effort)}` }] : []),
+            ]}
+          />
           {session && <Usage session={session} />}
           {sending ? (
             <span className={`${styles.action} ${styles.busy}`}>

@@ -57,8 +57,7 @@
 .app button:disabled {
   opacity: 0.35;
 }
-.app input,
-.app select {
+.app input {
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
