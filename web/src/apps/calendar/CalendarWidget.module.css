@@ -2,28 +2,28 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 14px;
-  color: var(--text);
+  gap: var(--space-16);
+  color: var(--md-sys-color-on-surface);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-8);
 }
 
 .header h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--md-sys-typescale-body-large-size);
+  font-weight: 500;
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--space-2);
 }
 
 .actions button {
@@ -31,19 +31,6 @@
   place-items: center;
   min-width: 28px;
   height: 32px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text-2);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--sidebar);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--live);
-  outline-offset: 1px;
 }
 
 .month {
@@ -57,23 +44,22 @@
 
 .month th {
   height: 28px;
-  font-size: 11px;
+  font-size: var(--md-sys-typescale-label-small-size);
   font-weight: 500;
-  color: var(--muted);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .month td {
   padding: 0;
-  font-size: 13px;
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
 
 .month td:nth-child(n + 6) {
-  color: var(--text-2);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .month td[data-outside='true'] {
-  color: var(--muted);
-  opacity: 0.5;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .month td span {
@@ -81,11 +67,11 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--md-sys-shape-corner-full);
 }
 
 .month td span[aria-current='date'] {
-  background: var(--live);
-  color: var(--surface);
-  font-weight: 600;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-weight: 500;
 }

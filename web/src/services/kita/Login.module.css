@@ -1,38 +1,38 @@
 .flow {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  font-size: 13.5px;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-lowest);
+  font-size: var(--md-sys-typescale-body-medium-size);
   text-align: left;
 }
 
 .title {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   margin: 0;
-  color: var(--muted);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-12);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  color: var(--text);
+  gap: var(--space-4);
+  color: var(--md-sys-color-on-surface);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -40,30 +40,18 @@
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  color: var(--text-2);
+  gap: var(--space-8);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
-.codeLabel input {
+.codeLabel :global(.MuiInputBase-root) {
   height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-}
-
-.codeLabel input:focus {
-  border-color: var(--text-2);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-8);
 }
 
 .primary,
@@ -72,49 +60,28 @@
   place-items: center;
   min-width: 64px;
   height: 32px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.primary:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-2);
+  padding: 0 var(--space-16);
 }
 
 .done {
   margin: 0;
-  color: #1a7f37;
+  color: var(--md-sys-color-tertiary);
 }
 
 .error {
   margin: 0;
-  color: var(--danger);
+  color: var(--md-sys-color-error);
   overflow-wrap: anywhere;
 }
 
 .deviceCode {
   align-self: flex-start;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 18px;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--md-ref-typeface-mono);
+  font-size: var(--md-sys-typescale-title-medium-size);
   letter-spacing: 0.08em;
   user-select: all;
 }

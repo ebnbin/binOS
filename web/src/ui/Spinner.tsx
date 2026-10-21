@@ -1,5 +1,5 @@
-import styles from './Spinner.module.css'
+import { CircularProgress } from '@mui/material'
 
 export function Spinner() {
-  return <span className={styles.spinner} role="status" aria-label="进行中" />
+  return <CircularProgress size={18} thickness={4} aria-label="进行中" />
 }

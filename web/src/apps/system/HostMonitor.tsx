@@ -1,5 +1,7 @@
+import { Card } from '@mui/material'
+import { Progress } from '../../ui/Progress.tsx'
 import type { MonitorStatus } from '@binos/server/apps/system/types'
-import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from 'lucide-react'
+import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from '../../ui/icons.tsx'
 import { bytes } from './format.ts'
 import styles from './Monitor.module.css'
 
@@ -20,16 +22,16 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
       </header>
       {s.unavailable.length > 0 && <p className={styles.warning}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</p>}
       <div className={styles.cards}>
-        <section className={styles.card}>
+        <Card component="section" className={styles.card}>
           <h2>
             <Cpu size={18} />
             CPU
           </h2>
           <strong>{cpu === null ? '采样中' : `${cpu.toFixed(0)}%`}</strong>
-          <progress aria-label="CPU 使用率" max={100} value={cpu || 0} />
+          <Progress aria-label="CPU 使用率" max={100} value={cpu || 0} />
           <p>当前总使用率</p>
-        </section>
-        <section className={styles.card}>
+        </Card>
+        <Card component="section" className={styles.card}>
           <h2>
             <MemoryStick size={18} />
             内存
@@ -38,14 +40,16 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
             {bytes(usedMemory)}
             <small> / {bytes(s.memory.total)}</small>
           </strong>
-          {usedMemory !== null && <progress aria-label="内存使用量" max={s.memory.total} value={usedMemory} />}
+          {usedMemory !== null && <Progress aria-label="内存使用量" max={s.memory.total} value={usedMemory} />}
           <p>
             内存压力：
-            <span className={s.memory.pressure === 'warning' || s.memory.pressure === 'critical' ? styles.bad : ''}>{pressureNames[s.memory.pressure]}</span>
+            <span className={s.memory.pressure === 'warning' || s.memory.pressure === 'critical' ? styles.bad : ''}>
+              {pressureNames[s.memory.pressure]}
+            </span>
           </p>
           <small className={styles.note}>已用量扣除文件缓存，为估算值。</small>
-        </section>
-        <section className={styles.card}>
+        </Card>
+        <Card component="section" className={styles.card}>
           <h2>
             <Network size={18} />
             网络速度
@@ -61,8 +65,8 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
             </span>
           </div>
           <p>当前物理网卡合计速度</p>
-        </section>
-        <section className={styles.card}>
+        </Card>
+        <Card component="section" className={styles.card}>
           <h2>
             <PlugZap size={18} />
             供电与运行时间
@@ -74,9 +78,9 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           <p>
             连续运行 {Math.floor(uptime / 86400)} 天 {Math.floor((uptime % 86400) / 3600)} 小时 {Math.floor((uptime % 3600) / 60)} 分钟
           </p>
-        </section>
+        </Card>
       </div>
-      <section className={styles.section}>
+      <Card component="section" className={styles.section}>
         <h2>
           <HardDrive size={18} />
           存储
@@ -93,7 +97,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
                     {bytes(volume.available)} 可用 / 共 {bytes(volume.total)}
                   </span>
                 </header>
-                <progress aria-label={`${name}使用量`} max={volume.total || 1} value={Math.max(0, volume.total - volume.available)} />
+                <Progress aria-label={`${name}使用量`} max={volume.total || 1} value={Math.max(0, volume.total - volume.available)} />
                 <p>已使用 {bytes(Math.max(0, volume.total - volume.available))}</p>
               </article>
             )
@@ -101,7 +105,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         ) : (
           <p className={styles.note}>暂时无法读取存储信息</p>
         )}
-      </section>
+      </Card>
       <p className={styles.note}>约每 5 秒自动更新。CPU 和网络速度需要相邻两次采样；无法读取的数据会显示为未知。</p>
     </div>
   )

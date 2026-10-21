@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-// 控制栏的位置：一般在屏幕下面；手机横过来高度不到 480 时放在侧边，避开灵动岛或摄像头那一边；手机上打字时隐藏，把空间留给 app
+// 手机横屏的控制栏避开灵动岛或摄像头；打字时隐藏，把空间留给 app
 export type BarPlacement = 'bottom' | 'left' | 'right' | 'hidden'
 
 const sideBarBelow = 480
@@ -8,10 +8,13 @@ const sideBarBelow = 480
 function read(): BarPlacement {
   const touch = window.matchMedia('(pointer: coarse)').matches
   if (!touch) {
-    return 'bottom'
+    return window.innerWidth >= 960 ? 'left' : 'bottom'
   }
   const target = document.activeElement
-  if (target instanceof HTMLElement && (target.isContentEditable || target.matches('input:not([type=button], [type=checkbox], [type=radio]), textarea, select'))) {
+  if (
+    target instanceof HTMLElement &&
+    (target.isContentEditable || target.matches('input:not([type=button], [type=checkbox], [type=radio]), textarea, select'))
+  ) {
     return 'hidden'
   }
   if (window.innerHeight >= sideBarBelow) {

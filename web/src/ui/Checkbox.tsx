@@ -1,14 +1,19 @@
-import * as Primitive from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import styles from './Checkbox.module.css'
+import { Checkbox as MaterialCheckbox, FormControlLabel } from '@mui/material'
 
-export function Checkbox({ checked, onCheckedChange, label }: { checked: boolean; onCheckedChange: (checked: boolean) => void; label: string }) {
+export function Checkbox({
+  checked,
+  onCheckedChange,
+  label,
+}: {
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+  label: string
+}) {
   return (
-    <label className={styles.label}>
-      <Primitive.Root className={styles.control} checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)}>
-        <Primitive.Indicator className={styles.indicator}><Check size={12} strokeWidth={3} /></Primitive.Indicator>
-      </Primitive.Root>
-      {label}
-    </label>
+    <FormControlLabel
+      sx={{ margin: 0 }}
+      control={<MaterialCheckbox checked={checked} onChange={(_, value) => onCheckedChange(value)} />}
+      label={label}
+    />
   )
 }

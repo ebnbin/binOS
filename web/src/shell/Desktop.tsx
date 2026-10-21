@@ -1,3 +1,4 @@
+import { ButtonBase, Typography } from '@mui/material'
 import type { CSSProperties } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import type { ApplicationDefinition } from '../apps/types.ts'
@@ -33,6 +34,17 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
 
   return (
     <div className={styles.desktop} style={vars}>
+      <header className={styles.heading}>
+        <Typography component="p" variant="overline" className={styles.eyebrow}>
+          binOS
+        </Typography>
+        <Typography component="h1" variant="h1">
+          工作空间
+        </Typography>
+        <Typography component="p" variant="body2">
+          应用、对话与常用工具
+        </Typography>
+      </header>
       <div className={styles.columns}>
         {columns.map((column, index) => (
           <div key={index} className={styles.grid} style={{ gridTemplateRows: `repeat(${column.rows}, var(--cell))` }}>
@@ -72,12 +84,12 @@ function Entry({
   }
   if (item.kind === 'shortcut') {
     return (
-      <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
+      <ButtonBase type="button" className={styles.icon} style={style} aria-label={app.name} onClick={() => onOpen(app.id)}>
         <span className={styles.glyph}>
-          <app.icon strokeWidth={1.75} />
+          <app.icon size={28} />
         </span>
         <span className={styles.label}>{app.name}</span>
-      </button>
+      </ButtonBase>
     )
   }
   return <WidgetHost item={item} application={app} style={style} onOpen={onOpen} />

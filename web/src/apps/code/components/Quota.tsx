@@ -1,3 +1,4 @@
+import { ButtonBase } from '@mui/material'
 import { agents, agentIds } from '@binos/server/services/kita/types'
 import type { Limits, AgentId } from '@binos/server/services/kita/types'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -25,7 +26,7 @@ export function Quota() {
         label="订阅额度"
         className={styles.details}
         trigger={
-          <button type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
+          <ButtonBase type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
             {reported.map(([agent, limits]) => {
               const { used, runsOut, limited } = summary(limits, now)
               return (
@@ -41,7 +42,7 @@ export function Quota() {
                 </span>
               )
             })}
-          </button>
+          </ButtonBase>
         }
       >
         {reported.map(([agent, limits]) => (

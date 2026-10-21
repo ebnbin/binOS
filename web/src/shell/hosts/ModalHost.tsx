@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { Dialog } from '@mui/material'
 import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 
 export function ModalHost({
   label,
@@ -15,25 +14,16 @@ export function ModalHost({
   children: ReactNode
   dismissible?: boolean
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
-  return createPortal(
-    <dialog
-      ref={dialog}
-      className={className}
+  return (
+    <Dialog
+      open
       aria-label={label}
-      onClose={onClose}
-      onCancel={(event) => {
-        if (!dismissible) event.preventDefault()
+      onClose={() => {
+        if (dismissible) onClose()
       }}
-      onClick={(event) => {
-        if (dismissible && event.target === dialog.current) onClose()
-      }}
+      slotProps={{ paper: { className, 'aria-label': label } }}
     >
       {children}
-    </dialog>,
-    document.body,
+    </Dialog>
   )
 }

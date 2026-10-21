@@ -1,5 +1,6 @@
+import { Button, Link } from '@mui/material'
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -53,10 +54,10 @@ function SessionTitle({ session }: { session: SessionSummary }) {
   return (
     <span className={styles.titleWrap}>
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-        <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
+        <Button variant="text" type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
           <span className={styles.title}>{session.title || '（无内容）'}</span>
-          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
-        </button>
+          <ChevronDown size={14} className={styles.titleChevron} />
+        </Button>
       </SessionActions>
     </span>
   )
@@ -76,18 +77,18 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           label="对话的 PR"
           className={styles.prMenu}
           trigger={
-            <button type="button" className={styles.finished} aria-label="查看对话的 PR">
-              <GitMerge size={13} strokeWidth={2} />
+            <Button variant="text" type="button" className={styles.finished} aria-label="查看对话的 PR">
+              <GitMerge size={13} />
               {finished.length}
-            </button>
+            </Button>
           }
         >
           {[...prs].reverse().map((pr) => (
-            <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
+            <Link key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
               <span className={styles.prNumber}>#{pr.number}</span>
               <span className={styles.prTitle}>{pr.title ?? pr.url}</span>
               <span className={styles.prState}>{pr.state && prStates[pr.state]}</span>
-            </a>
+            </Link>
           ))}
         </Popover>
       )}
@@ -103,13 +104,13 @@ function PrLink({ pr }: { pr: PullRequest }) {
   const Icon = prIcons[pr.state ?? 'open']
   return (
     <span className={styles.pr} data-state={pr.state}>
-      <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
-        <Icon size={13} strokeWidth={2} />#{pr.number}
-      </a>
+      <Link href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
+        <Icon size={13} />#{pr.number}
+      </Link>
       {pr.preview && (
-        <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>
+        <Link href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>
           预览
-        </a>
+        </Link>
       )}
     </span>
   )

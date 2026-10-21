@@ -1,16 +1,15 @@
-import type { LucideIcon } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import styles from './IconButton.module.css'
+import { IconButton as MaterialIconButton, Tooltip } from '@mui/material'
+import type { IconButtonProps } from '@mui/material'
+import type { MaterialIcon } from './icons.tsx'
 
-export function IconButton({
-  icon: Icon,
-  label,
-  className,
-  ...props
-}: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
+export function IconButton({ icon: Icon, label, ...props }: { icon: MaterialIcon; label: string } & IconButtonProps) {
   return (
-    <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
-    </button>
+    <Tooltip title={label}>
+      <span style={{ display: 'inline-flex' }}>
+        <MaterialIconButton type="button" aria-label={label} {...props}>
+          <Icon size={22} />
+        </MaterialIconButton>
+      </span>
+    </Tooltip>
   )
 }

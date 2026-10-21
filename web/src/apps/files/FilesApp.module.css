@@ -3,39 +3,31 @@
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--surface);
+  background: var(--md-sys-color-surface-container-lowest);
   position: relative;
-  font-size: 13px;
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
 .sidebar {
   width: 170px;
   flex-shrink: 0;
-  padding: 18px 10px;
-  background: var(--sidebar);
-  border-right: 1px solid var(--border);
+  padding: var(--space-20) var(--space-12);
+  background: var(--md-sys-color-surface-container-low);
+  border-right: 1px solid var(--md-sys-color-outline-variant);
   overflow: auto;
 }
 .caption {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-small-size);
+  font-weight: 500;
   margin: 14px 10px 7px;
 }
 .sidebar button {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
   width: 100%;
-  border-radius: 6px;
   text-align: left;
-}
-.sidebar button:hover,
-.entry:hover {
-  background: var(--hover);
-}
-.sidebar .active {
-  background: var(--bubble);
 }
 .main {
   flex: 1;
@@ -46,106 +38,105 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-8);
+  padding: var(--space-12);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 .toolbar button {
   display: flex;
-  padding: 5px;
-  border-radius: 5px;
+  padding: var(--space-4);
 }
-.app button:disabled,
-.dialog button:disabled {
-  opacity: 0.35;
-}
-.app input,
-.dialog input {
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  font: inherit;
-  padding: 6px 8px;
+.app :global(.MuiInputBase-root),
+.dialog :global(.MuiInputBase-root) {
   min-width: 0;
 }
 .path {
   flex: 1;
   min-width: 0;
 }
-.path input {
+.path :global(.MuiInputBase-root) {
   width: 100%;
-  font-family: var(--mono);
-  font-size: 12px;
 }
 .controls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: var(--space-12);
+  padding: var(--space-12) var(--space-16);
 }
 .controls label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-4);
   white-space: nowrap;
 }
 .search {
   flex: 1;
   min-width: 120px;
 }
-.search input {
+.search :global(.MuiInputBase-root) {
   width: 100%;
-  border: 0;
-  background: transparent;
 }
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  padding: 0 14px 10px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-4);
+  padding: 0 var(--space-16) var(--space-12);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
-.actions button,
+.actions button {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) var(--space-8);
+  text-decoration: none;
+}
 .actions a {
   display: flex;
-  gap: 4px;
+  gap: var(--space-4);
   align-items: center;
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  border-radius: 5px;
-  color: var(--text);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--md-sys-shape-corner-small);
+  color: var(--md-sys-color-on-surface);
   text-decoration: none;
-  font-size: 12px;
+  font-size: var(--md-sys-typescale-body-small-size);
 }
 .content {
   flex: 1;
   overflow: auto;
   min-height: 0;
 }
-.columns,
+.columns {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) 150px 80px;
+  gap: var(--space-12);
+  align-items: center;
+  width: 100%;
+  padding: var(--space-8) var(--space-20);
+  text-align: left;
+}
 .entry {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) 150px 80px;
-  gap: 12px;
+  gap: var(--space-12);
   align-items: center;
   width: 100%;
-  padding: 8px 18px;
+  padding: var(--space-8) var(--space-20);
   text-align: left;
 }
 .columns {
   position: sticky;
   top: 0;
-  background: var(--surface);
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
+  background: var(--md-sys-color-surface-container-lowest);
+  color: var(--md-sys-color-on-surface-variant);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  font-size: var(--md-sys-typescale-label-small-size);
 }
 .name {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-8);
   min-width: 0;
 }
 .name span {
@@ -153,31 +144,27 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.name svg {
+.name :global(.material-symbols-rounded) {
   flex-shrink: 0;
 }
 .folder {
-  color: #5c9fcd;
-  fill: color-mix(in srgb, #5c9fcd 18%, transparent);
+  color: var(--md-sys-color-primary);
+  fill: color-mix(in srgb, var(--md-sys-color-primary) 18%, transparent);
 }
 .meta {
-  color: var(--muted);
-  font-size: 11px;
-}
-.entry.selected {
-  background: color-mix(in srgb, #448cd4 18%, var(--surface));
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-small-size);
 }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  padding: 18px;
-  gap: 12px;
+  padding: var(--space-20);
+  gap: var(--space-12);
 }
 .grid .entry {
   display: flex;
-  padding: 12px 6px;
+  padding: var(--space-12) var(--space-8);
   justify-content: center;
-  border-radius: 8px;
 }
 .grid .name {
   flex-direction: column;
@@ -187,17 +174,17 @@
   max-width: 100%;
 }
 .empty {
-  color: var(--muted);
+  color: var(--md-sys-color-on-surface-variant);
   padding: 40px;
   text-align: center;
 }
 .status {
-  padding: 7px 14px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
+  padding: var(--space-8) var(--space-16);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-label-small-size);
   display: flex;
-  gap: 20px;
+  gap: var(--space-20);
 }
 .status span {
   margin-left: auto;
@@ -206,9 +193,9 @@
   text-overflow: ellipsis;
 }
 .error {
-  padding: 9px 14px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  padding: var(--space-8) var(--space-16);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-error);
   overflow-wrap: anywhere;
 }
 .modal {
@@ -216,57 +203,54 @@
   max-height: calc(100dvh - 32px);
   padding: 0;
   border: 0;
-  border-radius: 12px;
-  color: var(--text);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
   font: inherit;
-}
-
-.modal::backdrop {
-  background: var(--scrim);
 }
 
 .dialog {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  gap: var(--space-16);
+  padding: var(--space-24);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: var(--md-sys-elevation-level1);
   width: 100%;
 }
 .dialog p {
   margin: 0;
-  color: var(--text-2);
+  color: var(--md-sys-color-on-surface-variant);
 }
 .dialog > div {
   display: flex;
-  gap: 16px;
+  gap: var(--space-16);
   justify-content: flex-end;
 }
 .dialog button {
-  padding: 5px 14px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  padding: var(--space-4) var(--space-16);
 }
 @container files (width < 650px) {
   .sidebar {
     width: 120px;
-    padding: 8px 4px;
+    padding: var(--space-8) var(--space-4);
   }
-  .columns,
+  .columns {
+    grid-template-columns: minmax(100px, 1fr) 65px;
+    padding: var(--space-8) var(--space-12);
+  }
   .entry {
     grid-template-columns: minmax(100px, 1fr) 65px;
-    padding: 8px 12px;
+    padding: var(--space-8) var(--space-12);
   }
   .columns > span:nth-child(2),
   .entry > .meta:nth-child(2) {
     display: none;
   }
   .controls {
-    gap: 6px;
+    gap: var(--space-8);
   }
   .status span {
     display: none;
@@ -276,4 +260,10 @@
   .sidebar {
     display: none;
   }
+}
+
+.dialog > strong {
+  font-size: var(--md-sys-typescale-title-large-size);
+  font-weight: 400;
+  line-height: 28px;
 }

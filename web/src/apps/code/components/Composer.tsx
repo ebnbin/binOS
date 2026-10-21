@@ -1,5 +1,7 @@
+import { Textarea } from '../../../ui/Input.tsx'
+import { Button, IconButton as MaterialIconButton } from '@mui/material'
 import { Select } from '../../../ui/Select.tsx'
-import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from '../../../ui/icons.tsx'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -212,11 +214,11 @@ export function Composer({
           <ul className={styles.queue} aria-label="排队的消息">
             {queue.map((item) => (
               <li key={item.id}>
-                <Clock size={13} strokeWidth={1.75} className={styles.queueIcon} aria-label="排队中" />
+                <Clock size={13} className={styles.queueIcon} aria-label="排队中" />
                 <span className={styles.queueText}>{item.text.trim() || item.attachments?.[0]?.name}</span>
                 {item.attachments?.length ? (
                   <span className={styles.queueFiles}>
-                    <Paperclip size={12} strokeWidth={1.75} />
+                    <Paperclip size={12} />
                     {item.attachments.length}
                   </span>
                 ) : null}
@@ -239,7 +241,7 @@ export function Composer({
             <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
           </div>
         )}
-        <textarea
+        <Textarea
           ref={textareaRef}
           className={styles.input}
           value={input}
@@ -318,44 +320,46 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+            <MaterialIconButton type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
               <span className={styles.stopIcon} />
-            </button>
+            </MaterialIconButton>
           ) : (
             <>
               {running && (
                 <>
-                  <button
+                  <Button
+                    variant="outlined"
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('interrupt')}
                     aria-label="打断并发送"
                     title="打断正在做的事，马上处理这句话"
                   >
-                    <Zap size={14} strokeWidth={2} />
+                    <Zap size={14} />
                     打断
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="outlined"
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('queue')}
                     aria-label="排队"
                     title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
                   >
-                    <ListPlus size={14} strokeWidth={2} />
+                    <ListPlus size={14} />
                     排队
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <MaterialIconButton
                 type="submit"
                 className={styles.action}
                 disabled={!canSend}
                 aria-label={running ? '插话' : '发送'}
                 title={running ? '插话：agent 在下一步看到' : '发送'}
               >
-                <ArrowUp size={17} strokeWidth={2.2} />
-              </button>
+                <ArrowUp size={17} />
+              </MaterialIconButton>
             </>
           )}
         </div>

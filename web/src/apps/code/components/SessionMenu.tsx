@@ -1,8 +1,9 @@
+import { Input } from '../../../ui/Input.tsx'
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
-import { useRef, useState } from 'react'
-import type { ReactElement } from 'react'
+import { Alert, ListItemIcon, Menu, MenuItem } from '@mui/material'
+import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from '../../../ui/icons.tsx'
+import { cloneElement, useRef, useState } from 'react'
+import type { MouseEventHandler, ReactElement } from 'react'
 import { editSession } from '../api.ts'
 import styles from './SessionMenu.module.css'
 
@@ -19,7 +20,8 @@ export function SessionActions({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const renaming = useRef(false)
+  const [renaming, setRenaming] = useState(false)
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   async function edit(change: { pinned?: boolean; archived?: boolean }) {
@@ -34,68 +36,58 @@ export function SessionActions({
       setSaving(false)
     }
   }
+  const trigger = children as ReactElement<{ onClick?: MouseEventHandler<HTMLElement> }>
   return (
-    <Dropdown.Root
-      open={open}
-      onOpenChange={(next) => {
-        setError('')
-        onOpenChange(next)
-      }}
-      modal={false}
-    >
-      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
-      <Dropdown.Portal>
-        <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
-          aria-label="会话操作"
-          onCloseAutoFocus={(event) => {
-            if (renaming.current) event.preventDefault()
+    <>
+      {cloneElement(trigger, {
+        onClick: (event) => {
+          trigger.props.onClick?.(event)
+          setRenaming(false)
+          setError('')
+          setAnchor(event.currentTarget)
+          onOpenChange(true)
+        },
+      })}
+      <Menu
+        anchorEl={anchor}
+        open={open}
+        onClose={() => onOpenChange(false)}
+        disableRestoreFocus={renaming}
+        slotProps={{
+          list: { 'aria-label': '会话操作' },
+          transition: {
+            onExited: () => {
+              if (renaming) {
+                setRenaming(false)
+                onRename()
+              }
+            },
+          },
+        }}
+      >
+        <MenuItem
+          disabled={saving}
+          onClick={() => {
+            setRenaming(true)
+            onOpenChange(false)
           }}
         >
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={() => {
-              renaming.current = true
-              onOpenChange(false)
-              onRename()
-            }}
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ pinned: !session.pinned })
-            }}
-          >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ archived: !session.archived })
-            }}
-          >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </Dropdown.Item>
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-        </Dropdown.Content>
-      </Dropdown.Portal>
-    </Dropdown.Root>
+          <ListItemIcon>
+            <Pencil size={20} />
+          </ListItemIcon>
+          重命名
+        </MenuItem>
+        <MenuItem disabled={saving} onClick={() => void edit({ pinned: !session.pinned })}>
+          <ListItemIcon>{session.pinned ? <PinOff size={20} /> : <Pin size={20} />}</ListItemIcon>
+          {session.pinned ? '取消置顶' : '置顶'}
+        </MenuItem>
+        <MenuItem disabled={saving} onClick={() => void edit({ archived: !session.archived })}>
+          <ListItemIcon>{session.archived ? <ArchiveRestore size={20} /> : <Archive size={20} />}</ListItemIcon>
+          {session.archived ? '取消归档' : '归档'}
+        </MenuItem>
+        {error && <Alert severity="error">{error}</Alert>}
+      </Menu>
+    </>
   )
 }
 
@@ -127,7 +119,7 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <Input
         className={styles.rename}
         value={value}
         autoFocus

@@ -1,4 +1,5 @@
-import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
+import { Alert, IconButton as MaterialIconButton, Tab, Tabs, Typography } from '@mui/material'
+import { Activity, Bot, Monitor, RefreshCw } from '../../ui/icons.tsx'
 import { useEffect, useState } from 'react'
 import { useApplications } from '../index.ts'
 import type { WindowContext } from '../types.ts'
@@ -38,43 +39,45 @@ export function SystemApp({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <header className={styles.top}>
         <div>
-          <strong>系统</strong>
+          <Typography variant="h3" component="h1">
+            系统
+          </Typography>
           <span className={styles.freshness} data-stale={!!error || stale || !!status?.collectionError}>
             {error ? '监控连接异常' : stale ? '数据已过期' : status?.collectionError ? '采集异常' : snapshot ? '正在监控' : '首次采集中'}
             <small>{snapshot ? `采样 ${new Date(snapshot.at).toLocaleTimeString('zh-CN')}` : ''}</small>
           </span>
         </div>
         <div className={styles.actions}>
-          <button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
+          <MaterialIconButton type="submit" title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
             <RefreshCw size={16} className={refreshing ? styles.spin : ''} />
-          </button>
+          </MaterialIconButton>
         </div>
       </header>
-      <nav className={styles.sections} aria-label="系统分区">
+      <Tabs
+        className={styles.sections}
+        aria-label="系统分区"
+        value={section}
+        variant="fullWidth"
+        onChange={(_, value) => ctx.navigate(value === 'host' ? '/' : `/${value}`)}
+      >
         {[
-          { id: 'host', name: '宿主 Mac', hint: '硬件与 macOS', icon: Monitor, route: '/' },
-          { id: 'agent', name: 'Agent', hint: '账号与额度', icon: Bot, route: '/agent' },
-          { id: 'binos', name: 'binOS', hint: '运行与维护', icon: Activity, route: '/binos' },
+          { id: 'host', name: '宿主 Mac', icon: Monitor },
+          { id: 'agent', name: 'Agent', icon: Bot },
+          { id: 'binos', name: 'binOS', icon: Activity },
         ].map((item) => (
-          <button key={item.id} aria-current={section === item.id ? 'page' : undefined} onClick={() => ctx.navigate(item.route)}>
-            <item.icon size={20} />
-            <span>
-              {item.name}
-              <small>{item.hint}</small>
-            </span>
-          </button>
+          <Tab key={item.id} value={item.id} icon={<item.icon />} iconPosition="start" label={item.name} />
         ))}
-      </nav>
+      </Tabs>
       {(error || stale || actionError) && (
-        <div className={styles.warning} role="alert">
+        <Alert severity="warning" className={styles.warning}>
           {actionError || error || '监控采样超过 30 秒未更新'}。
           {error || stale ? `最后成功连接 ${moment(lastSuccess)}；保留的数据可能已过期，无法确认宿主当前正常。` : ''}
-        </div>
+        </Alert>
       )}
       {status?.collectionError && (
-        <div className={styles.warning} role="alert">
+        <Alert severity="warning" className={styles.warning}>
           {status.collectionError}
-        </div>
+        </Alert>
       )}
       <div className={styles.body}>
         {section === 'agent' ? (

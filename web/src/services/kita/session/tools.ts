@@ -1,7 +1,21 @@
 import type { Entry } from '@binos/server/services/kita/types'
 import { diffLines } from 'diff'
-import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import {
+  AppWindow,
+  Bot,
+  FilePen,
+  FilePlus,
+  FileText,
+  Globe,
+  Image,
+  ListTodo,
+  PackageSearch,
+  Search,
+  Sparkles,
+  SquareTerminal,
+  Wrench,
+} from '../../../ui/icons.tsx'
+import type { MaterialIcon } from '../../../ui/icons.tsx'
 
 export type ToolCall = Extract<Entry, { type: 'tool_call' }>
 export type ToolResult = Extract<Entry, { type: 'tool_result' }>
@@ -26,7 +40,7 @@ export function callDuration({ call, result, live }: CallState, now: number): nu
 export type ToolCategory = 'command' | 'read' | 'edit' | 'search' | 'web' | 'browser' | 'subagent' | 'other'
 
 // 一次调用显示成：图标、动作、对象（命令、路径、搜索词……）
-type ToolLabel = { icon: LucideIcon; verb: string; category: ToolCategory; detail?: string }
+type ToolLabel = { icon: MaterialIcon; verb: string; category: ToolCategory; detail?: string }
 
 // 浏览器的工具，没列出的直接用工具名
 const browserVerbs: Record<string, string> = {
@@ -46,7 +60,8 @@ const browserVerbs: Record<string, string> = {
 }
 
 // 原始参数里的第一个字符串
-const firstText = (input: unknown) => Object.values((input ?? {}) as Record<string, unknown>).find((value) => typeof value === 'string') as string | undefined
+const firstText = (input: unknown) =>
+  Object.values((input ?? {}) as Record<string, unknown>).find((value) => typeof value === 'string') as string | undefined
 
 export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
   switch (tool.kind) {

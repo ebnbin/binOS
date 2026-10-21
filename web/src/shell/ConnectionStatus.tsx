@@ -1,3 +1,4 @@
+import { Alert, Button } from '@mui/material'
 import { useConnected, useUpdated } from '../events.ts'
 import styles from './ConnectionStatus.module.css'
 import { Spinner } from '../ui/Spinner.tsx'
@@ -8,18 +9,21 @@ export function ConnectionStatus() {
   const updated = useUpdated()
   const visible = updated || !connected
   return (
-    <div className={styles.status} data-visible={visible} data-urgent={updated} role="status" aria-hidden={!visible}>
-      {updated ? (
-        'binOS 已更新'
-      ) : (
-        <>
-          <Spinner />
-          连接已断开，正在重连…
-        </>
-      )}
-      <button type="button" className={styles.reload} onClick={() => window.location.reload()}>
-        刷新
-      </button>
-    </div>
+    <Alert
+      className={styles.status}
+      data-visible={visible}
+      data-urgent={updated}
+      role="status"
+      aria-hidden={!visible}
+      severity={updated ? 'info' : 'warning'}
+      icon={updated ? undefined : <Spinner />}
+      action={
+        <Button variant="text" type="button" onClick={() => window.location.reload()}>
+          刷新
+        </Button>
+      }
+    >
+      {updated ? 'binOS 已更新' : '连接已断开，正在重连…'}
+    </Alert>
   )
 }

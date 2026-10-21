@@ -1,3 +1,4 @@
+import { Progress } from '../../ui/Progress.tsx'
 import type { Limits } from '@binos/server/services/kita/types'
 import { blockingWindow, formatReset, formatSpan, windowsOf, windowState } from './quota.ts'
 import styles from './Quota.module.css'
@@ -28,12 +29,14 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
               <span className={styles.muted}>{formatReset(window.resetsAt, now)}</span>
             </div>
             <div className={styles.bar} data-full={used >= 0.95 || undefined}>
-              <span style={{ width: `${used * 100}%` }} />
+              <Progress color="inherit" value={used} aria-label={`${name}额度使用率`} />
               {left !== undefined && <i style={{ left: `${expected * 100}%` }} title="匀速用到现在该到的位置" />}
             </div>
             {left !== undefined && (
               <div className={styles.windowLine}>
-                <span className={styles.muted}>{pace > 0.005 ? `比匀速多用 ${Math.round(pace * 100)}%` : `比匀速省 ${Math.round(-pace * 100)}%`}</span>
+                <span className={styles.muted}>
+                  {pace > 0.005 ? `比匀速多用 ${Math.round(pace * 100)}%` : `比匀速省 ${Math.round(-pace * 100)}%`}
+                </span>
                 <span className={runsOut === undefined ? styles.muted : styles.danger}>
                   {runsOut === undefined ? '够用到重置' : runsOut === 0 ? '已经用完' : `按现在的速度 ${formatSpan(runsOut)}后用完`}
                 </span>

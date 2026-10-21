@@ -1,3 +1,5 @@
+import { Progress } from '../../../ui/Progress.tsx'
+import { IconButton as MaterialIconButton } from '@mui/material'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
@@ -39,7 +41,7 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <MaterialIconButton
           type="button"
           className={styles.ring}
           data-level={level}
@@ -61,7 +63,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeDashoffset={circumference * (1 - ratio)}
             />
           </svg>
-        </button>
+        </MaterialIconButton>
       }
     >
       <div className={styles.line}>
@@ -77,7 +79,11 @@ export function Usage({ session }: { session: SessionSummary }) {
       </div>
       {context && (
         <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
+          <Progress
+            color={level === 'danger' ? 'error' : level === 'warning' ? 'warning' : 'primary'}
+            value={ratio}
+            aria-label="上下文使用率"
+          />
         </div>
       )}
       <div className={styles.line}>
