@@ -163,13 +163,13 @@ function renderBlocks(blocks: Block[], context: Context, last: Block | undefined
       case 'input':
         return (
           <div key={block.key} data-thread-item={block.key} className={styles.user}>
-            {block.text}
-            <span className={styles.userMeta}>
+            <div className={styles.userText}>{block.text}</div>
+            <div className={styles.userMeta}>
               <time dateTime={block.time} title={formatFull(new Date(block.time))}>
                 {formatClock(new Date(block.time))}
               </time>
               <CopyButton text={block.text} label="复制消息" />
-            </span>
+            </div>
           </div>
         )
       case 'time':
