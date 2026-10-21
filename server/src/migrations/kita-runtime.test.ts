@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterAll, expect, it } from 'vitest'
@@ -8,7 +8,7 @@ process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 process.execArgv.push('--import', import.meta.resolve('tsx'))
 const { startHost, attachHost } = await import('../services/kita/host/client.js')
-const { workerDir } = await import('../services/kita/store.js')
+const { workerDir, hostDir, sessionDir, sessionInfo } = await import('../services/kita/store.js')
 const { migrateAgentToKita } = await import('./kita.js')
 const { drivers } = await import('../services/kita/drivers/index.js')
 const { getKitaSession, startSessions } = await import('../services/kita/sessions.js')
@@ -38,7 +38,7 @@ afterAll(() => {
   rmSync(root, { recursive: true, force: true })
 })
 
-it('原路径的 host 继续执行，迁移后读完输出且重接不重复，下一轮可以继续', async () => {
+it('原路径的 host 读完输出后解除绑定，下一轮在 Kita 目录续接且不重复', async () => {
   expect((await host.send({ type: 'message', text: 'before' })).ok).toBe(true)
   migrateAgentToKita(root)
   stopPolling = startSessions()
@@ -57,7 +57,16 @@ it('原路径的 host 继续执行，迁移后读完输出且重接不重复，�
   expect(getKitaSession('a', 'another-app')).toBeUndefined()
   stopPolling = startSessions()
   expect(session.entries().filter((entry) => entry.type === 'text')).toHaveLength(1)
+  const nativeSession = sessionInfo('a').agentSession
+  host.kill()
+  for (let i = 0; i < 100 && existsSync(path.join(old, 'host')); i++) await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(existsSync(path.join(old, 'host'))).toBe(false)
+  expect(existsSync(path.join(sessionDir('a'), 'runtime.json'))).toBe(false)
+  expect(workerDir('a')).toBe(hostDir('a'))
+  expect(sessionInfo('a').agentSession).toBe(nativeSession)
   expect(await session.send({ text: 'after' })).toBe(true)
+  expect(existsSync(path.join(hostDir('a'), 'state.json'))).toBe(true)
+  expect(existsSync(path.join(sessionDir('a'), 'runtime.json'))).toBe(false)
   await waitTurn(2)
   expect(session.turns()).toHaveLength(2)
   expect(session.entries().filter((entry) => entry.type === 'text').map((entry) => entry.text)).toEqual(['before', 'after'])

@@ -10,7 +10,7 @@ import { copyAttachments, promptWithAttachments, snapshotFiles } from './files.j
 import { attachHost, startHost } from './host/client.js'
 import type { Host } from './host/client.js'
 import { saveLimits } from './limits.js'
-import { addUsage, appendEntries, createKitaSession as createKitaSessionDir, filesDir, hostDir, listKitaSessions, readEntries, kitaSessionExists, sessionInfo, metadata, readEvents, workerDir, bindWorker } from './store.js'
+import { addUsage, appendEntries, createKitaSession as createKitaSessionDir, filesDir, hostDir, listKitaSessions, readEntries, kitaSessionExists, sessionInfo, metadata, readEvents, workerDir, unbindWorker } from './store.js'
 import type { AgentId, Entry, Live, KitaSessionEvent, KitaSessionState, KitaSessionSummary } from './types.js'
 import { projectItems, projectTurns } from './journal.js'
 
@@ -211,7 +211,7 @@ export class KitaSession {
       await this.retire()
     }
     const { agent, args } = driver.host({ agentSession: info.agentSession, model, effort, instructions })
-    bindWorker(this.id, hostDir(this.id))
+    unbindWorker(this.id)
     const host = startHost(hostDir(this.id), { agent, args, cwd: info.cwd, env, stamp, itemsFrom: info.count })
     if (!host) {
       return false
@@ -258,6 +258,7 @@ export class KitaSession {
 
   private release() {
     this.host?.dispose()
+    unbindWorker(this.id)
     this.host = undefined
     this.decoder = undefined
     this.reader = undefined
@@ -482,6 +483,7 @@ export function startSessions() {
   for (const id of listKitaSessions()) {
     const info = sessionInfo(id)
     const host = attachHost(workerDir(id))
+    if (!host) unbindWorker(id)
     if (!host && !info.inTurn) {
       continue
     }
