@@ -16,7 +16,8 @@
     "./apps/code/types": "./src/apps/code/types.ts",
     "./apps/music/api": "./src/apps/music/api.ts",
     "./apps/music/types": "./src/apps/music/types.ts",
-    "./apps/system/types": "./src/apps/system/types.ts"
+    "./apps/system/types": "./src/apps/system/types.ts",
+    "./apps/terminal/types": "./src/apps/terminal/sessions.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -25,9 +26,12 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "node-pty": "^1.1.0",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.2",
     "tsx": "^4.23.15"
   }
 }

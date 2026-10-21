@@ -1,3 +1,5 @@
+import { upgradeWebSocket } from '@hono/node-server'
+import WebSocket from 'ws'
 import { readFileSync } from 'node:fs'
 import type { MiddlewareHandler } from 'hono'
 import { except } from 'hono/combine'
@@ -15,13 +17,63 @@ function previewPort(name: string): number | undefined {
   }
 }
 
-const forward: MiddlewareHandler = async (c) => {
+const forward: MiddlewareHandler = async (c, next) => {
   const name = previewName(c.req.url)!
   const port = previewPort(name)
   if (!port) {
     return c.text(`没有 ${name} 的预览`, 404)
   }
   const { pathname, search } = new URL(c.req.url)
+  if (c.req.header('upgrade')?.toLowerCase() === 'websocket') {
+    const origin = c.req.header('origin')
+    if (!origin || new URL(origin).host !== c.req.header('host')) return c.text('Forbidden', 403)
+    return upgradeWebSocket(() => {
+      let upstream: WebSocket | undefined
+      const pending: string[] = []
+      let pendingSize = 0
+      return {
+        onOpen(_event, downstream) {
+          upstream = new WebSocket(`ws://127.0.0.1:${port}${pathname}${search}`, {
+            headers: { origin, host: c.req.header('host')! },
+            maxPayload: 128 * 1024,
+            handshakeTimeout: 5000,
+          })
+          upstream.on('open', () => {
+            for (const data of pending) upstream!.send(data)
+            pending.length = 0
+            pendingSize = 0
+          })
+          upstream.on('message', (data) => {
+            if (((downstream.raw as WebSocket | undefined)?.bufferedAmount ?? 0) > 1024 * 1024) {
+              upstream?.close()
+              downstream.close()
+              return
+            }
+            downstream.send(data.toString())
+          })
+          upstream.on('close', () => downstream.close())
+          upstream.on('error', () => downstream.close())
+        },
+        onMessage(event, downstream) {
+          if (typeof event.data !== 'string') return downstream.close(1003)
+          if (upstream?.readyState === WebSocket.CONNECTING) {
+            pendingSize += event.data.length
+            if (pendingSize > 128 * 1024) return downstream.close(1009)
+            pending.push(event.data)
+            return
+          }
+          if (upstream?.readyState !== WebSocket.OPEN || upstream.bufferedAmount > 1024 * 1024) return downstream.close()
+          upstream.send(event.data)
+        },
+        onClose() {
+          upstream?.close()
+        },
+        onError() {
+          upstream?.close()
+        },
+      }
+    })(c, next)
+  }
   let res: Response
   try {
     res = await proxy(`http://127.0.0.1:${port}${pathname}${search}`, c.req.raw)

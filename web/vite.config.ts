@@ -11,6 +11,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: `http://127.0.0.1:${process.env.BINOS_SERVER_PORT ?? 3000}`,
+        ws: true,
         // 后端断开时也断开页面这一端，和正式版一样，页面的实时推送才会重连
         configure: (proxy) => {
           proxy.on('proxyRes', (proxyRes, _req, res) => {
