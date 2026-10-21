@@ -3,16 +3,10 @@ import { commandOutput, parseJson } from '../../cli.js'
 import type { Driver } from '../types.js'
 import { claudeApi } from './api.js'
 import { claudeAuth, claudeAuthEnv, claudeAuthFailed, configDir, readLogin } from './auth.js'
+import { claudeModels } from './catalog.js'
 import { ClaudeDecoder } from './decoder.js'
 import { tokenCost } from './prices.js'
 
-// 模型用 Claude Code 的别名，总是对应各系列最新的模型；思考程度各个模型都一样
-const models = [
-  { id: 'fable', name: 'Fable' },
-  { id: 'opus', name: 'Opus' },
-  { id: 'sonnet', name: 'Sonnet' },
-  { id: 'haiku', name: 'Haiku' },
-]
 const efforts = ['low', 'medium', 'high', 'xhigh', 'max']
 
 type AuthStatus = { loggedIn?: boolean; email?: string; orgName?: string; subscriptionType?: string }
@@ -47,13 +41,11 @@ export const claude: Driver = {
   }),
   decoder: (options) => new ClaudeDecoder(options),
   fileHint: '用 Read 工具查看',
-  models: models.map((model) => model.id),
   efforts,
-  catalog: async (env) => ({
-    available: (await authStatus(env))?.loggedIn === true,
-    models: models.map((model) => ({ ...model, efforts })),
-    efforts,
-  }),
+  catalog: async (env) => {
+    const [auth, models] = await Promise.all([authStatus(env), claudeModels(env)])
+    return { available: auth?.loggedIn === true, models, efforts: models.find((model) => model.isDefault)?.efforts ?? [] }
+  },
   account,
   auth: claudeAuth,
   api: claudeApi,
