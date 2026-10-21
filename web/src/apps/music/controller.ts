@@ -1,3 +1,4 @@
+import type { QueueOperation } from '@binos/server/apps/music/types'
 import type { MusicPlayer, MusicState, PlaybackProvider, Track } from './types.ts'
 
 const initial: MusicState = { queue: [], index: -1, status: 'idle', positionMs: 0, durationMs: 0, volume: 0.7, repeat: 'off' }
@@ -24,10 +25,12 @@ export class MusicController {
   private player?: MusicPlayer
   private generation = 0
   private wantsPlay = false
+  private queueChanged?: (operation: QueueOperation) => void
   private providers: PlaybackProvider[]
   private persist?: (state: MusicState) => void
 
-  constructor(providers: PlaybackProvider[], restored?: unknown, persist?: (state: MusicState) => void) {
+  constructor(providers: PlaybackProvider[], restored?: unknown, persist?: (state: MusicState) => void, queueChanged?: (operation: QueueOperation) => void) {
+    this.queueChanged = queueChanged
     this.providers = providers
     this.persist = persist
     this.state = restoreMusic(restored)
@@ -50,6 +53,7 @@ export class MusicController {
     }
     const index = tracks[0] ? queue.findIndex((track) => trackKey(track) === trackKey(tracks[0])) : -1
     this.update({ queue, index: this.state.index < 0 && queue.length ? 0 : this.state.index }, true)
+    this.queueChanged?.({ type: 'add', tracks })
     if (play && index >= 0) void this.select(index)
   }
 
@@ -140,6 +144,7 @@ export class MusicController {
 
   remove(index: number) {
     if (index < 0 || index >= this.state.queue.length) return
+    this.queueChanged?.({ type: 'remove', ref: this.state.queue[index].ref })
     const queue = this.state.queue.filter((_, i) => i !== index)
     if (index !== this.state.index) { this.update({ queue, index: index < this.state.index ? this.state.index - 1 : this.state.index }, true); return }
     const playing = this.wantsPlay && ['loading', 'playing'].includes(this.state.status)
@@ -149,7 +154,14 @@ export class MusicController {
     if (playing && next >= 0) void this.select(next)
   }
 
-  clear() { this.stop(); this.update({ queue: [], index: -1 }, true) }
+  replaceQueue(queue: Track[]) {
+    const current = this.state.queue[this.state.index]
+    const index = current ? queue.findIndex(track => trackKey(track) === trackKey(current)) : -1
+    if (current && index < 0) this.stop()
+    this.update({ queue, index: index >= 0 ? index : queue.length ? 0 : -1 }, true)
+  }
+
+  clear() { this.queueChanged?.({ type: 'clear' }); this.stop(); this.update({ queue: [], index: -1 }, true) }
   stop() {
     this.generation++
     this.wantsPlay = false

@@ -4,12 +4,13 @@ import type { CatalogPage } from '@binos/server/apps/music/types'
 import type { WindowContext } from '../types.ts'
 import { trackKey } from './controller.ts'
 import { PlayerControls } from './Controls.tsx'
-import { music, musicProviders, useMusic } from './store.ts'
+import { music, musicProviders, useMusic, useQueueSync } from './store.ts'
 import type { Track } from './types.ts'
 import styles from './music.module.css'
 
 export function MusicApp({ ctx }: { ctx: WindowContext }) {
   const state = useMusic()
+  const queueStatus = useQueueSync()
   const track = state.queue[state.index]
   const [providerId, setProviderId] = useState(musicProviders[0].id)
   const provider = musicProviders.find((item) => item.id === providerId)!
@@ -92,7 +93,7 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
         </ul>}
         {tab === 'results' && results?.nextPage && <button type="button" className={styles.loadMore} disabled={busy} onClick={() => void search(true)}>{busy ? '加载中…' : '加载更多'}</button>}
       </div>
-      <footer className={styles.footer}><span>{state.queue.length >= 500 ? '队列已满（500 首）' : '队列保存在当前浏览器'}</span>{Inspector && <Inspector />}</footer>
+      <footer className={styles.footer}><span>{state.queue.length >= 500 ? '队列已满（500 首）' : queueStatus}</span>{Inspector && <Inspector />}</footer>
     </div>
   )
 }

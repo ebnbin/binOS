@@ -1,3 +1,6 @@
+import { onChange } from '../../events.ts'
+import { mutateQueue, readQueue } from './api.ts'
+import { QueueSync } from './queueSync.ts'
 import { useSyncExternalStore } from 'react'
 import { MusicController, trackKey } from './controller.ts'
 import { musicProviders } from './providers.ts'
@@ -10,11 +13,16 @@ try { saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null') } catch { /
 // 生命周期属于当前浏览器页面，不随窗口或桌面 widget 的卸载结束。
 export const music = new MusicController(musicProviders, saved, (state) => {
   try { localStorage.setItem(storageKey, JSON.stringify({ queue: state.queue, index: state.index, volume: state.volume, repeat: state.repeat })) } catch { /* Playback also works without storage. */ }
-})
+}, (operation) => queueSync.enqueue(operation))
+
+export const queueSync = new QueueSync({ read: readQueue, mutate: mutateQueue }, tracks => music.replaceQueue(tracks))
+queueSync.enqueue({ type: 'initialize', tracks: music.getSnapshot().queue })
+const unsubscribeQueue = onChange(event => { if (!event || event.type === 'music') void queueSync.refresh() })
+export function useQueueSync() { return useSyncExternalStore(queueSync.subscribe, queueSync.getSnapshot) }
 
 export function useMusic() { return useSyncExternalStore(music.subscribe, music.getSnapshot) }
 
-if (import.meta.hot) import.meta.hot.dispose(() => music.stop())
+if (import.meta.hot) import.meta.hot.dispose(() => { unsubscribeQueue(); queueSync.close(); music.stop() })
 
 if ('mediaSession' in navigator) {
   const actions: [MediaSessionAction, MediaSessionActionHandler][] = [

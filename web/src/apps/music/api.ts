@@ -18,3 +18,8 @@ export async function catalog(provider: string, operation: 'search' | 'resolve',
 
 export async function readMusicSettings() { return json<{ youtubeConfigured: boolean }>(await client.settings.$get()) }
 export async function saveYouTubeKey(youtubeApiKey: string) { return json<{ youtubeConfigured: boolean }>(await client.settings.$put({ json: { youtubeApiKey } })) }
+
+export async function readQueue() { return json<import('@binos/server/apps/music/types').QueueSnapshot>(await client.queue.$get()) }
+export async function mutateQueue(mutation: import('@binos/server/apps/music/types').QueueMutation) {
+  return json<import('@binos/server/apps/music/types').QueueSnapshot>(await client.queue.$post({ json: mutation }))
+}

@@ -4,6 +4,7 @@ import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import { appDir } from '../../paths.js'
 import type { CatalogPage, MusicApiError } from './types.js'
+import { mutateQueue, readQueue } from './queue.js'
 import { MusicError, youtubeCatalog } from './youtube.js'
 
 interface CatalogProvider {
@@ -31,6 +32,8 @@ export const musicApi = new Hono()
     if (error instanceof MusicError) return c.json({ error: error.message, code: error.code } satisfies MusicApiError, error.code === 'invalid-input' ? 400 : error.code === 'configuration' ? 409 : error.code === 'quota' ? 429 : 502)
     return c.json({ error: '音乐服务暂时不可用，请稍后重试。', code: 'unavailable' } satisfies MusicApiError, 500)
   })
+  .get('/queue', (c) => c.json(readQueue()))
+  .post('/queue', async (c) => c.json(mutateQueue(await c.req.json().catch(() => null))))
   .get('/settings', (c) => c.json({ youtubeConfigured: Boolean(apiKey()) }))
   .put('/settings', async (c) => {
     const body: unknown = await c.req.json().catch(() => null)
