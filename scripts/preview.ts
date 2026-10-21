@@ -8,7 +8,7 @@ import type { PreviewInfo } from '../server/src/preview-info.ts'
 import { acquireProcessLock } from '../server/src/process.ts'
 import { buildCommit, isHealthy } from './build.ts'
 import { freePort } from './net.ts'
-import { previewPaths, readJson, runningPreviewServer, startPreviewServer, stopPreviewServer } from './previews.ts'
+import { previewPaths, readJson, runningPreviewServer, startPreviewServer, stopPreviewDevices, stopPreviewServer } from './previews.ts'
 
 // 把当前分支的 PR 构建成预览；PR 合并或关闭后由上线脚本删除
 const { previewsDir, agentsDir } = rootLayout(rootFromEnv())
@@ -78,6 +78,7 @@ if (!existsSync(buildDir)) {
   }
 }
 await stopPreviewServer(paths.serverLock)
+await stopPreviewDevices(paths.dir)
 const port = await freePort()
 writeFileSync(infoPath, JSON.stringify({ port, commit } satisfies PreviewInfo) + '\n')
 startPreviewServer({

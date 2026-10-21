@@ -70,6 +70,16 @@ export async function stopPreviewServer(serverLock: string) {
   }
 }
 
+// 设备管理进程独立于网页后端；删除构建或数据前也要结束它，避免残留进程继续读写旧目录。
+export async function stopPreviewDevices(dir: string) {
+  const lock = path.join(rootLayout(dir).appsDir, 'devices', 'manager.lock')
+  const manager = readJson<ProcessIdentity>(lock)
+  if (!manager || !isRunning(manager)) return
+  process.kill(manager.pid, 'SIGTERM')
+  for (let i = 0; i < 100 && isRunning(manager); i++) await sleep(100)
+  if (isRunning(manager)) throw new Error(`设备预览进程 ${manager.pid} 未能退出`)
+}
+
 // PR 合并或关闭后，停止并删除它的预览；查不到打开的 PR 时什么都不做，免得网络出错时误删
 export async function closeFinishedPreviews(previewsDir: string, repoDir: string, say: (message: string) => void) {
   let open: Set<number>
@@ -100,6 +110,7 @@ export async function closeFinishedPreviews(previewsDir: string, repoDir: string
       continue
     }
     await stopPreviewServer(paths.serverLock)
+    await stopPreviewDevices(paths.dir)
     rmSync(paths.dir, { recursive: true, force: true })
     say(`PR #${pr} 已合并或关闭，删除了它的预览`)
   }
