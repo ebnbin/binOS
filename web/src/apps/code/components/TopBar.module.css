@@ -1,16 +1,16 @@
 .bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   flex: none;
   height: 56px;
-  padding: 0 20px;
+  padding: 0 var(--spacingVerticalXL);
 }
 
 .heading {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   flex: 1;
   min-width: 0;
 }
@@ -19,8 +19,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 550;
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .titleWrap {
@@ -32,32 +32,15 @@
 .titleButton {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacingVerticalXS);
   min-width: 0;
   margin: 0 -8px;
-  padding: 5px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--hover);
+  padding: 5px var(--spacingVerticalS);
 }
 
 .titleChevron {
   flex: none;
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 
 .rename {
@@ -68,8 +51,8 @@
 
 .id {
   flex: none;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,7 +60,7 @@
   position: relative;
   display: flex;
   flex: none;
-  gap: 6px;
+  gap: var(--spacingVerticalSNudge);
   margin-left: auto;
 }
 
@@ -85,47 +68,39 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  padding: var(--spacingVerticalXXS) var(--spacingVerticalS);
 }
 
 .prMenu {
   display: flex;
   flex-direction: column;
-  width: 360px;
-  max-height: min(320px, var(--radix-popover-content-available-height));
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(320px, 70dvh);
   overflow-y: auto;
-  padding: 4px;
-  box-shadow: var(--shadow);
+  padding: var(--spacingVerticalXS);
+  box-shadow: var(--shadow8);
 }
 
 .prMenu a {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  color: var(--text);
+  gap: var(--spacingVerticalS);
+  padding: 7px var(--spacingVerticalMNudge);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground1);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--fontSizeBase300);
 }
 
 @media (hover: hover) {
   .prMenu a:hover {
-    background: var(--hover);
+    background: var(--colorNeutralBackground1Hover);
   }
 }
 
 .prNumber {
   flex: none;
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -139,25 +114,25 @@
 
 .prState {
   flex: none;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: #1a7f37;
+  color: var(--colorPaletteGreenForeground1);
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: #8250df;
+  color: var(--colorPalettePurpleForeground1);
 }
 
 .pr {
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-  border-radius: 999px;
-  background: var(--hover);
-  font-size: 11.5px;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1Hover);
+  font-size: var(--fontSizeBase200);
   font-variant-numeric: tabular-nums;
 }
 
@@ -165,21 +140,21 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
-  color: var(--text-2);
+  padding: var(--spacingVerticalXXS) var(--spacingVerticalS);
+  color: var(--colorNeutralForeground2);
   text-decoration: none;
 }
 
 .pr[data-state='open'] a:first-child {
-  color: #1a7f37;
+  color: var(--colorPaletteGreenForeground1);
 }
 
 .pr[data-state='merged'] a:first-child {
-  color: #8250df;
+  color: var(--colorPalettePurpleForeground1);
 }
 
 .pr .preview {
-  border-left: 1px solid var(--hairline);
+  border-left: 1px solid var(--colorNeutralStroke2);
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
@@ -190,8 +165,8 @@
 @container agent (width < 960px) {
   .bar {
     height: 52px;
-    padding: 0 8px;
-    border-bottom: 1px solid var(--hairline);
+    padding: 0 var(--spacingVerticalS);
+    border-bottom: 1px solid var(--colorNeutralStroke2);
   }
 
   .heading {

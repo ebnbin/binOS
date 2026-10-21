@@ -1,4 +1,5 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
+import { Button } from '@fluentui/react-components'
+import { ChevronRightRegular as ChevronRight, DocumentBulletListRegular as FileDiff } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
@@ -19,7 +20,7 @@ export function TurnChanges({ thread, files }: { thread: string; files: FileChan
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <FileDiff size={14} strokeWidth={1.75} />
+        <FileDiff fontSize={14} />
         <span>改动了 {files.length} 个文件</span>
         <Counts added={added} removed={removed} />
       </div>
@@ -36,13 +37,21 @@ function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   const [open, setOpen] = useState(false)
   return (
     <li data-open={open || undefined}>
-      <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
-        <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
+      <Button
+        size="small"
+        appearance="subtle"
+        type="button"
+        className={styles.row}
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        title={file.path}
+      >
+        <ChevronRight fontSize={13} className={styles.chevron} />
         <span className={styles.name}>{file.path.split('/').at(-1)}</span>
         <span className={styles.dir}>{directory(file.path)}</span>
         {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
         <Counts added={file.added} removed={file.removed} />
-      </button>
+      </Button>
       {open && (
         <div className={styles.body}>
           {file.calls.map(({ call, result }) => (

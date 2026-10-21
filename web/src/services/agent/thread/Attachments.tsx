@@ -1,5 +1,6 @@
+import { Button } from '@fluentui/react-components'
 import type { Attachment } from '@binos/server/services/agent/types'
-import { FileText, X } from 'lucide-react'
+import { DismissRegular as X, DocumentTextRegular as FileText } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { FileBlock } from '../../preview/index.ts'
 import { threadPreviewFile } from '../files.ts'
@@ -7,11 +8,10 @@ import styles from './Attachments.module.css'
 
 // 附件的两种样子：浏览器能显示的图片是方形缩略图，其他文件是带文件名的卡片
 
-
 function FileCard({ name }: { name: string }) {
   return (
     <span className={styles.card}>
-      <FileText size={18} strokeWidth={1.75} />
+      <FileText fontSize={18} />
       <span className={styles.name}>{name}</span>
     </span>
   )
@@ -21,7 +21,9 @@ function FileCard({ name }: { name: string }) {
 export function AttachmentList({ thread, attachments }: { thread: string; attachments: Attachment[] }) {
   return (
     <div className={`${styles.list} ${styles.sent}`}>
-      {attachments.map(({ file, name }) => <FileBlock key={file} item={threadPreviewFile(thread, file, name)} />)}
+      {attachments.map(({ file, name }) => (
+        <FileBlock key={file} item={threadPreviewFile(thread, file, name)} />
+      ))}
     </div>
   )
 }
@@ -49,9 +51,15 @@ export function PendingAttachments({ files, onRemove }: { files: PendingFile[]; 
         <div key={key} className={styles.pending} title={file.name}>
           <PendingItem file={file} preview={preview} />
           {onRemove && (
-            <button type="button" className={styles.remove} onClick={() => onRemove(key)} aria-label={`移除 ${file.name}`}>
-              <X size={11} strokeWidth={2.5} />
-            </button>
+            <Button
+              size="small"
+              icon={<X fontSize={11} />}
+              appearance="subtle"
+              type="button"
+              className={styles.remove}
+              onClick={() => onRemove(key)}
+              aria-label={`移除 ${file.name}`}
+            />
           )}
         </div>
       ))}

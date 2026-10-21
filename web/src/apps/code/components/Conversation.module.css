@@ -22,30 +22,18 @@
   width: 34px;
   height: 34px;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow);
-  cursor: pointer;
   transform: translateX(-50%);
-  animation: appear 0.2s var(--ease) both;
-}
-
-@media (hover: hover) {
-  .toBottom:hover {
-    color: var(--text);
-  }
+  animation: appear 0.2s var(--curveDecelerateMid) both;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--spacingVerticalXXXL);
   min-height: 100%;
   max-width: 780px;
   margin: 0 auto;
-  padding: 12px 28px 40px;
+  padding: var(--spacingVerticalM) 28px 40px;
 }
 
 .empty {
@@ -57,20 +45,20 @@
   gap: 18px;
   padding-bottom: 40px;
   text-align: center;
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--curveDecelerateMid) both;
 }
 
 .empty h1 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--fontSizeBase600);
+  font-weight: var(--fontWeightSemibold);
   letter-spacing: -0.02em;
 }
 
 .empty p {
   margin: -8px 0 0;
-  font-size: 14px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground3);
 }
 
 @keyframes rise {
@@ -95,7 +83,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .empty,
+  .empty {
+    animation: none;
+  }
   .toBottom {
     animation: none;
   }
@@ -105,17 +95,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 14px;
+  gap: var(--spacingVerticalMNudge);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase300);
 }
 
 .projectChoice button {
   max-width: 240px;
-  padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
+  padding: 7px var(--spacingVerticalM);
 }

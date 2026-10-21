@@ -3,24 +3,23 @@
   top: calc(64px + env(safe-area-inset-top));
   left: 50%;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  color: var(--text-2);
-  font-size: 13px;
-  white-space: nowrap;
+  gap: var(--spacingVerticalS);
+  padding: var(--spacingVerticalSNudge) 14px;
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  box-shadow: var(--shadow8);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
+  width: max-content;
+  max-width: calc(100vw - 32px);
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, -6px);
   transition:
     opacity 0.2s,
     visibility 0.2s,
-    transform 0.2s var(--ease);
+    transform 0.2s var(--curveDecelerateMid);
 }
 
 .status[data-visible='true'] {
@@ -33,14 +32,4 @@
 
 .status[data-urgent='true'] {
   transition-delay: 0s;
-}
-
-.reload {
-  margin: -2px -8px -2px 2px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--on-ink);
-  font-size: 12px;
-  font-weight: 500;
 }

@@ -1,3 +1,4 @@
+import { Button } from '@fluentui/react-components'
 import { agents, agentIds } from '@binos/server/services/agent/types'
 import type { Limits, AgentId } from '@binos/server/services/agent/types'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -25,7 +26,7 @@ export function Quota() {
         label="订阅额度"
         className={styles.details}
         trigger={
-          <button type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
+          <Button size="small" appearance="subtle" type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
             {reported.map(([agent, limits]) => {
               const { used, runsOut, limited } = summary(limits, now)
               return (
@@ -41,7 +42,7 @@ export function Quota() {
                 </span>
               )
             })}
-          </button>
+          </Button>
         }
       >
         {reported.map(([agent, limits]) => (

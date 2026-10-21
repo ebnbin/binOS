@@ -1,6 +1,7 @@
+import { Button } from '@fluentui/react-components'
 import { agentIds } from '@binos/server/services/agent/types'
 import type { AgentId } from '@binos/server/services/agent/types'
-import { CircleAlert } from 'lucide-react'
+import { WarningRegular as CircleAlert } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { useHourlyNow } from '../../../services/agent/auth.ts'
 import { useAgentStatus } from '../../../services/agent/status.ts'
@@ -27,11 +28,17 @@ export function AuthBanner() {
         <Login fix={open.fix} onClose={() => setOpen(undefined)} />
       ) : (
         first && (
-          <button type="button" className={styles.row} onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}>
-            <CircleAlert size={15} strokeWidth={1.75} />
+          <Button
+            size="small"
+            appearance="subtle"
+            type="button"
+            className={styles.row}
+            onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}
+          >
+            <CircleAlert fontSize={15} />
             <span>{first.attention.text}</span>
             <span className={styles.action}>{first.attention.action}</span>
-          </button>
+          </Button>
         )
       )}
     </div>

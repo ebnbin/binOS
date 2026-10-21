@@ -1,4 +1,27 @@
-import { ArrowUpRight, Check, Disc3, ListMusic, Music2, Plus, Search, Settings2, X } from 'lucide-react'
+import {
+  Badge,
+  Button,
+  Card,
+  Input,
+  Link,
+  MessageBar,
+  MessageBarBody,
+  Select as FluentSelect,
+  Tab,
+  TabList,
+} from '@fluentui/react-components'
+
+import {
+  AddRegular as Plus,
+  ArrowUpRightRegular as ArrowUpRight,
+  CheckmarkRegular as Check,
+  DismissRegular as X,
+  MusicNote2Regular as Disc3,
+  MusicNote2Regular as Music2,
+  SearchRegular as Search,
+  SettingsRegular as Settings2,
+  TextBulletListLtrRegular as ListMusic,
+} from '@fluentui/react-icons'
 import { useEffect, useRef, useState } from 'react'
 import type { CatalogPage } from '@binos/server/apps/music/types'
 import type { WindowContext } from '../types.ts'
@@ -23,7 +46,9 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
   const request = useRef<AbortController | null>(null)
   const submitted = useRef({ query: '', providerId: '', operation: 'search' as 'search' | 'resolve' })
   const { setTitle } = ctx
-  useEffect(() => { setTitle(track?.title ?? '') }, [track?.title, setTitle])
+  useEffect(() => {
+    setTitle(track?.title ?? '')
+  }, [track?.title, setTitle])
   useEffect(() => () => request.current?.abort(), [])
 
   async function search(more = false) {
@@ -35,7 +60,9 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
     setBusy(true)
     setMessage('')
     setTab('results')
-    const params = more ? submitted.current : { query: value, providerId, operation: provider.acceptsLink(value) ? 'resolve' as const : 'search' as const }
+    const params = more
+      ? submitted.current
+      : { query: value, providerId, operation: provider.acceptsLink(value) ? ('resolve' as const) : ('search' as const) }
     submitted.current = params
     if (!more) setResults(undefined)
     try {
@@ -46,10 +73,12 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
       if (page.warning) setMessage(page.warning)
     } catch (error) {
       if (!controller.signal.aborted) setMessage(error instanceof Error ? error.message : '请求失败，请检查网络后重试。')
-    } finally { if (!controller.signal.aborted) setBusy(false) }
+    } finally {
+      if (!controller.signal.aborted) setBusy(false)
+    }
   }
 
-  const shown = tab === 'queue' ? state.queue : results?.tracks ?? []
+  const shown = tab === 'queue' ? state.queue : (results?.tracks ?? [])
   const queued = new Set(state.queue.map(trackKey))
   const Settings = provider.Settings
   const Inspector = musicProviders.find((source) => source.id === (track?.ref.provider ?? providerId))?.Inspector
@@ -57,55 +86,218 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <span className={styles.brand}><Music2 size={19} />音乐</span>
-        {musicProviders.length > 1 ? <select aria-label="音乐来源" value={providerId} onChange={(event) => { request.current?.abort(); setBusy(false); setResults(undefined); setMessage(''); setProviderId(event.target.value) }}>{musicProviders.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select> : <span className={styles.source}>{provider.name}</span>}
-        {Settings && <button type="button" className={styles.iconButton} aria-label="音乐设置" title="音乐设置" aria-expanded={settings} onClick={() => setSettings(!settings)}><Settings2 size={18} /></button>}
+        <span className={styles.brand}>
+          <Music2 fontSize={19} />
+          音乐
+        </span>
+        {musicProviders.length > 1 ? (
+          <FluentSelect
+            aria-label="音乐来源"
+            value={providerId}
+            onChange={(event) => {
+              request.current?.abort()
+              setBusy(false)
+              setResults(undefined)
+              setMessage('')
+              setProviderId(event.target.value)
+            }}
+          >
+            {musicProviders.map((source) => (
+              <option key={source.id} value={source.id}>
+                {source.name}
+              </option>
+            ))}
+          </FluentSelect>
+        ) : (
+          <span className={styles.source}>{provider.name}</span>
+        )}
+        {Settings && (
+          <Button
+            size="small"
+            icon={<Settings2 fontSize={18} />}
+            appearance="subtle"
+            type="button"
+            className={styles.iconButton}
+            aria-label="音乐设置"
+            title="音乐设置"
+            aria-expanded={settings}
+            onClick={() => setSettings(!settings)}
+          />
+        )}
       </header>
       {settings && Settings && <Settings />}
-      <form className={styles.search} onSubmit={(event) => { event.preventDefault(); void search() }}>
-        <Search size={17} />
-        <input aria-label="搜索音乐或粘贴链接" placeholder="歌名、歌手或音乐链接" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={500} />
-        <button className={styles.primary} disabled={!query.trim()}>查找</button>
+      <form
+        className={styles.search}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void search()
+        }}
+      >
+        <Search fontSize={17} />
+        <Input
+          aria-label="搜索音乐或粘贴链接"
+          placeholder="歌名、歌手或音乐链接"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          maxLength={500}
+        />
+        <Button type="submit" size="small" appearance="primary" className={styles.primary} disabled={!query.trim()}>
+          查找
+        </Button>
       </form>
-      <section className={styles.nowPlaying} aria-label="正在播放">
-        <span className={styles.artwork}>{track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={48} strokeWidth={1} />}</span>
+      <Card className={styles.nowPlaying} aria-label="正在播放">
+        <span className={styles.artwork}>
+          {track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 fontSize={48} />}
+        </span>
         <div className={styles.trackInfo}>
-          <span className={styles.eyebrow}>{state.status === 'playing' ? '正在播放' : state.status === 'loading' ? '正在连接…' : state.status === 'error' ? '播放遇到问题' : track ? '随时继续' : '你的音乐，随时播放'}</span>
+          <span className={styles.eyebrow}>
+            {state.status === 'playing'
+              ? '正在播放'
+              : state.status === 'loading'
+                ? '正在连接…'
+                : state.status === 'error'
+                  ? '播放遇到问题'
+                  : track
+                    ? '随时继续'
+                    : '你的音乐，随时播放'}
+          </span>
           <h1>{track?.title ?? '从喜欢的一首开始'}</h1>
           <p>{track ? track.artists.join(' / ') || '未知艺人' : '粘贴单曲链接即可试听；在设置中开启按名称搜索。'}</p>
-          {track && <a href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开 <ArrowUpRight size={12} /></a>}
+          {track && (
+            <Link href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>
+              在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开{' '}
+              <ArrowUpRight fontSize={12} />
+            </Link>
+          )}
         </div>
-      </section>
-      {state.error && <div role="alert" className={styles.error}>{state.error}</div>}
+      </Card>
+      {state.error && (
+        <MessageBar intent="error" role="alert" className={styles.error}>
+          <MessageBarBody>{state.error}</MessageBarBody>
+        </MessageBar>
+      )}
       <PlayerControls />
       <div className={styles.tabs}>
-        <button type="button" data-active={tab === 'queue'} onClick={() => setTab('queue')}><ListMusic size={16} />队列 <span>{state.queue.length}</span></button>
-        <button type="button" data-active={tab === 'results'} onClick={() => setTab('results')}>查找结果{results && <span>{results.tracks.length}</span>}</button>
+        <TabList aria-label="音乐列表" selectedValue={tab} onTabSelect={(_, data) => setTab(data.value as 'queue' | 'results')}>
+          <Tab value="queue" icon={<ListMusic />}>
+            队列 <Badge appearance="tint">{state.queue.length}</Badge>
+          </Tab>
+          <Tab value="results">查找结果{results && <Badge appearance="tint">{results.tracks.length}</Badge>}</Tab>
+        </TabList>
         <div className={styles.tabActions}>
-          {tab === 'queue' && state.queue.length > 0 && <button type="button" onClick={() => music.clear()}>清空</button>}
-          {tab === 'results' && shown.length > 0 && <button type="button" onClick={() => { music.add(shown); setTab('queue') }}>全部加入</button>}
+          {tab === 'queue' && state.queue.length > 0 && (
+            <Button size="small" appearance="subtle" type="button" onClick={() => music.clear()}>
+              清空
+            </Button>
+          )}
+          {tab === 'results' && shown.length > 0 && (
+            <Button
+              size="small"
+              appearance="subtle"
+              type="button"
+              onClick={() => {
+                music.add(shown)
+                setTab('queue')
+              }}
+            >
+              全部加入
+            </Button>
+          )}
         </div>
       </div>
       <div className={styles.content}>
-        {message && <p className={styles.notice} role="status">{message}</p>}
-        {shown.length === 0 ? <div className={styles.empty}><Disc3 size={32} strokeWidth={1.2} /><p>{busy ? '正在查找音乐…' : tab === 'queue' ? '播放队列还是空的' : results ? '没有找到内容，试试其他关键词或链接' : '搜索歌名，或粘贴 YouTube / YouTube Music 链接'}</p></div> : <ul className={styles.list}>
-          {shown.map((item, index) => <TrackRow key={`${trackKey(item)}:${index}`} track={item} active={!!track && trackKey(item) === trackKey(track)} queued={queued.has(trackKey(item))} queue={tab === 'queue'} onPlay={() => tab === 'queue' ? void music.select(index) : music.add([item], true)} onAction={() => tab === 'queue' ? music.remove(index) : music.add([item])} />)}
-        </ul>}
-        {tab === 'results' && results?.nextPage && <button type="button" className={styles.loadMore} disabled={busy} onClick={() => void search(true)}>{busy ? '加载中…' : '加载更多'}</button>}
+        {message && (
+          <p className={styles.notice} role="status">
+            {message}
+          </p>
+        )}
+        {shown.length === 0 ? (
+          <div className={styles.empty}>
+            <Disc3 fontSize={32} />
+            <p>
+              {busy
+                ? '正在查找音乐…'
+                : tab === 'queue'
+                  ? '播放队列还是空的'
+                  : results
+                    ? '没有找到内容，试试其他关键词或链接'
+                    : '搜索歌名，或粘贴 YouTube / YouTube Music 链接'}
+            </p>
+          </div>
+        ) : (
+          <ul className={styles.list}>
+            {shown.map((item, index) => (
+              <TrackRow
+                key={`${trackKey(item)}:${index}`}
+                track={item}
+                active={!!track && trackKey(item) === trackKey(track)}
+                queued={queued.has(trackKey(item))}
+                queue={tab === 'queue'}
+                onPlay={() => (tab === 'queue' ? void music.select(index) : music.add([item], true))}
+                onAction={() => (tab === 'queue' ? music.remove(index) : music.add([item]))}
+              />
+            ))}
+          </ul>
+        )}
+        {tab === 'results' && results?.nextPage && (
+          <Button
+            size="small"
+            appearance="subtle"
+            type="button"
+            className={styles.loadMore}
+            disabled={busy}
+            onClick={() => void search(true)}
+          >
+            {busy ? '加载中…' : '加载更多'}
+          </Button>
+        )}
       </div>
-      <footer className={styles.footer}><span>{state.queue.length >= 500 ? '队列已满（500 首）' : queueStatus}</span>{Inspector && <Inspector />}</footer>
+      <footer className={styles.footer}>
+        <span>{state.queue.length >= 500 ? '队列已满（500 首）' : queueStatus}</span>
+        {Inspector && <Inspector />}
+      </footer>
     </div>
   )
 }
 
-function TrackRow({ track, active, queued, queue, onPlay, onAction }: { track: Track; active: boolean; queued: boolean; queue: boolean; onPlay(): void; onAction(): void }) {
+function TrackRow({
+  track,
+  active,
+  queued,
+  queue,
+  onPlay,
+  onAction,
+}: {
+  track: Track
+  active: boolean
+  queued: boolean
+  queue: boolean
+  onPlay(): void
+  onAction(): void
+}) {
   return (
     <li className={styles.row} data-active={active}>
-      <button type="button" className={styles.rowTrack} onClick={onPlay} title={`播放 ${track.title}`}>
-        <span className={styles.thumb}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Music2 size={18} />}</span>
-        <span className={styles.rowInfo}><strong>{track.title}</strong><span>{track.artists.join(' / ') || '未知艺人'}</span></span>
-      </button>
-      <button type="button" className={styles.iconButton} aria-label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`} title={queue ? '移除' : queued ? '已在队列中' : '加入队列'} disabled={!queue && queued} onClick={onAction}>{queue ? <X size={16} /> : queued ? <Check size={16} /> : <Plus size={17} />}</button>
+      <Button size="small" appearance="subtle" type="button" className={styles.rowTrack} onClick={onPlay} title={`播放 ${track.title}`}>
+        <span className={styles.thumb}>
+          {track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Music2 fontSize={18} />}
+        </span>
+        <span className={styles.rowInfo}>
+          <strong>{track.title}</strong>
+          <span>{track.artists.join(' / ') || '未知艺人'}</span>
+        </span>
+      </Button>
+      <Button
+        size="small"
+        appearance="subtle"
+        type="button"
+        className={styles.iconButton}
+        aria-label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`}
+        title={queue ? '移除' : queued ? '已在队列中' : '加入队列'}
+        disabled={!queue && queued}
+        onClick={onAction}
+      >
+        {queue ? <X fontSize={16} /> : queued ? <Check fontSize={16} /> : <Plus fontSize={17} />}
+      </Button>
     </li>
   )
 }

@@ -1,5 +1,6 @@
+import { Link } from '@fluentui/react-components'
 import 'katex/dist/katex.min.css'
-import { ImageOff } from 'lucide-react'
+import { ImageOffRegular as ImageOff } from '@fluentui/react-icons'
 import { memo, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -32,23 +33,30 @@ function MarkdownImage({ src, alt, renderFile }: { src: unknown; alt?: string; r
   const file = typeof src === 'string' ? renderFile?.(src, true) : undefined
   if (file) return file
   if (typeof src !== 'string' || !/^https?:\/\//.test(src)) {
-    return <span className={styles.missingImage}><ImageOff size={14} strokeWidth={1.75} />{alt || '图片'}</span>
+    return (
+      <span className={styles.missingImage}>
+        <ImageOff fontSize={14} />
+        {alt || '图片'}
+      </span>
+    )
   }
-  return <a className={styles.image} href={src} target="_blank" rel="noreferrer"><img src={src} alt={alt ?? ''} loading="lazy" /></a>
+  return (
+    <Link className={styles.image} href={src} target="_blank" rel="noreferrer">
+      <img src={src} alt={alt ?? ''} loading="lazy" />
+    </Link>
+  )
 }
 
 // 回答过程中文本会频繁更新，内容不变的段落不重新解析
-export const Markdown = memo(function Markdown({
-  text,
-  renderFile,
-}: {
-  text: string
-  renderFile?: RenderFile
-}) {
+export const Markdown = memo(function Markdown({ text, renderFile }: { text: string; renderFile?: RenderFile }) {
   const components = useMemo<Components>(
     () => ({
       a: ({ node: _node, href, children, ...props }) =>
-        (href && renderFile?.(href, false)) || <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>,
+        (href && renderFile?.(href, false)) || (
+          <Link {...props} href={href} target="_blank" rel="noreferrer">
+            {children}
+          </Link>
+        ),
       img: ({ src, alt }) => <MarkdownImage src={src} alt={alt} renderFile={renderFile} />,
       pre: ({ children }) => <div className={styles.codeBlock}>{children}</div>,
       code: ({ className, children }) => <MarkdownCode className={className}>{children}</MarkdownCode>,

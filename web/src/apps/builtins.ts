@@ -1,4 +1,13 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Smartphone, Terminal } from 'lucide-react'
+import {
+  CalendarLtrRegular as CalendarDays,
+  CodeRegular as CodeXml,
+  FolderRegular as Folder,
+  GaugeRegular as Gauge,
+  GlobeRegular as Globe,
+  MusicNote2Regular as Music,
+  PhoneRegular as Smartphone,
+  WindowConsoleRegular as Terminal,
+} from '@fluentui/react-icons'
 import { lazy } from 'react'
 import type { ApplicationDefinition } from './types.ts'
 
@@ -8,7 +17,10 @@ export const builtinApplications: ApplicationDefinition[] = [
     name: '日历',
     icon: CalendarDays,
     views: {
-      month: { kind: 'widget', component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))) },
+      month: {
+        kind: 'widget',
+        component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))),
+      },
     },
     widgets: { main: { name: '月历', viewId: 'month', sizes: ['4x4'] } },
   },
@@ -17,7 +29,12 @@ export const builtinApplications: ApplicationDefinition[] = [
     name: 'Devices',
     icon: Smartphone,
     mainWindow: { viewId: 'main' },
-    views: { main: { kind: 'window', component: lazy(() => import('./devices/DevicesApp.tsx').then((module) => ({ default: module.DevicesApp }))) } },
+    views: {
+      main: {
+        kind: 'window',
+        component: lazy(() => import('./devices/DevicesApp.tsx').then((module) => ({ default: module.DevicesApp }))),
+      },
+    },
   },
   {
     id: 'music',
@@ -26,7 +43,10 @@ export const builtinApplications: ApplicationDefinition[] = [
     mainWindow: { viewId: 'main' },
     views: {
       main: { kind: 'window', component: lazy(() => import('./music/MusicApp.tsx').then((module) => ({ default: module.MusicApp }))) },
-      widget: { kind: 'widget', component: lazy(() => import('./music/MusicWidget.tsx').then((module) => ({ default: module.MusicWidget }))) },
+      widget: {
+        kind: 'widget',
+        component: lazy(() => import('./music/MusicWidget.tsx').then((module) => ({ default: module.MusicWidget }))),
+      },
     },
     widgets: { main: { name: '正在播放', viewId: 'widget', sizes: ['2x2', '4x2', '4x4'] } },
   },

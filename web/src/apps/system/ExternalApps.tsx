@@ -1,4 +1,6 @@
-import { Plus } from 'lucide-react'
+import { Button, Field, Input, ToggleButton } from '@fluentui/react-components'
+
+import { AddRegular as Plus } from '@fluentui/react-icons'
 import { useState } from 'react'
 import { icons, iconNames } from '../external/icons.ts'
 import { saveExternalApps, useExternalApps } from '../external/registry.ts'
@@ -37,25 +39,47 @@ export function ExternalApps() {
     <section className={styles.section}>
       <header className={styles.header}>
         <h2>外部 app</h2>
-        <button type="button" className={styles.add} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
-          <Plus size={15} strokeWidth={2} />
+        <Button
+          size="small"
+          appearance="subtle"
+          type="button"
+          className={styles.add}
+          disabled={editing !== null}
+          onClick={() => setEditing({ index: null, draft: newApp() })}
+        >
+          <Plus fontSize={15} />
           添加
-        </button>
+        </Button>
       </header>
-      <p className={styles.hint}>独立部署的 web app，在窗口里打开。清单存在这台 Mac 的系统数据里，不在 binOS 的代码中；app 本身要允许被 binos.app 嵌入。</p>
+      <p className={styles.hint}>
+        独立部署的 web app，在窗口里打开。清单存在这台 Mac 的系统数据里，不在 binOS 的代码中；app 本身要允许被 binos.app 嵌入。
+      </p>
       <ul className={styles.list}>
         {list.map((app, index) =>
           editing?.index === index ? (
             <li key={app.id}>
-              <Editor editing={editing} onChange={setEditing} onSave={save} onCancel={() => setEditing(null)} onRemove={() => remove(index)} />
+              <Editor
+                editing={editing}
+                onChange={setEditing}
+                onSave={save}
+                onCancel={() => setEditing(null)}
+                onRemove={() => remove(index)}
+              />
             </li>
           ) : (
             <li key={app.id}>
-              <button type="button" className={styles.row} disabled={editing !== null} onClick={() => setEditing({ index, draft: app })}>
+              <Button
+                size="small"
+                appearance="subtle"
+                type="button"
+                className={styles.row}
+                disabled={editing !== null}
+                onClick={() => setEditing({ index, draft: app })}
+              >
                 <AppIcon name={app.icon} />
                 <span className={styles.name}>{app.name}</span>
                 <span className={styles.url}>{app.url}</span>
-              </button>
+              </Button>
             </li>
           ),
         )}
@@ -71,7 +95,7 @@ export function ExternalApps() {
 
 function AppIcon({ name }: { name: ExternalAppConfig['icon'] }) {
   const Icon = icons[name]
-  return <Icon size={18} strokeWidth={1.75} />
+  return <Icon fontSize={18} />
 }
 
 function Editor({
@@ -102,13 +126,11 @@ function Editor({
         }
       }}
     >
-      <label>
-        <span>名称</span>
-        <input value={draft.name} onChange={(event) => set({ name: event.target.value })} autoFocus />
-      </label>
-      <label>
-        <span>网址</span>
-        <input
+      <Field label="名称">
+        <Input value={draft.name} onChange={(event) => set({ name: event.target.value })} autoFocus />
+      </Field>
+      <Field label="网址">
+        <Input
           type="url"
           value={draft.url}
           placeholder="https://"
@@ -117,35 +139,43 @@ function Editor({
           spellCheck={false}
           onChange={(event) => set({ url: event.target.value })}
         />
-      </label>
+      </Field>
       <div className={styles.field}>
         <span>图标</span>
         <div className={styles.icons}>
           {iconNames.map((name) => (
-            <button key={name} type="button" aria-label={name} aria-pressed={draft.icon === name} onClick={() => set({ icon: name })}>
-              <AppIcon name={name} />
-            </button>
+            <ToggleButton
+              checked={Boolean(draft.icon === name)}
+              size="small"
+              icon={<AppIcon name={name} />}
+              appearance="subtle"
+              key={name}
+              type="button"
+              aria-label={name}
+              aria-pressed={draft.icon === name}
+              onClick={() => set({ icon: name })}
+            />
           ))}
         </div>
       </div>
       <div className={styles.actions}>
         {onRemove &&
           (confirming ? (
-            <button type="button" className={styles.danger} onClick={onRemove}>
+            <Button size="small" appearance="subtle" type="button" onClick={onRemove}>
               确认删除
-            </button>
+            </Button>
           ) : (
-            <button type="button" className={styles.secondary} onClick={() => setConfirming(true)}>
+            <Button size="small" appearance="secondary" type="button" onClick={() => setConfirming(true)}>
               删除
-            </button>
+            </Button>
           ))}
         <span className={styles.spacer} />
-        <button type="button" className={styles.secondary} onClick={onCancel}>
+        <Button size="small" appearance="secondary" type="button" onClick={onCancel}>
           取消
-        </button>
-        <button type="submit" className={styles.primary} disabled={!valid}>
+        </Button>
+        <Button size="small" appearance="primary" type="submit" disabled={!valid}>
           保存
-        </button>
+        </Button>
       </div>
     </form>
   )

@@ -4,38 +4,19 @@
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
 }
 
 .ring svg {
   transform: rotate(-90deg);
 }
 
-@media (hover: hover) {
-  .ring:hover {
-    background: var(--hover);
-  }
-}
-
-.ring[data-level='warning'] {
-  color: var(--live);
-}
-
-.ring[data-level='danger'] {
-  color: var(--danger);
-}
-
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   width: 300px;
-  padding: 12px 14px;
-  font-size: 13px;
+  padding: var(--spacingVerticalM) 14px;
+  font-size: var(--fontSizeBase300);
   font-variant-numeric: tabular-nums;
   cursor: default;
 }
@@ -43,51 +24,32 @@
 .line {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--spacingVerticalM);
 }
 
 .label {
-  font-weight: 550;
+  font-weight: var(--fontWeightSemibold);
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 
 .bar {
-  height: 6px;
   margin-top: -2px;
-  border-radius: 999px;
-  background: var(--hover);
-  overflow: hidden;
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--text-2);
-}
-
-.bar[data-level='warning'] span {
-  background: var(--live);
-}
-
-.bar[data-level='danger'] span {
-  background: var(--danger);
 }
 
 .parts {
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 12px;
+  gap: var(--spacingVerticalXXS) var(--spacingVerticalM);
   margin-top: -4px;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
 }
 
 .note {
   margin: 0;
-  font-size: 11.5px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
 }

@@ -1,7 +1,7 @@
 .list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
 }
 
 .sent {
@@ -17,9 +17,9 @@
   width: 64px;
   height: 64px;
   overflow: hidden;
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
-  background: var(--code);
+  border: 1px solid var(--colorNeutralStroke2);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
 }
 
 .thumb img {
@@ -31,15 +31,15 @@
 .card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   max-width: 220px;
   height: 64px;
-  padding: 0 14px 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 13px;
+  padding: 0 14px 0 var(--spacingVerticalM);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
 }
 
 .card svg {
@@ -50,7 +50,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--text);
+  color: var(--colorNeutralForeground1);
 }
 
 .link {
@@ -60,7 +60,7 @@
 
 @media (hover: hover) {
   .link:hover .card {
-    background: var(--hover);
+    background: var(--colorNeutralBackground1Hover);
   }
 }
 
@@ -76,10 +76,6 @@
   place-items: center;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--surface);
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
 }
 
 /* 触屏上按钮太小不好点，扩大可点区域 */

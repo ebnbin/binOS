@@ -1,5 +1,5 @@
-import styles from './Spinner.module.css'
+import { Spinner as FluentSpinner } from '@fluentui/react-components'
 
 export function Spinner() {
-  return <span className={styles.spinner} role="status" aria-label="进行中" />
+  return <FluentSpinner size="tiny" aria-label="进行中" />
 }

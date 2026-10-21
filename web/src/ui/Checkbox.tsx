@@ -1,14 +1,13 @@
-import * as Primitive from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import styles from './Checkbox.module.css'
+import { Checkbox as FluentCheckbox } from '@fluentui/react-components'
 
-export function Checkbox({ checked, onCheckedChange, label }: { checked: boolean; onCheckedChange: (checked: boolean) => void; label: string }) {
-  return (
-    <label className={styles.label}>
-      <Primitive.Root className={styles.control} checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)}>
-        <Primitive.Indicator className={styles.indicator}><Check size={12} strokeWidth={3} /></Primitive.Indicator>
-      </Primitive.Root>
-      {label}
-    </label>
-  )
+export function Checkbox({
+  checked,
+  onCheckedChange,
+  label,
+}: {
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+  label: string
+}) {
+  return <FluentCheckbox checked={checked} onChange={(_, data) => onCheckedChange(data.checked === true)} label={label} />
 }

@@ -1,38 +1,38 @@
 .flow {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacingVerticalMNudge);
   padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  font-size: 13.5px;
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  font-size: var(--fontSizeBase300);
   text-align: left;
 }
 
 .title {
-  font-weight: 600;
+  font-weight: var(--fontWeightSemibold);
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   margin: 0;
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacingVerticalMNudge);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--text);
+  color: var(--colorNeutralForeground1);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -40,30 +40,19 @@
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  color: var(--text-2);
+  gap: var(--spacingVerticalSNudge);
+  color: var(--colorNeutralForeground2);
 }
 
-.codeLabel input {
+.codeLabel :global(.fui-Input) {
   height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-}
-
-.codeLabel input:focus {
-  border-color: var(--text-2);
+  padding: 0 var(--spacingVerticalMNudge);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
 }
 
 .primary,
@@ -73,48 +62,27 @@
   min-width: 64px;
   height: 32px;
   padding: 0 14px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.primary:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-2);
 }
 
 .done {
   margin: 0;
-  color: #1a7f37;
+  color: var(--colorPaletteGreenForeground1);
 }
 
 .error {
   margin: 0;
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
   overflow-wrap: anywhere;
 }
 
 .deviceCode {
   align-self: flex-start;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 18px;
+  padding: var(--spacingVerticalSNudge) var(--spacingVerticalM);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground2);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase500);
   letter-spacing: 0.08em;
   user-select: all;
 }

@@ -1,11 +1,11 @@
 .diagram {
   display: flex;
   justify-content: center;
-  padding: 16px;
+  padding: var(--spacingVerticalL);
   overflow-x: auto;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--surface);
+  border: 1px solid var(--colorNeutralStroke2);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
 }
 
 .diagram svg {

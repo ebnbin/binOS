@@ -1,5 +1,13 @@
+import { Button, Textarea } from '@fluentui/react-components'
 import { Select } from '../../../ui/Select.tsx'
-import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import {
+  ArrowUpRegular as ArrowUp,
+  AttachRegular as Paperclip,
+  ClockRegular as Clock,
+  DismissRegular as X,
+  FlashRegular as Zap,
+  TextBulletListAddRegular as ListPlus,
+} from '@fluentui/react-icons'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -212,11 +220,11 @@ export function Composer({
           <ul className={styles.queue} aria-label="排队的消息">
             {queue.map((item) => (
               <li key={item.id}>
-                <Clock size={13} strokeWidth={1.75} className={styles.queueIcon} aria-label="排队中" />
+                <Clock fontSize={13} className={styles.queueIcon} aria-label="排队中" />
                 <span className={styles.queueText}>{item.text.trim() || item.attachments?.[0]?.name}</span>
                 {item.attachments?.length ? (
                   <span className={styles.queueFiles}>
-                    <Paperclip size={12} strokeWidth={1.75} />
+                    <Paperclip fontSize={12} />
                     {item.attachments.length}
                   </span>
                 ) : null}
@@ -239,8 +247,8 @@ export function Composer({
             <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
           </div>
         )}
-        <textarea
-          ref={textareaRef}
+        <Textarea
+          textarea={{ ref: textareaRef }}
           className={styles.input}
           value={input}
           onChange={(event) => setInput(event.target.value)}
@@ -318,44 +326,57 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+            <Button
+              size="small"
+              appearance="primary"
+              type="button"
+              className={styles.action}
+              onClick={onStop}
+              aria-label="停止"
+              title="停止"
+            >
               <span className={styles.stopIcon} />
-            </button>
+            </Button>
           ) : (
             <>
               {running && (
                 <>
-                  <button
+                  <Button
+                    size="small"
+                    appearance="secondary"
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('interrupt')}
                     aria-label="打断并发送"
                     title="打断正在做的事，马上处理这句话"
                   >
-                    <Zap size={14} strokeWidth={2} />
+                    <Zap fontSize={14} />
                     打断
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="small"
+                    appearance="secondary"
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('queue')}
                     aria-label="排队"
                     title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
                   >
-                    <ListPlus size={14} strokeWidth={2} />
+                    <ListPlus fontSize={14} />
                     排队
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <Button
+                size="small"
+                icon={<ArrowUp fontSize={17} />}
+                appearance="primary"
                 type="submit"
                 className={styles.action}
                 disabled={!canSend}
                 aria-label={running ? '插话' : '发送'}
                 title={running ? '插话：agent 在下一步看到' : '发送'}
-              >
-                <ArrowUp size={17} strokeWidth={2.2} />
-              </button>
+              />
             </>
           )}
         </div>

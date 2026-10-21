@@ -1,4 +1,4 @@
-/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
+/* 环形图用同一套语义颜色区分额度窗口和即将用满的状态。 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: #2fa84f;
+  --window: var(--colorPaletteGreenForeground1);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--live);
+  --window: var(--colorBrandForeground1);
 }
 
 .ring g {
@@ -19,36 +19,36 @@
 }
 
 .ring [data-full] {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  font-size: 13px;
+  font-size: var(--fontSizeBase300);
   font-variant-numeric: tabular-nums;
 }
 
 .limited {
   margin: 0;
-  padding: 7px 10px;
-  border-radius: 8px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  padding: 7px var(--spacingVerticalMNudge);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorPaletteRedBackground1);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacingVerticalSNudge);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 12px;
+  gap: var(--spacingVerticalS);
+  font-size: var(--fontSizeBase200);
 }
 
 .windowLine > :last-child {
@@ -58,42 +58,29 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 550;
+  gap: var(--spacingVerticalSNudge);
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .swatch {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--borderRadiusMedium);
   background: var(--window);
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 
 .danger {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--hover);
-}
-
-.bar span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: var(--window);
-}
-
-.bar[data-full] span {
-  background: var(--danger);
+  padding: var(--spacingVerticalXXS) 0;
 }
 
 /* 匀速线 */
@@ -103,6 +90,6 @@
   bottom: -3px;
   width: 2px;
   margin-left: -1px;
-  border-radius: 1px;
-  background: var(--text-2);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralForeground2);
 }

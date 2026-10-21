@@ -27,8 +27,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  color: var(--muted);
+  gap: var(--spacingVerticalXS);
+  color: var(--colorNeutralForeground3);
 }
 
 .missing p {
@@ -36,7 +36,6 @@
 }
 
 .missing button {
-  color: var(--text);
   text-decoration: underline;
 }
 

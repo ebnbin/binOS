@@ -4,46 +4,38 @@
 
 .summary {
   display: flex;
-  gap: 10px;
-  padding: 3px 9px 3px 6px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  gap: var(--spacingVerticalMNudge);
+  padding: 3px 9px 3px var(--spacingVerticalSNudge);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacingVerticalXS);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .details {
   width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px 14px 14px;
-  box-shadow: var(--shadow);
+  gap: var(--spacingVerticalL);
+  padding: var(--spacingVerticalM) 14px 14px;
+  box-shadow: var(--shadow8);
 }
 
 .details h3 {
   margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: var(--fontSizeBase200);
+  font-weight: var(--fontWeightMedium);
+  color: var(--colorNeutralForeground3);
 }
 
 .details section + section {
   padding-top: 14px;
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--colorNeutralStroke2);
 }

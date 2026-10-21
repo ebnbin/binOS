@@ -1,85 +1,89 @@
 .app {
+  container: system / inline-size;
+  position: relative;
   height: 100%;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  font-size: 14px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--colorNeutralBackground2);
 }
 .top {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 22px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  gap: 12px;
+  border-bottom: 1px solid var(--colorNeutralStroke1);
+  background: var(--colorNeutralBackground1);
+  gap: var(--spacingVerticalM);
 }
 .top > div {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--spacingVerticalXL);
 }
 .top strong {
-  font-size: 17px;
+  font-size: var(--fontSizeBase400);
 }
 .freshness {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  color: #42806b;
-  font-size: 12px;
+  gap: var(--spacingVerticalS);
+  color: var(--colorPaletteGreenForeground1);
+  font-size: var(--fontSizeBase200);
 }
 .freshness::before {
   content: '';
   width: 6px;
   height: 6px;
   background: currentColor;
-  border-radius: 50%;
+  border-radius: var(--borderRadiusMedium);
 }
 .freshness[data-stale='true'] {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 .freshness small {
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 .sections {
+  width: 184px;
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
-  gap: 12px;
-  padding: 14px 22px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--spacingVerticalXS);
+  padding: var(--spacingVerticalL) var(--spacingVerticalS);
+  border-right: 1px solid var(--colorNeutralStroke2);
+  background: var(--colorNeutralBackground3);
 }
 .sections button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  width: 100%;
+  justify-content: flex-start;
   text-align: left;
-  color: var(--text-2);
-}
-.sections button[aria-current='page'] {
-  background: var(--ink);
-  color: var(--on-ink);
-  border-color: var(--ink);
 }
 .sections small {
   display: block;
-  opacity: 0.65;
-  font-size: 11px;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase100);
   margin-top: 2px;
 }
 .body {
-  flex: 1;
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
 }
+.app > .warning {
+  position: absolute;
+  z-index: 1;
+  inset: auto 16px 16px;
+}
 .content {
-  padding: 24px;
+  padding: var(--spacingVerticalXXL);
   max-width: 1100px;
   margin: 0 auto;
 }
@@ -87,26 +91,26 @@
   margin-bottom: 24px;
 }
 .hero h1 {
-  font-size: 24px;
+  font-size: var(--fontSizeBase600);
   margin: 0 0 5px;
   overflow-wrap: anywhere;
 }
 .hero p {
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fontSizeBase300);
 }
 .cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--spacingVerticalL);
   margin-bottom: 18px;
 }
 .card,
 .section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--colorNeutralBackground1);
+  border: 1px solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
   padding: 22px;
   min-width: 0;
 }
@@ -115,78 +119,58 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightMedium);
   margin: 0 0 18px;
-  color: var(--text-2);
+  color: var(--colorNeutralForeground2);
 }
 .card > strong {
   display: block;
-  font-size: 28px;
-  font-weight: 500;
+  font-size: var(--fontSizeHero700);
+  font-weight: var(--fontWeightMedium);
   margin-bottom: 12px;
 }
 .card > strong small {
-  font-size: 14px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase300);
+  color: var(--colorNeutralForeground3);
 }
 .card p,
 .volume p {
   margin: 10px 0 0;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
 }
-.card progress,
-.volume progress {
+.card :global(.fui-ProgressBar),
+.volume :global(.fui-ProgressBar) {
   width: 100%;
   height: 8px;
   display: block;
-  border: 0;
-  border-radius: 8px;
-  appearance: none;
-  background: var(--bubble);
-  accent-color: #5e9a8b;
-}
-.card progress::-webkit-progress-bar,
-.volume progress::-webkit-progress-bar {
-  background: var(--bubble);
-  border-radius: 8px;
-}
-.card progress::-webkit-progress-value,
-.volume progress::-webkit-progress-value {
-  background: #5e9a8b;
-  border-radius: 8px;
-}
-.card progress::-moz-progress-bar,
-.volume progress::-moz-progress-bar {
-  background: #5e9a8b;
-  border-radius: 8px;
 }
 .speeds {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: var(--spacingVerticalXL);
 }
 .speeds > span {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
 }
 .speeds strong {
-  font-size: 21px;
-  font-weight: 500;
-  color: var(--text);
+  font-size: var(--fontSizeBase500);
+  font-weight: var(--fontWeightMedium);
+  color: var(--colorNeutralForeground1);
 }
 .speeds small {
-  font-size: 11px;
+  font-size: var(--fontSizeBase100);
 }
 .section {
   margin-bottom: 18px;
 }
 .volume {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--hairline);
+  padding: var(--spacingVerticalL) 0;
+  border-bottom: 1px solid var(--colorNeutralStroke2);
 }
 .volume:last-child {
   border: 0;
@@ -197,47 +181,41 @@
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   margin-bottom: 12px;
 }
 .volume header strong {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--fontSizeBase300);
+  font-weight: var(--fontWeightMedium);
 }
 .volume header span {
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
 }
 .note {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
   line-height: 1.8;
 }
 .bad {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 .warning {
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 12px;
-  padding: 12px 20px;
+  background: var(--colorPaletteRedBackground1);
+  color: var(--colorPaletteRedForeground1);
+  font-size: var(--fontSizeBase200);
+  padding: var(--spacingVerticalM) var(--spacingVerticalXL);
   overflow-wrap: anywhere;
 }
 .empty {
   text-align: center;
-  padding: 60px 20px;
-  color: var(--muted);
+  padding: 60px var(--spacingVerticalXL);
+  color: var(--colorNeutralForeground3);
 }
 .actions button {
   display: inline-flex;
   align-items: center;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--surface);
-}
-.app button:disabled {
-  opacity: 0.4;
+  padding: 7px var(--spacingVerticalMNudge);
 }
 .rows {
   margin: 0;
@@ -245,15 +223,15 @@
 .rows > div {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--hairline);
+  gap: var(--spacingVerticalXL);
+  padding: var(--spacingVerticalM) 0;
+  border-bottom: 1px solid var(--colorNeutralStroke2);
 }
 .rows > div:last-child {
   border: 0;
 }
 .rows dt {
-  color: var(--text-2);
+  color: var(--colorNeutralForeground2);
 }
 .rows dd {
   margin: 0;
@@ -261,14 +239,14 @@
 .settingLink {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
+  gap: var(--spacingVerticalL);
+  padding: var(--spacingVerticalM) 0;
   width: 100%;
   text-align: left;
 }
 .settingLink span {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
 }
 .spin {
   animation: spin 1s linear infinite;
@@ -280,50 +258,62 @@
 }
 @media (max-width: 550px) {
   .top {
-    padding: 10px 14px;
+    grid-column: 1 / -1;
+    padding: var(--spacingVerticalMNudge) 14px;
   }
   .top > div {
-    gap: 12px;
+    gap: var(--spacingVerticalM);
   }
   .freshness small {
     display: none;
   }
-  .sections {
-    padding: 10px 12px;
-    gap: 6px;
-  }
-  .sections button {
-    padding: 10px 8px;
-    gap: 7px;
-  }
+
   .sections small {
-    font-size: 9px;
+    font-size: var(--fontSizeBase100);
   }
   .content {
-    padding: 20px 12px;
+    padding: var(--spacingVerticalXL) var(--spacingVerticalM);
   }
   .cards {
-    gap: 12px;
+    gap: var(--spacingVerticalM);
   }
   .card,
   .section {
-    padding: 16px;
+    padding: var(--spacingVerticalL);
   }
   .card > strong {
-    font-size: 23px;
+    font-size: var(--fontSizeBase600);
   }
   .hero h1 {
-    font-size: 21px;
+    font-size: var(--fontSizeBase500);
   }
   .speeds {
-    gap: 12px;
+    gap: var(--spacingVerticalM);
   }
   .speeds strong {
-    font-size: 18px;
+    font-size: var(--fontSizeBase500);
   }
 }
 @media (max-width: 380px) {
   .cards {
     grid-template-columns: 1fr;
+  }
+}
+
+@container system (width < 700px) {
+  .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sections {
+    width: 64px;
+    padding: var(--spacingVerticalS) var(--spacingVerticalXS);
+  }
+  .sections button {
+    justify-content: center;
+    padding: var(--spacingVerticalM);
+  }
+  .sections :global(.fui-Tab__content),
+  .sections :global(.fui-Tab__content--reserved-space) {
+    display: none;
   }
 }

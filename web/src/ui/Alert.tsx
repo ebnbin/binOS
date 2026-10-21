@@ -1,12 +1,10 @@
-import { CircleAlert } from 'lucide-react'
+import { MessageBar, MessageBarBody } from '@fluentui/react-components'
 import type { ReactNode } from 'react'
-import styles from './Alert.module.css'
 
 export function Alert({ children }: { children: ReactNode }) {
   return (
-    <div className={styles.alert} role="alert">
-      <CircleAlert size={16} strokeWidth={2} className={styles.icon} />
-      <span>{children}</span>
-    </div>
+    <MessageBar intent="error">
+      <MessageBarBody>{children}</MessageBarBody>
+    </MessageBar>
   )
 }

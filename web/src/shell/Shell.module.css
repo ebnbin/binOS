@@ -2,7 +2,7 @@
    除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
    固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
 .shell {
-  --radius: 12px;
+  --radius: var(--borderRadiusXLarge);
 
   position: fixed;
   inset: 0 0 auto;
@@ -17,7 +17,7 @@
 
 @media (pointer: coarse) {
   .shell {
-    --radius: 22px;
+    --radius: var(--borderRadiusXLarge);
   }
 }
 
@@ -46,6 +46,6 @@
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text);
+  background: var(--colorNeutralBackground2);
+  color: var(--colorNeutralForeground1);
 }

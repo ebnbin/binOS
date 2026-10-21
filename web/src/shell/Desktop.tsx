@@ -1,3 +1,4 @@
+import { Button, Caption1, Title2 } from '@fluentui/react-components'
 import type { CSSProperties } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import type { ApplicationDefinition } from '../apps/types.ts'
@@ -33,6 +34,10 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
 
   return (
     <div className={styles.desktop} style={vars}>
+      <header className={styles.heading}>
+        <Title2>工作空间</Title2>
+        <Caption1>应用与小组件</Caption1>
+      </header>
       <div className={styles.columns}>
         {columns.map((column, index) => (
           <div key={index} className={styles.grid} style={{ gridTemplateRows: `repeat(${column.rows}, var(--cell))` }}>
@@ -72,12 +77,20 @@ function Item({
   }
   if (item.kind === 'shortcut') {
     return (
-      <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
+      <Button
+        size="small"
+        appearance="subtle"
+        type="button"
+        className={styles.icon}
+        style={style}
+        aria-label={app.name}
+        onClick={() => onOpen(app.id)}
+      >
         <span className={styles.glyph}>
-          <app.icon strokeWidth={1.75} />
+          <app.icon />
         </span>
         <span className={styles.label}>{app.name}</span>
-      </button>
+      </Button>
     )
   }
   return <WidgetHost item={item} application={app} style={style} onOpen={onOpen} />

@@ -1,8 +1,9 @@
+import { Button } from '@fluentui/react-components'
 import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/agent/types'
 import type { AgentId } from '@binos/server/services/agent/types'
-import { ArrowDown } from 'lucide-react'
+import { ArrowDownRegular as ArrowDown } from '@fluentui/react-icons'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/agent/thread/Transcript.tsx'
@@ -160,9 +161,16 @@ export function Conversation({
           </div>
         </div>
         {awayFromBottom && (
-          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
-          </button>
+          <Button
+            size="small"
+            icon={<ArrowDown fontSize={16} />}
+            appearance="subtle"
+            type="button"
+            className={styles.toBottom}
+            onClick={scrollToBottom}
+            aria-label="回到底部"
+            title="回到底部"
+          />
         )}
       </div>
       <Composer

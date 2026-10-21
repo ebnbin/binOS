@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { Dialog, DialogSurface } from '@fluentui/react-components'
 import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 
 export function ModalHost({
   label,
@@ -15,25 +14,17 @@ export function ModalHost({
   children: ReactNode
   dismissible?: boolean
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
-  return createPortal(
-    <dialog
-      ref={dialog}
-      className={className}
-      aria-label={label}
-      onClose={onClose}
-      onCancel={(event) => {
-        if (!dismissible) event.preventDefault()
-      }}
-      onClick={(event) => {
-        if (dismissible && event.target === dialog.current) onClose()
+  return (
+    <Dialog
+      open
+      modalType="modal"
+      onOpenChange={(_, data) => {
+        if (!data.open && dismissible) onClose()
       }}
     >
-      {children}
-    </dialog>,
-    document.body,
+      <DialogSurface aria-label={label} className={className}>
+        {children}
+      </DialogSurface>
+    </Dialog>
   )
 }

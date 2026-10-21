@@ -4,15 +4,15 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--surface);
+  background: var(--colorNeutralBackground1);
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 8px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--spacingVerticalSNudge);
+  padding: var(--spacingVerticalS);
+  border-bottom: 1px solid var(--colorNeutralStroke1);
 }
 .navigation {
   display: flex;
@@ -22,48 +22,38 @@
   align-items: center;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  gap: var(--spacingVerticalS);
 }
-.address input {
-  width: 100%;
+.address :global(.fui-Input) {
+  flex: 1;
   min-width: 0;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 16px;
 }
 .address button {
-  flex-shrink: 0;
-  padding: 7px 10px;
-  font-size: 13px;
+  flex: none;
 }
 .external {
   display: grid;
   place-items: center;
   width: 36px;
   height: 36px;
-  color: var(--text-2);
-  border-radius: 8px;
+  color: var(--colorNeutralForeground2);
+  border-radius: var(--borderRadiusMedium);
 }
-.external:hover,
-.address button:hover {
-  background: var(--hover);
+.external:hover {
+  background: var(--colorNeutralBackground1Hover);
 }
 .notice {
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--text-2);
-  border-bottom: 1px solid var(--border);
+  padding: var(--spacingVerticalSNudge) var(--spacingVerticalM);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground2);
+  border-bottom: 1px solid var(--colorNeutralStroke1);
 }
 .error {
   margin: 0;
-  padding: 8px 12px;
-  color: var(--danger);
-  background: var(--danger-bg);
-  font-size: 13px;
+  padding: var(--spacingVerticalS) var(--spacingVerticalM);
+  color: var(--colorPaletteRedForeground1);
+  background: var(--colorPaletteRedBackground1);
+  font-size: var(--fontSizeBase300);
 }
 .frame {
   flex: 1;
@@ -80,20 +70,20 @@
   align-items: center;
   justify-content: center;
   overflow: auto;
-  padding: 32px 24px;
+  padding: var(--spacingVerticalXXXL) var(--spacingVerticalXXL);
   text-align: center;
-  color: var(--text-2);
+  color: var(--colorNeutralForeground2);
 }
 .home h1 {
-  color: var(--text);
-  font-size: 22px;
-  font-weight: 500;
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase600);
+  font-weight: var(--fontWeightMedium);
   margin: 16px 0 8px;
 }
 .home p {
   max-width: 380px;
   margin: 4px 0;
-  font-size: 13px;
+  font-size: var(--fontSizeBase300);
 }
 @container browser (width < 440px) {
   .address {

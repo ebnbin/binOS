@@ -5,30 +5,19 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacingVerticalS);
   width: 100%;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--live) 14%, transparent);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
+  padding: 9px var(--spacingVerticalM);
   text-align: left;
-  cursor: pointer;
 }
 
 .row > svg {
   flex: none;
-  color: var(--live);
-}
-
-.banner[data-tone='bad'] .row {
-  background: var(--danger-bg);
+  color: var(--colorBrandForeground1);
 }
 
 .banner[data-tone='bad'] .row > svg {
-  color: var(--danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .row > span:first-of-type {
@@ -38,5 +27,5 @@
 
 .action {
   flex: none;
-  font-weight: 550;
+  font-weight: var(--fontWeightSemibold);
 }

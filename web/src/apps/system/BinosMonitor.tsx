@@ -1,3 +1,5 @@
+import { Button, Card } from '@fluentui/react-components'
+
 import type { MonitorStatus } from '@binos/server/apps/system/types'
 import { useConnected } from '../../events.ts'
 import { useApplications } from '../index.ts'
@@ -15,7 +17,7 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
         <h1>binOS</h1>
         <p>系统状态与应用设置</p>
       </header>
-      <section className={styles.section}>
+      <Card className={styles.section}>
         <dl className={styles.rows}>
           <div>
             <dt>连接状态</dt>
@@ -38,17 +40,24 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
             <dd>{bytes(runtime?.memory)}</dd>
           </div>
         </dl>
-      </section>
+      </Card>
       {apps.length > 0 && (
-        <section className={styles.section}>
+        <Card className={styles.section}>
           <h2>应用设置</h2>
           {apps.map((app) => (
-            <button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
+            <Button
+              type="submit"
+              size="small"
+              appearance="subtle"
+              className={styles.settingLink}
+              key={app.id}
+              onClick={() => navigate(`/apps/${app.id}`)}
+            >
               {app.name}
               <span>{app.settings!.hint}</span>
-            </button>
+            </Button>
           ))}
-        </section>
+        </Card>
       )}
       <ExternalApps />
     </div>

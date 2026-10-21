@@ -1,18 +1,20 @@
+import { Button, Input, MessageBar, MessageBarBody, ToggleButton } from '@fluentui/react-components'
+
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/agent/types'
 import {
-  ChevronRight,
-  CircleAlert,
-  CircleStop,
-  Clock,
-  Gauge,
-  GitPullRequest,
-  Hourglass,
-  MoreHorizontal,
-  Search,
-  SquarePen,
-  X,
-} from 'lucide-react'
+  BranchRequestRegular as GitPullRequest,
+  ChevronRightRegular as ChevronRight,
+  ClockRegular as Clock,
+  ComposeRegular as SquarePen,
+  DismissRegular as X,
+  GaugeRegular as Gauge,
+  HourglassRegular as Hourglass,
+  MoreHorizontalRegular as MoreHorizontal,
+  RecordStopRegular as CircleStop,
+  SearchRegular as Search,
+  WarningRegular as CircleAlert,
+} from '@fluentui/react-icons'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
@@ -53,13 +55,13 @@ export function SessionList({
         <Quota />
       </header>
       <AuthBanner />
-      <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
-        <SquarePen size={16} strokeWidth={1.75} />
+      <Button size="medium" appearance="primary" type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
+        <SquarePen fontSize={16} />
         新对话
-      </button>
-      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>
+      </Button>
+      <Button size="medium" appearance="subtle" type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>
         创建项目
-      </button>
+      </Button>
       {creating && (
         <form
           className={styles.projectForm}
@@ -78,7 +80,7 @@ export function SessionList({
               .finally(() => setSaving(false))
           }}
         >
-          <input
+          <Input
             autoFocus
             aria-label="项目名称"
             placeholder="项目名称"
@@ -86,15 +88,19 @@ export function SessionList({
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-          <button type="submit" disabled={!name.trim() || saving}>
+          <Button size="medium" appearance="subtle" type="submit" disabled={!name.trim() || saving}>
             {saving ? '创建中…' : '创建'}
-          </button>
-          {error && <p role="alert">{error}</p>}
+          </Button>
+          {error && (
+            <MessageBar intent="error" role="alert">
+              <MessageBarBody>{error}</MessageBarBody>
+            </MessageBar>
+          )}
         </form>
       )}
       <label className={styles.search}>
-        <Search size={14} strokeWidth={1.75} />
-        <input
+        <Search fontSize={14} />
+        <Input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -107,9 +113,15 @@ export function SessionList({
           }}
         />
         {query && (
-          <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
-            <X size={13} strokeWidth={2} />
-          </button>
+          <Button
+            size="medium"
+            icon={<X fontSize={13} />}
+            appearance="subtle"
+            type="button"
+            className={styles.clear}
+            onClick={() => setQuery('')}
+            aria-label="清除搜索"
+          />
         )}
       </label>
       <nav className={styles.list}>
@@ -130,9 +142,14 @@ export function SessionList({
             <section key={project.id}>
               <div className={styles.projectHeader}>
                 <span>{project.name}</span>
-                <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
-                  <SquarePen size={14} />
-                </button>
+                <Button
+                  size="medium"
+                  icon={<SquarePen fontSize={14} />}
+                  appearance="subtle"
+                  type="button"
+                  aria-label={`在 ${project.name} 中新建对话`}
+                  onClick={() => onNavigate(`/new?project=${project.id}`)}
+                />
               </div>
               <Sections
                 sessions={sessions.filter((session) => session.project === project.id)}
@@ -223,15 +240,17 @@ function Sections({
       {items(others)}
       {archived.length > 0 && (
         <>
-          <button
+          <Button
+            size="medium"
+            appearance="subtle"
             type="button"
             className={styles.archivedToggle}
             onClick={() => setShowArchived(!showArchived)}
             aria-expanded={showArchived}
           >
-            <ChevronRight size={13} strokeWidth={2} className={styles.toggleChevron} />
+            <ChevronRight fontSize={13} className={styles.toggleChevron} />
             已归档 {archived.length}
-          </button>
+          </Button>
           {(showArchived || searching) && items(archived)}
         </>
       )}
@@ -257,7 +276,10 @@ function SessionItem({
       {renaming ? (
         <RenameInput session={session} onDone={() => setRenaming(false)} />
       ) : (
-        <button
+        <ToggleButton
+          checked={Boolean(current ? 'page' : undefined)}
+          size="medium"
+          appearance="subtle"
           type="button"
           className={styles.item}
           aria-current={current ? 'page' : undefined}
@@ -274,13 +296,19 @@ function SessionItem({
             </span>
           </span>
           <SessionMeta session={session} clock={clock} />
-        </button>
+        </ToggleButton>
       )}
       {!renaming && (
         <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-          <button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
-            <MoreHorizontal size={15} strokeWidth={1.75} />
-          </button>
+          <Button
+            size="medium"
+            icon={<MoreHorizontal fontSize={15} />}
+            appearance="subtle"
+            type="button"
+            className={styles.more}
+            aria-label="更多操作"
+            aria-expanded={menuOpen}
+          />
         </SessionActions>
       )}
     </li>
@@ -299,25 +327,25 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
         {session.turns > 1 && <span>{session.turns} 轮</span>}
         {session.quota !== undefined && session.quota >= 0.005 && (
           <span title="大约占订阅周额度">
-            <Gauge size={12} strokeWidth={2} />
+            <Gauge fontSize={12} />
             {formatQuota(session.quota)}
           </span>
         )}
         {openPrs.length > 0 && (
           <span className={styles.openPr} title="开着的 PR">
-            <GitPullRequest size={12} strokeWidth={2} />
+            <GitPullRequest fontSize={12} />
             {openPrs.map((pr) => `#${pr.number}`).join(' ')}
           </span>
         )}
         {session.queue.length > 0 && (
           <span title="排队的消息">
-            <Clock size={12} strokeWidth={2} />
+            <Clock fontSize={12} />
             {session.queue.length}
           </span>
         )}
         {session.outcome && !session.running && !session.waiting && (
           <span className={session.outcome === 'error' ? styles.error : undefined}>
-            {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+            {session.outcome === 'error' ? <CircleAlert fontSize={12} /> : <CircleStop fontSize={12} />}
             {session.outcome === 'error' ? '出错' : '已停止'}
           </span>
         )}
@@ -327,7 +355,7 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
           <span className={styles.busy}>回答中</span>
         ) : session.waiting ? (
           <span className={styles.busy} title="答完了，在等后台任务">
-            <Hourglass size={12} strokeWidth={2} />
+            <Hourglass fontSize={12} />
             后台任务
           </span>
         ) : (

@@ -1,4 +1,5 @@
-import { SquarePen } from 'lucide-react'
+import { Button } from '@fluentui/react-components'
+import { ComposeRegular as SquarePen } from '@fluentui/react-icons'
 import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
 import { formatTime } from '../../ui/time.ts'
@@ -15,7 +16,10 @@ export function CodeWidget({ size, open }: WidgetContext) {
       <header className={styles.header}>
         <span className={styles.name}>Code</span>
         {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
+        <Button
+          size="small"
+          icon={<SquarePen fontSize={15} />}
+          appearance="subtle"
           type="button"
           className={styles.new}
           aria-label="新对话"
@@ -24,9 +28,7 @@ export function CodeWidget({ size, open }: WidgetContext) {
             event.stopPropagation()
             open('/new')
           }}
-        >
-          <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        />
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>
@@ -39,7 +41,9 @@ export function CodeWidget({ size, open }: WidgetContext) {
         <ul className={styles.list}>
           {shown.map((session) => (
             <li key={session.id}>
-              <button
+              <Button
+                size="small"
+                appearance="subtle"
                 type="button"
                 className={styles.row}
                 onClick={(event) => {
@@ -50,7 +54,7 @@ export function CodeWidget({ size, open }: WidgetContext) {
                 <span className={styles.dot} data-running={session.running} />
                 <span className={styles.title}>{session.title || '新对话'}</span>
                 <span className={styles.time}>{session.updatedAt ? formatTime(new Date(session.updatedAt)) : ''}</span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

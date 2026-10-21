@@ -1,64 +1,6 @@
 :root {
-  color-scheme: light;
-  --bg: #f8f7f4;
-  --sidebar: #f1efeb;
-  --surface: #ffffff;
-  --text: #24221e;
-  --text-2: #5f5b54;
-  --muted: #959087;
-  --border: #e7e4de;
-  --hairline: rgb(36 34 30 / 7%);
-  --hover: rgb(36 34 30 / 5%);
-  --bubble: #edebe6;
-  --code: #f6f5f2;
-  --ink: #24221e;
-  --on-ink: #ffffff;
-  --danger: #c8442f;
-  --danger-bg: #fbefec;
-  --live: #d4862b;
-  --scrim: rgb(20 18 15 / 32%);
-  --shadow: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px rgb(36 34 30 / 10%);
-
-  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --mono: 'SF Mono', ui-monospace, Menlo, monospace;
-  --ease: cubic-bezier(0.32, 0.72, 0, 1);
-
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #1b1a18;
-    --sidebar: #161513;
-    --surface: #23221f;
-    --text: #ecebe7;
-    --text-2: #b6b2aa;
-    --muted: #7f7a71;
-    --border: #33312d;
-    --hairline: rgb(255 255 255 / 6%);
-    --hover: rgb(255 255 255 / 5%);
-    --bubble: #2c2a27;
-    --code: #1f1e1b;
-    --ink: #ecebe7;
-    --on-ink: #1b1a18;
-    --danger: #f0806b;
-    --danger-bg: #33201b;
-    --live: #e8a24f;
-    --scrim: rgb(0 0 0 / 50%);
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px rgb(0 0 0 / 50%);
-  }
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  :root {
-    font-size: 16px;
-  }
 }
 
 *,
@@ -66,56 +8,51 @@
 *::after {
   box-sizing: border-box;
 }
-
 html,
 body,
-#root {
+#root,
+#root > .binos-theme {
   height: 100%;
   margin: 0;
 }
 
-/* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
-html {
+/* 安全区域使用黑色，保持 iOS 状态栏和独立窗口的顶边一致。 */
+html,
+body {
   background: #000;
+}
+html {
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
-
-body {
-  background: #000;
-  color: var(--text);
+.binos-theme {
+  font-family: var(--fontFamilyBase);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
-
-button,
-input,
-textarea {
-  font: inherit;
-  color: inherit;
-}
-
-input,
-textarea {
-  appearance: none;
-}
-
-button {
-  appearance: none;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: default;
-}
-
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  outline: 2px solid var(--colorStrokeFocus2);
   outline-offset: 2px;
 }
-
 ::selection {
-  background: color-mix(in srgb, var(--live) 28%, transparent);
+  background: var(--colorBrandBackground2);
+  color: var(--colorNeutralForeground1);
+}
+
+/* Fluent 的输入 slot 仍需 16px，避免触屏上的 iOS 自动放大。 */
+@media (pointer: coarse) {
+  :root .fui-Input__input,
+  :root .fui-Textarea__textarea,
+  :root .fui-Select__select {
+    font-size: var(--fontSizeBase400);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,8 +1,8 @@
 .block {
   overflow: hidden;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--code);
+  border: 1px solid var(--colorNeutralStroke2);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
 }
 
 .header {
@@ -10,22 +10,22 @@
   align-items: center;
   justify-content: space-between;
   height: 32px;
-  padding: 0 6px 0 12px;
-  border-bottom: 1px solid var(--hairline);
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--muted);
+  padding: 0 var(--spacingVerticalSNudge) 0 var(--spacingVerticalM);
+  border-bottom: 1px solid var(--colorNeutralStroke2);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  color: var(--colorNeutralForeground3);
 }
 
 .pre {
   max-height: 480px;
   margin: 0;
-  padding: 10px 0;
+  padding: var(--spacingVerticalMNudge) 0;
   overflow: auto;
-  font-family: var(--mono);
-  font-size: 12.5px;
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase300);
   line-height: 1.6;
-  color: var(--text);
+  color: var(--colorNeutralForeground1);
 }
 
 .line {
@@ -39,7 +39,7 @@
   min-width: 2.5em;
   margin-right: 14px;
   text-align: right;
-  color: var(--muted);
+  color: var(--colorNeutralForeground3);
   user-select: none;
 }
 

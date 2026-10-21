@@ -1,3 +1,4 @@
+import { Link } from '@fluentui/react-components'
 import { diffLines } from 'diff'
 import { threadFileUrl } from '../api.ts'
 import { CodeBlock } from '../../../ui/content/CodeBlock.tsx'
@@ -14,9 +15,9 @@ export function ToolBody({ thread, call, result }: { thread: string; call: ToolC
     <>
       {failed ? <Output result={result} /> : <Content thread={thread} call={call} result={result} />}
       {result?.images?.map((file) => (
-        <a key={file} className={styles.image} href={threadFileUrl(thread, file)} target="_blank" rel="noreferrer">
+        <Link key={file} className={styles.image} href={threadFileUrl(thread, file)} target="_blank" rel="noreferrer">
           <img src={threadFileUrl(thread, file)} alt="" />
-        </a>
+        </Link>
       ))}
     </>
   )
@@ -171,10 +172,10 @@ function SearchResults({ thread, output }: { thread: string; output: string }) {
           {links.map((link, i) =>
             link.url ? (
               <li key={i}>
-                <a href={link.url} target="_blank" rel="noreferrer">
+                <Link href={link.url} target="_blank" rel="noreferrer">
                   <span className={styles.linkTitle}>{link.title || link.url}</span>
                   <span className={styles.linkHost}>{hostOf(link.url)}</span>
-                </a>
+                </Link>
               </li>
             ) : null,
           )}

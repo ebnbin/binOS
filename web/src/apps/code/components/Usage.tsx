@@ -1,3 +1,4 @@
+import { Button, ProgressBar } from '@fluentui/react-components'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/agent/types'
 import { useEffect, useState } from 'react'
@@ -39,7 +40,9 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <Button
+          size="small"
+          appearance="subtle"
           type="button"
           className={styles.ring}
           data-level={level}
@@ -61,7 +64,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeDashoffset={circumference * (1 - ratio)}
             />
           </svg>
-        </button>
+        </Button>
       }
     >
       <div className={styles.line}>
@@ -77,7 +80,11 @@ export function Usage({ session }: { session: SessionSummary }) {
       </div>
       {context && (
         <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
+          <ProgressBar
+            value={ratio}
+            color={level === 'danger' ? 'error' : level === 'warning' ? 'warning' : 'brand'}
+            aria-label="上下文使用率"
+          />
         </div>
       )}
       <div className={styles.line}>

@@ -1,6 +1,6 @@
-import { Check, Copy, CircleAlert } from 'lucide-react'
+import { Button } from '@fluentui/react-components'
+import { CheckmarkRegular as Check, CopyRegular as Copy, WarningRegular as CircleAlert } from '@fluentui/react-icons'
 import { useEffect, useState } from 'react'
-import styles from './CopyButton.module.css'
 
 export function CopyButton({ text, label = '复制' }: { text: string; label?: string }) {
   const [state, setState] = useState<'ready' | 'copied' | 'failed'>('ready')
@@ -14,9 +14,11 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
     return () => window.clearTimeout(timer)
   }, [state])
   return (
-    <button
+    <Button
+      size="small"
+      appearance="subtle"
       type="button"
-      className={styles.button}
+      icon={copied ? <Check fontSize={16} /> : state === 'failed' ? <CircleAlert fontSize={16} /> : <Copy fontSize={16} />}
       title={title}
       aria-label={title}
       onClick={async () => {
@@ -27,14 +29,6 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
           setState('failed')
         }
       }}
-    >
-      {copied ? (
-        <Check size={13} strokeWidth={2} />
-      ) : state === 'failed' ? (
-        <CircleAlert size={13} />
-      ) : (
-        <Copy size={13} strokeWidth={1.75} />
-      )}
-    </button>
+    />
   )
 }
