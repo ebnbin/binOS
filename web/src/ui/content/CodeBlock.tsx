@@ -1,6 +1,6 @@
 import { useHighlight } from './highlight.ts'
 import styles from './CodeBlock.module.css'
-import { CopyButton } from '../../../ui/CopyButton.tsx'
+import { CopyButton } from '../CopyButton.tsx'
 
 // 代码块：按语言高亮；startLine 有值时显示行号；label 有值时顶上一栏显示它和复制按钮
 export function CodeBlock({ code, lang, startLine, label }: { code: string; lang?: string; startLine?: number; label?: string }) {

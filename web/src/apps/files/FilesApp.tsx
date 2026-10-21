@@ -1,6 +1,6 @@
 import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { FilePreview } from '../../ui/files/FileBlock.tsx'
+import { FilePreview } from '../../services/preview/index.ts'
 import type { AppContext } from '../types.ts'
 import styles from './FilesApp.module.css'
 
@@ -298,7 +298,14 @@ export function FilesApp({ ctx }: { ctx: AppContext }) {
       </main>
       {preview && (
         <FilePreview
-          item={{ thread: '', file: preview.path, name: preview.name, path: preview.path, url: download(preview.path) }}
+          item={{
+            name: preview.name,
+            path: preview.path,
+            source: '本机文件',
+            url: download(preview.path),
+            downloadUrl: download(preview.path) + `&name=${encodeURIComponent(preview.name)}`,
+            infoUrl: download(preview.path) + '&info=1',
+          }}
           close={() => setPreview(undefined)}
         />
       )}

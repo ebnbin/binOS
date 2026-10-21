@@ -1,7 +1,8 @@
 import type { Attachment } from '@binos/server/services/agent/types'
 import { FileText, X } from 'lucide-react'
 import { useState } from 'react'
-import { FileBlock } from '../../../ui/files/FileBlock.tsx'
+import { FileBlock } from '../../preview/index.ts'
+import { threadPreviewFile } from '../files.ts'
 import styles from './Attachments.module.css'
 
 // 附件的两种样子：浏览器能显示的图片是方形缩略图，其他文件是带文件名的卡片
@@ -16,11 +17,11 @@ function FileCard({ name }: { name: string }) {
   )
 }
 
-// 消息里已发出的附件：图片在新标签页打开原图，其他文件下载
+// 消息里已发出的附件
 export function AttachmentList({ thread, attachments }: { thread: string; attachments: Attachment[] }) {
   return (
     <div className={`${styles.list} ${styles.sent}`}>
-      {attachments.map(({ file, name }) => <FileBlock key={file} thread={thread} file={file} name={name} />)}
+      {attachments.map(({ file, name }) => <FileBlock key={file} item={threadPreviewFile(thread, file, name)} />)}
     </div>
   )
 }

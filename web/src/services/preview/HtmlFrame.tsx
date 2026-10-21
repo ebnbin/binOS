@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { threadFileUrl } from '../api.ts'
 import styles from './HtmlFrame.module.css'
 
 // 网页在 sandbox 里只开放脚本：来源是不透明的，碰不到 binOS 的登录状态、接口和外层页面。
@@ -17,7 +16,7 @@ const reportHeight = `<script>(() => {
 const defaultHeight = 360
 const maxHeight = 720
 
-export function HtmlFrame({ thread, file, title }: { thread: string; file: string; title: string }) {
+export function HtmlFrame({ url, title }: { url: string; title: string }) {
   const [html, setHtml] = useState<string>()
   const [failed, setFailed] = useState(false)
   const [height, setHeight] = useState(defaultHeight)
@@ -25,7 +24,7 @@ export function HtmlFrame({ thread, file, title }: { thread: string; file: strin
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch(threadFileUrl(thread, file), { signal: controller.signal, headers: { Range: 'bytes=0-1048576' } })
+    fetch(url, { signal: controller.signal, headers: { Range: 'bytes=0-1048576' } })
       .then((res) => {
         const size = Number(res.headers.get('Content-Range')?.split('/')[1] ?? res.headers.get('Content-Length'))
         return res.ok && size <= 1_048_576 ? res.text() : Promise.reject(new Error('无法内嵌预览'))
@@ -33,7 +32,7 @@ export function HtmlFrame({ thread, file, title }: { thread: string; file: strin
       .then((text) => setHtml(text + reportHeight))
       .catch(() => controller.signal.aborted || setFailed(true))
     return () => controller.abort()
-  }, [thread, file])
+  }, [url])
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
