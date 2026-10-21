@@ -1,3 +1,5 @@
+import { Checkbox } from '../../ui/Checkbox.tsx'
+import { Select } from '../../ui/Select.tsx'
 import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { FilePreview } from '../../services/preview/index.ts'
@@ -162,15 +164,12 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             <Search size={15} />
             <input aria-label="搜索当前文件夹" placeholder="搜索当前文件夹" value={search} onChange={(e) => setSearch(e.target.value)} />
           </label>
-          <select aria-label="排序" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="name">名称</option>
-            <option value="modified">修改时间</option>
-            <option value="size">大小</option>
-          </select>
-          <label>
-            <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
-            隐藏文件
-          </label>
+          <Select label="排序" value={sort} onValueChange={setSort} options={[
+            { value: 'name', label: '名称' },
+            { value: 'modified', label: '修改时间' },
+            { value: 'size', label: '大小' },
+          ]} />
+          <Checkbox label="隐藏文件" checked={hidden} onCheckedChange={setHidden} />
         </div>
         <div className={styles.actions}>
           <button disabled={busy || !listing || loading} onClick={() => setDialog({ action: 'mkdir', value: '未命名文件夹' })}>

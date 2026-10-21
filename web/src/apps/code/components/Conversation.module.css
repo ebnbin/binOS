@@ -110,7 +110,7 @@
   font-size: 14px;
 }
 
-.projectChoice select {
+.projectChoice button {
   max-width: 240px;
   padding: 7px 12px;
   border: 1px solid var(--border);
