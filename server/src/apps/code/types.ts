@@ -10,7 +10,10 @@ export type QueuedMessage = { id: string; time: string; text: string; attachment
 export type PullRequest = { url: string; number: number; state?: 'open' | 'merged' | 'closed'; title?: string; preview?: string }
 
 // 一个 session 是和 agent 的一段对话，内容在 agent 服务的 thread 里
+export type Project = { id: string; name: string }
+
 export type SessionSummary = {
+  project: string
   id: number
   thread: string
   // 改过名就是改的名字；否则是第一条用户消息，没写字时是第一个附件的文件名

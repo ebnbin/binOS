@@ -51,14 +51,14 @@ onThreadEvent(owner, (thread, event) => {
 
 // interrupt：插话前先打断正在做的事；agent：新的 session 用哪个 agent，已有的 session 沿用它的；
 // model、effort：开始新的一轮时用，插话时沿用这一轮的
-export type MessageOptions = { interrupt?: boolean; agent?: AgentId; model?: string; effort?: string }
+export type MessageOptions = { project?: string; interrupt?: boolean; agent?: AgentId; model?: string; effort?: string }
 
 // 用户发来一句话：没在回答时开始新的一轮；正在回答时交给 agent，它在下一次工具调用之间看到。
 // 归档了的 session 又接着聊，就回到列表里。返回 session 编号；交不过去时返回 undefined
 export async function sendMessage(sessionId: number | undefined, text: string, uploads: Upload[], options: MessageOptions): Promise<number | undefined> {
   let id = sessionId
   if (id === undefined) {
-    id = createSession(createThread({ agent: options.agent ?? defaultAgent, owner, cwd: repoDir }).id)
+    id = createSession(createThread({ agent: options.agent ?? defaultAgent, owner, cwd: repoDir }).id, options.project)
   } else {
     setUserState(id, { archived: undefined })
   }

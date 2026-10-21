@@ -1,4 +1,4 @@
-import type { SessionSummary, Upload } from '@binos/server/apps/code/types'
+import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/agent/types'
 import type { AgentId } from '@binos/server/services/agent/types'
 import { ArrowDown } from 'lucide-react'
@@ -24,6 +24,9 @@ export type Choice = { agent: AgentId; model?: string; effort?: string }
 // session：列表里这个 session 的概况，新对话时没有；thread：对话的内容所在的 thread，刚建好、列表里还没有时由建它的地方给出
 // scrollRef：对话滚动的那一层，顶栏用它回到顶部
 export function Conversation({
+  project,
+  projects,
+  onProject,
   sessionId,
   session,
   thread,
@@ -31,6 +34,9 @@ export function Conversation({
   onCreated,
   targetItem,
 }: {
+  project: string
+  projects: Project[] | undefined
+  onProject: (id: string) => void
   targetItem?: number
   sessionId: number | null
   session: SessionSummary | undefined
@@ -94,7 +100,7 @@ export function Conversation({
       }
       attachments.push(upload)
     }
-    const result = await sendMessage(sessionId, text, attachments, { ...(mode === 'interrupt' && { interrupt: true }), ...(mode === 'queue' && { queue: true }), ...choice })
+    const result = await sendMessage(sessionId, text, attachments, { project, ...(mode === 'interrupt' && { interrupt: true }), ...(mode === 'queue' && { queue: true }), ...choice })
     if ('error' in result) {
       setNotice(result.error)
       return false
@@ -125,8 +131,10 @@ export function Conversation({
             {sessionId === null ? (
               <div className={styles.empty}>
                 <BrandMark size={44} />
-                <h1>想让 binOS 做点什么？</h1>
-                <p>你说的每一句话，都可能改变这个系统本身</p>
+                <h1>开始新对话</h1>
+                <label className={styles.projectChoice}>项目 <select aria-label="对话所属项目" value={project} onChange={(event) => onProject(event.target.value)}>
+                  {projects?.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select></label>
               </div>
             ) : (
               thread && <Transcript thread={thread} items={items} live={live} />
@@ -144,7 +152,7 @@ export function Conversation({
         sessionId={sessionId}
         session={session}
         queue={session?.queue ?? []}
-        draftKey={sessionId ?? 'new'}
+        draftKey={sessionId ?? `new-${project}`}
         running={running}
         choice={choice}
         agentFixed={sessionId !== null}

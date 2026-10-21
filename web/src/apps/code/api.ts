@@ -17,7 +17,7 @@ export async function listSessions(query?: string) {
 
 // interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；
 // agent：新对话用哪个 agent；model、effort：开始新的一轮时用，不给就是默认
-export type SendOptions = { interrupt?: boolean; queue?: true; agent?: AgentId; model?: string; effort?: string }
+export type SendOptions = { project?: string; interrupt?: boolean; queue?: true; agent?: AgentId; model?: string; effort?: string }
 
 // 正在回答时交给 agent 或者排队，没在回答时开始新的一轮
 export async function sendMessage(
@@ -92,4 +92,16 @@ export async function searchContent(query: string) {
   const res = await client.search.$get({ query: { q: query } })
   if (!res.ok) throw new Error('搜索失败')
   return res.json()
+}
+
+export async function listProjects() {
+  const res = await client.projects.$get()
+  if (!res.ok) throw new Error('读取项目失败')
+  return (await res.json()).projects
+}
+
+export async function createProject(name: string) {
+  const res = await client.projects.$post({ json: { name } })
+  if (!res.ok) throw new Error('创建项目失败')
+  return (await res.json()).project
 }
