@@ -1,3 +1,4 @@
+import { WebSocketServer } from 'ws'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { serve } from '@hono/node-server'
@@ -37,6 +38,6 @@ if (existsSync(webDist)) {
 
 // 测试实例和预览由启动方给出端口，正式版用固定的端口
 const port = Number(process.env.PORT ?? serverPort)
-serve({ fetch: app.fetch, hostname: '127.0.0.1', port }, (info) => {
+serve({ fetch: app.fetch, hostname: '127.0.0.1', port, websocket: { server: new WebSocketServer({ noServer: true, maxPayload: 128 * 1024 }) } }, (info) => {
   console.log(`binOS 后端已启动：http://127.0.0.1:${info.port}`)
 })
