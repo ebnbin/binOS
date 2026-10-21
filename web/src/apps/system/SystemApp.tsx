@@ -1,7 +1,7 @@
 import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useApps } from '../index.ts'
-import type { AppContext } from '../types.ts'
+import { useApplications } from '../index.ts'
+import type { WindowContext } from '../types.ts'
 import { AgentAccounts } from './AgentAccounts.tsx'
 import { BinosMonitor } from './BinosMonitor.tsx'
 import { HostMonitor } from './HostMonitor.tsx'
@@ -9,11 +9,11 @@ import { moment } from './format.ts'
 import { refreshMonitor, systemRequest, useMonitor } from './monitor.ts'
 import styles from './Monitor.module.css'
 
-export function SystemApp({ ctx }: { ctx: AppContext }) {
+export function SystemApp({ ctx }: { ctx: WindowContext }) {
   const { status, error, lastSuccess, now } = useMonitor()
   const [refreshing, setRefreshing] = useState(false)
   const [actionError, setActionError] = useState('')
-  const apps = useApps().filter((app) => app.settings)
+  const apps = useApplications().filter((app) => app.settings)
   const app = apps.find((item) => ctx.route === `/apps/${item.id}`)
   const section = ctx.route === '/agent' ? 'agent' : ctx.route.startsWith('/binos') || app ? 'binos' : 'host'
 

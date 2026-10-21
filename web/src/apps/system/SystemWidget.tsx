@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useConnected } from '../../events.ts'
-import type { WidgetProps } from '../types.ts'
+import type { WidgetContext } from '../types.ts'
 import { useMonitor } from './monitor.ts'
 import styles from './SystemWidget.module.css'
 
@@ -17,7 +17,7 @@ function useNow() {
 }
 
 // 时间、日期和系统状态
-export function SystemWidget({ size, open }: WidgetProps) {
+export function SystemWidget({ size, open }: WidgetContext) {
   const now = useNow()
   const connected = useConnected()
   const { status, error, now: sampledNow } = useMonitor()

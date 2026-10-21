@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { AppContext } from '../types.ts'
+import type { WindowContext } from '../types.ts'
 import styles from './CodeApp.module.css'
 import { Conversation } from './components/Conversation.tsx'
 import { SessionList } from './components/SessionList.tsx'
@@ -19,7 +19,7 @@ function parseRoute(route: string): Route {
 
 const sessionRoute = (id: number) => `/${id}`
 
-export function CodeApp({ ctx }: { ctx: AppContext }) {
+export function CodeApp({ ctx }: { ctx: WindowContext }) {
   const route = parseRoute(ctx.route)
   const { sessions, failed } = useSessions()
   // 刚建好的 session 可能还没出现在列表里，不能当成不存在

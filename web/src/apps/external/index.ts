@@ -1,14 +1,14 @@
 import { createElement } from 'react'
-import type { AppContext, AppManifest } from '../types.ts'
+import type { WindowContext, ApplicationDefinition } from '../types.ts'
 import { ExternalApp } from './ExternalApp.tsx'
 import { icons } from './icons.ts'
-import type { ExternalAppConfig } from '../registry.ts'
+import type { ExternalAppConfig } from './registry.ts'
 
 // 同样的配置返回同一个对象：组件换了，React 会重新挂载 iframe，正在用的 app 会重新加载
-const cache = new Map<string, AppManifest>()
+const cache = new Map<string, ApplicationDefinition>()
 
 // 独立部署的 web app，在窗口里用 iframe 打开 url
-export function externalApp(config: ExternalAppConfig): AppManifest {
+export function externalApp(config: ExternalAppConfig): ApplicationDefinition {
   const key = JSON.stringify(config)
   let manifest = cache.get(key)
   if (!manifest) {
@@ -18,7 +18,10 @@ export function externalApp(config: ExternalAppConfig): AppManifest {
       name,
       icon: icons[icon],
       url,
-      component: ({ ctx }: { ctx: AppContext }) => createElement(ExternalApp, { ctx, name, url }),
+      mainWindow: { viewId: 'main' },
+      views: {
+        main: { kind: 'window', component: ({ ctx }: { ctx: WindowContext }) => createElement(ExternalApp, { ctx, name, url }) },
+      },
     }
     cache.set(key, manifest)
   }

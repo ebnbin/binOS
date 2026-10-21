@@ -1,8 +1,8 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { icons, iconNames } from '../external/icons.ts'
-import { saveExternalApps, useExternalApps } from '../registry.ts'
-import type { ExternalAppConfig } from '../registry.ts'
+import { saveExternalApps, useExternalApps } from '../external/registry.ts'
+import type { ExternalAppConfig } from '../external/registry.ts'
 import styles from './ExternalApps.module.css'
 
 // index 为 null 时是新加的
