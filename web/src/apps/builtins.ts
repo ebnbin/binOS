@@ -1,9 +1,16 @@
-import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Globe, Music, NotebookPen, Terminal } from 'lucide-react'
+import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Globe, Music, NotebookPen, Smartphone, Terminal } from 'lucide-react'
 import { lazy } from 'react'
 import { placeholderApp } from './placeholder/index.ts'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
+  {
+    id: 'devices',
+    name: 'Devices',
+    icon: Smartphone,
+    mainWindow: { viewId: 'main' },
+    views: { main: { kind: 'window', component: lazy(() => import('./devices/DevicesApp.tsx').then((module) => ({ default: module.DevicesApp }))) } },
+  },
   {
     id: 'music',
     name: '音乐',

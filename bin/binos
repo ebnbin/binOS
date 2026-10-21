@@ -11,6 +11,7 @@ usage() {
   server    运行 binOS 的后端
   tunnel    运行 Cloudflare Tunnel，把 binos.app 的请求转给后端
   deploy    main 有新提交时取它的源码，交给它自己的上线脚本上线；已经在运行它、或者它上线失败过时什么都不做
+  devices   管理开发测试设备（devices help 查看用法）
   version   这份构建的提交号
 EOF
 }
@@ -36,6 +37,14 @@ export PATH
 build=$(cd "$(dirname "$0")/.." && pwd)
 
 case "$1" in
+  devices)
+    shift
+    if [ -f "$build/VERSION" ]; then
+      exec node "$build/server/dist/apps/devices/cli.js" "$@"
+    else
+      exec node --import "$build/server/node_modules/tsx/dist/loader.mjs" "$build/server/src/apps/devices/cli.ts" "$@"
+    fi
+    ;;
   server)
     exec node "$build/server/dist/index.js"
     ;;

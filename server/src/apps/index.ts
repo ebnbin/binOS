@@ -1,3 +1,4 @@
+import { devicesApi } from './devices/api.js'
 import { terminalApi } from './terminal/api.js'
 import { systemApi } from './system/api.js'
 import { monitor } from './system/monitor.js'
@@ -7,6 +8,7 @@ import type { ServerApp } from './types.js'
 import { musicApi } from './music/api.js'
 
 export const serverApps: ServerApp[] = [
+  { id: 'devices', api: devicesApi },
   codeApp,
   { id: 'terminal', api: terminalApi },
   { id: 'files', api: filesApi },

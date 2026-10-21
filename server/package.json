@@ -17,7 +17,9 @@
     "./apps/music/api": "./src/apps/music/api.ts",
     "./apps/music/types": "./src/apps/music/types.ts",
     "./apps/system/types": "./src/apps/system/types.ts",
-    "./apps/terminal/types": "./src/apps/terminal/sessions.ts"
+    "./apps/terminal/types": "./src/apps/terminal/sessions.ts",
+    "./apps/devices/api": "./src/apps/devices/api.ts",
+    "./apps/devices/types": "./src/apps/devices/types.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

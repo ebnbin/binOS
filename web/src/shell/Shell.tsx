@@ -36,6 +36,7 @@ export function Shell() {
               size={size}
               portrait={controller.portrait}
               onTitle={controller.onTitle}
+              onOpen={controller.open}
             />
             {controller.home && <Desktop width={size.width} onOpen={controller.open} />}
           </>

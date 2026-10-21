@@ -7,10 +7,10 @@ import { createWindowContext } from '../controller/navigation.ts'
 import type { WindowInstance } from '../state/types.ts'
 
 // 一个窗口里的 app。出错时只影响这个窗口
-export function WindowHost({ window: win, onTitle }: { window: WindowInstance; onTitle: (id: string, title: string) => void }) {
+export function WindowHost({ window: win, onTitle, onOpen }: { window: WindowInstance; onOpen?: WindowContext['openApplication']; onTitle: (id: string, title: string) => void }) {
   const { id, route } = win
   const apps = useApplications()
-  const ctx = useMemo<WindowContext>(() => createWindowContext(id, route, onTitle), [id, route, onTitle])
+  const ctx = useMemo<WindowContext>(() => createWindowContext(id, route, onTitle, onOpen), [id, route, onTitle, onOpen])
 
   const App = windowView(findApplication(apps, win.applicationId), win.viewId)?.component
   if (!App) {

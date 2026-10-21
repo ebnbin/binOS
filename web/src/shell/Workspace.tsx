@@ -11,7 +11,7 @@ type Drag = { pointer: number; start: number; length: number; position: number; 
 
 // 所有窗口保留挂载，退出布局后滚动位置和输入仍然保留。
 export function Workspace({
-  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, picking, unavailableApps,
+  windows, panes, layout, hidden, onFocus, onLayout, onExit, onPick, onSwap, onCancel, size, portrait, onTitle, onOpen, picking, unavailableApps,
 }: {
   picking: boolean
   unavailableApps: string[]
@@ -27,6 +27,7 @@ export function Workspace({
   onCancel: () => void
   size: Size
   portrait: boolean
+  onOpen: (app: string, route?: string) => void
   onTitle: (id: string, title: string) => void
 }) {
   const apps = useApplications()
@@ -61,7 +62,7 @@ export function Workspace({
         return (
           <section key={item.id} className={styles.pane} hidden={slot < 0} style={position(slot)}
             inert={picking} data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
-            <div className={styles.content}><WindowHost window={item.window} onTitle={onTitle} /></div>
+            <div className={styles.content}><WindowHost window={item.window} onTitle={onTitle} onOpen={onOpen} /></div>
             {preview(slot)}
           </section>
         )

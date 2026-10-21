@@ -24,6 +24,7 @@ export type WindowContext = {
   route: string
   navigate(route: string, options?: { replace?: boolean }): void
   // 回到这个窗口的上一页，没有上一页时回到 app 的首页
+  openApplication?(id: string, route?: string): void
   back(): void
   setTitle(title: string): void
 }
