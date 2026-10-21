@@ -8,6 +8,7 @@ import {
   mkdirSync,
   openSync,
   readdirSync,
+  rmSync,
   readFileSync,
   readSync,
   renameSync,
@@ -36,10 +37,8 @@ export function workerDir(id: string): string {
   return existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as { workerDir: string }).workerDir : hostDir(id)
 }
 
-export function bindWorker(id: string, dir: string) {
-  const file = path.join(sessionDir(id), 'runtime.json')
-  writeFileSync(`${file}.tmp`, JSON.stringify({ workerDir: dir }) + '\n', { flush: true })
-  renameSync(`${file}.tmp`, file)
+export function unbindWorker(id: string) {
+  rmSync(path.join(sessionDir(id), 'runtime.json'), { force: true })
 }
 
 export function metadata(id: string): SessionMetadata {
