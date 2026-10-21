@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import { notifyChange } from '../../events.js'
-import { isPriced } from '../../services/agent/index.js'
-import { agentIds } from '../../services/agent/types.js'
-import type { AgentId } from '../../services/agent/types.js'
+import { isPriced } from '../../services/kita/index.js'
+import { agentIds } from '../../services/kita/types.js'
+import type { AgentId } from '../../services/kita/types.js'
 import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } from './messages.js'
 import type { MessageOptions } from './messages.js'
 import { pullRequests } from './pull-requests.js'
@@ -92,7 +92,7 @@ async function summary(id: number): Promise<SessionSummary> {
   const prs = await pullRequests(session.prs, () => notifyChange({ type: 'session', id }))
   return {
     id,
-    thread: thread.id,
+    kitaSession: thread.id,
     project: session.project,
     title: sessionTitle(session),
     updatedAt: thread.updatedAt,
@@ -122,7 +122,7 @@ function isUnread(id: number) {
 }
 
 // thread：页面用它显示对话的内容
-const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id, thread: readSession(id).thread })
+const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id, kitaSession: readSession(id).kitaSession })
 
 async function send(sessionId: number | undefined, text: string, attachments: Upload[], options: MessageOptions) {
   return toResult(await sendMessage(sessionId, text, attachments, options))

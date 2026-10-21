@@ -25,8 +25,8 @@ const track = (id: string, title: string, artist = '', artworkUrl?: string): Tra
   externalUrl: `https://www.youtube.com/watch?v=${id}`,
 })
 
-type Item = { id?: { videoId?: string }; snippet?: { title?: string; channelTitle?: string; videoOwnerChannelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { medium?: { url: string } } } }
-type Data = { items?: Item[]; nextPageToken?: string; error?: { errors?: { reason?: string }[] } }
+type Entry = { id?: { videoId?: string }; snippet?: { title?: string; channelTitle?: string; videoOwnerChannelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { medium?: { url: string } } } }
+type Data = { items?: Entry[]; nextPageToken?: string; error?: { errors?: { reason?: string }[] } }
 
 async function request(endpoint: string, key: string, params: Record<string, string>): Promise<Data> {
   if (!key) throw new MusicError('按名称搜索和导入歌单需要先设置 YouTube 搜索密钥。单曲链接可以直接添加。', 'configuration')

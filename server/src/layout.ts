@@ -21,9 +21,10 @@ export function rootLayout(root: string) {
     accessPath: path.join(systemDataDir, 'access.json'),
     // 后端的根目录锁
     serverLockPath: path.join(systemDataDir, 'server.lock'),
+    dataRevisionPath: path.join(systemDataDir, 'data-revision.json'),
     appsDir: path.join(libraryDir, 'Apps'),
     // agent 服务的数据：thread、额度和登录的状况
-    agentServiceDir: path.join(libraryDir, 'Services', 'agent'),
+    kitaServiceDir: path.join(libraryDir, 'Services', 'kita'),
     // 上线服务的数据：上一个版本、上线过程中的临时文件、上线失败的提交和锁
     deployDir: path.join(libraryDir, 'Services', 'deploy'),
   }

@@ -23,7 +23,7 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
   const route = parseRoute(ctx.route)
   const { sessions, projects, failed } = useSessions()
   // 刚建好的 session 可能还没出现在列表里，不能当成不存在
-  const [created, setCreated] = useState<{ id: number; thread: string; project: string }>()
+  const [created, setCreated] = useState<{ id: number; kitaSession: string; project: string }>()
   const conversationScroll = useRef<HTMLDivElement>(null)
 
   const sessionId = route.name === 'session' ? route.id : null
@@ -67,10 +67,10 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
               targetItem={route.name === 'session' ? route.item : undefined}
               sessionId={sessionId}
               session={session}
-              thread={session?.thread ?? (sessionId === created?.id ? created.thread : undefined)}
+              thread={session?.kitaSession ?? (sessionId === created?.id ? created.kitaSession : undefined)}
               scrollRef={conversationScroll}
               onCreated={(id, thread) => {
-                setCreated({ id, thread, project })
+                setCreated({ id, kitaSession: thread, project })
                 ctx.navigate(sessionRoute(id), { replace: true })
               }}
             />

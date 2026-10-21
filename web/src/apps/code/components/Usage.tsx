@@ -1,11 +1,11 @@
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
-import { agents } from '@binos/server/services/agent/types'
+import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
 import { Popover } from '../../../ui/Popover.tsx'
 import { codeUsage } from '../api.ts'
 import { formatTokens } from '../../../ui/format.ts'
 import { formatQuota } from '../format.ts'
-import { useAgentStatus } from '../../../services/agent/status.ts'
+import { useAgentStatus } from '../../../services/kita/status.ts'
 import styles from './Usage.module.css'
 
 // 输入框里的上下文圆环：圈是上下文占了多少，快满时 agent 会压缩历史，前面的细节可能丢失。

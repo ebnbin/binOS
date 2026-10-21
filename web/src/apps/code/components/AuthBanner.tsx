@@ -1,10 +1,10 @@
-import { agentIds } from '@binos/server/services/agent/types'
-import type { AgentId } from '@binos/server/services/agent/types'
+import { agentIds } from '@binos/server/services/kita/types'
+import type { AgentId } from '@binos/server/services/kita/types'
 import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
-import { useHourlyNow } from '../../../services/agent/auth.ts'
-import { useAgentStatus } from '../../../services/agent/status.ts'
-import { agentView } from '../../../services/agent/views.ts'
+import { useHourlyNow } from '../../../services/kita/auth.ts'
+import { useAgentStatus } from '../../../services/kita/status.ts'
+import { agentView } from '../../../services/kita/views.ts'
 import styles from './AuthBanner.module.css'
 
 // agent 的登录要处理时（快到期、失效了、在用备用的登录……），列表上面一条提醒，点了就地登录。几个都要处理时按 agent 的顺序先处理前面的

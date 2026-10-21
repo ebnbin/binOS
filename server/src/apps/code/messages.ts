@@ -1,7 +1,9 @@
+import { codeKita } from './kita.js'
+import { codeInstructions } from './instructions.js'
 import { notifyChange } from '../../events.js'
-import { createThread, isPriced, onThreadEvent } from '../../services/agent/index.js'
-import { defaultAgent } from '../../services/agent/types.js'
-import type { AgentId } from '../../services/agent/types.js'
+import { isPriced } from '../../services/kita/index.js'
+import { defaultAgent } from '../../services/kita/types.js'
+import type { AgentId } from '../../services/kita/types.js'
 import { pushQueue, readQueue, takeQueue, unshiftQueue } from './queue.js'
 import { repoDir } from './repositories.js'
 import { createSession, listSessions, sessionOf, setUserState, threadOf } from './sessions.js'
@@ -9,14 +11,11 @@ import type { QueuedMessage, Upload } from './types.js'
 import { discardUploads, uploadFiles } from './uploads.js'
 import { recordQuotaSample } from './usage.js'
 
-// Code 的对话都是 agent 服务里属于 code 的 thread
-const owner = 'code'
-
 // 答完了在等后台任务的 session：刚进入这个状态时发出排着的话
 const waitingSessions = new Set<number>()
 
 // 一轮开始、插话、答完、开始或结束等后台任务时通知页面重新读取列表；答完时发出排着的话
-onThreadEvent(owner, (thread, event) => {
+codeKita.onEvent((thread, event) => {
   const id = sessionOf(thread)
   if (id === undefined) {
     return
@@ -33,9 +32,9 @@ onThreadEvent(owner, (thread, event) => {
       }
       notifyChange({ type: 'session', id })
     }
-  } else if (event.type === 'item' && event.item.type === 'input') {
+  } else if (event.type === 'event' && event.event.data.type === 'input') {
     notifyChange({ type: 'session', id })
-  } else if (event.type === 'item' && event.item.type === 'turn_end') {
+  } else if (event.type === 'event' && event.event.data.type === 'turn_end') {
     waitingSessions.delete(id)
     // 先记下额度的点，页面收到通知读到的用量才是新的
     if (isPriced(threadOf(id).summary().agent)) {
@@ -43,7 +42,7 @@ onThreadEvent(owner, (thread, event) => {
     }
     notifyChange({ type: 'session', id })
     // 被停止、出错的一轮不接着发，排着的话留给用户决定
-    if (!event.item.outcome) {
+    if (!event.event.data.outcome) {
       drainQueue(id)
     }
   }
@@ -58,7 +57,7 @@ export type MessageOptions = { project?: string; interrupt?: boolean; agent?: Ag
 export async function sendMessage(sessionId: number | undefined, text: string, uploads: Upload[], options: MessageOptions): Promise<number | undefined> {
   let id = sessionId
   if (id === undefined) {
-    id = createSession(createThread({ agent: options.agent ?? defaultAgent, owner, cwd: repoDir }).id, options.project)
+    id = createSession(codeKita.createSession({ agent: options.agent ?? defaultAgent, cwd: repoDir, instructions: codeInstructions }).id, options.project)
   } else {
     setUserState(id, { archived: undefined })
   }

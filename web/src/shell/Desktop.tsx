@@ -39,7 +39,7 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
             {column.items.map((item, itemIndex) => {
               const place = column.placements[itemIndex]
               return (
-                <Item
+                <Entry
                   key={item.id}
                   item={item}
                   apps={apps}
@@ -55,7 +55,7 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
   )
 }
 
-function Item({
+function Entry({
   item,
   apps,
   style,

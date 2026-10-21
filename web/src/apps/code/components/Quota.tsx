@@ -1,10 +1,10 @@
-import { agents, agentIds } from '@binos/server/services/agent/types'
-import type { Limits, AgentId } from '@binos/server/services/agent/types'
+import { agents, agentIds } from '@binos/server/services/kita/types'
+import type { Limits, AgentId } from '@binos/server/services/kita/types'
 import { Popover } from '../../../ui/Popover.tsx'
-import { formatSpan, summary, useMinuteNow } from '../../../services/agent/quota.ts'
-import { useAgentStatus } from '../../../services/agent/status.ts'
-import { QuotaRing } from '../../../services/agent/QuotaRing.tsx'
-import { QuotaWindows } from '../../../services/agent/QuotaWindows.tsx'
+import { formatSpan, summary, useMinuteNow } from '../../../services/kita/quota.ts'
+import { useAgentStatus } from '../../../services/kita/status.ts'
+import { QuotaRing } from '../../../services/kita/QuotaRing.tsx'
+import { QuotaWindows } from '../../../services/kita/QuotaWindows.tsx'
 import styles from './Quota.module.css'
 
 // 订阅额度：每个报告过额度的 agent 一个同心双环（外圈 7 天、内圈 5 小时），旁边是最紧的窗口用了多少；

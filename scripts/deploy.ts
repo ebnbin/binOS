@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { rootFromEnv, rootLayout } from '../server/src/layout.ts'
@@ -9,7 +9,7 @@ import { buildCommit, isHealthy } from './build.ts'
 import { installBuild, swapPrevious, undoInstall, versionOf } from './install.ts'
 import { closeFinishedPreviews } from './previews.ts'
 
-const { binosDir, deployDir, logsDir, previewsDir } = rootLayout(rootFromEnv())
+const { binosDir, deployDir, logsDir, previewsDir, dataRevisionPath } = rootLayout(rootFromEnv())
 const repoDir = path.resolve(import.meta.dirname, '..')
 const serverLog = path.join(logsDir, 'server.log')
 const tmpDir = path.join(deployDir, 'tmp')
@@ -71,6 +71,7 @@ if (command === 'deploy') {
 
 async function install(commit: string, build: string) {
   const old = versionOf(binosDir)
+  const dataBefore = existsSync(dataRevisionPath) ? readFileSync(dataRevisionPath, 'utf8') : ''
   installBuild(build, slots, aside)
   if (await restart(commit)) {
     rmSync(failedPath, { force: true })
@@ -79,6 +80,12 @@ async function install(commit: string, build: string) {
   }
   writeFileSync(failedPath, commit + '\n')
   say(`✗ ${short(commit)} 没有正常运行，main 有新提交前不再自动上线它，日志见 ${serverLog}`)
+  const dataAfter = existsSync(dataRevisionPath) ? readFileSync(dataRevisionPath, 'utf8') : ''
+  if (dataBefore !== dataAfter) {
+    say('数据迁移已开始，保留新代码以便继续迁移或修复，不自动切回旧版本写入源数据')
+    process.exitCode = 1
+    return
+  }
   undoInstall(slots, aside)
   if (old) {
     say((await restart(old)) ? `已切回 ${short(old)}` : `切回 ${short(old)} 后仍不正常，需要人工处理`)
