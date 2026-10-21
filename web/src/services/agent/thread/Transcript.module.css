@@ -6,8 +6,19 @@
 }
 
 .user {
-  position: relative;
-  padding: 10px 84px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: flex-end;
+  max-width: 100%;
+  min-width: 0;
+  gap: 3px;
+}
+
+.userText {
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
   border-radius: 10px;
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--hairline);
@@ -20,27 +31,28 @@
 }
 
 .userMeta {
-  position: absolute;
-  top: 7px;
-  right: 8px;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  min-height: 24px;
   font-size: 11.5px;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.15s;
 }
 
 .user:hover .userMeta,
-.userMeta:focus-within {
+.user:focus-within .userMeta {
   opacity: 1;
+  pointer-events: auto;
 }
 
 @media (hover: none) {
   .userMeta {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 
@@ -162,11 +174,5 @@
 @media (prefers-reduced-motion: reduce) {
   .status {
     animation: none;
-  }
-}
-
-@container agent (width < 600px) {
-  .user {
-    max-width: 86%;
   }
 }
