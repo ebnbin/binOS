@@ -46,7 +46,7 @@
   color: var(--muted);
 }
 
-.input:disabled {
+.input:read-only {
   cursor: default;
 }
 
@@ -87,7 +87,6 @@
   opacity: 0.5;
   cursor: default;
 }
-
 
 .action {
   display: grid;

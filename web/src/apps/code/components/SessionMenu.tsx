@@ -1,84 +1,160 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
+import * as Dropdown from '@radix-ui/react-dropdown-menu'
 import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useRef, useState } from 'react'
+import type { ReactElement } from 'react'
 import { editSession } from '../api.ts'
 import styles from './SessionMenu.module.css'
 
-// 会话的操作：重命名、置顶、归档。列表的每一项和对话的顶栏共用
-export function SessionMenuItems({ session, onRename }: { session: SessionSummary; onRename: () => void }) {
-  return (
-    <>
-      <button type="button" onClick={onRename}>
-        <Pencil size={14} strokeWidth={1.75} />
-        重命名
-      </button>
-      <button type="button" onClick={() => void editSession(session.id, { pinned: !session.pinned })}>
-        {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-        {session.pinned ? '取消置顶' : '置顶'}
-      </button>
-      <button type="button" onClick={() => void editSession(session.id, { archived: !session.archived })}>
-        {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-        {session.archived ? '取消归档' : '归档'}
-      </button>
-    </>
-  )
-}
-
-// 回车或者失去焦点时改名，Esc 取消；没改就不提交
-export function RenameInput({ session, className, onDone }: { session: SessionSummary; className?: string; onDone: () => void }) {
-  const [value, setValue] = useState(session.title)
-  const done = useRef(false)
-  function finish(title: string | undefined) {
-    if (done.current) {
-      return
+export function SessionActions({
+  session,
+  onRename,
+  children,
+  open,
+  onOpenChange,
+}: {
+  session: SessionSummary
+  onRename: () => void
+  children: ReactElement
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const renaming = useRef(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  async function edit(change: { pinned?: boolean; archived?: boolean }) {
+    setSaving(true)
+    setError('')
+    try {
+      if (await editSession(session.id, change)) onOpenChange(false)
+      else setError('保存失败，请重试')
+    } catch {
+      setError('保存失败，请重试')
+    } finally {
+      setSaving(false)
     }
-    done.current = true
-    if (title && title !== session.title) {
-      void editSession(session.id, { title })
-    }
-    onDone()
   }
   return (
-    <input
-      className={`${styles.rename} ${className ?? ''}`}
-      value={value}
-      autoFocus
-      onFocus={(event) => event.currentTarget.select()}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={() => finish(value.trim() || undefined)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-          event.currentTarget.blur()
-        } else if (event.key === 'Escape') {
-          finish(undefined)
-        }
+    <Dropdown.Root
+      open={open}
+      onOpenChange={(next) => {
+        setError('')
+        onOpenChange(next)
       }}
-      aria-label="新的名字"
-    />
+      modal={false}
+    >
+      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
+      <Dropdown.Portal>
+        <Dropdown.Content
+          className={styles.menu}
+          sideOffset={6}
+          collisionPadding={12}
+          aria-label="会话操作"
+          onCloseAutoFocus={(event) => {
+            if (renaming.current) event.preventDefault()
+          }}
+        >
+          <Dropdown.Item
+            className={styles.menuItem}
+            disabled={saving}
+            onSelect={() => {
+              renaming.current = true
+              onOpenChange(false)
+              onRename()
+            }}
+          >
+            <Pencil size={14} strokeWidth={1.75} />
+            重命名
+          </Dropdown.Item>
+          <Dropdown.Item
+            className={styles.menuItem}
+            disabled={saving}
+            onSelect={(event) => {
+              event.preventDefault()
+              void edit({ pinned: !session.pinned })
+            }}
+          >
+            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
+            {session.pinned ? '取消置顶' : '置顶'}
+          </Dropdown.Item>
+          <Dropdown.Item
+            className={styles.menuItem}
+            disabled={saving}
+            onSelect={(event) => {
+              event.preventDefault()
+              void edit({ archived: !session.archived })
+            }}
+          >
+            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
+            {session.archived ? '取消归档' : '归档'}
+          </Dropdown.Item>
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          )}
+        </Dropdown.Content>
+      </Dropdown.Portal>
+    </Dropdown.Root>
   )
 }
 
-// 弹出菜单，相对于最近的定位的父元素。点父元素外面、按 Esc、或者选了一项后关上
-export function Menu({ className, onClose, children }: { className?: string; onClose: () => void; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      if (!ref.current?.parentElement?.contains(event.target as Node)) {
-        onClose()
+export function RenameInput({ session, className, onDone }: { session: SessionSummary; className?: string; onDone: () => void }) {
+  const [value, setValue] = useState(session.title)
+  const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
+  const done = useRef(false)
+  async function finish(title: string | undefined) {
+    if (done.current) return
+    done.current = true
+    if (!title || title === session.title) {
+      onDone()
+      return
+    }
+    setSaving(true)
+    try {
+      if (await editSession(session.id, { title })) onDone()
+      else {
+        done.current = false
+        setError('保存失败，请重试')
       }
+    } catch {
+      done.current = false
+      setError('保存失败，请重试')
+    } finally {
+      setSaving(false)
     }
-    const onKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [onClose])
+  }
   return (
-    <div ref={ref} className={`${styles.menu} ${className ?? ''}`} role="menu" onClick={onClose}>
-      {children}
-    </div>
+    <span className={`${styles.renameWrap} ${className ?? ''}`}>
+      <input
+        className={styles.rename}
+        value={value}
+        autoFocus
+        readOnly={saving}
+        aria-invalid={Boolean(error)}
+        onFocus={(event) => event.currentTarget.select()}
+        onChange={(event) => {
+          setValue(event.target.value)
+          setError('')
+        }}
+        onBlur={() => void finish(value.trim() || undefined)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+            event.preventDefault()
+            void finish(value.trim() || undefined)
+          } else if (event.key === 'Escape' && !saving) {
+            done.current = true
+            onDone()
+          }
+        }}
+        aria-label="新的名字"
+      />
+      {error && (
+        <span className={styles.error} role="alert">
+          {error}
+        </span>
+      )}
+    </span>
   )
 }

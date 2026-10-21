@@ -1,7 +1,8 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
 import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
+import { useState } from 'react'
+import { RenameInput, SessionActions } from './SessionMenu.tsx'
+import { Popover } from '../../../ui/Popover.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 
@@ -37,13 +38,7 @@ export function TopBar({
           </>
         )}
       </div>
-      <IconButton
-        icon={SquarePen}
-        label="新对话"
-        className={styles.singleColumnOnly}
-        onClick={onNew}
-        disabled={sessionId === null}
-      />
+      <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} disabled={sessionId === null} />
     </header>
   )
 }
@@ -57,50 +52,36 @@ function SessionTitle({ session }: { session: SessionSummary }) {
   }
   return (
     <span className={styles.titleWrap}>
-      <button type="button" className={styles.titleButton} onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-haspopup="menu">
-        <span className={styles.title}>{session.title || '（无内容）'}</span>
-        <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
-      </button>
-      {menuOpen && (
-        <Menu className={styles.titleMenu} onClose={() => setMenuOpen(false)}>
-          <SessionMenuItems session={session} onRename={() => setRenaming(true)} />
-        </Menu>
-      )}
+      <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
+        <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
+          <span className={styles.title}>{session.title || '（无内容）'}</span>
+          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
+        </button>
+      </SessionActions>
     </span>
   )
 }
 
 // 开着的 PR 直接显示，结束了的收起来，点开再看
 function PrList({ prs }: { prs: PullRequest[] }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLSpanElement>(null)
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    const onPointerDown = (event: PointerEvent) => {
-      if (!ref.current?.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [open])
   const active = prs.filter((pr) => pr.state === 'open' || !pr.state)
   const finished = prs.filter((pr) => pr.state === 'merged' || pr.state === 'closed')
   return (
-    <span ref={ref} className={styles.prs}>
+    <span className={styles.prs}>
       {active.map((pr) => (
         <PrLink key={pr.url} pr={pr} />
       ))}
       {finished.length > 0 && (
-        <button type="button" className={styles.finished} onClick={() => setOpen(!open)} aria-expanded={open}>
-          <GitMerge size={13} strokeWidth={2} />
-          {finished.length}
-        </button>
-      )}
-      {open && (
-        <span className={styles.prMenu}>
+        <Popover
+          label="对话的 PR"
+          className={styles.prMenu}
+          trigger={
+            <button type="button" className={styles.finished} aria-label="查看对话的 PR">
+              <GitMerge size={13} strokeWidth={2} />
+              {finished.length}
+            </button>
+          }
+        >
           {[...prs].reverse().map((pr) => (
             <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
               <span className={styles.prNumber}>#{pr.number}</span>
@@ -108,7 +89,7 @@ function PrList({ prs }: { prs: PullRequest[] }) {
               <span className={styles.prState}>{pr.state && prStates[pr.state]}</span>
             </a>
           ))}
-        </span>
+        </Popover>
       )}
     </span>
   )

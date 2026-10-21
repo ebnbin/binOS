@@ -70,6 +70,7 @@
 }
 
 .item {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -96,7 +97,9 @@
 .item[aria-current] {
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 0 0 1px var(--hairline), 0 1px 2px rgb(0 0 0 / 4%);
+  box-shadow:
+    0 0 0 1px var(--hairline),
+    0 1px 2px rgb(0 0 0 / 4%);
 }
 
 .line {
@@ -127,16 +130,25 @@
   font-variant-numeric: tabular-nums;
 }
 
-.meta > span {
+.facts > span {
   display: inline-flex;
   flex: none;
   align-items: center;
   gap: 3px;
 }
 
-.meta > .side {
+.facts {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.side {
+  display: inline-flex;
+  flex: none;
   margin-left: auto;
-  padding-left: 4px;
 }
 
 .busy {
@@ -203,13 +215,13 @@
 }
 
 .row {
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 2px;
 }
 
 .more {
-  position: absolute;
-  top: 50%;
-  right: 4px;
   display: grid;
   place-items: center;
   width: 28px;
@@ -221,18 +233,14 @@
   color: var(--muted);
   cursor: pointer;
   opacity: 0;
-  transform: translateY(-50%);
+  pointer-events: none;
   transition: opacity 0.15s;
 }
 
-/* 有指针的设备上移上去才出现，盖住右边的时间或状态；触屏上一直显示 */
 @media (hover: hover) {
   .row:hover .more {
     opacity: 1;
-  }
-
-  .row:hover .side {
-    visibility: hidden;
+    pointer-events: auto;
   }
 
   .more:hover {
@@ -243,20 +251,14 @@
 @media (hover: none) {
   .more {
     opacity: 1;
-  }
-
-  .item {
-    padding-right: 38px;
+    pointer-events: auto;
   }
 }
 
 .row[data-menu-open] .more,
-.more:focus-visible {
+.row:focus-within .more {
   opacity: 1;
-}
-
-.row[data-menu-open] .side {
-  visibility: hidden;
+  pointer-events: auto;
 }
 
 .title[data-unread] {
@@ -281,10 +283,6 @@
   flex: none;
   color: var(--danger);
 }
-
-
-
-
 
 .archivedToggle {
   display: flex;
@@ -326,11 +324,6 @@
   .brand {
     height: 64px;
     padding: 0 20px;
-  }
-
-  .brand svg {
-    width: 30px;
-    height: 30px;
   }
 
   .wordmark {
@@ -379,18 +372,6 @@
   }
 }
 
-.snippet {
-  font-size: 13px;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.snippet mark {
-  background: color-mix(in srgb, var(--ink) 18%, transparent);
-  color: var(--text);
-}
-
 .projectButton {
   margin: 0 12px 10px;
   padding: 6px 12px;
@@ -430,4 +411,13 @@
   flex: none;
   padding: 4px;
   color: var(--muted);
+}
+
+.search:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.search input::-webkit-search-cancel-button {
+  appearance: none;
 }

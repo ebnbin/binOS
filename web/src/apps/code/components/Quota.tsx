@@ -1,6 +1,6 @@
 import { agents, agentIds } from '@binos/server/services/agent/types'
 import type { Limits, AgentId } from '@binos/server/services/agent/types'
-import { useEffect, useRef, useState } from 'react'
+import { Popover } from '../../../ui/Popover.tsx'
 import { formatSpan, summary, useMinuteNow } from '../../../services/agent/quota.ts'
 import { useAgentStatus } from '../../../services/agent/status.ts'
 import { QuotaRing } from '../../../services/agent/QuotaRing.tsx'
@@ -12,21 +12,6 @@ import styles from './Quota.module.css'
 export function Quota() {
   const status = useAgentStatus()
   const now = useMinuteNow()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  // 点外面关上
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    const onPointerDown = (event: PointerEvent) => {
-      if (!ref.current?.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [open])
   const reported = agentIds.flatMap((agent): [AgentId, Limits][] => {
     const limits = status?.limits[agent]
     return limits ? [[agent, limits]] : []
@@ -35,34 +20,37 @@ export function Quota() {
     return null
   }
   return (
-    <div ref={ref} className={styles.quota}>
-      <button type="button" className={styles.summary} onClick={() => setOpen(!open)} aria-expanded={open} title="订阅额度">
-        {reported.map(([agent, limits]) => {
-          const { used, runsOut, limited } = summary(limits, now)
-          return (
-            <span
-              key={agent}
-              className={styles.agent}
-              data-alert={limited || runsOut !== undefined || undefined}
-              title={runsOut !== undefined && !limited ? `按现在的速度 ${formatSpan(runsOut)}后用完` : undefined}
-            >
-              <QuotaRing limits={limits} now={now} />
-              {reported.length > 1 && `${agents[agent].name} `}
-              {limited ? '已限流' : `${Math.round(used * 100)}%`}
-            </span>
-          )
-        })}
-      </button>
-      {open && (
-        <div className={styles.details}>
-          {reported.map(([agent, limits]) => (
-            <section key={agent}>
-              <h3>{agents[agent].name}</h3>
-              <QuotaWindows limits={limits} now={now} />
-            </section>
-          ))}
-        </div>
-      )}
+    <div className={styles.quota}>
+      <Popover
+        label="订阅额度"
+        className={styles.details}
+        trigger={
+          <button type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
+            {reported.map(([agent, limits]) => {
+              const { used, runsOut, limited } = summary(limits, now)
+              return (
+                <span
+                  key={agent}
+                  className={styles.agent}
+                  data-alert={limited || runsOut !== undefined || undefined}
+                  title={runsOut !== undefined && !limited ? `按现在的速度 ${formatSpan(runsOut)}后用完` : undefined}
+                >
+                  <QuotaRing limits={limits} now={now} />
+                  {reported.length > 1 && `${agents[agent].name} `}
+                  {limited ? '已限流' : `${Math.round(used * 100)}%`}
+                </span>
+              )
+            })}
+          </button>
+        }
+      >
+        {reported.map(([agent, limits]) => (
+          <section key={agent}>
+            <h3>{agents[agent].name}</h3>
+            <QuotaWindows limits={limits} now={now} />
+          </section>
+        ))}
+      </Popover>
     </div>
   )
 }
