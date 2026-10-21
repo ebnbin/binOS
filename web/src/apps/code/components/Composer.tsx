@@ -2,6 +2,7 @@ import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
+import { Alert } from '../../../ui/Alert.tsx'
 import { agents } from '@binos/server/services/agent/types'
 import { PendingAttachments } from '../../../services/agent/thread/Attachments.tsx'
 import { Usage } from './Usage.tsx'
@@ -59,8 +60,6 @@ export function Composer({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasContent = input.trim() !== '' || pending.length > 0
   const catalogs = useAgentCatalogs()
-  // 能选的 agent：能用的，加上这个对话正在用的
-  const choosable = catalogs.filter((catalog) => catalog.available || catalog.agent === choice.agent)
   const catalog = catalogs.find((item) => item.agent === choice.agent)
   const models = catalog?.models ?? []
   const defaultModel = models.find((model) => model.isDefault)
@@ -239,6 +238,11 @@ export function Composer({
           disabled={sending}
           autoFocus={enterSends}
         />
+        {catalog && !catalog.available && <Alert>{agents[choice.agent].name} 暂不可用，发送时可能失败，请检查安装和登录状态。</Alert>}
+        {catalog?.available && !defaultModel && <Alert>暂时无法读取模型信息，仍可使用默认模型发送。</Alert>}
+        {catalog?.available && choice.model && !models.some((model) => model.id === choice.model) && (
+          <Alert>所选模型未在当前列表中，发送时可能不可用。</Alert>
+        )}
         <div className={styles.bar}>
           <input
             ref={fileInputRef}
@@ -259,7 +263,7 @@ export function Composer({
             onClick={() => fileInputRef.current?.click()}
           />
           {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
-          {choosable.length > 1 && (
+          {catalogs.length > 1 && (
             <select
               className={styles.choice}
               value={choice.agent}
@@ -268,9 +272,9 @@ export function Composer({
               aria-label="agent"
               onChange={(event) => onChoice({ agent: event.target.value as Choice['agent'] })}
             >
-              {choosable.map(({ agent }) => (
+              {catalogs.map(({ agent, available }) => (
                 <option key={agent} value={agent}>
-                  {agents[agent].name}
+                  {agents[agent].name}{available ? '' : '（暂不可用）'}
                 </option>
               ))}
             </select>
@@ -283,14 +287,14 @@ export function Composer({
             aria-label="模型"
             onChange={(event) => onChoice({ ...choice, model: event.target.value === defaultModel?.id ? undefined : event.target.value || undefined })}
           >
-            {!defaultModel && <option value="" disabled>模型信息暂不可用</option>}
+            {!defaultModel && <option value="">默认模型（信息暂不可用）</option>}
             {models.map((model) => (
               <option key={model.id} value={model.id}>
                 {model.name}{model.id === defaultModel?.id ? '（默认）' : ''}
               </option>
             ))}
             {/* 之前用过、现在列表里没有的模型 */}
-            {choice.model && !models.some((model) => model.id === choice.model) && <option value={choice.model}>{choice.model}</option>}
+            {choice.model && !models.some((model) => model.id === choice.model) && <option value={choice.model}>{choice.model}（未在当前列表中）</option>}
           </select>
           <select
             className={styles.choice}
