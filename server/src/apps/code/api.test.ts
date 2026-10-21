@@ -8,7 +8,7 @@ process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
 const { appendItems, createThread, filesDir } = await import('../../services/agent/store.js')
-const { createSession, readSession, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
+const { createSession, readSession, searchContent, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
 const time = () => new Date().toISOString()
 
 // 新的 session 和它的 thread，第一句是 text
@@ -130,5 +130,25 @@ describe('sessions', () => {
       { type: 'tool_result', time: time(), callId: 't1', status: 'done', output: `${pr}\n✓ PR #41 的预览：https://pr-41.binos.app` },
     ])
     expect(readSession(id)).toMatchObject({ prs: [pr], creatingPrs: [] })
+  })
+})
+
+
+describe('全局内容搜索', () => {
+  it('返回归档会话里的消息位置和匹配片段，区分标题和主对话', async () => {
+    const { thread, id } = newSession('检索专用标题')
+    setUserState(id, { archived: true })
+    appendItems(thread, [
+      { type: 'text', time: time(), text: '前文 Needle 后文' },
+      { type: 'text', time: time(), text: 'Needle 子任务', parent: 'child' },
+    ])
+    expect(searchContent('needle')).toEqual({ total: 1, results: [expect.objectContaining({
+      id, archived: true, item: 2, kind: 'text', before: '前文 ', match: 'Needle', after: ' 后文',
+    })] })
+    const res = await api.request('/api/apps/code/search?q=needle')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual(searchContent('needle'))
+    expect(searchContent('检索专用标题').results.map((result) => result.kind)).toEqual(['title', 'input'])
+    expect(searchContent('   ')).toEqual({ total: 0, results: [] })
   })
 })

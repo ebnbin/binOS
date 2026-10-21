@@ -162,7 +162,7 @@ function renderBlocks(blocks: Block[], context: Context, last: Block | undefined
         return null
       case 'input':
         return (
-          <div key={block.key} className={styles.user}>
+          <div key={block.key} data-thread-item={block.key} className={styles.user}>
             {block.text}
             <span className={styles.userMeta}>
               <time dateTime={block.time} title={formatFull(new Date(block.time))}>
@@ -181,7 +181,7 @@ function renderBlocks(blocks: Block[], context: Context, last: Block | undefined
       case 'attachments':
         return <AttachmentList key={block.key} thread={thread} attachments={block.attachments} />
       case 'text':
-        return <Markdown key={block.key} thread={thread} text={block.text} files={block.files} />
+        return <div key={block.key} data-thread-item={block.key}><Markdown thread={thread} text={block.text} files={block.files} /></div>
       case 'steps':
         return <Steps key={block.key} steps={block.steps} context={context} last={block === last} />
       case 'interrupted':

@@ -7,14 +7,14 @@ import { TopBar } from './components/TopBar.tsx'
 import { useSessions } from './useSessions.ts'
 
 // /：对话列表；/new：新对话；/:id：某个对话
-type Route = { name: 'home' } | { name: 'new' } | { name: 'session'; id: number }
+type Route = { name: 'home' } | { name: 'new' } | { name: 'session'; id: number; item?: number }
 
 function parseRoute(route: string): Route {
   if (route === '/new') {
     return { name: 'new' }
   }
-  const match = /^\/(\d+)$/.exec(route)
-  return match ? { name: 'session', id: Number(match[1]) } : { name: 'home' }
+  const match = /^\/(\d+)(?:\?item=(\d+))?$/.exec(route)
+  return match ? { name: 'session', id: Number(match[1]), ...(match[2] !== undefined && { item: Number(match[2]) }) } : { name: 'home' }
 }
 
 const sessionRoute = (id: number) => `/${id}`
@@ -59,7 +59,8 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
             </div>
           ) : (
             <Conversation
-              key={sessionId ?? 'new'}
+              key={`${sessionId ?? 'new'}-${route.name === 'session' ? route.item ?? '' : ''}`}
+              targetItem={route.name === 'session' ? route.item : undefined}
               sessionId={sessionId}
               session={session}
               thread={session?.thread ?? (sessionId === created?.id ? created.thread : undefined)}

@@ -378,3 +378,15 @@
     transform: translateX(-50%);
   }
 }
+
+.snippet {
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.snippet mark {
+  background: color-mix(in srgb, var(--ink) 18%, transparent);
+  color: var(--text);
+}

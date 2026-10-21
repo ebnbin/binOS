@@ -138,3 +138,32 @@ export function searchSessions(ids: number[], query: string): Set<number> {
     ),
   )
 }
+
+export function searchContent(query: string) {
+  const needle = query.trim().toLowerCase()
+  const results: { id: number; title: string; archived: boolean; item?: number; kind: 'title' | 'input' | 'text'; before: string; match: string; after: string }[] = []
+  let total = 0
+  if (!needle) return { results, total }
+  const add = (id: number, text: string, kind: 'title' | 'input' | 'text', item?: number) => {
+    const at = text.toLowerCase().indexOf(needle)
+    if (at < 0) return
+    total++
+    if (results.length >= 200) return
+    const session = readSession(id)
+    results.push({
+      id, title: sessionTitle(session), archived: Boolean(session.archived), kind,
+      ...(item !== undefined && { item }),
+      before: (at > 50 ? '…' : '') + text.slice(Math.max(0, at - 50), at),
+      match: text.slice(at, at + needle.length),
+      after: text.slice(at + needle.length, at + needle.length + 100) + (text.length > at + needle.length + 100 ? '…' : ''),
+    })
+  }
+  const ids = listSessions().sort((a, b) => threadOf(b).summary().updatedAt.localeCompare(threadOf(a).summary().updatedAt))
+  for (const id of ids) {
+    add(id, sessionTitle(readSession(id)), 'title')
+    threadOf(id).items().forEach((item, index) => {
+      if (item.type === 'input' || (item.type === 'text' && !item.parent)) add(id, item.text, item.type, index)
+    })
+  }
+  return { results, total }
+}

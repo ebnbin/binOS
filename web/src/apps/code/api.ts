@@ -87,3 +87,9 @@ export async function editSession(sessionId: number, edit: { title?: string; pin
 export async function markRead(sessionId: number) {
   await sessions[':id'].read.$post({ param: { id: String(sessionId) } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
 }
+
+export async function searchContent(query: string) {
+  const res = await client.search.$get({ query: { q: query } })
+  if (!res.ok) throw new Error('搜索失败')
+  return res.json()
+}

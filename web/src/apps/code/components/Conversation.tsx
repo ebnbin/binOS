@@ -29,7 +29,9 @@ export function Conversation({
   thread,
   scrollRef,
   onCreated,
+  targetItem,
 }: {
+  targetItem?: number
   sessionId: number | null
   session: SessionSummary | undefined
   thread: string | undefined
@@ -49,16 +51,25 @@ export function Conversation({
     }
   }, [sessionId, running])
   const [notice, setNotice] = useState('')
-  const stick = useRef(true)
+  const stick = useRef(targetItem === undefined)
+  const located = useRef(false)
   // 往上翻看时，下方出现回到底部的按钮
   const [awayFromBottom, setAwayFromBottom] = useState(false)
 
   useLayoutEffect(() => {
     const el = scrollRef.current
+    if (el && targetItem !== undefined && !located.current) {
+      const target = el.querySelector<HTMLElement>(`[data-thread-item="${targetItem}"]`)
+      if (target) {
+        target.scrollIntoView({ block: 'center' })
+        target.animate([{ backgroundColor: 'Highlight' }, { backgroundColor: 'transparent' }], { duration: 1800 })
+        located.current = true
+      }
+    }
     if (el && stick.current) {
       el.scrollTop = el.scrollHeight
     }
-  }, [scrollRef, items, live, notice])
+  }, [scrollRef, items, live, notice, targetItem])
 
   function stop() {
     if (sessionId !== null) {
