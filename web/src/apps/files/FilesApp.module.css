@@ -1,4 +1,5 @@
 .app {
+  container: files / inline-size;
   display: flex;
   height: 100%;
   min-height: 0;
@@ -54,10 +55,12 @@
   padding: 5px;
   border-radius: 5px;
 }
-.app button:disabled {
+.app button:disabled,
+.dialog button:disabled {
   opacity: 0.35;
 }
-.app input {
+.app input,
+.dialog input {
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -208,16 +211,22 @@
   color: var(--danger);
   overflow-wrap: anywhere;
 }
-.scrim {
-  position: absolute;
-  inset: 0;
-  background: var(--scrim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  padding: 20px;
+.modal {
+  width: min(388px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font: inherit;
 }
+
+.modal::backdrop {
+  background: var(--scrim);
+}
+
 .dialog {
   display: flex;
   flex-direction: column;
@@ -226,8 +235,7 @@
   border-radius: 12px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  width: 340px;
-  max-width: 100%;
+  width: 100%;
 }
 .dialog p {
   margin: 0;
@@ -243,7 +251,7 @@
   border: 1px solid var(--border);
   border-radius: 5px;
 }
-@media (max-width: 650px) {
+@container files (width < 650px) {
   .sidebar {
     width: 120px;
     padding: 8px 4px;
@@ -264,7 +272,7 @@
     display: none;
   }
 }
-@media (max-width: 400px) {
+@container files (width < 400px) {
   .sidebar {
     display: none;
   }

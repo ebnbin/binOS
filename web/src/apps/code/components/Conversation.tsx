@@ -87,29 +87,39 @@ export function Conversation({
   async function send(text: string, files: File[], mode: SendMode) {
     setNotice('')
     stick.current = true
-    const tooLarge = files.find((file) => file.size > maxUploadBytes)
-    if (tooLarge) {
-      setNotice(`${tooLarge.name} 太大，附件最大 ${maxUploadBytes / 1024 / 1024} MB`)
-      return false
-    }
-    const uploads = await Promise.all(files.map(uploadFile))
-    const attachments: Upload[] = []
-    for (const upload of uploads) {
-      if ('error' in upload) {
-        setNotice(upload.error)
+    try {
+      const tooLarge = files.find((file) => file.size > maxUploadBytes)
+      if (tooLarge) {
+        setNotice(`${tooLarge.name} 太大，附件最大 ${maxUploadBytes / 1024 / 1024} MB`)
         return false
       }
-      attachments.push(upload)
-    }
-    const result = await sendMessage(sessionId, text, attachments, { project, ...(mode === 'interrupt' && { interrupt: true }), ...(mode === 'queue' && { queue: true }), ...choice })
-    if ('error' in result) {
-      setNotice(result.error)
+      const uploads = await Promise.all(files.map(uploadFile))
+      const attachments: Upload[] = []
+      for (const upload of uploads) {
+        if ('error' in upload) {
+          setNotice(upload.error)
+          return false
+        }
+        attachments.push(upload)
+      }
+      const result = await sendMessage(sessionId, text, attachments, {
+        project,
+        ...(mode === 'interrupt' && { interrupt: true }),
+        ...(mode === 'queue' && { queue: true }),
+        ...choice,
+      })
+      if ('error' in result) {
+        setNotice(result.error)
+        return false
+      }
+      if (sessionId === null) {
+        onCreated(result.id, result.thread)
+      }
+      return true
+    } catch {
+      setNotice('发送失败，请重试')
       return false
     }
-    if (sessionId === null) {
-      onCreated(result.id, result.thread)
-    }
-    return true
   }
 
   function scrollToBottom() {

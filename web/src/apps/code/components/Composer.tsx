@@ -55,6 +55,7 @@ export function Composer({
   const [input, setInput] = useState(() => localStorage.getItem(draftStorageKey(draftKey)) ?? '')
   const [pending, setPending] = useState<PendingFile[]>([])
   const [sending, setSending] = useState(false)
+  const sendingRef = useRef(false)
   const [dragging, setDragging] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -97,10 +98,7 @@ export function Composer({
   useEffect(() => {
     pendingRef.current = pending
   }, [pending])
-  useEffect(
-    () => () => pendingRef.current.forEach((item) => item.preview && URL.revokeObjectURL(item.preview)),
-    [],
-  )
+  useEffect(() => () => pendingRef.current.forEach((item) => item.preview && URL.revokeObjectURL(item.preview)), [])
 
   // 文件拖到页面哪里都能放下，不让浏览器直接打开它
   const onWindowDrop = useEffectEvent((files: File[]) => addFiles(files))
@@ -127,17 +125,27 @@ export function Composer({
 
   // 正在回答时默认是插话，agent 在下一次工具调用之间看到
   async function send(mode: SendMode = 'send') {
-    if (!canSend) {
-      return
-    }
+    if (!hasContent || sendingRef.current) return
+    sendingRef.current = true
     setSending(true)
-    const ok = await onSend(input.trim(), pending.map((item) => item.file), running ? mode : 'send')
-    setSending(false)
-    if (ok) {
-      // 新对话发出后这个输入框就换成了那个对话的，等不到下面的 effect
-      localStorage.removeItem(draftStorageKey(draftKey))
-      setInput('')
-      clearPending()
+    try {
+      const ok = await onSend(
+        input.trim(),
+        pending.map((item) => item.file),
+        running ? mode : 'send',
+      )
+      if (ok) {
+        localStorage.removeItem(draftStorageKey(draftKey))
+        setInput('')
+        clearPending()
+      }
+    } finally {
+      sendingRef.current = false
+      setSending(false)
+      const textarea = textareaRef.current
+      if (enterSends && textarea?.closest('form')?.contains(document.activeElement)) {
+        textarea.focus({ preventScroll: true })
+      }
     }
   }
 
@@ -151,12 +159,13 @@ export function Composer({
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.nativeEvent.isComposing) {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
       event.preventDefault()
       void send('queue')
       return
     }
-    if (enterSends && event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+    if (enterSends && event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
       void send()
     }
@@ -213,7 +222,12 @@ export function Composer({
                 ) : null}
                 {/* 被停止或出错后留下的，可以现在就发 */}
                 {!running && (
-                  <IconButton icon={ArrowUp} label="现在发送" className={styles.queueButton} onClick={() => void sendQueued(sessionId, item.id)} />
+                  <IconButton
+                    icon={ArrowUp}
+                    label="现在发送"
+                    className={styles.queueButton}
+                    onClick={() => void sendQueued(sessionId, item.id)}
+                  />
                 )}
                 <IconButton icon={X} label="撤回到输入框" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
               </li>
@@ -222,10 +236,7 @@ export function Composer({
         )}
         {pending.length > 0 && (
           <div className={styles.attachments}>
-            <PendingAttachments
-              files={pending}
-              onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)}
-            />
+            <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
           </div>
         )}
         <textarea
@@ -237,7 +248,9 @@ export function Composer({
           onPaste={onPaste}
           placeholder={running ? '补充或纠正，agent 会在下一步看到' : '输入消息'}
           rows={1}
-          disabled={sending}
+          readOnly={sending}
+          aria-label="消息"
+          aria-busy={sending}
           autoFocus={enterSends}
         />
         <div className={styles.bar}>
@@ -294,7 +307,9 @@ export function Composer({
             options={[
               { value: '', label: '默认思考' },
               ...efforts.map((effort) => ({ value: effort, label: `思考：${effortName(effort)}` })),
-              ...(choice.effort && !efforts.includes(choice.effort) ? [{ value: choice.effort, label: `思考：${effortName(choice.effort)}` }] : []),
+              ...(choice.effort && !efforts.includes(choice.effort)
+                ? [{ value: choice.effort, label: `思考：${effortName(choice.effort)}` }]
+                : []),
             ]}
           />
           {session && <Usage session={session} />}

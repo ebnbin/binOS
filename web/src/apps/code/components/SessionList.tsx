@@ -1,6 +1,18 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/agent/types'
-import { ChevronRight, CircleAlert, CircleStop, Clock, Gauge, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
+import {
+  ChevronRight,
+  CircleAlert,
+  CircleStop,
+  Clock,
+  Gauge,
+  GitPullRequest,
+  Hourglass,
+  MoreHorizontal,
+  Search,
+  SquarePen,
+  X,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
@@ -8,7 +20,8 @@ import { formatQuota } from '../format.ts'
 import { formatClock, formatTime } from '../../../ui/time.ts'
 import { AuthBanner } from './AuthBanner.tsx'
 import { Quota } from './Quota.tsx'
-import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
+import { RenameInput, SessionActions } from './SessionMenu.tsx'
+import { SearchResults } from './SearchResults.tsx'
 import styles from './SessionList.module.css'
 
 // 输入停下这么久才去搜
@@ -44,25 +57,55 @@ export function SessionList({
         <SquarePen size={16} strokeWidth={1.75} />
         新对话
       </button>
-      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>创建项目</button>
-      {creating && <form className={styles.projectForm} onSubmit={(event) => {
-        event.preventDefault()
-        if (!name.trim() || saving) return
-        setSaving(true)
-        setError('')
-        void createProject(name.trim()).then((project) => {
-          setName('')
-          setCreating(false)
-          onNavigate(`/new?project=${project.id}`)
-        }).catch(() => setError('创建失败，请重试')).finally(() => setSaving(false))
-      }}>
-        <input autoFocus aria-label="项目名称" placeholder="项目名称" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
-        <button type="submit" disabled={!name.trim() || saving}>{saving ? '创建中…' : '创建'}</button>
-        {error && <p role="alert">{error}</p>}
-      </form>}
+      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>
+        创建项目
+      </button>
+      {creating && (
+        <form
+          className={styles.projectForm}
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!name.trim() || saving) return
+            setSaving(true)
+            setError('')
+            void createProject(name.trim())
+              .then((project) => {
+                setName('')
+                setCreating(false)
+                onNavigate(`/new?project=${project.id}`)
+              })
+              .catch(() => setError('创建失败，请重试'))
+              .finally(() => setSaving(false))
+          }}
+        >
+          <input
+            autoFocus
+            aria-label="项目名称"
+            placeholder="项目名称"
+            maxLength={100}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <button type="submit" disabled={!name.trim() || saving}>
+            {saving ? '创建中…' : '创建'}
+          </button>
+          {error && <p role="alert">{error}</p>}
+        </form>
+      )}
       <label className={styles.search}>
         <Search size={14} strokeWidth={1.75} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索全部历史内容" aria-label="搜索全部历史内容" />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="搜索对话与消息"
+          aria-label="搜索全部历史内容"
+          autoComplete="off"
+          spellCheck={false}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && !event.nativeEvent.isComposing) setQuery('')
+          }}
+        />
         {query && (
           <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
             <X size={13} strokeWidth={2} />
@@ -71,26 +114,36 @@ export function SessionList({
       </label>
       <nav className={styles.list}>
         {query.trim() ? (
-          <div aria-live="polite">
-            <p className={styles.placeholder}>{search.failed ? '搜索失败，请修改关键词重试' : !search.data ? '搜索中…' : `找到 ${search.data.total} 条结果${search.data.total > 200 ? '，显示前 200 条' : ''}`}</p>
-            {search.data?.results.map((result) => (
-              <button type="button" className={styles.item} key={`${result.id}-${result.item ?? 'title'}`}
-                onClick={() => onNavigate(`/${result.id}${result.item !== undefined ? `?item=${result.item}` : ''}`)}>
-                <span className={styles.title}>{result.title || '（无内容）'}</span>
-                <span className={styles.meta}>#{result.id} · {result.kind === 'title' ? '标题' : result.kind === 'input' ? '用户消息' : '回复'}{result.archived ? ' · 已归档' : ''}</span>
-                <span className={styles.snippet}>{result.before}<mark>{result.match}</mark>{result.after}</span>
-              </button>
-            ))}
-          </div>
-        ) : !projects || !sessions ? (failed && <p className={styles.placeholder}>读取失败</p>) : projects.map((project) => (
-          <section key={project.id}>
-            <div className={styles.projectHeader}>
-              <span>{project.name}</span>
-              <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}><SquarePen size={14} /></button>
-            </div>
-            <Sections sessions={sessions.filter((session) => session.project === project.id)} searching={false} failed={failed} current={current} onNavigate={onNavigate} />
-          </section>
-        ))}
+          <SearchResults
+            query={query.trim()}
+            data={search.data}
+            failed={search.failed}
+            onRetry={search.retry}
+            sessions={sessions}
+            projects={projects}
+            onNavigate={onNavigate}
+          />
+        ) : !projects || !sessions ? (
+          failed && <p className={styles.placeholder}>读取失败</p>
+        ) : (
+          projects.map((project) => (
+            <section key={project.id}>
+              <div className={styles.projectHeader}>
+                <span>{project.name}</span>
+                <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
+                  <SquarePen size={14} />
+                </button>
+              </div>
+              <Sections
+                sessions={sessions.filter((session) => session.project === project.id)}
+                searching={false}
+                failed={failed}
+                current={current}
+                onNavigate={onNavigate}
+              />
+            </section>
+          ))
+        )}
       </nav>
     </div>
   )
@@ -99,9 +152,13 @@ export function SessionList({
 function useSearch(query: string) {
   const [result, setResult] = useState<{ query: string; data?: Awaited<ReturnType<typeof searchContent>>; failed?: boolean }>()
   const [revision, setRevision] = useState(0)
-  useEffect(() => onChange((event) => {
-    if (event === null || event.type === 'session') setRevision((value) => value + 1)
-  }), [])
+  useEffect(
+    () =>
+      onChange((event) => {
+        if (event === null || event.type === 'session') setRevision((value) => value + 1)
+      }),
+    [],
+  )
   useEffect(() => {
     if (!query) return
     let cancelled = false
@@ -110,9 +167,18 @@ function useSearch(query: string) {
         .then((data) => !cancelled && setResult({ query, data }))
         .catch(() => !cancelled && setResult({ query, failed: true }))
     }, searchDelay)
-    return () => { cancelled = true; window.clearTimeout(timer) }
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
   }, [query, revision])
-  return result?.query === query ? result : { query }
+  return {
+    ...(result?.query === query ? result : { query }),
+    retry: () => {
+      setResult(undefined)
+      setRevision((value) => value + 1)
+    },
+  }
 }
 
 // 每个项目内置顶的在最上面，其余按最近活动排序，归档的收在最下面
@@ -157,7 +223,12 @@ function Sections({
       {items(others)}
       {archived.length > 0 && (
         <>
-          <button type="button" className={styles.archivedToggle} onClick={() => setShowArchived(!showArchived)} aria-expanded={showArchived}>
+          <button
+            type="button"
+            className={styles.archivedToggle}
+            onClick={() => setShowArchived(!showArchived)}
+            aria-expanded={showArchived}
+          >
             <ChevronRight size={13} strokeWidth={2} className={styles.toggleChevron} />
             已归档 {archived.length}
           </button>
@@ -206,20 +277,11 @@ function SessionItem({
         </button>
       )}
       {!renaming && (
-        <button
-          type="button"
-          className={styles.more}
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="更多操作"
-          aria-expanded={menuOpen}
-        >
-          <MoreHorizontal size={15} strokeWidth={1.75} />
-        </button>
-      )}
-      {menuOpen && (
-        <Menu onClose={() => setMenuOpen(false)}>
-          <SessionMenuItems session={session} onRename={() => setRenaming(true)} />
-        </Menu>
+        <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
+          <button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
+            <MoreHorizontal size={15} strokeWidth={1.75} />
+          </button>
+        </SessionActions>
       )}
     </li>
   )
@@ -231,33 +293,35 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
   const date = new Date(session.updatedAt)
   return (
     <span className={styles.meta}>
-      <span>#{session.id}</span>
-      {session.agent !== defaultAgent && <span>{agents[session.agent].name}</span>}
-      {session.turns > 1 && <span>{session.turns} 轮</span>}
-      {session.quota !== undefined && session.quota >= 0.005 && (
-        <span title="大约占订阅周额度">
-          <Gauge size={12} strokeWidth={2} />
-          {formatQuota(session.quota)}
-        </span>
-      )}
-      {openPrs.length > 0 && (
-        <span className={styles.openPr} title="开着的 PR">
-          <GitPullRequest size={12} strokeWidth={2} />
-          {openPrs.map((pr) => `#${pr.number}`).join(' ')}
-        </span>
-      )}
-      {session.queue.length > 0 && (
-        <span title="排队的消息">
-          <Clock size={12} strokeWidth={2} />
-          {session.queue.length}
-        </span>
-      )}
-      {session.outcome && !session.running && !session.waiting && (
-        <span className={session.outcome === 'error' ? styles.error : undefined}>
-          {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
-          {session.outcome === 'error' ? '出错' : '已停止'}
-        </span>
-      )}
+      <span className={styles.facts}>
+        <span>#{session.id}</span>
+        {session.agent !== defaultAgent && <span>{agents[session.agent].name}</span>}
+        {session.turns > 1 && <span>{session.turns} 轮</span>}
+        {session.quota !== undefined && session.quota >= 0.005 && (
+          <span title="大约占订阅周额度">
+            <Gauge size={12} strokeWidth={2} />
+            {formatQuota(session.quota)}
+          </span>
+        )}
+        {openPrs.length > 0 && (
+          <span className={styles.openPr} title="开着的 PR">
+            <GitPullRequest size={12} strokeWidth={2} />
+            {openPrs.map((pr) => `#${pr.number}`).join(' ')}
+          </span>
+        )}
+        {session.queue.length > 0 && (
+          <span title="排队的消息">
+            <Clock size={12} strokeWidth={2} />
+            {session.queue.length}
+          </span>
+        )}
+        {session.outcome && !session.running && !session.waiting && (
+          <span className={session.outcome === 'error' ? styles.error : undefined}>
+            {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+            {session.outcome === 'error' ? '出错' : '已停止'}
+          </span>
+        )}
+      </span>
       <span className={styles.side}>
         {session.running ? (
           <span className={styles.busy}>回答中</span>

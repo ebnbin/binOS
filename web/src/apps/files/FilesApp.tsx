@@ -1,3 +1,4 @@
+import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
 import { Checkbox } from '../../ui/Checkbox.tsx'
 import { Select } from '../../ui/Select.tsx'
 import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
@@ -37,6 +38,7 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [busy, setBusy] = useState(false)
+  const operationBusy = useRef(false)
   const [dialog, setDialog] = useState<{ action: 'mkdir' | 'rename' | 'trash'; value: string }>()
   const upload = useRef<HTMLInputElement>(null)
   const sequence = useRef(0)
@@ -70,9 +72,15 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
   }, [route])
   const go = (dir: string) => ctx.navigate('/' + encodeURIComponent(dir))
   async function operation(action: string, file: string, extra = {}) {
-    await request('/operation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, path: file, ...extra }) })
+    await request('/operation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, path: file, ...extra }),
+    })
   }
   async function run(task: () => Promise<void>) {
+    if (operationBusy.current) return
+    operationBusy.current = true
     setBusy(true)
     setError('')
     try {
@@ -81,8 +89,9 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {
       setDialog(undefined)
-      setBusy(false)
       await load(listing?.path || route, false)
+      operationBusy.current = false
+      setBusy(false)
     }
   }
   const entries = (listing?.entries || [])
@@ -90,7 +99,11 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
     .sort(
       (a, b) =>
         Number(b.directory) - Number(a.directory) ||
-        (sort === 'modified' ? b.modified - a.modified : sort === 'size' ? b.size - a.size : a.name.localeCompare(b.name, 'zh-CN', { numeric: true })),
+        (sort === 'modified'
+          ? b.modified - a.modified
+          : sort === 'size'
+            ? b.size - a.size
+            : a.name.localeCompare(b.name, 'zh-CN', { numeric: true })),
     )
   const current = listing?.entries.find((e) => e.path === selected[0])
   const download = (file: string) => `${base}/download?${new URLSearchParams({ path: file })}`
@@ -150,7 +163,13 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
               go(location)
             }}
           >
-            <input aria-label="文件夹路径" disabled={busy} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="输入绝对路径" />
+            <input
+              aria-label="文件夹路径"
+              disabled={busy}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="输入绝对路径"
+            />
           </form>
           <button title="刷新" aria-label="刷新" disabled={loading || busy} onClick={() => void load(route)}>
             <RefreshCw size={17} />
@@ -164,11 +183,16 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             <Search size={15} />
             <input aria-label="搜索当前文件夹" placeholder="搜索当前文件夹" value={search} onChange={(e) => setSearch(e.target.value)} />
           </label>
-          <Select label="排序" value={sort} onValueChange={setSort} options={[
-            { value: 'name', label: '名称' },
-            { value: 'modified', label: '修改时间' },
-            { value: 'size', label: '大小' },
-          ]} />
+          <Select
+            label="排序"
+            value={sort}
+            onValueChange={setSort}
+            options={[
+              { value: 'name', label: '名称' },
+              { value: 'modified', label: '修改时间' },
+              { value: 'size', label: '大小' },
+            ]}
+          />
           <Checkbox label="隐藏文件" checked={hidden} onCheckedChange={setHidden} />
         </div>
         <div className={styles.actions}>
@@ -179,7 +203,10 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             <Upload size={14} />
             上传
           </button>
-          <button disabled={busy || selected.length !== 1} onClick={() => current && (current.directory ? go(current.path) : setPreview(current))}>
+          <button
+            disabled={busy || selected.length !== 1}
+            onClick={() => current && (current.directory ? go(current.path) : setPreview(current))}
+          >
             打开
           </button>
           <button disabled={busy || selected.length !== 1} onClick={() => setDialog({ action: 'rename', value: current?.name || '' })}>
@@ -195,7 +222,8 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             disabled={!clipboard || busy || !listing || loading}
             onClick={() =>
               void run(async () => {
-                for (const file of clipboard!.paths) await operation(clipboard!.move ? 'move' : 'copy', file, { destination: listing!.path })
+                for (const file of clipboard!.paths)
+                  await operation(clipboard!.move ? 'move' : 'copy', file, { destination: listing!.path })
                 setClipboard(undefined)
               })
             }
@@ -279,7 +307,9 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
                   {!grid && (
                     <>
                       <span className={styles.meta}>
-                        {entry.modified ? new Date(entry.modified).toLocaleString('zh-CN', { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                        {entry.modified
+                          ? new Date(entry.modified).toLocaleString('zh-CN', { dateStyle: 'short', timeStyle: 'short' })
+                          : '—'}
                       </span>
                       <span className={styles.meta}>{entry.directory ? '—' : size(entry.size)}</span>
                     </>
@@ -309,15 +339,14 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
         />
       )}
       {dialog && (
-        <div className={styles.scrim}>
+        <ModalHost
+          className={styles.modal}
+          label={dialog.action === 'trash' ? '移到废纸篓' : '输入名称'}
+          dismissible={!busy}
+          onClose={() => setDialog(undefined)}
+        >
           <form
             className={styles.dialog}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' && !busy) setDialog(undefined)
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-label={dialog.action === 'trash' ? '移到废纸篓' : '输入名称'}
             onSubmit={(e) => {
               e.preventDefault()
               void run(async () => {
@@ -327,7 +356,9 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
               })
             }}
           >
-            <strong>{dialog.action === 'trash' ? `将 ${selected.length} 个项目移到废纸篓？` : dialog.action === 'mkdir' ? '新建文件夹' : '重命名'}</strong>
+            <strong>
+              {dialog.action === 'trash' ? `将 ${selected.length} 个项目移到废纸篓？` : dialog.action === 'mkdir' ? '新建文件夹' : '重命名'}
+            </strong>
             {dialog.action === 'trash' ? (
               <p>文件会移到 macOS 的废纸篓。</p>
             ) : (
@@ -346,7 +377,7 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
               <button disabled={busy || (dialog.action !== 'trash' && !dialog.value.trim())}>确认</button>
             </div>
           </form>
-        </div>
+        </ModalHost>
       )}
     </div>
   )
