@@ -6,6 +6,7 @@
     "dist"
   ],
   "exports": {
+    "./apps/mail/types": "./src/apps/mail/types.ts",
     "./api": "./src/api.ts",
     "./types": "./src/types.ts",
     "./services/agent/api": "./src/services/agent/api.ts",
@@ -28,11 +29,16 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
+    "google-auth-library": "^11.3.1",
     "hono": "^4.13.13",
+    "mailparser": "^3.10.0",
     "node-pty": "^1.1.0",
+    "sanitize-html": "^2.18.1",
     "ws": "^8.22.0"
   },
   "devDependencies": {
+    "@types/mailparser": "^3.9.0",
+    "@types/sanitize-html": "^2.16.2",
     "@types/ws": "^8.18.2",
     "tsx": "^4.23.15"
   }

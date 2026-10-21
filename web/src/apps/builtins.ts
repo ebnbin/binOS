@@ -1,9 +1,16 @@
-import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Globe, Music, NotebookPen, Smartphone, Terminal } from 'lucide-react'
+import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Globe, Mail, Music, NotebookPen, Smartphone, Terminal } from 'lucide-react'
 import { lazy } from 'react'
 import { placeholderApp } from './placeholder/index.ts'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
+  {
+    id: 'mail',
+    name: 'Mail',
+    icon: Mail,
+    mainWindow: { viewId: 'main' },
+    views: { main: { kind: 'window', component: lazy(() => import('./mail/MailApp.tsx').then((module) => ({ default: module.MailApp }))) } },
+  },
   {
     id: 'devices',
     name: 'Devices',

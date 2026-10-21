@@ -18,6 +18,7 @@ const defaultDesktop = (apps: ApplicationDefinition[]): DesktopItem[] => [
   shortcut('system'),
   shortcut('terminal'),
   shortcut('devices'),
+  shortcut('mail'),
   ...apps.filter((app) => app.url).map((app) => shortcut(app.id, `external:${app.id}`)),
   shortcut('notes'),
   shortcut('calendar'),

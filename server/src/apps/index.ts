@@ -6,8 +6,10 @@ import { filesApi } from './files/api.js'
 import { codeApp } from './code/index.js'
 import type { ServerApp } from './types.js'
 import { musicApi } from './music/api.js'
+import { mailApi, mailService } from './mail/api.js'
 
 export const serverApps: ServerApp[] = [
+  { id: 'mail', api: mailApi, start: () => { mailService.start() } },
   { id: 'devices', api: devicesApi },
   codeApp,
   { id: 'terminal', api: terminalApi },
