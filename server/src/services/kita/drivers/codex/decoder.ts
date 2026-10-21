@@ -1,4 +1,4 @@
-import { constants, copyFileSync, mkdirSync } from 'node:fs'
+import { constants, copyFileSync, existsSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import type { Limits, LiveEvent, ToolDetail, Tokens } from '../../types.js'
 import { LiveState, truncatedOutput } from '../decoder.js'
@@ -332,18 +332,21 @@ export class CodexDecoder implements Decoder {
     }
   }
 
-  // 按条目命名：重读同一份输出时写出同样的文件
+  // 原路径可能已经被后续操作改写；重放只能复用首次保存的快照。
   private imageOf(item: CodexItem): { images?: string[] } {
     const extension = path.extname(item.path ?? '').slice(1).toLowerCase()
     if (!item.path || !['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(extension)) {
       return {}
     }
     const name = `${item.id}.${extension}`
+    const destination = path.join(this.filesDir, name)
+    if (existsSync(destination)) return { images: [name] }
     try {
       mkdirSync(this.filesDir, { recursive: true })
-      copyFileSync(item.path, path.join(this.filesDir, name), constants.COPYFILE_FICLONE)
+      copyFileSync(item.path, destination, constants.COPYFILE_FICLONE | constants.COPYFILE_EXCL)
       return { images: [name] }
-    } catch {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') return { images: [name] }
       return {}
     }
   }
