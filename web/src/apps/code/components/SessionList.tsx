@@ -1,5 +1,5 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
-import { agents, defaultAgent } from '@binos/server/services/agent/types'
+import { agents, defaultAgent } from '@binos/server/services/kita/types'
 import {
   ChevronRight,
   CircleAlert,

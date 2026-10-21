@@ -7,7 +7,7 @@ import { validator } from 'hono/validator'
 import { requireOwner } from './access.js'
 import { serverApps } from './apps/index.js'
 import { onChange } from './events.js'
-import { agentApi } from './services/agent/api.js'
+import { kitaApi } from './services/kita/api.js'
 import { codeDir } from './paths.js'
 import { connectedPreamble, keepAlive } from './sse.js'
 import { parseExternalApps, readRegistry, saveRegistry } from './registry.js'
@@ -41,7 +41,7 @@ export const api = new Hono()
     saveRegistry(c.req.valid('json'))
     return c.json({ ok: true as const }, 200)
   })
-  .route('/agent', agentApi)
+  .route('/kita', kitaApi)
   // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
   .get('/events', (c) =>
     streamSSE(c, async (stream) => {

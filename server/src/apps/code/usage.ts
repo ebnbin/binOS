@@ -1,8 +1,8 @@
 import { appendFileSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
-import { allLimits, isPriced } from '../../services/agent/index.js'
-import { agentIds } from '../../services/agent/types.js'
-import type { Tokens } from '../../services/agent/types.js'
+import { allLimits, isPriced } from '../../services/kita/index.js'
+import { agentIds } from '../../services/kita/types.js'
+import type { Tokens } from '../../services/kita/types.js'
 import { dataDir, listSessions, threadOf } from './sessions.js'
 import type { CodeUsage } from './types.js'
 

@@ -1,6 +1,6 @@
 import type { CodeApi } from '@binos/server/apps/code/api'
 import type { Upload } from '@binos/server/apps/code/types'
-import type { AgentId } from '@binos/server/services/agent/types'
+import type { AgentId } from '@binos/server/services/kita/types'
 import { hc } from 'hono/client'
 
 const client = hc<CodeApi>(`${window.location.origin}/api/apps/code`)
@@ -25,7 +25,7 @@ export async function sendMessage(
   text: string,
   attachments: Upload[],
   options: SendOptions,
-): Promise<{ id: number; thread: string } | { error: string }> {
+): Promise<{ id: number; kitaSession: string } | { error: string }> {
   const json = { text, attachments, ...options }
   const res = await (sessionId === null
     ? sessions.$post({ json })

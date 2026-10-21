@@ -2,13 +2,13 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFile
 import path from 'node:path'
 import { defaultProject } from './projects.js'
 import { appDir } from '../../paths.js'
-import { getThread } from '../../services/agent/index.js'
-import type { Thread } from '../../services/agent/index.js'
+import { codeKita } from './kita.js'
+import type { KitaSession } from '../../services/kita/index.js'
 
 // session.json：对话对应的 thread 和用户在列表上的整理（改的名字、置顶、归档、最后一次看它的时间），
 // 以及从 thread 的条目里算出的（scanned 是算到了第几条）：默认的标题，开过的 PR 和还没有结果的 gh pr create 调用
 export type Session = {
-  thread: string
+  kitaSession: string
   project: string
   title?: string
   pinned?: true
@@ -55,7 +55,7 @@ function writeSession(id: number, session: Session) {
 export function createSession(thread: string, project = defaultProject): number {
   const id = (listSessions()[0] ?? 0) + 1
   mkdirSync(sessionDir(id), { recursive: true })
-  writeSession(id, { thread, project, scanned: 0, defaultTitle: '', prs: [], creatingPrs: [] })
+  writeSession(id, { kitaSession: thread, project, scanned: 0, defaultTitle: '', prs: [], creatingPrs: [] })
   sessionIds.set(thread, id)
   return id
 }
@@ -65,9 +65,8 @@ const sessions = new Map<number, Session>()
 // 从上次算到的地方接着看 thread 新增的条目
 export function readSession(id: number): Session {
   const session = sessions.get(id) ?? (JSON.parse(readFileSync(sessionPath(id), 'utf8')) as Session)
-  session.project ??= defaultProject
   sessions.set(id, session)
-  const items = sessionThread(id, session).items(session.scanned)
+  const items = sessionThread(id, session).entries(session.scanned)
   if (items.length === 0) {
     return session
   }
@@ -92,10 +91,10 @@ export function readSession(id: number): Session {
 
 export const sessionTitle = (session: Session) => session.title ?? session.defaultTitle
 
-function sessionThread(id: number, session: Session): Thread {
-  const thread = getThread(session.thread)
+function sessionThread(id: number, session: Session): KitaSession {
+  const thread = codeKita.getSession(session.kitaSession)
   if (!thread) {
-    throw new Error(`session ${id} 的 thread ${session.thread} 不存在`)
+    throw new Error(`session ${id} 的 thread ${session.kitaSession} 不存在`)
   }
   return thread
 }
@@ -121,7 +120,7 @@ const sessionIds = new Map<string, number>()
 export function sessionOf(thread: string): number | undefined {
   if (sessionIds.size === 0) {
     for (const id of listSessions()) {
-      sessionIds.set(readSession(id).thread, id)
+      sessionIds.set(readSession(id).kitaSession, id)
     }
   }
   return sessionIds.get(thread)
@@ -136,7 +135,7 @@ export function searchSessions(ids: number[], query: string): Set<number> {
       (id) =>
         includes(sessionTitle(readSession(id))) ||
         threadOf(id)
-          .items()
+          .entries()
           .some((item) => (item.type === 'input' || (item.type === 'text' && !item.parent)) && includes(item.text)),
     ),
   )
@@ -164,7 +163,7 @@ export function searchContent(query: string) {
   const ids = listSessions().sort((a, b) => threadOf(b).summary().updatedAt.localeCompare(threadOf(a).summary().updatedAt))
   for (const id of ids) {
     add(id, sessionTitle(readSession(id)), 'title')
-    threadOf(id).items().forEach((item, index) => {
+    threadOf(id).entries().forEach((item, index) => {
       if (item.type === 'input' || (item.type === 'text' && !item.parent)) add(id, item.text, item.type, index)
     })
   }

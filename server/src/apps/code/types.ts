@@ -1,4 +1,4 @@
-import type { AgentId, Context, Tokens } from '../../services/agent/types.js'
+import type { AgentId, Context, Tokens } from '../../services/kita/types.js'
 
 // 用户上传、还没随消息发出的附件。file 是 uploads/ 里的文件名，name 是原来的文件名
 export type Upload = { file: string; name: string }
@@ -15,7 +15,7 @@ export type Project = { id: string; name: string }
 export type SessionSummary = {
   project: string
   id: number
-  thread: string
+  kitaSession: string
   // 改过名就是改的名字；否则是第一条用户消息，没写字时是第一个附件的文件名
   title: string
   updatedAt: string

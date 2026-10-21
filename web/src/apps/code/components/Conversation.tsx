@@ -1,12 +1,12 @@
 import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
-import { defaultAgent } from '@binos/server/services/agent/types'
-import type { AgentId } from '@binos/server/services/agent/types'
+import { defaultAgent } from '@binos/server/services/kita/types'
+import type { AgentId } from '@binos/server/services/kita/types'
 import { ArrowDown } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
-import { Transcript } from '../../../services/agent/thread/Transcript.tsx'
-import { useThread } from '../../../services/agent/thread/useThread.ts'
+import { Transcript } from '../../../services/kita/session/Transcript.tsx'
+import { useKitaSession } from '../../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../../ui/Alert.tsx'
 import { BrandMark } from '../../../ui/BrandMark.tsx'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
@@ -45,7 +45,7 @@ export function Conversation({
   scrollRef: RefObject<HTMLDivElement | null>
   onCreated: (id: number, thread: string) => void
 }) {
-  const { items, live } = useThread(thread)
+  const { items, live } = useKitaSession(thread)
   const running = live !== null
   // 下一轮用的模型和思考程度，没选过就沿用这个 session 最近一轮的
   const [picked, setPicked] = useState<Choice>()
@@ -113,7 +113,7 @@ export function Conversation({
         return false
       }
       if (sessionId === null) {
-        onCreated(result.id, result.thread)
+        onCreated(result.id, result.kitaSession)
       }
       return true
     } catch {

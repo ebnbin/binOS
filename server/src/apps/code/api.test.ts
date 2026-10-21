@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -7,20 +7,20 @@ const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
-const { appendItems, createThread, filesDir } = await import('../../services/agent/store.js')
-const { createSession, sessionDir, readSession, searchContent, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
+const { appendEntries, createKitaSession, filesDir } = await import('../../services/kita/store.js')
+const { createSession, readSession, searchContent, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
 const time = () => new Date().toISOString()
 
 // 新的 session 和它的 thread，第一句是 text
 function newSession(text: string) {
-  const thread = createThread({ type: 'thread', time: time(), agent: 'claude', owner: 'code', cwd: root })
-  appendItems(thread, [{ type: 'input', time: time(), mode: 'start', text }])
-  return { thread, id: createSession(thread) }
+  const thread = createKitaSession({ type: 'session', time: time(), agent: 'claude', owner: 'code', cwd: root })
+  appendEntries(thread, [{ type: 'input', time: time(), mode: 'start', text }])
+  return { kitaSession: thread, id: createSession(thread) }
 }
 
 let thread: string
 beforeAll(() => {
-  thread = newSession('测试').thread
+  thread = newSession('测试').kitaSession
   mkdirSync(filesDir(thread), { recursive: true })
   writeFileSync(path.join(filesDir(thread), 'a-0.png'), 'png')
   writeFileSync(path.join(filesDir(thread), 'page.html'), '<script></script>')
@@ -60,15 +60,15 @@ describe('api', () => {
   })
 
   it('thread 里网页类的文件只能下载，不在页面里打开', async () => {
-    const html = await api.request(`/api/agent/threads/${thread}/files/page.html?name=${encodeURIComponent('页面.html')}`)
+    const html = await api.request(`/api/kita/sessions/${thread}/files/page.html?name=${encodeURIComponent('页面.html')}`)
     expect(html.headers.get('Content-Type')).toBe('application/octet-stream')
     expect(html.headers.get('Content-Disposition')).toBe(`attachment; filename*=UTF-8''${encodeURIComponent('页面.html')}`)
-    const image = await api.request(`/api/agent/threads/${thread}/files/a-0.png`)
+    const image = await api.request(`/api/kita/sessions/${thread}/files/a-0.png`)
     expect(image.headers.get('Content-Disposition')).toBe('inline')
   })
 
   it('文件流支持范围读取、元数据和强制下载', async () => {
-    const url = `/api/agent/threads/${thread}/files/a-0.png`
+    const url = `/api/kita/sessions/${thread}/files/a-0.png`
     const range = await api.request(url, { headers: { Range: 'bytes=1-2' } })
     expect(range.status).toBe(206)
     expect(range.headers.get('Content-Range')).toBe('bytes 1-2/3')
@@ -83,33 +83,33 @@ describe('api', () => {
     const download = await api.request(url + '?name=photo.png')
     expect(download.headers.get('Content-Disposition')).toBe("attachment; filename*=UTF-8''photo.png")
     writeFileSync(path.join(filesDir(thread), 'empty'), '')
-    const empty = await api.request(`/api/agent/threads/${thread}/files/empty`)
+    const empty = await api.request(`/api/kita/sessions/${thread}/files/empty`)
     expect(empty.status).toBe(200)
     expect(await empty.text()).toBe('')
   })
 
   it('只提供 thread 的 files/ 里的文件', async () => {
-    const res = await api.request(`/api/agent/threads/${thread}/files/a-0.png`)
+    const res = await api.request(`/api/kita/sessions/${thread}/files/a-0.png`)
     expect(res.status).toBe(200)
     expect(await res.text()).toBe('png')
-    expect((await api.request(`/api/agent/threads/${thread}/files/..%2F..%2Fsecret.png`)).status).toBe(404)
-    expect((await api.request('/api/agent/threads/..%2F..%2F/files/a-0.png')).status).toBe(404)
+    expect((await api.request(`/api/kita/sessions/${thread}/files/..%2F..%2Fsecret.png`)).status).toBe(404)
+    expect((await api.request('/api/kita/sessions/..%2F..%2F/files/a-0.png')).status).toBe(404)
   })
 })
 
 describe('sessions', () => {
   it('标题默认是第一句话，改名后用改的名字；用户的整理和 thread 新增的条目互不影响', () => {
-    const { thread, id } = newSession('原来的名字')
+    const { kitaSession: thread, id } = newSession('原来的名字')
     setUserState(id, { pinned: true, title: '新名字' })
-    appendItems(thread, [{ type: 'input', time: time(), mode: 'start', text: '第二轮' }])
+    appendEntries(thread, [{ type: 'input', time: time(), mode: 'start', text: '第二轮' }])
     expect(readSession(id)).toMatchObject({ pinned: true, title: '新名字', defaultTitle: '原来的名字' })
     setUserState(id, { title: undefined })
     expect(sessionTitle(readSession(id))).toBe('原来的名字')
   })
 
   it('按标题、用户的话和回复搜索，不看子 agent 的文字', () => {
-    const { thread, id } = newSession('Alpha 计划')
-    appendItems(thread, [
+    const { kitaSession: thread, id } = newSession('Alpha 计划')
+    appendEntries(thread, [
       { type: 'text', time: time(), text: '关于 Beta 的回复' },
       { type: 'text', time: time(), text: 'Gamma', parent: 't1' },
     ])
@@ -119,11 +119,11 @@ describe('sessions', () => {
   })
 
   it('记下 gh pr create 输出的 PR，别的命令输出里的 PR 链接不算', () => {
-    const { thread, id } = newSession('开个 PR')
+    const { kitaSession: thread, id } = newSession('开个 PR')
     const pr = 'https://github.com/ebnbin/binos/pull/41'
     const command = (callId: string, text: string) =>
       ({ type: 'tool_call', time: time(), id: callId, name: 'Bash', tool: { kind: 'command', command: text } }) as const
-    appendItems(thread, [
+    appendEntries(thread, [
       command('t1', 'git push && gh pr create --fill && pnpm preview'),
       command('t2', 'gh pr view 40'),
       { type: 'tool_result', time: time(), callId: 't2', status: 'done', output: 'https://github.com/ebnbin/binos/pull/40' },
@@ -136,9 +136,9 @@ describe('sessions', () => {
 
 describe('全局内容搜索', () => {
   it('返回归档会话里的消息位置和匹配片段，区分标题和主对话', async () => {
-    const { thread, id } = newSession('检索专用标题')
+    const { kitaSession: thread, id } = newSession('检索专用标题')
     setUserState(id, { archived: true })
-    appendItems(thread, [
+    appendEntries(thread, [
       { type: 'text', time: time(), text: '前文 Needle 后文' },
       { type: 'text', time: time(), text: 'Needle 子任务', parent: 'child' },
     ])
@@ -155,12 +155,8 @@ describe('全局内容搜索', () => {
 
 
 describe('projects', () => {
-  it('旧对话归属 binOS，新对话保存项目，项目重读后仍存在', async () => {
+  it('默认使用 binOS 项目，新对话保存项目，项目重读后仍存在', async () => {
     const legacy = newSession('旧项目对话')
-    const file = path.join(sessionDir(legacy.id), 'session.json')
-    const data = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>
-    delete data.project
-    writeFileSync(file, JSON.stringify(data))
     expect(readSession(legacy.id).project).toBe('binos')
     const created = await post('/api/apps/code/projects', JSON.stringify({ name: ' 第二个项目 ' }), 'application/json')
     expect(created.status).toBe(201)
@@ -168,7 +164,7 @@ describe('projects', () => {
     expect(project.name).toBe('第二个项目')
     const listed = await api.request('/api/apps/code/projects')
     expect(((await listed.json()) as { projects: { id: string; name: string }[] }).projects).toContainEqual(project)
-    const thread = createThread({ type: 'thread', time: time(), agent: 'claude', owner: 'code', cwd: root })
+    const thread = createKitaSession({ type: 'session', time: time(), agent: 'claude', owner: 'code', cwd: root })
     expect(readSession(createSession(thread, project.id)).project).toBe(project.id)
     const invalid = await post('/api/apps/code/sessions', JSON.stringify({ text: 'hi', project: 'missing' }), 'application/json')
     expect(invalid.status).toBe(400)
