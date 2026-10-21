@@ -1,3 +1,4 @@
+import { preparePty } from './prepare-pty.ts'
 import { execFileSync } from 'node:child_process'
 import { cpSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
@@ -18,6 +19,7 @@ export function buildCommit(repoDir: string, commit: string, workDir: string) {
   run('pnpm', ['install', '--frozen-lockfile'], source)
   run('pnpm', ['build'], source)
   run('pnpm', ['--filter', '@binos/server', '--prod', 'deploy', path.join(output, 'server')], source)
+  preparePty(path.join(output, 'server', 'package.json'))
   cpSync(path.join(source, 'web', 'dist'), path.join(output, 'web', 'dist'), { recursive: true })
   cpSync(path.join(source, 'bin'), path.join(output, 'bin'), { recursive: true })
   writeFileSync(path.join(output, 'VERSION'), commit + '\n')
