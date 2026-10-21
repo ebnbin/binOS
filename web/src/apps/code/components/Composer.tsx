@@ -63,6 +63,7 @@ export function Composer({
   const choosable = catalogs.filter((catalog) => catalog.available || catalog.agent === choice.agent)
   const catalog = catalogs.find((item) => item.agent === choice.agent)
   const models = catalog?.models ?? []
+  const defaultModel = models.find((model) => model.isDefault)
   const efforts = models.find((model) => model.id === choice.model)?.efforts ?? catalog?.efforts ?? []
   const canSend = !sending && hasContent
 
@@ -276,16 +277,16 @@ export function Composer({
           )}
           <select
             className={styles.choice}
-            value={choice.model ?? ''}
+            value={choice.model ?? defaultModel?.id ?? ''}
             disabled={running}
             title={running ? '下一轮生效' : '模型'}
             aria-label="模型"
-            onChange={(event) => onChoice({ ...choice, model: event.target.value || undefined })}
+            onChange={(event) => onChoice({ ...choice, model: event.target.value === defaultModel?.id ? undefined : event.target.value || undefined })}
           >
-            <option value="">默认模型</option>
+            {!defaultModel && <option value="" disabled>模型信息暂不可用</option>}
             {models.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name}
+                {model.name}{model.id === defaultModel?.id ? '（默认）' : ''}
               </option>
             ))}
             {/* 之前用过、现在列表里没有的模型 */}
