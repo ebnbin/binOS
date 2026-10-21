@@ -8,7 +8,7 @@ import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } fr
 import type { MessageOptions } from './messages.js'
 import { pullRequests } from './pull-requests.js'
 import { readQueue } from './queue.js'
-import { listSessions, readSession, searchSessions, sessionExists, sessionTitle, setUserState, threadOf } from './sessions.js'
+import { listSessions, readSession, searchContent, searchSessions, sessionExists, sessionTitle, setUserState, threadOf } from './sessions.js'
 import type { SessionSummary, Upload } from './types.js'
 import { parseUploads, saveUpload, UploadTooLarge } from './uploads.js'
 import { codeUsage, sessionUsage } from './usage.js'
@@ -125,6 +125,7 @@ async function send(sessionId: number | undefined, text: string, attachments: Up
 }
 
 export const codeApi = new Hono()
+  .get('/search', (c) => c.json(searchContent(c.req.query('q') ?? '')))
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
   .get('/sessions', async (c) => {
     const query = c.req.query('q')?.trim()

@@ -2,7 +2,8 @@ import type { SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/agent/types'
 import { ChevronRight, CircleAlert, CircleStop, Clock, Gauge, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
-import { listSessions } from '../api.ts'
+import { searchContent } from '../api.ts'
+import { onChange } from '../../../events.ts'
 import { formatQuota } from '../format.ts'
 import { dateGroup, formatClock, formatTime } from '../../../ui/time.ts'
 import { AuthBanner } from './AuthBanner.tsx'
@@ -25,7 +26,7 @@ export function SessionList({
   onNavigate: (route: string) => void
 }) {
   const [query, setQuery] = useState('')
-  const matched = useSearch(query.trim())
+  const search = useSearch(query.trim())
   return (
     <div className={styles.pane}>
       <header className={styles.brand}>
@@ -39,7 +40,7 @@ export function SessionList({
       </button>
       <label className={styles.search}>
         <Search size={14} strokeWidth={1.75} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索对话" aria-label="搜索对话" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索全部历史内容" aria-label="搜索全部历史内容" />
         {query && (
           <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
             <X size={13} strokeWidth={2} />
@@ -47,38 +48,47 @@ export function SessionList({
         )}
       </label>
       <nav className={styles.list}>
-        <Sections
-          sessions={sessions && matched ? sessions.filter((session) => matched.has(session.id)) : sessions}
-          searching={query.trim() !== ''}
+        {query.trim() ? (
+          <div aria-live="polite">
+            <p className={styles.placeholder}>{search.failed ? '搜索失败，请修改关键词重试' : !search.data ? '搜索中…' : `找到 ${search.data.total} 条结果${search.data.total > 200 ? '，显示前 200 条' : ''}`}</p>
+            {search.data?.results.map((result) => (
+              <button type="button" className={styles.item} key={`${result.id}-${result.item ?? 'title'}`}
+                onClick={() => onNavigate(`/${result.id}${result.item !== undefined ? `?item=${result.item}` : ''}`)}>
+                <span className={styles.title}>{result.title || '（无内容）'}</span>
+                <span className={styles.meta}>#{result.id} · {result.kind === 'title' ? '标题' : result.kind === 'input' ? '用户消息' : '回复'}{result.archived ? ' · 已归档' : ''}</span>
+                <span className={styles.snippet}>{result.before}<mark>{result.match}</mark>{result.after}</span>
+              </button>
+            ))}
+          </div>
+        ) : <Sections
+          sessions={sessions}
+          searching={false}
           failed={failed}
           current={current}
           onNavigate={onNavigate}
-        />
+        />}
       </nav>
     </div>
   )
 }
 
-// 搜索结果是匹配的 session 编号；没在搜时是 undefined
-function useSearch(query: string): Set<number> | undefined {
-  const [result, setResult] = useState<{ query: string; ids: Set<number> }>()
+function useSearch(query: string) {
+  const [result, setResult] = useState<{ query: string; data?: Awaited<ReturnType<typeof searchContent>>; failed?: boolean }>()
+  const [revision, setRevision] = useState(0)
+  useEffect(() => onChange((event) => {
+    if (event === null || event.type === 'session') setRevision((value) => value + 1)
+  }), [])
   useEffect(() => {
-    if (!query) {
-      return
-    }
+    if (!query) return
     let cancelled = false
     const timer = window.setTimeout(() => {
-      listSessions(query)
-        .then((found) => !cancelled && setResult({ query, ids: new Set(found.map((session) => session.id)) }))
-        .catch(() => {})
+      searchContent(query)
+        .then((data) => !cancelled && setResult({ query, data }))
+        .catch(() => !cancelled && setResult({ query, failed: true }))
     }, searchDelay)
-    return () => {
-      cancelled = true
-      window.clearTimeout(timer)
-    }
-  }, [query])
-  // 这次的结果回来之前，先用上一次的；还没有搜过就先显示全部
-  return query ? result?.ids : undefined
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [query, revision])
+  return result?.query === query ? result : { query }
 }
 
 // 置顶的在最上面，其余按最近的动静分成今天、昨天等几组，归档的收在最下面
