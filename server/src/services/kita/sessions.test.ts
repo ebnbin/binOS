@@ -56,10 +56,11 @@ drivers.claude = {
 await import(setupScript)
 const { createKitaSession, getKitaSession, startSessions } = await import('./sessions.js')
 const { hostDir, sessionsDir } = await import('./store.js')
-startSessions()
+let stopPolling = startSessions()
 
 // 测试留下的 agent 进程都结束掉
 afterAll(() => {
+  stopPolling()
   for (const id of readdirSync(sessionsDir)) {
     try {
       process.kill(-hostPid({ id } as KitaSession), 'SIGTERM')
@@ -139,7 +140,7 @@ process.exit(0)
       child.stdout.on('data', (chunk: Buffer) => (output += chunk))
       child.on('exit', (code) => (code === 0 ? resolve(output.trim()) : reject(new Error(`退出码 ${code}`))))
     })
-    startSessions()
+    stopPolling = startSessions()
     const session = getKitaSession(id)!
     const pid = hostPid(session)
     await new Promise((resolve) => setTimeout(resolve, 500))

@@ -31,7 +31,9 @@ createInterface({ input: process.stdin }).on('line', async line => {
 })`)
 const host = startHost(path.join(old, 'host'), { agent: 'claude', args: [process.execPath, script], cwd: root, env: process.env, stamp: 'test', itemsFrom: 2 })!
 drivers.claude = { ...drivers.claude, host: () => ({ agent: 'claude', args: [process.execPath, script] }), authEnv: undefined }
+let stopPolling: (() => void) | undefined
 afterAll(() => {
+  stopPolling?.()
   attachHost(workerDir('a'))?.kill()
   rmSync(root, { recursive: true, force: true })
 })
@@ -39,7 +41,7 @@ afterAll(() => {
 it('原路径的 host 继续执行，迁移后读完输出且重接不重复，下一轮可以继续', async () => {
   expect((await host.send({ type: 'message', text: 'before' })).ok).toBe(true)
   migrateAgentToKita(root)
-  startSessions()
+  stopPolling = startSessions()
   const session = getKitaSession('a')!
   const waitTurn = async (n: number) => {
     for (let i = 0; i < 100; i++) {
@@ -53,7 +55,7 @@ it('原路径的 host 继续执行，迁移后读完输出且重接不重复，�
   expect(session.summary().state).toBe('idle')
   expect(session.metadata().id).toBe('a')
   expect(getKitaSession('a', 'another-app')).toBeUndefined()
-  startSessions()
+  stopPolling = startSessions()
   expect(session.entries().filter((entry) => entry.type === 'text')).toHaveLength(1)
   expect(await session.send({ text: 'after' })).toBe(true)
   await waitTurn(2)

@@ -1,0 +1,25 @@
+import { expect, it } from 'vitest'
+import type { Entry } from '@binos/server/services/kita/types'
+import { indexTranscript } from './transcript-index.ts'
+
+it('跨轮重复的工具和子 agent id 不会串结果或子条目', () => {
+  const time = new Date().toISOString()
+  const makeTurn = (text: string): Entry[] => [
+    { type: 'input', time, mode: 'start', text },
+    { type: 'tool_call', time, id: 'parent', name: 'agent', tool: { kind: 'other' } },
+    { type: 'tool_call', time, id: 'child', parent: 'parent', name: 'shell', tool: { kind: 'command', command: text } },
+    { type: 'tool_result', time, callId: 'child', parent: 'parent', status: 'done', output: text },
+    { type: 'tool_result', time, callId: 'parent', status: 'done', output: text },
+    { type: 'turn_end', time, durationMs: 1 },
+  ]
+  const first = makeTurn('first'), second = makeTurn('second')
+  const { results, children, main } = indexTranscript([...first, ...second])
+  for (const [entries, output] of [[first, 'first'], [second, 'second']] as const) {
+    const parent = entries[1], child = entries[2]
+    if (parent.type !== 'tool_call' || child.type !== 'tool_call') throw Error('expected call')
+    expect(results.get(parent)?.output).toBe(output)
+    expect(results.get(child)?.output).toBe(output)
+    expect(children.get(parent)?.map(({ item }) => item)).toEqual([child, entries[3]])
+  }
+  expect(main.map(({ index }) => index)).toEqual([0, 1, 4, 5, 6, 7, 10, 11])
+})
