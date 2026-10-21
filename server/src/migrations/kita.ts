@@ -42,7 +42,6 @@ function records(file: string): Entry[] {
     if (!line.trim()) return []
     let entry: Entry & { type: string }
     try { entry = JSON.parse(line) } catch (error) {
-      if (index === lines.length - 1 && !text.endsWith('\n')) return []
       throw new Error(`Kita 迁移发现损坏记录：${file}:${index + 1}`, { cause: error })
     }
     if ((entry as { type: string }).type === 'thread') entry = { ...entry, type: 'session' } as Entry

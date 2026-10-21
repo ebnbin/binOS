@@ -55,6 +55,10 @@ describe('Kita migration', () => {
     writeFileSync(g.code, '{"thread":"missing"}')
     expect(() => migrateAgentToKita(g.root)).toThrow('引用不完整')
     expect(JSON.parse(readFileSync(g.code, 'utf8'))).toEqual({ thread: 'missing' })
+    const h = fixture()
+    writeFileSync(path.join(h.old, 'items.jsonl'), readFileSync(path.join(h.old, 'items.jsonl'), 'utf8') + '{"type":')
+    expect(() => migrateAgentToKita(h.root)).toThrow('损坏记录')
+    expect(existsSync(path.join(h.root, 'Library/Services/kita'))).toBe(false)
   })
 
   it('迁移中断后源记录又被写入时拒绝使用过期备份', () => {
