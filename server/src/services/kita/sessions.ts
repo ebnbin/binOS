@@ -474,8 +474,11 @@ export function runningCount(agent: AgentId): number {
   return [...sessions.values()].filter((session) => session.state() !== 'idle' && sessionInfo(session.id).agent === agent).length
 }
 
+let polling: ReturnType<typeof setInterval> | undefined
+
 // 后端启动时接上还在运行的 agent 进程，从头读它们的输出；在一轮里却没有进程的，这一轮以出错结束
 export function startSessions() {
+  if (polling) clearInterval(polling)
   for (const id of listKitaSessions()) {
     const info = sessionInfo(id)
     const host = attachHost(workerDir(id))
@@ -500,5 +503,11 @@ export function startSessions() {
   }
   // 先把接上的输出读完，再接受新的消息
   poll()
-  setInterval(poll, pollInterval).unref()
+  const timer = setInterval(poll, pollInterval)
+  polling = timer
+  timer.unref()
+  return () => {
+    clearInterval(timer)
+    if (polling === timer) polling = undefined
+  }
 }

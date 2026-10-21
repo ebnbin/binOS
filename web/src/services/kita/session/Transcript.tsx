@@ -13,11 +13,12 @@ import { SubagentCall } from './SubagentCall.tsx'
 import { Thinking } from './Thinking.tsx'
 import { ToolCall } from './ToolCall.tsx'
 import { callStatus, fileChanges, isFileEdit, toolLabel } from './tools.ts'
-import type { CallState, ToolCategory, ToolResult } from './tools.ts'
+import type { CallState, ToolCall as ToolCallEntry, ToolCategory, ToolResult } from './tools.ts'
+import { indexTranscript } from './transcript-index.ts'
+import type { IndexedEntry } from './transcript-index.ts'
 import styles from './Transcript.module.css'
 import { TurnChanges } from './TurnChanges.tsx'
 
-type IndexedEntry = { item: Entry; index: number }
 type TurnEndItem = Extract<Entry, { type: 'turn_end' }>
 type CompactItem = Extract<Entry, { type: 'compact' }>
 
@@ -41,12 +42,12 @@ type Step =
   | { kind: 'tool'; key: string; time: string; state: CallState }
   | { kind: 'subagent'; key: string; time: string; state: CallState }
 
-// 整个 thread 共用的：工具结果按调用 id，子 agent 的条目按它所属的调用 id
+// 工具结果和子 agent 的条目按所属调用关联
 type Context = {
   thread: string
   agent: AgentId | undefined
-  results: Map<string, ToolResult>
-  children: Map<string, IndexedEntry[]>
+  results: Map<ToolCallEntry, ToolResult>
+  children: Map<ToolCallEntry, IndexedEntry[]>
   live: Live | null
   now: number
 }
@@ -104,7 +105,7 @@ function buildBlocks(entries: IndexedEntry[], context: Context): Block[] {
         }
         break
       case 'tool_call': {
-        const state = { call: item, result: context.results.get(item.id), live: context.live !== null }
+        const state = { call: item, result: context.results.get(item), live: context.live !== null }
         edits.push(...editCalls(state, context))
         addStep({ kind: item.tool.kind === 'subagent' ? 'subagent' : 'tool', key, time: item.time, state })
         break
@@ -125,8 +126,8 @@ function editCalls(state: CallState, context: Context): CallState[] {
   if (isFileEdit(state.call)) {
     return [state]
   }
-  return (context.children.get(state.call.id) ?? []).flatMap(({ item }) =>
-    item.type === 'tool_call' ? editCalls({ call: item, result: context.results.get(item.id), live: state.live }, context) : [],
+  return (context.children.get(state.call) ?? []).flatMap(({ item }) =>
+    item.type === 'tool_call' ? editCalls({ call: item, result: context.results.get(item), live: state.live }, context) : [],
   )
 }
 
@@ -210,7 +211,7 @@ function StepView({ step, context }: { step: Step; context: Context }) {
     case 'tool':
       return <ToolCall thread={thread} state={step.state} now={context.now} />
     case 'subagent': {
-      const children = context.children.get(step.state.call.id)
+      const children = context.children.get(step.state.call)
       return (
         <SubagentCall
           thread={thread}
@@ -363,28 +364,10 @@ function formatElapsed(ms: number) {
 // thread 的内容：按轮分节，回答进行中的临时内容接在最后
 export function Transcript({ thread, items, live }: { thread: string; items: Entry[]; live: Live | null }) {
   const now = useNow(live !== null)
-  const results = new Map<string, ToolResult>()
-  const children = new Map<string, IndexedEntry[]>()
-  const main: IndexedEntry[] = []
-  items.forEach((item, index) => {
-    if (item.type === 'tool_result') {
-      results.set(item.callId, item)
-    }
-    const parent = 'parent' in item ? item.parent : undefined
-    if (parent) {
-      const siblings = children.get(parent)
-      if (siblings) {
-        siblings.push({ item, index })
-      } else {
-        children.set(parent, [{ item, index }])
-      }
-    } else {
-      main.push({ item, index })
-    }
-  })
+  const { results, children, main } = indexTranscript(items)
   const agent = items[0]?.type === 'session' ? items[0].agent : undefined
   const context: Context = { thread, agent, results, children, live, now }
-  const runningTool = main.findLast(({ item }) => item.type === 'tool_call' && !results.has(item.id))?.item
+  const runningTool = main.findLast(({ item }) => item.type === 'tool_call' && !results.has(item))?.item
   // 这一轮从最后一个 mode 为 start 的 input 开始
   const turnStart = items.findLast((item) => item.type === 'input' && item.mode === 'start')?.time
   return (

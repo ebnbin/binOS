@@ -111,11 +111,11 @@ export function createKitaSession(first: Extract<Entry, { type: 'session' }>): s
 }
 
 // 只容忍最后未提交的半行；中间的损坏必须报错，不能把损坏的历史当成有效会话。
-export function readEvents(id: string, from = 0): Event[] {
+function readJournal(id: string): Event[] {
   metadata(id)
   const size = statSync(eventsPath(id)).size
   const cached = journals.get(id)
-  if (cached?.size === size) return cached.events.slice(from)
+  if (cached?.size === size) return cached.events
   const lines = readFileSync(eventsPath(id), 'utf8').split('\n')
   const events: Event[] = []
   for (let i = 0; i < lines.length; i++) {
@@ -134,7 +134,11 @@ export function readEvents(id: string, from = 0): Event[] {
     }
   }
   journals.set(id, { size, events })
-  return events.slice(from)
+  return events
+}
+
+export function readEvents(id: string, from = 0): Event[] {
+  return structuredClone(readJournal(id).slice(from))
 }
 
 const journals = new Map<string, { size: number; events: Event[] }>()
@@ -242,7 +246,7 @@ function itemsSize(id: string): number {
 // 内存里记着每个 session 算到哪了，追加时接着算；后端刚启动时先看 summary.json，和 events.jsonl 对得上就直接用
 const infos = new Map<string, KitaSessionInfo>()
 
-export function sessionInfo(id: string): KitaSessionInfo {
+function cachedInfo(id: string): KitaSessionInfo {
   const size = itemsSize(id)
   const cached = infos.get(id) ?? readInfoFile(id)
   if (cached?.itemsSize === size && cached.version === infoVersion) {
@@ -257,6 +261,10 @@ export function sessionInfo(id: string): KitaSessionInfo {
   writeInfo(id, info)
   infos.set(id, info)
   return info
+}
+
+export function sessionInfo(id: string): KitaSessionInfo {
+  return structuredClone(cachedInfo(id))
 }
 
 // 崩溃留下的最后半行不属于已提交批次；追加前截断它，避免把新数据接到半行后。
@@ -285,10 +293,11 @@ function repairTail(id: string) {
 }
 
 export function appendEntries(id: string, entries: Entry[]): number {
+  entries = structuredClone(entries)
   repairTail(id)
   const exists = existsSync(eventsPath(id))
-  const info = exists ? sessionInfo(id) : emptyInfo()
-  const previous = exists ? readEvents(id).at(-1) : undefined
+  const info = exists ? cachedInfo(id) : emptyInfo()
+  const previous = exists ? readJournal(id).at(-1) : undefined
   const index = info.count
   const batch: EventBatch = { events: encodeEntries(entries, previous) }
   appendFileSync(eventsPath(id), JSON.stringify(batch) + '\n', { flush: true })
