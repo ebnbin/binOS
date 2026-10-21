@@ -19,9 +19,10 @@ export function Select({
   disabled?: boolean
   className?: string
 }) {
+  const selectedValue = options.some((option) => option.value === value) ? value : ''
   return (
     <MaterialSelect<string>
-      value={value}
+      value={selectedValue}
       displayEmpty
       size="small"
       title={title}
