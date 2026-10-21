@@ -19,18 +19,11 @@ const defaultDesktop = (apps: ApplicationDefinition[]): DesktopItem[] => [
   shortcut('terminal'),
   shortcut('devices'),
   ...apps.filter((app) => app.url).map((app) => shortcut(app.id, `external:${app.id}`)),
-  shortcut('notes'),
-  shortcut('calendar'),
-  shortcut('weather'),
   shortcut('music'),
   shortcut('files'),
   widget('code-recent', 'code', 'recent', '4x2'),
   widget('calendar-main', 'calendar', 'main', '4x4'),
-  widget('weather-main', 'weather', 'main', '2x2'),
   widget('music-main', 'music', 'main', '2x2'),
-  widget('notes-main', 'notes', 'main', '4x2'),
-  widget('files-main', 'files', 'main', '2x2'),
-  widget('weather-secondary', 'weather', 'main', '2x2'),
 ]
 
 // 去掉还没有的 app、widget 和不支持的尺寸
