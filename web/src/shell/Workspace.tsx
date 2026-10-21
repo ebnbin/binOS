@@ -82,7 +82,7 @@ export function Workspace({
             <p>选择第二个 app</p>
             <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
-              {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.applicationId === app.id && panes.includes(item.id))).map((app) => (
+              {apps.filter((app) => app.mainWindow && !unavailableApps.includes(app.id) && !windows.some((item) => item.window.applicationId === app.id && panes.includes(item.id))).map((app) => (
                 <button key={app.id} type="button" className={desktopStyles.icon} title={app.name} onClick={() => onPick(app.id, slot)}>
                   <span className={desktopStyles.glyph}><app.icon strokeWidth={1.75} /></span>
                   <span className={desktopStyles.label}>{app.name}</span>

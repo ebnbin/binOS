@@ -5,6 +5,15 @@ import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
   {
+    id: 'calendar',
+    name: '日历',
+    icon: CalendarDays,
+    views: {
+      month: { kind: 'widget', component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))) },
+    },
+    widgets: { main: { name: '月历', viewId: 'month', sizes: ['4x4'] } },
+  },
+  {
     id: 'devices',
     name: 'Devices',
     icon: Smartphone,
@@ -96,6 +105,5 @@ export const builtinApplications: ApplicationDefinition[] = [
 
 export const placeholderApplications: ApplicationDefinition[] = [
   placeholderApp('notes', '笔记', NotebookPen),
-  placeholderApp('calendar', '日历', CalendarDays),
   placeholderApp('weather', '天气', CloudSun),
 ]

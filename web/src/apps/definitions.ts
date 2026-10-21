@@ -15,7 +15,7 @@ export function widgetView(application: ApplicationDefinition | undefined, widge
 
 export function validateApplications(applications: ApplicationDefinition[]): ApplicationDefinition[] {
   for (const application of applications) {
-    if (!windowView(application, application.mainWindow.viewId)) {
+    if (application.mainWindow && !windowView(application, application.mainWindow.viewId)) {
       throw new Error(`Invalid main window view: ${application.id}/${application.mainWindow.viewId}`)
     }
     for (const widgetId of Object.keys(application.widgets ?? {})) {

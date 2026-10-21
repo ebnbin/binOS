@@ -56,6 +56,7 @@ export function useShellController(size: Size | null) {
   const open = (appId: string, route?: string) => {
     if (draft) return
     const id = ensureApplicationWindow(apps, appId)
+    if (!id) return
     if (route) setRoute(id, route)
     show(id)
   }
@@ -100,6 +101,7 @@ export function useShellController(size: Size | null) {
     const existing = windows.find((item) => item.window.applicationId === appId)
     if (existing && stored.groups.some((item) => item.slots.includes(existing.id))) return
     const id = ensureApplicationWindow(apps, appId)
+    if (!id) return
     createGroup({ layout: draft.layout, slots: [draft.slots[0], id] })
     setDraft(null)
     focus(id, 1)
