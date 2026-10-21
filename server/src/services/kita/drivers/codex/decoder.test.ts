@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -47,6 +47,21 @@ const turn = [
 ]
 
 describe('CodexDecoder', () => {
+  it('重放时保留已有图片快照，原文件被改写或删除都不影响历史', () => {
+    const root = mkdtempSync(path.join(os.tmpdir(), 'binos-image-replay-'))
+    const filesDir = path.join(root, 'files')
+    const source = path.join(root, 'screenshot.png')
+    const line = item('completed', { type: 'imageView', id: 'shot', path: source })
+    const decode = () => new CodexDecoder({ filesDir, agentSession: threadId }).push(line, 1).items
+    writeFileSync(source, 'original-image')
+    expect(decode().at(-1)).toMatchObject({ images: ['shot.png'] })
+    writeFileSync(source, 'different-image')
+    expect(decode().at(-1)).toMatchObject({ images: ['shot.png'] })
+    expect(readFileSync(path.join(filesDir, 'shot.png'), 'utf8')).toBe('original-image')
+    rmSync(source)
+    expect(decode().at(-1)).toMatchObject({ images: ['shot.png'] })
+    expect(readFileSync(path.join(filesDir, 'shot.png'), 'utf8')).toBe('original-image')
+  })
   it('命令、改的每个文件各记一次工具调用，别的会话的条目不记', () => {
     const { items, decoder } = run(turn)
     expect(items.map((item) => item.type)).toEqual([

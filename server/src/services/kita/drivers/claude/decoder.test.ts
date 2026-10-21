@@ -11,6 +11,16 @@ const user = (content: unknown[], extra = {}) => JSON.stringify({ type: 'user', 
 const system = (fields: object) => JSON.stringify({ type: 'system', timestamp: time, ...fields })
 const textDelta = (text: string) => JSON.stringify({ type: 'stream_event', event: { type: 'content_block_delta', delta: { type: 'text_delta', text } } })
 
+it('重放工具图片时不覆盖已有快照', () => {
+  const filesDir = mkdtempSync(path.join(os.tmpdir(), 'binos-image-replay-'))
+  const decode = (text: string) => new ClaudeDecoder({ filesDir, agentSession: undefined }).push(user([
+    { type: 'tool_result', tool_use_id: 'shot', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: Buffer.from(text).toString('base64') } }] },
+  ]), 1).items
+  expect(decode('original-image').at(-1)).toMatchObject({ images: ['shot-0.png'] })
+  expect(decode('different-image').at(-1)).toMatchObject({ images: ['shot-0.png'] })
+  expect(readFileSync(path.join(filesDir, 'shot-0.png'), 'utf8')).toBe('original-image')
+})
+
 // 按行喂给解码器，offset 用行号代替
 function run(lines: string[], session?: string) {
   const filesDir = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))

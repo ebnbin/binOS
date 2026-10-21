@@ -367,7 +367,11 @@ export class ClaudeDecoder implements Decoder {
       }
       const name = `${block.tool_use_id}-${index}.${extension}`
       mkdirSync(this.filesDir, { recursive: true })
-      writeFileSync(path.join(this.filesDir, name), Buffer.from(part.source.data, 'base64'))
+      try {
+        writeFileSync(path.join(this.filesDir, name), Buffer.from(part.source.data, 'base64'), { flag: 'wx' })
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+      }
       return [name]
     })
     return { callId: block.tool_use_id!, ...truncatedOutput(text), ...(images.length > 0 && { images }) }
