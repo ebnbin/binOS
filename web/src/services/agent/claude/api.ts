@@ -6,8 +6,8 @@ const client = hc<ClaudeApi>(`${window.location.origin}/api/agent/claude`)
 export type ClaudeLoginKind = 'login' | 'token'
 
 // 在网页上登录 Claude：先拿到授权链接，用户授权后把代码贴回来
-export async function startClaudeLogin(kind: ClaudeLoginKind): Promise<{ id: string; url: string } | { error: string }> {
-  const res = await client.login.$post({ json: { kind } }).catch(() => undefined)
+export async function startClaudeLogin(kind: ClaudeLoginKind, account?: string): Promise<{ id: string; url: string } | { error: string }> {
+  const res = await client.login.$post({ json: { kind, account } }).catch(() => undefined)
   return res ? await res.json() : { error: '网络错误' }
 }
 
@@ -18,4 +18,16 @@ export async function finishClaudeLogin(id: string, code: string): Promise<{ ok:
 
 export async function cancelClaudeLogin(id: string) {
   await client.login[':id'].cancel.$post({ param: { id } }, { headers: { 'Content-Type': 'application/json' } }).catch(() => undefined)
+}
+
+export async function claudeAccounts() {
+  const res = await client.accounts.$get()
+  if (!res.ok) throw new Error('没能读取账号')
+  return res.json()
+}
+
+export async function selectClaudeAccount(name: string) {
+  const res = await client.accounts.select.$post({ json: { name } })
+  const result = await res.json()
+  if ('error' in result) throw new Error(result.error)
 }

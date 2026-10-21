@@ -1,3 +1,4 @@
+import { accountSelection, selectAccount } from './accounts.js'
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './login.js'
@@ -5,7 +6,8 @@ import type { ClaudeLoginKind } from './login.js'
 
 const loginBody = validator('json', (value, c) => {
   const kind = (value as { kind?: unknown } | null)?.kind
-  return kind === 'login' || kind === 'token' ? { kind: kind as ClaudeLoginKind } : c.text('Bad Request', 400)
+  const account = (value as { account?: unknown } | null)?.account
+  return (kind === 'login' || kind === 'token') && (account === undefined || typeof account === 'string') ? { kind: kind as ClaudeLoginKind, account } : c.text('Bad Request', 400)
 })
 
 const codeBody = validator('json', (value, c) => {
@@ -17,10 +19,25 @@ const errorText = (error: unknown) => (error instanceof Error ? error.message : 
 
 // 在网页上登录 Claude（见 login.ts）：/api/agent/claude 下
 export const claudeApi = new Hono()
+  .get('/accounts', (c) => {
+    const { active, accounts } = accountSelection()
+    return c.json({ active, accounts })
+  })
+  .post('/accounts/select', validator('json', (value, c) => {
+    const name = (value as { name?: unknown } | null)?.name
+    return typeof name === 'string' ? { name } : c.text('Bad Request', 400)
+  }), (c) => {
+    try {
+      selectAccount(c.req.valid('json').name)
+      return c.json({ ok: true as const })
+    } catch (error) {
+      return c.json({ error: errorText(error) }, 400)
+    }
+  })
   // 开始登录，返回授权链接
   .post('/login', loginBody, async (c) => {
     try {
-      return c.json(await startClaudeLogin(c.req.valid('json').kind), 200)
+      return c.json(await startClaudeLogin(c.req.valid('json').kind, c.req.valid('json').account), 200)
     } catch (error) {
       return c.json({ error: errorText(error) }, 500)
     }

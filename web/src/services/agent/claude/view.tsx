@@ -3,6 +3,7 @@ import { formatMoment } from '../../../ui/time.ts'
 import { daysLeft } from '../auth.ts'
 import type { AgentView } from '../views.ts'
 import type { ClaudeLoginKind } from './api.ts'
+import { ClaudeAccounts } from './Accounts.tsx'
 import { ClaudeLogin } from './Login.tsx'
 
 const day = 86_400_000
@@ -15,6 +16,9 @@ export const claudeView: AgentView<ClaudeAuth> = {
   attention(auth, now) {
     if (!auth) {
       return undefined
+    }
+    if (auth.account && auth.account !== 'main') {
+      return auth.mode === 'none' ? { text: `Claude 账号 ${auth.account} 没有可用的令牌，请在系统中更新或切换账号`, tone: 'bad', action: '管理账号', fix: 'accounts' } : undefined
     }
     if (auth.mode === 'none') {
       return { text: 'Claude 没有能用的登录', tone: 'bad', action: '重新登录', fix: 'login' }
@@ -39,6 +43,7 @@ export const claudeView: AgentView<ClaudeAuth> = {
     if (!auth) {
       return []
     }
+    if (auth.account && auth.account !== 'main') return [{ label: '正在用', value: auth.account, note: '长期 token，只能回答，没有 claude.ai 的连接器' }]
     const { login: full, backup } = auth
     const fullExpired = full?.expiresAt !== undefined && Date.parse(full.expiresAt) <= now
     return [
@@ -59,13 +64,13 @@ export const claudeView: AgentView<ClaudeAuth> = {
 
   loginActions: (auth) =>
     auth
-      ? [
+      ? auth.account && auth.account !== 'main' ? [] : [
           { label: '重新登录', fix: 'login' },
           { label: auth.backup ? '更新备用 token' : '生成备用 token', fix: 'token' },
         ]
       : [],
 
-  Login: ({ fix, onClose }) => <ClaudeLogin kind={fix as ClaudeLoginKind} onClose={onClose} />,
+  Login: ({ fix, onClose }) => fix === 'accounts' ? <ClaudeAccounts /> : <ClaudeLogin kind={fix as ClaudeLoginKind} onClose={onClose} />,
 
   // claude-opus-5-5 → Opus 5.5
   modelName(model) {

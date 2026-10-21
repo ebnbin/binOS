@@ -168,6 +168,8 @@ export type Limits = { limited: boolean; windows: QuotaWindow[]; updatedAt: stri
 // （setup-token 生成，只能调模型，没有 claude.ai 的连接器）。mode 是现在启动 Claude 用哪份，none 是都用不了。
 // broken：完整登录没到期就在回答时认证失败了。每次读取时从钥匙串现查
 export type ClaudeAuth = {
+  account?: string
+  accounts?: { name: string; available: boolean }[]
   mode: 'login' | 'token' | 'none'
   login?: { expiresAt?: string; broken?: true }
   backup?: { expiresAt?: string }

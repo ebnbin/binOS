@@ -1,3 +1,4 @@
+import { ClaudeAccounts } from '../../services/agent/claude/Accounts.tsx'
 import { agents } from '@binos/server/services/agent/types'
 import type { AgentAccount, Limits } from '@binos/server/services/agent/types'
 import { ChevronLeft, RefreshCw } from 'lucide-react'
@@ -28,7 +29,8 @@ export function AgentAccounts({ back }: { back: () => void }) {
       }),
     [],
   )
-  useEffect(load, [load])
+  const activeClaudeAccount = useAgentStatus()?.auth.claude?.account
+  useEffect(load, [load, activeClaudeAccount])
   const refresh = () => {
     setLoading(true)
     load()
@@ -68,6 +70,7 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
         </span>
         {account.version && <span className={styles.version}>{account.version}</span>}
       </header>
+      {account.agent === 'claude' && <ClaudeAccounts />}
       <dl className={styles.list}>
         {account.email && <Row label="账号">{account.email}</Row>}
         {account.plan && <Row label="套餐">{planNames[account.plan] ?? account.plan}</Row>}

@@ -11,7 +11,7 @@ import { hostProtocol } from './protocol.js'
 import type { HostAgent, HostCommand, HostLaunch, HostReply } from './protocol.js'
 
 // host 目录里的 state.json：host 进程是哪个、按哪个版本的约定、socket 在哪、启动时定下的东西和 thread 当时有几条
-type HostState = { process: ProcessIdentity; protocol: number; socket: string; stamp: string; itemsFrom: number }
+type HostState = { account?: string; process: ProcessIdentity; protocol: number; socket: string; stamp: string; itemsFrom: number }
 
 // host 进程的入口和这个模块在一起，开发时是 .ts
 const mainPath = path.join(import.meta.dirname, `main${path.extname(import.meta.filename)}`)
@@ -63,7 +63,7 @@ export function startHost(
     rmSync(dir, { recursive: true, force: true })
     return undefined
   }
-  const state: HostState = { process: { pid, startedAt }, protocol: hostProtocol, socket: launch.socket, stamp: options.stamp, itemsFrom: options.itemsFrom }
+  const state: HostState = { account: options.env.BINOS_CLAUDE_ACCOUNT, process: { pid, startedAt }, protocol: hostProtocol, socket: launch.socket, stamp: options.stamp, itemsFrom: options.itemsFrom }
   writeFileSync(`${paths.state}.tmp`, JSON.stringify(state) + '\n')
   renameSync(`${paths.state}.tmp`, paths.state)
   return new Host(dir, state)
@@ -83,6 +83,7 @@ export function attachHost(dir: string): Host | undefined {
 // stamp：启动时就定下的东西（模型、思考程度、agent 版本、AGENTS.md……），变了要换一个；undefined 表示不能接着用，这一轮结束就让它退出。
 // commandable：能接着发命令；false 时只跟着读完它的输出
 export class Host {
+  readonly account: string | undefined
   readonly output: string
   readonly errors: string
   readonly itemsFrom: number
@@ -92,6 +93,7 @@ export class Host {
   private readonly state: HostState
 
   constructor(dir: string, state: HostState) {
+    this.account = state.account
     this.dir = dir
     this.state = state
     this.output = files(dir).output

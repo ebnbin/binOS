@@ -6,6 +6,7 @@ import { stripVTControlCharacters } from 'node:util'
 import { agentEnv } from '../index.js'
 import { killTerminal, openTerminal, waitFor } from '../../pty.js'
 import type { Terminal } from '../../pty.js'
+import { addAccount, validateAccountName } from './accounts.js'
 import { claudeAuth, storeToken } from './auth.js'
 
 // 在网页上登录 Claude（见 auth.ts 的两份登录）：
@@ -18,6 +19,7 @@ export type ClaudeLoginKind = 'login' | 'token'
 
 type Login = Terminal & {
   kind: ClaudeLoginKind
+  account?: string
   // token 用的空配置目录，结束时删掉
   tempDir?: string
   finishing?: boolean
@@ -83,13 +85,17 @@ function end(id: string) {
 }
 
 // 开始登录：返回这次登录的编号和授权链接
-export async function startClaudeLogin(kind: ClaudeLoginKind): Promise<{ id: string; url: string }> {
+export async function startClaudeLogin(kind: ClaudeLoginKind, account?: string): Promise<{ id: string; url: string }> {
+  if (account !== undefined) {
+    validateAccountName(account)
+    if (kind !== 'token') throw new Error('新增账号使用 token 授权')
+  }
   const id = randomUUID()
   const tempDir = kind === 'token' ? mkdtempSync(path.join(tmpdir(), 'binos-claude-token-')) : undefined
   const command = kind === 'login' ? ['claude', 'auth', 'login'] : ['claude', 'setup-token']
   // 不在这台 Mac 上打开浏览器，链接交给网页
   const env = { ...agentEnv('claude'), ...(tempDir && { CLAUDE_CONFIG_DIR: tempDir }), BROWSER: '/usr/bin/true' }
-  const login: Login = Object.assign(openTerminal(command, env), { kind, tempDir, timer: setTimeout(() => end(id), loginTimeout) })
+  const login: Login = Object.assign(openTerminal(command, env), { kind, account, tempDir, timer: setTimeout(() => end(id), loginTimeout) })
   logins.set(id, login)
   const url = await waitFor(login, authorizeUrl, 30_000)
   if (!url) {
@@ -142,7 +148,11 @@ export async function finishClaudeLogin(id: string, code: string): Promise<void>
         const shown = /created successfully/i.test(plain(login.output.slice(from)))
         throw new Error(shown ? '令牌生成了，但没能从输出里认出来。重新开始' : `没拿到令牌，claude 最后说：「${lastWords(login, from) || '（什么都没说）'}」。重新开始`)
       }
-      storeToken(result.token)
+      if (login.account) {
+        addAccount(login.account, result.token)
+      } else {
+        storeToken(result.token)
+      }
     }
   } finally {
     end(id)

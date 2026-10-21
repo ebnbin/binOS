@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 import type { AgentModel } from '../../types.js'
@@ -9,11 +10,12 @@ type ListedModel = {
   supportedEffortLevels?: string[]
 }
 
-let cached: { at: number; models: Promise<AgentModel[]> } | undefined
+let cached: { key: string; at: number; models: Promise<AgentModel[]> } | undefined
 
 export function claudeModels(env: NodeJS.ProcessEnv): Promise<AgentModel[]> {
-  if (!cached || Date.now() - cached.at > 10 * 60_000) {
-    cached = { at: Date.now(), models: readModels(env) }
+  const key = createHash('sha256').update(JSON.stringify([env.CLAUDE_CONFIG_DIR, env.BINOS_CLAUDE_ACCOUNT, env.CLAUDE_CODE_OAUTH_TOKEN])).digest('hex')
+  if (!cached || cached.key !== key || Date.now() - cached.at > 10 * 60_000) {
+    cached = { key, at: Date.now(), models: readModels(env) }
   }
   return cached.models
 }

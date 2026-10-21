@@ -52,7 +52,7 @@ export type Driver = {
   // 启动时另加的环境变量，每次启动时现定（比如换用哪份登录）
   authEnv?(): Record<string, string>
   // 回答时请求被拒绝（登录无效）：处理后返回给用户看的原因，这一轮以它出错结束
-  authFailed?(): string
+  authFailed?(account?: string): string
   // 按 API 价格折算的花费（美元）
   cost?(model: string, tokens: Tokens): number
 }

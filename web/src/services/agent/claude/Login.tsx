@@ -11,7 +11,7 @@ const titles: Record<ClaudeLoginKind, string> = { login: '重新登录 Claude', 
 
 // 在网页上登录 Claude（后端见 claude/login.ts）：打开授权链接，用要登录的账号授权，把授权后页面上的代码贴回来。
 // 挂上就开始，onClose 关上（没完成时顺便取消这次登录）
-export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose: () => void }) {
+export function ClaudeLogin({ kind, account, onClose }: { kind: ClaudeLoginKind; account?: string; onClose: () => void }) {
   const [step, setStep] = useState<Step>({ name: 'starting' })
   const [code, setCode] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -19,7 +19,7 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
 
   useEffect(() => {
     let cancelled = false
-    void startClaudeLogin(kind).then((result) => {
+    void startClaudeLogin(kind, account).then((result) => {
       if (cancelled) {
         if ('id' in result) {
           void cancelClaudeLogin(result.id)
@@ -40,7 +40,7 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
         pending.current = undefined
       }
     }
-  }, [kind, attempt])
+  }, [kind, account, attempt])
 
   async function submit() {
     if (step.name !== 'code' || !code.trim()) {
@@ -61,7 +61,7 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
 
   return (
     <div className={styles.flow}>
-      <div className={styles.title}>{titles[kind]}</div>
+      <div className={styles.title}>{account ? `添加 Claude 账号 ${account}` : titles[kind]}</div>
       {step.name === 'starting' && (
         <p className={styles.waiting}>
           <Spinner /> 正在拿授权链接
@@ -102,7 +102,7 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
+          <p className={styles.done}>{account ? '账号已添加，可以切换使用' : kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
           <div className={styles.actions}>
             <button type="button" className={styles.primary} onClick={onClose}>
               好

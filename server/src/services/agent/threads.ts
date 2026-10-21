@@ -195,8 +195,10 @@ export class Thread {
     const info = threadInfo(this.id)
     const driver = drivers[info.agent]
     const instructions = [transcriptPrompt, info.instructions].filter(Boolean).join('\n\n')
-    const env = { ...agentEnv(info.agent), ...driver.authEnv?.() }
-    const stamp = launchStamp([model, effort, instructions, driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
+    const authEnv = driver.authEnv?.()
+    if (authEnv?.BINOS_CLAUDE_ACCOUNT && authEnv.BINOS_CLAUDE_ACCOUNT !== 'main' && !authEnv.CLAUDE_CODE_OAUTH_TOKEN) return false
+    const env = { ...agentEnv(info.agent), ...authEnv }
+    const stamp = launchStamp([model, effort, instructions, authEnv], [info.cwd, driver.configDir], driver.command)
     if (this.host?.running() && this.host.stamp === stamp) {
       return true
     }
@@ -278,10 +280,10 @@ export class Thread {
         continue
       }
       if (limits) {
-        saveLimits(this.agent, limits)
+        saveLimits(this.agent, limits, this.host?.account)
       }
       if (authFailed) {
-        this.fail(drivers[this.agent].authFailed?.() ?? '登录无效，请求被拒绝了')
+        this.fail(drivers[this.agent].authFailed?.(this.host?.account) ?? '登录无效，请求被拒绝了')
       }
       // agent 自己接着说起话来（比如插的话刚好在一轮结束时才交过去）：算作新的一轮
       if (!this.turn && items.length > 0) {

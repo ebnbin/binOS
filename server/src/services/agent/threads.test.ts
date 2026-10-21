@@ -88,6 +88,27 @@ const summarize = (thread: Thread) =>
   thread.items().map((item) => (item.type === 'text' ? item.text : item.type === 'input' ? `${item.mode}:${item.text}` : item.type))
 
 describe('thread', () => {
+  it('切换账号不打断正在回答的进程，下一轮换进程并保存账号身份', async () => {
+    const { drivers } = await import('./drivers/index.js')
+    let account = 'main'
+    drivers.claude.authEnv = () => ({ BINOS_CLAUDE_ACCOUNT: account, CLAUDE_CODE_OAUTH_TOKEN: 'test' })
+    try {
+      const thread = createThread({ agent: 'claude', owner: 'test', cwd: root })
+      await thread.send({ text: '慢一点说' })
+      const first = hostPid(thread)
+      account = 'personal'
+      await turnEnded(thread, 1)
+      expect(hostPid(thread)).toBe(first)
+      await thread.send({ text: '第二轮' })
+      await turnEnded(thread, 2)
+      expect(hostPid(thread)).not.toBe(first)
+      expect(JSON.parse(readFileSync(path.join(hostDir(thread.id), 'state.json'), 'utf8')).account).toBe('personal')
+      expect(summarize(thread)).toEqual(['thread', 'start:慢一点说', '慢一点说', 'turn_end', 'start:第二轮', '第二轮', 'turn_end'])
+    } finally {
+      drivers.claude.authEnv = undefined
+    }
+  }, 15_000)
+
   it('答完一阵没人插话这一轮就结束，下一轮接着用同一个 agent 进程；回答中途能插话', async () => {
     const thread = createThread({ agent: 'claude', owner: 'test', cwd: root })
     expect(await thread.send({ text: '慢一点说' })).toBe(true)

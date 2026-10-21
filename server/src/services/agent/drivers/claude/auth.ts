@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { agentServiceDir, agentsDir } from '../../../../paths.js'
 import { notifyChange } from '../../../../events.js'
+import { accountSelection } from './accounts.js'
 import type { ClaudeAuth } from '../../types.js'
 
 // 启动 Claude 时用哪份登录（两份见 ClaudeAuth）：平时用完整登录；它快过期、读不出来或者认证失败过时，
@@ -80,10 +81,20 @@ export function chooseAuth(login: Login | undefined, token: Token | undefined, b
 
 // 现在该用哪份，以及要加的环境变量
 function decide(): { auth: ClaudeAuth; env: Record<string, string> } {
+  const selection = accountSelection()
+  if (selection.active !== 'main') {
+    const token = selection.token
+    return {
+      auth: { account: selection.active, accounts: selection.accounts, mode: token ? 'token' : 'none' },
+      env: { BINOS_CLAUDE_ACCOUNT: selection.active, CLAUDE_CODE_OAUTH_TOKEN: token ?? '' },
+    }
+  }
   const login = readLogin()
   const token = readToken()
   const auth = chooseAuth(login, token, Boolean(login && isBroken(login)), Date.now())
-  return { auth, env: auth.mode === 'token' ? { CLAUDE_CODE_OAUTH_TOKEN: token!.token } : {} }
+  auth.account = 'main'
+  auth.accounts = selection.accounts
+  return { auth, env: { BINOS_CLAUDE_ACCOUNT: 'main', ...(auth.mode === 'token' ? { CLAUDE_CODE_OAUTH_TOKEN: token!.token } : {}) } }
 }
 
 // 上次看到的状况：变了就通知页面重新读取（比如快到期了自动换成备用 token）
@@ -111,8 +122,12 @@ export function claudeAuthEnv(): Record<string, string> {
 }
 
 // 回答时请求被拒绝（401）：用的是完整登录就记下它失效了，之后换成备用 token。返回给用户看的原因
-export function claudeAuthFailed(): string {
+export function claudeAuthFailed(account?: string): string {
+  if (account && account !== decide().auth.account) return `Claude 账号 ${account} 的登录失效了，去「系统」→ Agent 更新该账号`
   const before = decide()
+  if (before.auth.account !== 'main') {
+    return `Claude 账号 ${before.auth.account} 的登录失效了，去「系统」→ Agent 更新账号或切换账号`
+  }
   const login = readLogin()
   if (before.auth.mode === 'login' && login) {
     mkdirSync(path.dirname(brokenPath), { recursive: true })

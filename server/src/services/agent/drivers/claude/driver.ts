@@ -43,6 +43,9 @@ export const claude: Driver = {
   fileHint: '用 Read 工具查看',
   efforts,
   catalog: async (env) => {
+    const authEnv = claudeAuthEnv()
+    if (authEnv.BINOS_CLAUDE_ACCOUNT !== 'main' && !authEnv.CLAUDE_CODE_OAUTH_TOKEN) return { available: false, models: [], efforts: [] }
+    env = { ...env, ...authEnv }
     const [auth, models] = await Promise.all([authStatus(env), claudeModels(env)])
     return { available: auth?.loggedIn === true, models, efforts: models.find((model) => model.isDefault)?.efforts ?? [] }
   },
@@ -57,6 +60,13 @@ export const claude: Driver = {
 // 访问令牌几个小时就自动续一次，要看的是完整登录的到期时间（在登录的状况里），不给 token
 async function account(env: NodeJS.ProcessEnv) {
   const [version, auth] = await Promise.all([commandOutput('claude', ['--version'], env), authStatus(env)])
+  const selected = claudeAuth()
+  if (selected.account && selected.account !== 'main') return {
+    ...(version && { version: version.replace(/\s*\(Claude Code\)$/, '') }),
+    loggedIn: selected.mode !== 'none',
+    details: [{ label: '账号', value: selected.account }],
+    configDir,
+  }
   const plan = auth?.subscriptionType ?? readLogin()?.subscriptionType
   return {
     ...(version && { version: version.replace(/\s*\(Claude Code\)$/, '') }),
