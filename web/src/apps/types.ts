@@ -8,7 +8,7 @@ export type ApplicationDefinition = {
   // 独立部署的 web app 的网址，来自 app 注册表
   url?: string
   views: Record<string, ViewDefinition>
-  mainWindow: { viewId: string }
+  mainWindow?: { viewId: string }
   widgets?: Record<string, WidgetDefinition>
   // 「系统」app 里这个 app 的设置页，路由是 /apps/<app 的 id>
   settings?: SettingsDefinition

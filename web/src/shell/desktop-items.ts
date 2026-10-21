@@ -38,7 +38,7 @@ export function desktopItems(apps: ApplicationDefinition[]): DesktopItem[] {
   return defaultDesktop(apps).filter((item) => {
     const app = findApplication(apps, item.applicationId)
     if (!app || item.kind === 'shortcut') {
-      return Boolean(app)
+      return Boolean(app?.mainWindow)
     }
     return app.widgets?.[item.widgetId]?.sizes.includes(item.size) ?? false
   })
