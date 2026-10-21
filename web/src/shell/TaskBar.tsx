@@ -1,10 +1,10 @@
 import { ExternalLink, X } from 'lucide-react'
-import { findApp, useApps } from '../apps/index.ts'
+import { findApplication, useApplications } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
 import type { BarPlacement } from './bar-placement.ts'
 import { layouts } from './layout.ts'
 import type { LayoutId, SplitGroup } from './layout.ts'
-import type { OpenWindow } from './Shell.tsx'
+import type { OpenWindow } from './state/types.ts'
 import styles from './TaskBar.module.css'
 
 // active：聚焦的位置，亮起来的那一块
@@ -52,9 +52,9 @@ export function TaskBar({
   onSplit: () => void
   onClose: () => void
 }) {
-  const apps = useApps()
+  const apps = useApplications()
   // 外部 app 的窗口可以在新标签页打开，比如要在那里重新登录
-  const focusedUrl = findApp(apps, windows.find((item) => item.id === focused)?.window.app ?? '')?.url
+  const focusedUrl = findApplication(apps, windows.find((item) => item.id === focused)?.window.applicationId ?? '')?.url
   const canPick = !home && !locked && !groups.some((group) => focused && group.slots.includes(focused)) && allowed.length > 1
 
   return (
@@ -85,7 +85,7 @@ export function TaskBar({
                 onClick={() => onShow(members.find((member) => member.id === focused)?.id ?? item.id)}
               >
                 {members.map((member) => {
-                  const app = findApp(apps, member.window.app)
+                  const app = findApplication(apps, member.window.applicationId)
                   return app && (
                     <span key={member.id} className={styles.member} data-focused={!!group && !home && member.id === focused}>
                       <app.icon size={group ? 18 : 21} strokeWidth={1.75} />

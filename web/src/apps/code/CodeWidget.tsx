@@ -1,11 +1,11 @@
 import { SquarePen } from 'lucide-react'
-import type { WidgetProps } from '../types.ts'
+import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
 import { formatTime } from '../../ui/time.ts'
 import { useSessions } from './useSessions.ts'
 
 // 最近的对话，点一条直接打开
-export function CodeWidget({ size, open }: WidgetProps) {
+export function CodeWidget({ size, open }: WidgetContext) {
   const { sessions } = useSessions()
   const running = sessions?.filter((session) => session.running).length ?? 0
   const shown = sessions?.slice(0, size === '4x4' ? 8 : 3) ?? []

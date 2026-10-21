@@ -1,57 +1,15 @@
-import type { ExternalApp } from '@binos/server/types'
-import { useSyncExternalStore } from 'react'
-import { readRegistry, writeRegistry } from '../api.ts'
-import { onChange } from '../events.ts'
-import { iconNames } from './external/icons.ts'
-import type { IconName } from './external/icons.ts'
+import { useMemo } from 'react'
+import { builtinApplications, placeholderApplications } from './builtins.ts'
+import { validateApplications } from './definitions.ts'
+import { externalApp } from './external/index.ts'
+import { useExternalApps } from './external/registry.ts'
+import type { ApplicationDefinition } from './types.ts'
 
-export type ExternalAppConfig = Omit<ExternalApp, 'icon'> & { icon: IconName }
-
-// app 注册表里的外部 app，整个页面共用一份。每次连上全局通知时（包括第一次）和收到 apps 通知时重新读取。
-// 改动先在页面里生效，写入失败时重新读取，恢复成后端的
-let external: ExternalAppConfig[] | undefined
-const listeners = new Set<() => void>()
-let started = false
-// 改动之前发出的读取，返回的是旧的清单，不用
-let latest = 0
-
-const notify = () => listeners.forEach((listener) => listener())
-
-function refresh() {
-  const request = ++latest
-  void readRegistry().then((registry) => {
-    if (registry && request === latest) {
-      external = registry.external.map((app) => ({ ...app, icon: iconNames.includes(app.icon as IconName) ? (app.icon as IconName) : 'app-window' }))
-      notify()
-    }
-  })
+// 内置的 app 加上 app 注册表里的外部 app，按这个顺序排列
+export function useApplications(): ApplicationDefinition[] {
+  const external = useExternalApps()
+  return useMemo(() => validateApplications([...builtinApplications, ...(external ?? []).map(externalApp), ...placeholderApplications]), [external])
 }
 
-function subscribe(listener: () => void) {
-  if (!started) {
-    started = true
-    onChange((event) => {
-      if (event === null || event.type === 'apps') {
-        refresh()
-      }
-    })
-  }
-  listeners.add(listener)
-  return () => listeners.delete(listener)
-}
-
-// 还没读到时返回 undefined
-export function useExternalApps(): ExternalAppConfig[] | undefined {
-  return useSyncExternalStore(subscribe, () => external)
-}
-
-export function saveExternalApps(list: ExternalAppConfig[]) {
-  latest++
-  external = list
-  notify()
-  void writeRegistry({ external: list }).then((ok) => {
-    if (!ok) {
-      refresh()
-    }
-  })
-}
+// 读到 app 注册表之前，还不知道有哪些外部 app
+export const useApplicationsLoaded = () => useExternalApps() !== undefined

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useApps } from '../apps/index.ts'
-import { AppHost } from './AppHost.tsx'
-import type { OpenWindow } from './Shell.tsx'
+import { useApplications } from '../apps/index.ts'
+import { WindowHost } from './hosts/WindowHost.tsx'
+import type { OpenWindow } from './state/types.ts'
 import { allowedLayouts, minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
 import type { LayoutId, Size } from './layout.ts'
 import styles from './Workspace.module.css'
@@ -29,7 +29,7 @@ export function Workspace({
   portrait: boolean
   onTitle: (id: string, title: string) => void
 }) {
-  const apps = useApps()
+  const apps = useApplications()
   const picker = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (picking) picker.current?.querySelector('button')?.focus()
@@ -61,7 +61,7 @@ export function Workspace({
         return (
           <section key={item.id} className={styles.pane} hidden={slot < 0} style={position(slot)}
             inert={picking} data-exiting={exiting === slot} aria-label={item.title} onPointerDownCapture={() => onFocus(item.id, slot)}>
-            <div className={styles.content}><AppHost id={item.id} window={item.window} onTitle={onTitle} /></div>
+            <div className={styles.content}><WindowHost window={item.window} onTitle={onTitle} /></div>
             {preview(slot)}
           </section>
         )
@@ -81,7 +81,7 @@ export function Workspace({
             <p>选择第二个 app</p>
             <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
-              {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.app === app.id && panes.includes(item.id))).map((app) => (
+              {apps.filter((app) => !unavailableApps.includes(app.id) && !windows.some((item) => item.window.applicationId === app.id && panes.includes(item.id))).map((app) => (
                 <button key={app.id} type="button" className={desktopStyles.icon} title={app.name} onClick={() => onPick(app.id, slot)}>
                   <span className={desktopStyles.glyph}><app.icon strokeWidth={1.75} /></span>
                   <span className={desktopStyles.label}>{app.name}</span>

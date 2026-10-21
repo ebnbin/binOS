@@ -1,21 +1,22 @@
 import type { JsonValue } from '@binos/server/types'
 import { useSyncExternalStore } from 'react'
-import { normalizeGroups, normalizeWorkspace } from './layout.ts'
-import type { SplitGroup, Workspace } from './layout.ts'
+import { normalizeGroups, normalizeWorkspace } from '../layout.ts'
+import type { SplitGroup, Workspace } from '../layout.ts'
+import { readWindows, writeWindows } from './persistence.ts'
+import type { StoredWindow } from './persistence.ts'
+import type { WindowInstance } from './types.ts'
 
-// 开着哪些窗口（各自在 app 的哪一页）和分屏布局，每台设备各自记在本地，不同步。每个 app 最多一个窗口。
+// 开着哪些窗口（各自在 app 的哪一页）和分屏布局，每台设备各自记在本地，不同步。
 // 屏幕放不下选的布局时临时降级，不改这里
-export type WindowState = { app: string; route: string }
-
-type Stored = { windows: Record<string, WindowState>; groups: SplitGroup[] }
+type Stored = { windows: Record<string, WindowInstance>; groups: SplitGroup[] }
 
 const storageKey = 'binos.windows'
 const listeners = new Set<() => void>()
 
 function load(): Stored {
   try {
-    const value = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as { windows?: Record<string, WindowState>; workspace?: JsonValue; groups?: JsonValue } | null
-    const windows = value?.windows ?? {}
+    const value = JSON.parse(localStorage.getItem(storageKey) ?? 'null') as { windows?: Record<string, StoredWindow>; workspace?: JsonValue; groups?: JsonValue } | null
+    const windows = readWindows(value?.windows ?? {})
     const ids = Object.keys(windows)
     const legacy = normalizeWorkspace(value?.workspace ?? null, ids)
     const groups = normalizeGroups(value?.groups ?? (legacy.layout !== '1' ? [{ ...legacy, id: 'legacy' }] : []), ids)
@@ -30,7 +31,7 @@ let stored = load()
 function save(next: Stored) {
   next = { ...next, groups: normalizeGroups(next.groups, Object.keys(next.windows)) }
   stored = next
-  localStorage.setItem(storageKey, JSON.stringify(next))
+  localStorage.setItem(storageKey, JSON.stringify({ ...next, windows: writeWindows(next.windows) }))
   listeners.forEach((listener) => listener())
 }
 
@@ -63,14 +64,11 @@ export function dissolveGroup(id: string) {
   save({ ...stored, groups: stored.groups.filter((group) => group.id !== id) })
 }
 
-// 已经开着就返回原来的窗口
-export function ensureWindow(appId: string): string {
-  const existing = Object.entries(stored.windows).find(([, value]) => value.app === appId)
-  if (existing) {
-    return existing[0]
-  }
+export const getWindows = () => stored
+
+export function createWindow(applicationId: string, viewId: string): string {
   const id = crypto.randomUUID()
-  save({ ...stored, windows: { ...stored.windows, [id]: { app: appId, route: '/' } } })
+  save({ ...stored, windows: { ...stored.windows, [id]: { id, applicationId, viewId, route: '/' } } })
   return id
 }
 

@@ -1,6 +1,6 @@
 import { Download, File, Info, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useState } from 'react'
+import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
 import { CodeBlock } from '../../ui/content/CodeBlock.tsx'
 import { Markdown } from '../../ui/content/Markdown.tsx'
 import { languageOf } from '../../ui/content/highlight.ts'
@@ -52,14 +52,12 @@ export function FilePreview(props: { item: PreviewFile; close: () => void }) {
 }
 
 function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null)
   const [info, setInfo] = useState(false)
   const [source, setSource] = useState(false)
   const [metadata, setMetadata] = useState<Metadata>()
   const [error, setError] = useState(false)
   const type = kind(item.name)
   useEffect(() => {
-    dialog.current?.showModal()
     if (!item.infoUrl) return
     const controller = new AbortController()
     fetch(item.infoUrl, { signal: controller.signal })
@@ -67,8 +65,8 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
       .catch(() => { if (!controller.signal.aborted) setError(true) })
     return () => controller.abort()
   }, [item.infoUrl])
-  return createPortal(
-    <dialog ref={dialog} className={styles.dialog} onClose={close} onClick={(event) => { if (event.target === dialog.current) close() }} aria-label={item.name}>
+  return (
+    <ModalHost className={styles.dialog} onClose={close} label={item.name}>
       <div className={styles.window}>
         <header className={styles.toolbar}>
           <File size={18} /><strong className={styles.title}>{item.name}</strong>
@@ -89,7 +87,7 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
           </dl></aside>}
         </div>
       </div>
-    </dialog>, document.body,
+    </ModalHost>
   )
 }
 

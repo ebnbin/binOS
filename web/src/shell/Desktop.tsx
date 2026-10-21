@@ -1,8 +1,7 @@
-import { Suspense } from 'react'
 import type { CSSProperties } from 'react'
-import { findApp, useApps } from '../apps/index.ts'
-import type { AppManifest } from '../apps/types.ts'
-import { ErrorBoundary } from '../ui/ErrorBoundary.tsx'
+import { findApplication, useApplications } from '../apps/index.ts'
+import type { ApplicationDefinition } from '../apps/types.ts'
+import { WidgetHost } from './hosts/WidgetHost.tsx'
 import styles from './Desktop.module.css'
 import { desktopItems, itemSize } from './desktop-items.ts'
 import type { DesktopItem } from './desktop-items.ts'
@@ -14,7 +13,7 @@ const gap = 16
 const margin = (column.min - cell * 4 - gap * 3) / 2
 
 export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string, route?: string) => void }) {
-  const apps = useApps()
+  const apps = useApplications()
   const items = desktopItems(apps)
   const { count, columnWidth, scale } = desktopColumns(width)
   const sizes = items.map(itemSize)
@@ -41,7 +40,7 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
               const place = column.placements[itemIndex]
               return (
                 <Item
-                  key={itemIndex}
+                  key={item.id}
                   item={item}
                   apps={apps}
                   style={{ gridArea: `${place.row + 1} / ${place.column + 1} / span ${place.height} / span ${place.width}` }}
@@ -63,15 +62,15 @@ function Item({
   onOpen,
 }: {
   item: DesktopItem
-  apps: AppManifest[]
+  apps: ApplicationDefinition[]
   style: CSSProperties
   onOpen: (app: string, route?: string) => void
 }) {
-  const app = findApp(apps, item.app)
+  const app = findApplication(apps, item.applicationId)
   if (!app) {
     return null
   }
-  if (!('widget' in item)) {
+  if (item.kind === 'shortcut') {
     return (
       <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
         <span className={styles.glyph}>
@@ -81,18 +80,5 @@ function Item({
       </button>
     )
   }
-  const Widget = app.widgets?.[item.widget]?.component
-  if (!Widget) {
-    return null
-  }
-  return (
-    // 点 widget 的空白处打开 app，widget 里的按钮自己处理点击
-    <div className={styles.widget} style={style} onClick={() => onOpen(app.id)}>
-      <ErrorBoundary fallback={() => <span className={styles.failed}>{app.name} 出错了</span>}>
-        <Suspense>
-          <Widget size={item.size} open={(route) => onOpen(app.id, route)} />
-        </Suspense>
-      </ErrorBoundary>
-    </div>
-  )
+  return <WidgetHost item={item} application={app} style={style} onOpen={onOpen} />
 }

@@ -1,13 +1,13 @@
 import type { MonitorStatus } from '@binos/server/apps/system/types'
 import { useConnected } from '../../events.ts'
-import { useApps } from '../index.ts'
+import { useApplications } from '../index.ts'
 import { ExternalApps } from './ExternalApps.tsx'
 import { bytes } from './format.ts'
 import styles from './Monitor.module.css'
 
 export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; navigate(route: string): void }) {
   const connected = useConnected()
-  const apps = useApps().filter((app) => app.settings)
+  const apps = useApplications().filter((app) => app.settings)
   const runtime = status?.snapshot?.runtime
   return (
     <div className={styles.content}>

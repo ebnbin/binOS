@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { FilePreview } from '../../services/preview/index.ts'
-import type { AppContext } from '../types.ts'
+import type { WindowContext } from '../types.ts'
 import styles from './FilesApp.module.css'
 
 type Entry = { name: string; path: string; directory: boolean; symlink: boolean; size: number; modified: number }
@@ -22,7 +22,7 @@ const size = (bytes: number) =>
         ? `${(bytes / 1048576).toFixed(1)} MB`
         : `${(bytes / 1073741824).toFixed(1)} GB`
 
-export function FilesApp({ ctx }: { ctx: AppContext }) {
+export function FilesApp({ ctx }: { ctx: WindowContext }) {
   const [listing, setListing] = useState<Listing>()
   const [location, setLocation] = useState('')
   const [preview, setPreview] = useState<Entry>()
