@@ -130,3 +130,16 @@ describe('音乐播放会话', () => {
     expect(restoreMusic({ queue: [null, {}, track('a')], index: -5 }).queue).toHaveLength(1)
   })
 })
+
+it('远程队列更新保留当前歌曲和播放器，当前歌曲被移除时停止播放', async () => {
+  const { music, engines } = setup()
+  music.add([track('a'), track('b')])
+  await music.select(1)
+  engines[0].emit({ status: 'playing', positionMs: 12000 })
+  music.replaceQueue([track('c'), track('b'), track('a')])
+  expect(music.getSnapshot()).toMatchObject({ index: 1, status: 'playing', positionMs: 12000 })
+  expect(engines[0].player.destroy).not.toHaveBeenCalled()
+  music.replaceQueue([track('a')])
+  expect(engines[0].player.destroy).toHaveBeenCalledOnce()
+  expect(music.getSnapshot()).toMatchObject({ index: 0, status: 'idle' })
+})
