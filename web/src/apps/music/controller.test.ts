@@ -65,6 +65,21 @@ describe('音乐播放会话', () => {
     expect(music.getSnapshot().error).toBeUndefined()
   })
 
+  it('暂停后的缓冲、迟到播放和结束事件不会恢复播放或自动切歌', async () => {
+    const { music, engines } = setup()
+    music.add([track('a'), track('b')])
+    await music.select(0)
+    music.pause()
+    engines[0].emit({ status: 'loading' })
+    expect(music.getSnapshot().status).toBe('paused')
+    engines[0].emit({ status: 'playing' })
+    expect(engines[0].player.pause).toHaveBeenCalledTimes(2)
+    expect(music.getSnapshot().status).toBe('paused')
+    engines[0].emit({ status: 'ended' })
+    expect(music.getSnapshot().index).toBe(0)
+    expect(engines).toHaveLength(1)
+  })
+
   it('只有当前曲目结束才自动续播，顺序播放在队尾停止', async () => {
     const { music, engines } = setup()
     music.add([track('a'), track('b')])

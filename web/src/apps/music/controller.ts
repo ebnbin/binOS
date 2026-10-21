@@ -66,8 +66,13 @@ export class MusicController {
     try {
       const player = provider.createPlayer((event) => {
         if (generation !== this.generation) return
+        if (!this.wantsPlay && (event.status === 'playing' || event.status === 'loading')) {
+          if (event.status === 'playing') this.player?.pause()
+          this.update({ ...event, status: 'paused' })
+          return
+        }
         this.update(event.status ? { ...event, error: event.error } : event)
-        if (event.status === 'ended') {
+        if (event.status === 'ended' && this.wantsPlay) {
           if (this.state.repeat === 'one') void this.select(this.state.index)
           else this.next(true)
         }
