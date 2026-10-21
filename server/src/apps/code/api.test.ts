@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -8,7 +8,7 @@ process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { api } = await import('../../api.js')
 const { appendItems, createThread, filesDir } = await import('../../services/agent/store.js')
-const { createSession, readSession, searchContent, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
+const { createSession, sessionDir, readSession, searchContent, searchSessions, sessionTitle, setUserState } = await import('./sessions.js')
 const time = () => new Date().toISOString()
 
 // 新的 session 和它的 thread，第一句是 text
@@ -150,5 +150,33 @@ describe('全局内容搜索', () => {
     expect(await res.json()).toEqual(searchContent('needle'))
     expect(searchContent('检索专用标题').results.map((result) => result.kind)).toEqual(['title', 'input'])
     expect(searchContent('   ')).toEqual({ total: 0, results: [] })
+  })
+})
+
+
+describe('projects', () => {
+  it('旧对话归属 binOS，新对话保存项目，项目重读后仍存在', async () => {
+    const legacy = newSession('旧项目对话')
+    const file = path.join(sessionDir(legacy.id), 'session.json')
+    const data = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>
+    delete data.project
+    writeFileSync(file, JSON.stringify(data))
+    expect(readSession(legacy.id).project).toBe('binos')
+    const created = await post('/api/apps/code/projects', JSON.stringify({ name: ' 第二个项目 ' }), 'application/json')
+    expect(created.status).toBe(201)
+    const { project } = await created.json() as { project: { id: string; name: string } }
+    expect(project.name).toBe('第二个项目')
+    const listed = await api.request('/api/apps/code/projects')
+    expect(((await listed.json()) as { projects: { id: string; name: string }[] }).projects).toContainEqual(project)
+    const thread = createThread({ type: 'thread', time: time(), agent: 'claude', owner: 'code', cwd: root })
+    expect(readSession(createSession(thread, project.id)).project).toBe(project.id)
+    const invalid = await post('/api/apps/code/sessions', JSON.stringify({ text: 'hi', project: 'missing' }), 'application/json')
+    expect(invalid.status).toBe(400)
+  })
+
+  it('拒绝空白和过长的项目名', async () => {
+    for (const name of ['', '  ', 'x'.repeat(101)]) {
+      expect((await post('/api/apps/code/projects', JSON.stringify({ name }), 'application/json')).status).toBe(400)
+    }
   })
 })

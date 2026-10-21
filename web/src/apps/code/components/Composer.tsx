@@ -19,7 +19,7 @@ const enterSends = !window.matchMedia('(pointer: coarse)').matches
 let nextKey = 0
 
 // 没发出去的文字按对话存在浏览器里，切走再回来、刷新页面都还在
-const draftStorageKey = (key: number | 'new') => `code/draft/${key}`
+const draftStorageKey = (key: number | string) => `code/draft/${key}`
 
 const hasFiles = (event: { dataTransfer: DataTransfer | null }) => event.dataTransfer?.types.includes('Files') ?? false
 
@@ -43,7 +43,7 @@ export function Composer({
   // 列表里这个 session 的概况，新对话时没有
   session: SessionSummary | undefined
   queue: QueuedMessage[]
-  draftKey: number | 'new'
+  draftKey: number | string
   running: boolean
   choice: Choice
   agentFixed: boolean

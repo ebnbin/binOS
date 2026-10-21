@@ -7,6 +7,7 @@ import type { AgentId } from '../../services/agent/types.js'
 import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } from './messages.js'
 import type { MessageOptions } from './messages.js'
 import { pullRequests } from './pull-requests.js'
+import { createProject, listProjects, projectExists } from './projects.js'
 import { readQueue } from './queue.js'
 import { listSessions, readSession, searchContent, searchSessions, sessionExists, sessionTitle, setUserState, threadOf } from './sessions.js'
 import type { SessionSummary, Upload } from './types.js'
@@ -38,9 +39,10 @@ const isName = (value: unknown): value is string => typeof value === 'string' &&
 // interrupt：正在回答时先打断正在做的事；queue：正在回答时排到这一轮答完之后；agent：新的 session 用哪个 agent，不给是默认的；
 // model、effort：开始新的一轮时用，不给就是 agent 的默认
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; attachments?: unknown; interrupt?: unknown; queue?: unknown; agent?: unknown; model?: unknown; effort?: unknown } | null
+  const body = value as { project?: unknown; text?: unknown; attachments?: unknown; interrupt?: unknown; queue?: unknown; agent?: unknown; model?: unknown; effort?: unknown } | null
   const attachments = parseUploads(body?.attachments)
   if (
+    (body?.project !== undefined && (typeof body.project !== 'string' || !projectExists(body.project))) ||
     typeof body?.text !== 'string' ||
     !attachments ||
     (!body.text.trim() && !attachments.length) ||
@@ -51,6 +53,7 @@ const messageBody = validator('json', (value, c) => {
     return c.text('Bad Request', 400)
   }
   const message: { text: string; attachments: Upload[]; queue?: true } & MessageOptions = {
+    ...(typeof body.project === 'string' && { project: body.project }),
     text: body.text,
     attachments,
     ...(body.queue === true && { queue: true as const }),
@@ -90,6 +93,7 @@ async function summary(id: number): Promise<SessionSummary> {
   return {
     id,
     thread: thread.id,
+    project: session.project,
     title: sessionTitle(session),
     updatedAt: thread.updatedAt,
     running: thread.state === 'running',
@@ -125,6 +129,16 @@ async function send(sessionId: number | undefined, text: string, attachments: Up
 }
 
 export const codeApi = new Hono()
+  .get('/projects', (c) => c.json({ projects: listProjects() }))
+  .post('/projects', validator('json', (value, c) => {
+    const body = value as { name?: unknown } | null
+    const name = typeof body?.name === 'string' ? body.name.replace(/\p{Cc}/gu, ' ').trim() : ''
+    return !name || name.length > 100 ? c.text('Bad Request', 400) : { name }
+  }), (c) => {
+    const project = createProject(c.req.valid('json').name)
+    notifyChange({ type: 'project' })
+    return c.json({ project }, 201)
+  })
   .get('/search', (c) => c.json(searchContent(c.req.query('q') ?? '')))
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面
   .get('/sessions', async (c) => {

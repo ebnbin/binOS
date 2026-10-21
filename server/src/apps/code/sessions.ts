@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { defaultProject } from './projects.js'
 import { appDir } from '../../paths.js'
 import { getThread } from '../../services/agent/index.js'
 import type { Thread } from '../../services/agent/index.js'
@@ -8,6 +9,7 @@ import type { Thread } from '../../services/agent/index.js'
 // 以及从 thread 的条目里算出的（scanned 是算到了第几条）：默认的标题，开过的 PR 和还没有结果的 gh pr create 调用
 export type Session = {
   thread: string
+  project: string
   title?: string
   pinned?: true
   archived?: true
@@ -50,10 +52,10 @@ function writeSession(id: number, session: Session) {
 }
 
 // 只有这个后端写 session（根目录锁保证），同步地建目录、写 session.json，编号不会被占
-export function createSession(thread: string): number {
+export function createSession(thread: string, project = defaultProject): number {
   const id = (listSessions()[0] ?? 0) + 1
   mkdirSync(sessionDir(id), { recursive: true })
-  writeSession(id, { thread, scanned: 0, defaultTitle: '', prs: [], creatingPrs: [] })
+  writeSession(id, { thread, project, scanned: 0, defaultTitle: '', prs: [], creatingPrs: [] })
   sessionIds.set(thread, id)
   return id
 }
@@ -63,6 +65,7 @@ const sessions = new Map<number, Session>()
 // 从上次算到的地方接着看 thread 新增的条目
 export function readSession(id: number): Session {
   const session = sessions.get(id) ?? (JSON.parse(readFileSync(sessionPath(id), 'utf8')) as Session)
+  session.project ??= defaultProject
   sessions.set(id, session)
   const items = sessionThread(id, session).items(session.scanned)
   if (items.length === 0) {

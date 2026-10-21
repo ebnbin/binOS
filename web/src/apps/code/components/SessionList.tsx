@@ -1,11 +1,11 @@
-import type { SessionSummary } from '@binos/server/apps/code/types'
+import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/agent/types'
 import { ChevronRight, CircleAlert, CircleStop, Clock, Gauge, GitPullRequest, Hourglass, MoreHorizontal, Search, SquarePen, X } from 'lucide-react'
-import { Fragment, useEffect, useState } from 'react'
-import { searchContent } from '../api.ts'
+import { useEffect, useState } from 'react'
+import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
 import { formatQuota } from '../format.ts'
-import { dateGroup, formatClock, formatTime } from '../../../ui/time.ts'
+import { formatClock, formatTime } from '../../../ui/time.ts'
 import { AuthBanner } from './AuthBanner.tsx'
 import { Quota } from './Quota.tsx'
 import { Menu, RenameInput, SessionMenuItems } from './SessionMenu.tsx'
@@ -16,15 +16,21 @@ const searchDelay = 250
 
 export function SessionList({
   sessions,
+  projects,
   failed,
   current,
   onNavigate,
 }: {
   sessions: SessionSummary[] | undefined
+  projects: Project[] | undefined
   failed: boolean
   current: number | null
   onNavigate: (route: string) => void
 }) {
+  const [creating, setCreating] = useState(false)
+  const [name, setName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [query, setQuery] = useState('')
   const search = useSearch(query.trim())
   return (
@@ -38,6 +44,22 @@ export function SessionList({
         <SquarePen size={16} strokeWidth={1.75} />
         新对话
       </button>
+      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>创建项目</button>
+      {creating && <form className={styles.projectForm} onSubmit={(event) => {
+        event.preventDefault()
+        if (!name.trim() || saving) return
+        setSaving(true)
+        setError('')
+        void createProject(name.trim()).then((project) => {
+          setName('')
+          setCreating(false)
+          onNavigate(`/new?project=${project.id}`)
+        }).catch(() => setError('创建失败，请重试')).finally(() => setSaving(false))
+      }}>
+        <input autoFocus aria-label="项目名称" placeholder="项目名称" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} />
+        <button type="submit" disabled={!name.trim() || saving}>{saving ? '创建中…' : '创建'}</button>
+        {error && <p role="alert">{error}</p>}
+      </form>}
       <label className={styles.search}>
         <Search size={14} strokeWidth={1.75} />
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索全部历史内容" aria-label="搜索全部历史内容" />
@@ -60,13 +82,15 @@ export function SessionList({
               </button>
             ))}
           </div>
-        ) : <Sections
-          sessions={sessions}
-          searching={false}
-          failed={failed}
-          current={current}
-          onNavigate={onNavigate}
-        />}
+        ) : !projects || !sessions ? (failed && <p className={styles.placeholder}>读取失败</p>) : projects.map((project) => (
+          <section key={project.id}>
+            <div className={styles.projectHeader}>
+              <span>{project.name}</span>
+              <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}><SquarePen size={14} /></button>
+            </div>
+            <Sections sessions={sessions.filter((session) => session.project === project.id)} searching={false} failed={failed} current={current} onNavigate={onNavigate} />
+          </section>
+        ))}
       </nav>
     </div>
   )
@@ -91,7 +115,7 @@ function useSearch(query: string) {
   return result?.query === query ? result : { query }
 }
 
-// 置顶的在最上面，其余按最近的动静分成今天、昨天等几组，归档的收在最下面
+// 每个项目内置顶的在最上面，其余按最近活动排序，归档的收在最下面
 function Sections({
   sessions,
   searching,
@@ -115,7 +139,6 @@ function Sections({
   const pinned = sessions.filter((session) => session.pinned && !session.archived)
   const others = sessions.filter((session) => !session.pinned && !session.archived)
   const archived = sessions.filter((session) => session.archived)
-  // clock：所在的分组已经写明了是哪天，只显示时刻
   const items = (list: SessionSummary[], clock = false) => (
     <ul>
       {list.map((session) => (
@@ -131,12 +154,7 @@ function Sections({
           {items(pinned)}
         </>
       )}
-      {[...Map.groupBy(others, (session) => dateGroup(new Date(session.updatedAt)))].map(([group, list]) => (
-        <Fragment key={group}>
-          <div className={styles.label}>{group}</div>
-          {items(list, group === '今天' || group === '昨天')}
-        </Fragment>
-      ))}
+      {items(others)}
       {archived.length > 0 && (
         <>
           <button type="button" className={styles.archivedToggle} onClick={() => setShowArchived(!showArchived)} aria-expanded={showArchived}>
