@@ -1,9 +1,21 @@
-import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Music, NotebookPen } from 'lucide-react'
+import { CalendarDays, CloudSun, CodeXml, Folder, Gauge, Music, NotebookPen, Terminal } from 'lucide-react'
 import { lazy } from 'react'
 import { placeholderApp } from './placeholder/index.ts'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
+  {
+    id: 'terminal',
+    name: '终端',
+    icon: Terminal,
+    mainWindow: { viewId: 'main' },
+    views: {
+      main: {
+        kind: 'window',
+        component: lazy(() => import('./terminal/TerminalApp.tsx').then((module) => ({ default: module.TerminalApp }))),
+      },
+    },
+  },
   {
     id: 'files',
     name: '文件',
