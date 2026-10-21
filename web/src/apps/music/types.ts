@@ -1,0 +1,31 @@
+import type { Track, TrackRef } from '@binos/server/apps/music/types'
+export type { Track, TrackRef }
+
+export type PlaybackStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error'
+export type PlayerEvent = { status?: PlaybackStatus; positionMs?: number; durationMs?: number; error?: string }
+
+export interface MusicPlayer {
+  load(track: TrackRef): Promise<void>
+  play(): void
+  pause(): void
+  seek(positionMs: number): void
+  setVolume(volume: number): void
+  destroy(): void
+}
+
+export type PlaybackProvider = {
+  id: string
+  name: string
+  createPlayer: (emit: (event: PlayerEvent) => void) => MusicPlayer
+}
+
+export type MusicState = {
+  queue: Track[]
+  index: number
+  status: PlaybackStatus
+  positionMs: number
+  durationMs: number
+  volume: number
+  repeat: 'off' | 'all' | 'one'
+  error?: string
+}

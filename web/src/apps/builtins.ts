@@ -5,6 +5,17 @@ import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
   {
+    id: 'music',
+    name: '音乐',
+    icon: Music,
+    mainWindow: { viewId: 'main' },
+    views: {
+      main: { kind: 'window', component: lazy(() => import('./music/MusicApp.tsx').then((module) => ({ default: module.MusicApp }))) },
+      widget: { kind: 'widget', component: lazy(() => import('./music/MusicWidget.tsx').then((module) => ({ default: module.MusicWidget }))) },
+    },
+    widgets: { main: { name: '正在播放', viewId: 'widget', sizes: ['2x2', '4x2', '4x4'] } },
+  },
+  {
     id: 'browser',
     name: '浏览器',
     icon: Globe,
@@ -80,5 +91,4 @@ export const placeholderApplications: ApplicationDefinition[] = [
   placeholderApp('notes', '笔记', NotebookPen),
   placeholderApp('calendar', '日历', CalendarDays),
   placeholderApp('weather', '天气', CloudSun),
-  placeholderApp('music', '音乐', Music),
 ]
