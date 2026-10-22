@@ -25,7 +25,7 @@ export class Manager {
     const stored = read<State>(statePath)
     if (existsSync(statePath) && !stored) throw new Error('构建登记簿损坏，已停止以保留原数据')
     if (stored && stored.mode !== (mock ? 'mock' : 'real')) throw new Error('构建数据目录不能混用真实和模拟模式')
-    this.state = stored ?? { mode: mock ? 'mock' : 'real', builds: [], settings: { automatic, adhoc: false }, sequence: 0 }
+    this.state = stored ?? { mode: mock ? 'mock' : 'real', builds: [], settings: { automatic, adhoc: automatic }, sequence: 0 }
     this.active = this.state.builds.find((b) => b.status === 'running')?.id
     this.save()
   }
