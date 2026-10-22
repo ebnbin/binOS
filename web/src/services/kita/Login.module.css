@@ -1,38 +1,38 @@
 .flow {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  font-size: 13.5px;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--gray-6);
+  border-radius: var(--radius-4);
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-2);
   text-align: left;
 }
 
 .title {
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   margin: 0;
-  color: var(--muted);
+  color: var(--gray-11);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  color: var(--text);
+  gap: var(--space-1);
+  color: var(--gray-12);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -40,30 +40,18 @@
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  color: var(--text-2);
+  gap: var(--space-2);
+  color: var(--gray-11);
 }
 
 .codeLabel input {
   height: 34px;
-  padding: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-}
-
-.codeLabel input:focus {
-  border-color: var(--text-2);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .primary,
@@ -72,49 +60,27 @@
   place-items: center;
   min-width: 64px;
   height: 32px;
-  padding: 0 14px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.primary:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--border);
-  background: none;
-  color: var(--text-2);
 }
 
 .done {
   margin: 0;
-  color: #1a7f37;
+  color: var(--green-11);
 }
 
 .error {
   margin: 0;
-  color: var(--danger);
+  color: var(--red-11);
   overflow-wrap: anywhere;
 }
 
 .deviceCode {
   align-self: flex-start;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 18px;
-  letter-spacing: 0.08em;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-3);
+  background: var(--gray-1);
+  color: var(--gray-12);
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-4);
+  letter-spacing: var(--letter-spacing-4);
   user-select: all;
 }

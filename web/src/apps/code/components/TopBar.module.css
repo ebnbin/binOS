@@ -1,16 +1,16 @@
 .bar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: none;
   height: 56px;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
 }
 
 .heading {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
 }
@@ -19,8 +19,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 550;
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-medium);
 }
 
 .titleWrap {
@@ -32,32 +32,14 @@
 .titleButton {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
-  margin: 0 -8px;
-  padding: 5px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--hover);
+  margin: 0 calc(-1 * var(--space-2));
 }
 
 .titleChevron {
   flex: none;
-  color: var(--muted);
+  color: var(--gray-11);
 }
 
 .rename {
@@ -68,8 +50,8 @@
 
 .id {
   flex: none;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: var(--font-size-2);
+  color: var(--gray-11);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,55 +59,46 @@
   position: relative;
   display: flex;
   flex: none;
-  gap: 6px;
+  gap: var(--space-2);
   margin-left: auto;
 }
 
 .finished {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  gap: var(--space-1);
 }
 
 .prMenu {
   display: flex;
   flex-direction: column;
   width: 360px;
-  max-height: min(320px, var(--radix-popover-content-available-height));
+  max-height: min(320px, 70dvh);
   overflow-y: auto;
-  padding: 4px;
-  box-shadow: var(--shadow);
+  padding: var(--space-1);
+  box-shadow: var(--shadow-3);
 }
 
 .prMenu a {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 8px;
-  color: var(--text);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-3);
+  color: var(--gray-12);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--font-size-2);
 }
 
 @media (hover: hover) {
   .prMenu a:hover {
-    background: var(--hover);
+    background: var(--gray-a3);
   }
 }
 
 .prNumber {
   flex: none;
-  color: var(--muted);
+  color: var(--gray-11);
   font-variant-numeric: tabular-nums;
 }
 
@@ -139,47 +112,47 @@
 
 .prState {
   flex: none;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: #1a7f37;
+  color: var(--green-11);
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: #8250df;
+  color: var(--violet-11);
 }
 
 .pr {
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-  border-radius: 999px;
-  background: var(--hover);
-  font-size: 11.5px;
+  border-radius: var(--radius-full);
+  background: var(--gray-a3);
+  font-size: var(--font-size-1);
   font-variant-numeric: tabular-nums;
 }
 
 .pr a {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  color: var(--text-2);
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  color: var(--gray-11);
   text-decoration: none;
 }
 
 .pr[data-state='open'] a:first-child {
-  color: #1a7f37;
+  color: var(--green-11);
 }
 
 .pr[data-state='merged'] a:first-child {
-  color: #8250df;
+  color: var(--violet-11);
 }
 
 .pr .preview {
-  border-left: 1px solid var(--hairline);
+  border-left: 1px solid var(--gray-5);
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
@@ -190,8 +163,8 @@
 @container agent (width < 960px) {
   .bar {
     height: 52px;
-    padding: 0 8px;
-    border-bottom: 1px solid var(--hairline);
+    padding: 0 var(--space-2);
+    border-bottom: 1px solid var(--gray-5);
   }
 
   .heading {
@@ -205,4 +178,10 @@
   .bar span.singleColumnOnly {
     display: inline;
   }
+}
+
+.bar {
+  border-bottom: 1px solid var(--gray-5);
+  background: var(--color-panel-solid);
+  height: 60px;
 }

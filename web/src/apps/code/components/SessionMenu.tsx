@@ -1,6 +1,7 @@
+import { TextField } from '@radix-ui/themes'
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
+import { DropdownMenu as Dropdown } from '@radix-ui/themes'
+import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from '../../../ui/icons.tsx'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { editSession } from '../api.ts'
@@ -43,63 +44,70 @@ export function SessionActions({
       }}
       modal={false}
     >
-      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
-      <Dropdown.Portal>
-        <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
-          aria-label="会话操作"
-          onCloseAutoFocus={(event) => {
-            if (renaming.current) event.preventDefault()
+      <Dropdown.Trigger>{children}</Dropdown.Trigger>
+
+      <Dropdown.Content
+        sideOffset={6}
+        collisionPadding={12}
+        aria-label="会话操作"
+        onCloseAutoFocus={(event) => {
+          if (renaming.current) event.preventDefault()
+        }}
+      >
+        <Dropdown.Item
+          disabled={saving}
+          onSelect={() => {
+            renaming.current = true
+            onOpenChange(false)
+            onRename()
           }}
         >
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={() => {
-              renaming.current = true
-              onOpenChange(false)
-              onRename()
-            }}
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ pinned: !session.pinned })
-            }}
-          >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ archived: !session.archived })
-            }}
-          >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </Dropdown.Item>
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
+          <Pencil size={14} strokeWidth={1.75} />
+          重命名
+        </Dropdown.Item>
+        <Dropdown.Item
+          disabled={saving}
+          onSelect={(event) => {
+            event.preventDefault()
+            void edit({ pinned: !session.pinned })
+          }}
+        >
+          {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
+          {session.pinned ? '取消置顶' : '置顶'}
+        </Dropdown.Item>
+        <Dropdown.Item
+          disabled={saving}
+          onSelect={(event) => {
+            event.preventDefault()
+            void edit({ archived: !session.archived })
+          }}
+        >
+          {session.archived ? (
+            <ArchiveRestore size={14} strokeWidth={1.75} />
+          ) : (
+            <Archive size={14} strokeWidth={1.75} />
           )}
-        </Dropdown.Content>
-      </Dropdown.Portal>
+          {session.archived ? '取消归档' : '归档'}
+        </Dropdown.Item>
+        {error && (
+          <p className={styles.error} role="alert">
+            {error}
+          </p>
+        )}
+      </Dropdown.Content>
     </Dropdown.Root>
   )
 }
 
-export function RenameInput({ session, className, onDone }: { session: SessionSummary; className?: string; onDone: () => void }) {
+export function RenameInput({
+  session,
+  className,
+  onDone,
+}: {
+  session: SessionSummary
+  className?: string
+  onDone: () => void
+}) {
   const [value, setValue] = useState(session.title)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -127,7 +135,7 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <TextField.Root
         className={styles.rename}
         value={value}
         autoFocus

@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button.tsx'
 import { useConnected, useUpdated } from '../events.ts'
 import styles from './ConnectionStatus.module.css'
 import { Spinner } from '../ui/Spinner.tsx'
@@ -17,9 +18,9 @@ export function ConnectionStatus() {
           连接已断开，正在重连…
         </>
       )}
-      <button type="button" className={styles.reload} onClick={() => window.location.reload()}>
+      <Button type="button" className={styles.reload} onClick={() => window.location.reload()}>
         刷新
-      </button>
+      </Button>
     </div>
   )
 }

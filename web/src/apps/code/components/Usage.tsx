@@ -1,3 +1,4 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
@@ -39,7 +40,8 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <Button
+          appearance="quiet"
           type="button"
           className={styles.ring}
           data-level={level}
@@ -61,7 +63,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeDashoffset={circumference * (1 - ratio)}
             />
           </svg>
-        </button>
+        </Button>
       }
     >
       <div className={styles.line}>
@@ -82,7 +84,9 @@ export function Usage({ session }: { session: SessionSummary }) {
       )}
       <div className={styles.line}>
         <span className={styles.label}>本会话</span>
-        <span>{total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}</span>
+        <span>
+          {total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}
+        </span>
       </div>
       {/* 每次请求都要把整个上下文再读一遍，所以读缓存占了绝大部分 */}
       {tokens && (

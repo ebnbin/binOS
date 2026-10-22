@@ -1,34 +1,22 @@
 .banner {
-  margin: 0 12px 10px;
+  margin: 0 var(--space-3) var(--space-3);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--live) 14%, transparent);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
   text-align: left;
-  cursor: pointer;
 }
 
 .row > svg {
   flex: none;
-  color: var(--live);
-}
-
-.banner[data-tone='bad'] .row {
-  background: var(--danger-bg);
+  color: var(--accent-11);
 }
 
 .banner[data-tone='bad'] .row > svg {
-  color: var(--danger);
+  color: var(--red-11);
 }
 
 .row > span:first-of-type {
@@ -38,5 +26,5 @@
 
 .action {
   flex: none;
-  font-weight: 550;
+  font-weight: var(--font-weight-medium);
 }

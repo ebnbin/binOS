@@ -1,11 +1,18 @@
-import { ExternalLink } from 'lucide-react'
+import { TextField } from '@radix-ui/themes'
+import { Button } from '../../../ui/Button.tsx'
+import { ExternalLink } from '../../../ui/icons.tsx'
 import { useEffect, useRef, useState } from 'react'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
 import styles from '../Login.module.css'
 
-type Step = { name: 'starting' } | { name: 'code'; id: string; url: string } | { name: 'finishing'; id: string; url: string } | { name: 'done' } | { name: 'failed'; error: string }
+type Step =
+  | { name: 'starting' }
+  | { name: 'code'; id: string; url: string }
+  | { name: 'finishing'; id: string; url: string }
+  | { name: 'done' }
+  | { name: 'failed'; error: string }
 
 const titles: Record<ClaudeLoginKind, string> = { login: '重新登录 Claude', token: '生成备用 token' }
 
@@ -81,7 +88,7 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
           </a>
           <label className={styles.codeLabel}>
             2. 把授权后页面上显示的代码贴到这里
-            <input
+            <TextField.Root
               value={code}
               onChange={(event) => setCode(event.target.value)}
               placeholder="授权代码"
@@ -91,12 +98,17 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
             />
           </label>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button type="button" className={styles.secondary} onClick={onClose}>
               取消
-            </button>
-            <button type="submit" className={styles.primary} disabled={!code.trim() || step.name === 'finishing'}>
+            </Button>
+            <Button
+              appearance="primary"
+              type="submit"
+              className={styles.primary}
+              disabled={!code.trim() || step.name === 'finishing'}
+            >
               {step.name === 'finishing' ? <Spinner /> : '完成'}
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -104,9 +116,9 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
         <>
           <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button appearance="primary" type="button" className={styles.primary} onClick={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -114,12 +126,12 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
         <>
           <p className={styles.error}>{step.error}</p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button type="button" className={styles.secondary} onClick={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={restart}>
+            </Button>
+            <Button appearance="primary" type="button" className={styles.primary} onClick={restart}>
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}

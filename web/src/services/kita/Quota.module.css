@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: #2fa84f;
+  --window: var(--green-9);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--live);
+  --window: var(--accent-11);
 }
 
 .ring g {
@@ -19,36 +19,36 @@
 }
 
 .ring [data-full] {
-  color: var(--danger);
+  color: var(--red-11);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  font-size: 13px;
+  gap: var(--space-4);
+  font-size: var(--font-size-2);
   font-variant-numeric: tabular-nums;
 }
 
 .limited {
   margin: 0;
-  padding: 7px 10px;
-  border-radius: 8px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-3);
+  background: var(--red-3);
+  color: var(--red-11);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 12px;
+  gap: var(--space-2);
+  font-size: var(--font-size-1);
 }
 
 .windowLine > :last-child {
@@ -58,9 +58,9 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 550;
+  gap: var(--space-2);
+  font-size: var(--font-size-2);
+  font-weight: var(--font-weight-medium);
 }
 
 .swatch {
@@ -71,18 +71,18 @@
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--gray-11);
 }
 
 .danger {
-  color: var(--danger);
+  color: var(--red-11);
 }
 
 .bar {
   position: relative;
   height: 6px;
-  border-radius: 999px;
-  background: var(--hover);
+  border-radius: var(--radius-full);
+  background: var(--gray-a3);
 }
 
 .bar span {
@@ -93,7 +93,7 @@
 }
 
 .bar[data-full] span {
-  background: var(--danger);
+  background: var(--red-11);
 }
 
 /* 匀速线 */
@@ -102,7 +102,7 @@
   top: -3px;
   bottom: -3px;
   width: 2px;
-  margin-left: -1px;
-  border-radius: 1px;
-  background: var(--text-2);
+  margin-left: calc(-1 * var(--space-1));
+  border-radius: var(--radius-2);
+  background: var(--gray-11);
 }

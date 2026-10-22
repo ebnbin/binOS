@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Button.tsx'
 import type { MonitorStatus } from '@binos/server/apps/system/types'
 import { useConnected } from '../../events.ts'
 import { useApplications } from '../index.ts'
@@ -31,7 +32,11 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
           </div>
           <div>
             <dt>已运行</dt>
-            <dd>{runtime ? `${Math.floor(runtime.uptime / 3600)} 小时 ${Math.floor((runtime.uptime % 3600) / 60)} 分钟` : '读取中'}</dd>
+            <dd>
+              {runtime
+                ? `${Math.floor(runtime.uptime / 3600)} 小时 ${Math.floor((runtime.uptime % 3600) / 60)} 分钟`
+                : '读取中'}
+            </dd>
           </div>
           <div>
             <dt>binOS 内存占用</dt>
@@ -43,10 +48,10 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
         <section className={styles.section}>
           <h2>应用设置</h2>
           {apps.map((app) => (
-            <button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
+            <Button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
               {app.name}
               <span>{app.settings!.hint}</span>
-            </button>
+            </Button>
           ))}
         </section>
       )}

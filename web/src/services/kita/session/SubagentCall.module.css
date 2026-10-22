@@ -1,14 +1,14 @@
 .prompt {
   max-height: 240px;
   margin: 0;
-  padding: 10px 12px;
+  padding: var(--space-3) var(--space-3);
   overflow: auto;
-  border-radius: 8px;
-  background: var(--code);
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.6;
+  border-radius: var(--radius-3);
+  background: var(--gray-2);
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: var(--text-2);
+  color: var(--gray-11);
 }

@@ -1,6 +1,7 @@
+import { Button } from '../../../ui/Button.tsx'
 import { agentIds } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { CircleAlert } from 'lucide-react'
+import { CircleAlert } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { useHourlyNow } from '../../../services/kita/auth.ts'
 import { useAgentStatus } from '../../../services/kita/status.ts'
@@ -27,11 +28,16 @@ export function AuthBanner() {
         <Login fix={open.fix} onClose={() => setOpen(undefined)} />
       ) : (
         first && (
-          <button type="button" className={styles.row} onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}>
+          <Button
+            appearance="quiet"
+            type="button"
+            className={styles.row}
+            onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}
+          >
             <CircleAlert size={15} strokeWidth={1.75} />
             <span>{first.attention.text}</span>
             <span className={styles.action}>{first.attention.action}</span>
-          </button>
+          </Button>
         )
       )}
     </div>

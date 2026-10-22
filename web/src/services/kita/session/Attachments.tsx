@@ -1,12 +1,12 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { Attachment } from '@binos/server/services/kita/types'
-import { FileText, X } from 'lucide-react'
+import { FileText, X } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { FileBlock } from '../../preview/index.ts'
 import { threadPreviewFile } from '../files.ts'
 import styles from './Attachments.module.css'
 
 // 附件的两种样子：浏览器能显示的图片是方形缩略图，其他文件是带文件名的卡片
-
 
 function FileCard({ name }: { name: string }) {
   return (
@@ -21,7 +21,9 @@ function FileCard({ name }: { name: string }) {
 export function AttachmentList({ thread, attachments }: { thread: string; attachments: Attachment[] }) {
   return (
     <div className={`${styles.list} ${styles.sent}`}>
-      {attachments.map(({ file, name }) => <FileBlock key={file} item={threadPreviewFile(thread, file, name)} />)}
+      {attachments.map(({ file, name }) => (
+        <FileBlock key={file} item={threadPreviewFile(thread, file, name)} />
+      ))}
     </div>
   )
 }
@@ -49,9 +51,15 @@ export function PendingAttachments({ files, onRemove }: { files: PendingFile[]; 
         <div key={key} className={styles.pending} title={file.name}>
           <PendingItem file={file} preview={preview} />
           {onRemove && (
-            <button type="button" className={styles.remove} onClick={() => onRemove(key)} aria-label={`移除 ${file.name}`}>
+            <Button
+              appearance="quiet"
+              type="button"
+              className={styles.remove}
+              onClick={() => onRemove(key)}
+              aria-label={`移除 ${file.name}`}
+            >
               <X size={11} strokeWidth={2.5} />
-            </button>
+            </Button>
           )}
         </div>
       ))}

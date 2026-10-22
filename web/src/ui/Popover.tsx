@@ -1,6 +1,5 @@
-import * as Primitive from '@radix-ui/react-popover'
+import { Popover as RadixPopover } from '@radix-ui/themes'
 import type { ReactElement, ReactNode } from 'react'
-import styles from './Popover.module.css'
 
 export function Popover({
   trigger,
@@ -22,20 +21,18 @@ export function Popover({
   align?: 'start' | 'end'
 }) {
   return (
-    <Primitive.Root open={open} onOpenChange={onOpenChange}>
-      <Primitive.Trigger asChild>{trigger}</Primitive.Trigger>
-      <Primitive.Portal>
-        <Primitive.Content
-          aria-label={label}
-          side={side}
-          align={align}
-          sideOffset={8}
-          collisionPadding={12}
-          className={`${styles.content} ${className ?? ''}`}
-        >
-          {children}
-        </Primitive.Content>
-      </Primitive.Portal>
-    </Primitive.Root>
+    <RadixPopover.Root open={open} onOpenChange={onOpenChange}>
+      <RadixPopover.Trigger>{trigger}</RadixPopover.Trigger>
+      <RadixPopover.Content
+        aria-label={label}
+        side={side}
+        align={align}
+        sideOffset={8}
+        collisionPadding={12}
+        className={className}
+      >
+        {children}
+      </RadixPopover.Content>
+    </RadixPopover.Root>
   )
 }

@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { Dialog, VisuallyHidden } from '@radix-ui/themes'
 import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 
 export function ModalHost({
   label,
@@ -15,25 +14,28 @@ export function ModalHost({
   children: ReactNode
   dismissible?: boolean
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
-  return createPortal(
-    <dialog
-      ref={dialog}
-      className={className}
-      aria-label={label}
-      onClose={onClose}
-      onCancel={(event) => {
-        if (!dismissible) event.preventDefault()
-      }}
-      onClick={(event) => {
-        if (dismissible && event.target === dialog.current) onClose()
+  return (
+    <Dialog.Root
+      open
+      onOpenChange={(open) => {
+        if (!open && dismissible) onClose()
       }}
     >
-      {children}
-    </dialog>,
-    document.body,
+      <Dialog.Content
+        className={className}
+        aria-describedby={undefined}
+        onEscapeKeyDown={(event) => {
+          if (!dismissible) event.preventDefault()
+        }}
+        onInteractOutside={(event) => {
+          if (!dismissible) event.preventDefault()
+        }}
+      >
+        <VisuallyHidden>
+          <Dialog.Title>{label}</Dialog.Title>
+        </VisuallyHidden>
+        {children}
+      </Dialog.Content>
+    </Dialog.Root>
   )
 }

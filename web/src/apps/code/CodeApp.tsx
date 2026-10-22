@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react'
+import { Button } from '../../ui/Button.tsx'
+import { ChevronLeft } from '../../ui/icons.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { BuildsPage } from '../builds/BuildsPage.tsx'
 import { DevicesApp } from '../devices/DevicesApp.tsx'
@@ -10,7 +11,12 @@ import { SessionList } from './components/SessionList.tsx'
 import { TopBar } from './components/TopBar.tsx'
 import { useSessions } from './useSessions.ts'
 
-type Route = { name: 'builds' } | { name: 'devices' } | { name: 'home' } | { name: 'new'; project?: string } | { name: 'session'; id: number; item?: number }
+type Route =
+  | { name: 'builds' }
+  | { name: 'devices' }
+  | { name: 'home' }
+  | { name: 'new'; project?: string }
+  | { name: 'session'; id: number; item?: number }
 
 function parseRoute(route: string): Route {
   const path = route.split('?')[0]
@@ -19,7 +25,9 @@ function parseRoute(route: string): Route {
     return { name: 'new', project: new URLSearchParams(route.split('?')[1]).get('project') ?? undefined }
   }
   const match = /^\/(\d+)(?:\?item=(\d+))?$/.exec(route)
-  return match ? { name: 'session', id: Number(match[1]), ...(match[2] !== undefined && { item: Number(match[2]) }) } : { name: 'home' }
+  return match
+    ? { name: 'session', id: Number(match[1]), ...(match[2] !== undefined && { item: Number(match[2]) }) }
+    : { name: 'home' }
 }
 
 const sessionRoute = (id: number) => `/${id}`
@@ -33,7 +41,11 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
 
   const sessionId = route.name === 'session' ? route.id : null
   const session = sessions?.find((item) => item.id === sessionId)
-  const project = session?.project ?? (sessionId === created?.id ? created.project : undefined) ?? (route.name === 'new' ? route.project : undefined) ?? 'binos'
+  const project =
+    session?.project ??
+    (sessionId === created?.id ? created.project : undefined) ??
+    (route.name === 'new' ? route.project : undefined) ??
+    'binos'
   const missing = sessionId !== null && sessions !== undefined && !session && sessionId !== created?.id
   const tool = route.name === 'builds' || route.name === 'devices' ? route.name : undefined
   const title = tool ? (tool === 'builds' ? '构建' : '设备') : missing ? '对话不存在' : (session?.title ?? '')
@@ -45,7 +57,14 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <div className={styles.layout} data-view={route.name === 'home' ? 'list' : 'conversation'}>
         <div className={styles.listPane}>
-          <SessionList projects={projects} sessions={sessions} failed={failed} current={sessionId} currentTool={tool} onNavigate={ctx.navigate} />
+          <SessionList
+            projects={projects}
+            sessions={sessions}
+            failed={failed}
+            current={sessionId}
+            currentTool={tool}
+            onNavigate={ctx.navigate}
+          />
         </div>
         <main className={styles.conversationPane}>
           {tool ? (
@@ -55,7 +74,14 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
                 <span>{title}</span>
               </header>
               <div className={styles.content}>
-                {tool === 'builds' ? <BuildsPage key={ctx.route} initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} /> : <DevicesApp ctx={ctx} />}
+                {tool === 'builds' ? (
+                  <BuildsPage
+                    key={ctx.route}
+                    initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'}
+                  />
+                ) : (
+                  <DevicesApp ctx={ctx} />
+                )}
               </div>
             </>
           ) : (
@@ -72,16 +98,16 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
               {missing ? (
                 <div className={styles.missing}>
                   <p>这个对话不存在</p>
-                  <button type="button" onClick={() => ctx.navigate('/')}>
+                  <Button type="button" onClick={() => ctx.navigate('/')}>
                     返回对话列表
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <Conversation
                   project={project}
                   projects={projects}
                   onProject={(id) => ctx.navigate(`/new?project=${encodeURIComponent(id)}`, { replace: true })}
-                  key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? route.item ?? '' : ''}`}
+                  key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? (route.item ?? '') : ''}`}
                   targetItem={route.name === 'session' ? route.item : undefined}
                   sessionId={sessionId}
                   session={session}

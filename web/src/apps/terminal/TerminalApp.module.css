@@ -4,104 +4,81 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background: var(--surface);
+  background: var(--color-panel-solid);
 }
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-6);
 }
 .toolbar strong,
-.actions,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .app button {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--space-2);
 }
 .toolbar strong {
-  font-size: 13px;
+  font-size: var(--font-size-2);
   white-space: nowrap;
 }
 .actions {
-  gap: 8px;
-}
-.app button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.app button:hover {
-  background: var(--hover);
-}
-.app button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--text-2);
-  outline-offset: 2px;
+  gap: var(--space-2);
 }
 .tabs {
   display: flex;
-  gap: 5px;
-  padding: 8px 12px;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
   overflow-x: auto;
   flex-shrink: 0;
-  background: var(--sidebar);
+  background: var(--gray-2);
 }
 .tabs button {
   white-space: nowrap;
-  color: var(--text-2);
-}
-.tabs button[aria-current] {
-  color: var(--text);
-  border-color: var(--text-2);
-  background: var(--surface);
 }
 .pane {
   flex: 1;
   min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: #161513;
-  color: #ecebe7;
+  background: var(--gray-2);
+  color: var(--gray-12);
   overflow: hidden;
 }
 .status {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  color: #aaa59b;
-  padding: 7px 14px;
+  gap: var(--space-2);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
+  padding: var(--space-2) var(--space-4);
   flex-shrink: 0;
 }
 .status > span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #d4862b;
+  background: var(--amber-9);
 }
 .status > span[data-connected='true'] {
-  background: #8db68a;
+  background: var(--green-9);
 }
 .status button {
   margin-left: auto;
-  color: #ecebe7;
-  background: #24221e;
-  border-color: #55514a;
 }
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: 4px 10px 8px 14px;
+  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-4);
 }
 .terminal :global(.xterm) {
   height: 100%;
@@ -112,26 +89,26 @@
 .footer {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   justify-content: space-between;
-  padding: 7px 12px;
-  font-size: 11px;
-  border-top: 1px solid var(--border);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-1);
+  border-top: 1px solid var(--gray-6);
 }
 .footer > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--mono);
-  color: var(--text-2);
+  font-family: var(--code-font-family);
+  color: var(--gray-11);
 }
 .footer button {
   flex-shrink: 0;
 }
 .connection {
-  padding: 5px 12px;
-  font-size: 11px;
-  color: var(--text-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-1);
+  color: var(--gray-11);
   max-height: 140px;
   overflow: auto;
 }
@@ -142,10 +119,10 @@
   display: block;
   user-select: text;
   overflow-wrap: anywhere;
-  padding: 8px 0;
+  padding: var(--space-2) 0;
 }
 .connection p {
-  margin: 0 0 5px;
+  margin: 0 0 var(--space-1);
 }
 .empty {
   flex: 1;
@@ -153,60 +130,36 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: var(--space-6);
   text-align: center;
-  color: var(--text-2);
+  color: var(--gray-11);
 }
 .empty h2 {
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--text);
+  font-size: var(--font-size-4);
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-12);
 }
 .empty p {
-  font-size: 13px;
+  font-size: var(--font-size-2);
   max-width: 360px;
 }
 .empty button {
-  margin-top: 14px;
+  margin-top: var(--space-4);
 }
 .error {
-  padding: 10px 14px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 12px;
-}
-.confirm {
-  position: absolute;
-  bottom: 50px;
-  left: 12px;
-  right: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  padding: 14px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-.confirm span {
-  flex: 1;
-}
-.confirm button:last-child {
-  color: var(--danger);
+  padding: var(--space-3) var(--space-4);
+  background: var(--red-3);
+  color: var(--red-11);
+  font-size: var(--font-size-1);
 }
 .keys {
   display: none;
-  gap: 5px;
-  padding: 8px;
+  gap: var(--space-1);
+  padding: var(--space-2);
   overflow-x: auto;
   flex-shrink: 0;
 }
 .keys button {
-  background: #24221e;
-  border-color: #55514a;
-  color: #ecebe7;
   white-space: nowrap;
 }
 @media (pointer: coarse) {
@@ -216,12 +169,24 @@
 }
 @media (max-width: 480px) {
   .toolbar {
-    padding: 10px;
+    padding: var(--space-3);
   }
   .actions button span {
     display: none;
   }
-  .confirm {
-    flex-wrap: wrap;
-  }
+}
+
+.terminal {
+  background: var(--gray-2);
+  color: var(--gray-12);
+  font-size: var(--font-size-2);
+}
+.tabs {
+  padding: var(--space-3) var(--space-4);
+}
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
 }

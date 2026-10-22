@@ -1,3 +1,4 @@
+import { AppTheme } from './ui/AppTheme.tsx'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -11,6 +12,8 @@ reserveStatusBarTint()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Shell />
+    <AppTheme>
+      <Shell />
+    </AppTheme>
   </StrictMode>,
 )

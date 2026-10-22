@@ -1,12 +1,14 @@
-import { CircleAlert } from 'lucide-react'
+import { Callout } from '@radix-ui/themes'
+import { CircleAlert } from './icons.tsx'
 import type { ReactNode } from 'react'
-import styles from './Alert.module.css'
 
 export function Alert({ children }: { children: ReactNode }) {
   return (
-    <div className={styles.alert} role="alert">
-      <CircleAlert size={16} strokeWidth={2} className={styles.icon} />
-      <span>{children}</span>
-    </div>
+    <Callout.Root color="red" role="alert" size="1">
+      <Callout.Icon>
+        <CircleAlert size={16} />
+      </Callout.Icon>
+      <Callout.Text>{children}</Callout.Text>
+    </Callout.Root>
   )
 }

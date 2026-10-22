@@ -1,5 +1,14 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { Hammer, ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import {
+  Hammer,
+  ChevronDown,
+  ChevronLeft,
+  GitMerge,
+  GitPullRequest,
+  GitPullRequestClosed,
+  SquarePen,
+} from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -34,14 +43,32 @@ export function TopBar({
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
         ) : (
           <>
-            {session ? <SessionTitle key={session.id} session={session} /> : <span className={styles.title}>{title}</span>}
+            {session ? (
+              <SessionTitle key={session.id} session={session} />
+            ) : (
+              <span className={styles.title}>{title}</span>
+            )}
             <span className={styles.id}>#{sessionId}</span>
             {prs.length > 0 && <PrList prs={prs} />}
           </>
         )}
       </div>
-      <IconButton icon={Hammer} label="构建当前项目" onClick={() => onBuild(prs.find((pr) => pr.state === 'open') ? `pr/${prs.find((pr) => pr.state === 'open')!.number}` : 'main')} />
-      <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} disabled={sessionId === null} />
+      <IconButton
+        icon={Hammer}
+        label="构建当前项目"
+        onClick={() =>
+          onBuild(
+            prs.find((pr) => pr.state === 'open') ? `pr/${prs.find((pr) => pr.state === 'open')!.number}` : 'main',
+          )
+        }
+      />
+      <IconButton
+        icon={SquarePen}
+        label="新对话"
+        className={styles.singleColumnOnly}
+        onClick={onNew}
+        disabled={sessionId === null}
+      />
     </header>
   )
 }
@@ -56,10 +83,16 @@ function SessionTitle({ session }: { session: SessionSummary }) {
   return (
     <span className={styles.titleWrap}>
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-        <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
+        <Button
+          appearance="quiet"
+          type="button"
+          className={styles.titleButton}
+          aria-expanded={menuOpen}
+          aria-haspopup="menu"
+        >
           <span className={styles.title}>{session.title || '（无内容）'}</span>
           <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
-        </button>
+        </Button>
       </SessionActions>
     </span>
   )
@@ -79,10 +112,10 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           label="对话的 PR"
           className={styles.prMenu}
           trigger={
-            <button type="button" className={styles.finished} aria-label="查看对话的 PR">
+            <Button appearance="quiet" type="button" className={styles.finished} aria-label="查看对话的 PR">
               <GitMerge size={13} strokeWidth={2} />
               {finished.length}
-            </button>
+            </Button>
           }
         >
           {[...prs].reverse().map((pr) => (
@@ -106,7 +139,12 @@ function PrLink({ pr }: { pr: PullRequest }) {
   const Icon = prIcons[pr.state ?? 'open']
   return (
     <span className={styles.pr} data-state={pr.state}>
-      <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
+      <a
+        href={pr.url}
+        target="_blank"
+        rel="noreferrer"
+        title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}
+      >
         <Icon size={13} strokeWidth={2} />#{pr.number}
       </a>
       {pr.preview && (

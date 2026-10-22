@@ -1,4 +1,6 @@
-import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
+import { SegmentedControl } from '@radix-ui/themes'
+import { Button } from '../../ui/Button.tsx'
+import { Activity, Bot, Monitor, RefreshCw } from '../../ui/icons.tsx'
 import { useEffect, useState } from 'react'
 import { useApplications } from '../index.ts'
 import type { WindowContext } from '../types.ts'
@@ -18,7 +20,10 @@ export function SystemApp({ ctx }: { ctx: WindowContext }) {
   const section = ctx.route === '/agent' ? 'agent' : ctx.route.startsWith('/binos') || app ? 'binos' : 'host'
 
   const { setTitle } = ctx
-  useEffect(() => setTitle(section === 'host' ? '宿主 Mac' : section === 'agent' ? 'Agent' : 'binOS'), [setTitle, section])
+  useEffect(
+    () => setTitle(section === 'host' ? '宿主 Mac' : section === 'agent' ? 'Agent' : 'binOS'),
+    [setTitle, section],
+  )
   const snapshot = status?.snapshot
   const stale = snapshot && now - snapshot.at > 30_000
   const refresh = async () => {
@@ -40,30 +45,48 @@ export function SystemApp({ ctx }: { ctx: WindowContext }) {
         <div>
           <strong>系统</strong>
           <span className={styles.freshness} data-stale={!!error || stale || !!status?.collectionError}>
-            {error ? '监控连接异常' : stale ? '数据已过期' : status?.collectionError ? '采集异常' : snapshot ? '正在监控' : '首次采集中'}
+            {error
+              ? '监控连接异常'
+              : stale
+                ? '数据已过期'
+                : status?.collectionError
+                  ? '采集异常'
+                  : snapshot
+                    ? '正在监控'
+                    : '首次采集中'}
             <small>{snapshot ? `采样 ${new Date(snapshot.at).toLocaleTimeString('zh-CN')}` : ''}</small>
           </span>
         </div>
         <div className={styles.actions}>
-          <button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
+          <Button
+            appearance="quiet"
+            title="立即采集"
+            aria-label="立即采集"
+            disabled={refreshing}
+            onClick={() => void refresh()}
+          >
             <RefreshCw size={16} className={refreshing ? styles.spin : ''} />
-          </button>
+          </Button>
         </div>
       </header>
       <nav className={styles.sections} aria-label="系统分区">
-        {[
-          { id: 'host', name: '宿主 Mac', hint: '硬件与 macOS', icon: Monitor, route: '/' },
-          { id: 'agent', name: 'Agent', hint: '账号与额度', icon: Bot, route: '/agent' },
-          { id: 'binos', name: 'binOS', hint: '运行与维护', icon: Activity, route: '/binos' },
-        ].map((item) => (
-          <button key={item.id} aria-current={section === item.id ? 'page' : undefined} onClick={() => ctx.navigate(item.route)}>
-            <item.icon size={20} />
-            <span>
-              {item.name}
-              <small>{item.hint}</small>
-            </span>
-          </button>
-        ))}
+        <SegmentedControl.Root
+          value={section}
+          onValueChange={(value) => ctx.navigate(value === 'host' ? '/' : `/${value}`)}
+        >
+          {[
+            { id: 'host', name: '宿主 Mac', hint: '硬件与 macOS', icon: Monitor, route: '/' },
+            { id: 'agent', name: 'Agent', hint: '账号与额度', icon: Bot, route: '/agent' },
+            { id: 'binos', name: 'binOS', hint: '运行与维护', icon: Activity, route: '/binos' },
+          ].map((item) => (
+            <SegmentedControl.Item key={item.id} value={item.id}>
+              <span className={styles.sectionLabel}>
+                <item.icon size={16} />
+                <span>{item.name}</span>
+              </span>
+            </SegmentedControl.Item>
+          ))}
+        </SegmentedControl.Root>
       </nav>
       {(error || stale || actionError) && (
         <div className={styles.warning} role="alert">
@@ -76,7 +99,7 @@ export function SystemApp({ ctx }: { ctx: WindowContext }) {
           {status.collectionError}
         </div>
       )}
-      <div className={styles.body}>
+      <div className={styles.body} role="region" aria-label="系统内容" tabIndex={0}>
         {section === 'agent' ? (
           <AgentAccounts back={() => ctx.navigate('/')} />
         ) : section === 'binos' ? (

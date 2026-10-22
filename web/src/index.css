@@ -1,64 +1,7 @@
 :root {
-  color-scheme: light;
-  --bg: #f8f7f4;
-  --sidebar: #f1efeb;
-  --surface: #ffffff;
-  --text: #24221e;
-  --text-2: #5f5b54;
-  --muted: #959087;
-  --border: #e7e4de;
-  --hairline: rgb(36 34 30 / 7%);
-  --hover: rgb(36 34 30 / 5%);
-  --bubble: #edebe6;
-  --code: #f6f5f2;
-  --ink: #24221e;
-  --on-ink: #ffffff;
-  --danger: #c8442f;
-  --danger-bg: #fbefec;
-  --live: #d4862b;
-  --scrim: rgb(20 18 15 / 32%);
-  --shadow: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px rgb(36 34 30 / 10%);
-
-  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --mono: 'SF Mono', ui-monospace, Menlo, monospace;
-  --ease: cubic-bezier(0.32, 0.72, 0, 1);
-
-  font-family: var(--sans);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
   -webkit-text-size-adjust: 100%;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #1b1a18;
-    --sidebar: #161513;
-    --surface: #23221f;
-    --text: #ecebe7;
-    --text-2: #b6b2aa;
-    --muted: #7f7a71;
-    --border: #33312d;
-    --hairline: rgb(255 255 255 / 6%);
-    --hover: rgb(255 255 255 / 5%);
-    --bubble: #2c2a27;
-    --code: #1f1e1b;
-    --ink: #ecebe7;
-    --on-ink: #1b1a18;
-    --danger: #f0806b;
-    --danger-bg: #33201b;
-    --live: #e8a24f;
-    --scrim: rgb(0 0 0 / 50%);
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px rgb(0 0 0 / 50%);
-  }
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  :root {
-    font-size: 16px;
-  }
+  -webkit-font-smoothing: antialiased;
 }
 
 *,
@@ -76,46 +19,56 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: #000;
+  background: transparent;
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: #000;
-  color: var(--text);
+  background: transparent;
 }
 
-button,
-input,
-textarea {
-  font: inherit;
-  color: inherit;
+.app-theme {
+  min-height: 100%;
+  --cursor-button: pointer;
+  --cursor-checkbox: pointer;
+  --cursor-radio: pointer;
+  --cursor-slider-thumb: grab;
+}
+.app-theme .rt-TextFieldRoot {
+  min-width: 0;
+}
+.app-theme .rt-TextAreaRoot {
+  width: 100%;
+}
+.app-theme .rt-TextAreaInput {
+  field-sizing: content;
+  min-height: var(--space-9);
+  max-height: 240px;
+  resize: vertical;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+.radix-themes [data-appearance='quiet'] {
+  margin: 0;
+}
+.radix-themes .rt-TextFieldRoot {
+  flex-grow: 1;
+}
+.radix-themes .rt-TextAreaRoot {
+  min-width: 0;
 }
 
-input,
-textarea {
-  appearance: none;
-}
-
-button {
-  appearance: none;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: default;
-}
-
-:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
-  outline-offset: 2px;
-}
-
-::selection {
-  background: color-mix(in srgb, var(--live) 28%, transparent);
+@media (pointer: coarse) {
+  .radix-themes .rt-TextFieldInput,
+  .radix-themes .rt-TextAreaInput {
+    font-size: var(--font-size-3);
+  }
 }

@@ -8,17 +8,17 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: none;
 }
 
 .name {
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
 }
 
 .running {
-  color: var(--live);
-  font-size: 12px;
+  color: var(--accent-11);
+  font-size: var(--font-size-1);
 }
 
 .new {
@@ -26,32 +26,30 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  margin: -4px -6px -4px auto;
-  border-radius: 8px;
-  color: var(--text-2);
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-2)) calc(-1 * var(--space-1)) auto;
 }
 
 .summary {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: var(--space-1);
   margin-top: auto;
 }
 
 .count {
-  font-size: 30px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-7);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-7);
 }
 
 .muted {
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--gray-11);
+  font-size: var(--font-size-2);
 }
 
 .list {
   min-height: 0;
-  margin: 6px -8px 0;
+  margin: var(--space-2) calc(-1 * var(--space-2)) 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
@@ -60,19 +58,9 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  padding: 5px 8px;
-  border-radius: 8px;
   text-align: left;
-  font-size: 13px;
-}
-
-@media (hover: hover) {
-  .new:hover,
-  .row:hover {
-    background: var(--hover);
-  }
 }
 
 .dot {
@@ -80,11 +68,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--gray-6);
 }
 
 .dot[data-running='true'] {
-  background: var(--live);
+  background: var(--accent-11);
 }
 
 .title {
@@ -97,14 +85,14 @@
 
 .time {
   flex: none;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--gray-11);
+  font-size: var(--font-size-1);
   font-variant-numeric: tabular-nums;
 }
 
 .empty {
   margin: auto 0;
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--gray-11);
+  font-size: var(--font-size-2);
   text-align: center;
 }

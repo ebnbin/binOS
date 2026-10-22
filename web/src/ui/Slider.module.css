@@ -1,0 +1,57 @@
+.root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--space-5);
+  touch-action: none;
+  user-select: none;
+}
+.track {
+  position: relative;
+  flex: 1;
+  height: var(--space-1);
+  border-radius: var(--radius-thumb);
+  background: var(--gray-a4);
+  box-shadow: inset 0 0 0 1px var(--gray-a3);
+}
+.range {
+  position: absolute;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-9);
+}
+.thumb {
+  display: block;
+  width: var(--space-4);
+  height: var(--space-4);
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-thumb);
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  cursor: var(--cursor-slider-thumb);
+}
+.thumb:hover {
+  border-color: var(--accent-8);
+}
+.thumb:focus-visible {
+  outline: 2px solid var(--accent-8);
+  outline-offset: 2px;
+}
+.root[data-disabled] .range {
+  background: var(--gray-a4);
+}
+.root[data-disabled] .thumb {
+  background: var(--gray-3);
+  box-shadow: none;
+  cursor: default;
+}
+@media (pointer: coarse) {
+  .root {
+    height: var(--space-7);
+  }
+  .thumb {
+    width: var(--space-5);
+    height: var(--space-5);
+  }
+}

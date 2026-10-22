@@ -1,16 +1,25 @@
-import type { LucideIcon } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import styles from './IconButton.module.css'
+import { IconButton as RadixIconButton, Tooltip } from '@radix-ui/themes'
+import type { ComponentProps } from 'react'
+import type { SystemIcon } from './icons.tsx'
 
 export function IconButton({
   icon: Icon,
   label,
-  className,
+  title,
   ...props
-}: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
+}: { icon: SystemIcon; label: string } & ComponentProps<typeof RadixIconButton>) {
   return (
-    <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
-    </button>
+    <Tooltip content={title ?? label} delayDuration={400}>
+      <RadixIconButton
+        size={{ initial: '3', sm: '2' }}
+        type="button"
+        variant="ghost"
+        color="gray"
+        aria-label={label}
+        {...props}
+      >
+        <Icon size={18} />
+      </RadixIconButton>
+    </Tooltip>
   )
 }

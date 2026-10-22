@@ -2,10 +2,13 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #000;
+  background: var(--gray-6);
 }
 
-.workspace[hidden], .pane[hidden] { display: none; }
+.workspace[hidden],
+.pane[hidden] {
+  display: none;
+}
 
 .pane {
   position: absolute;
@@ -13,17 +16,24 @@
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius);
-  background: var(--bg);
-  transition: left 180ms ease, width 180ms ease, top 180ms ease, height 180ms ease;
+  background: var(--gray-1);
+  transition:
+    left 180ms ease,
+    width 180ms ease,
+    top 180ms ease,
+    height 180ms ease;
 }
 
 .content {
   position: absolute;
   inset: 0;
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
 }
 
-.pane[data-exiting='true'] .content, .pane[data-exiting='true'] .picker {
+.pane[data-exiting='true'] .content,
+.pane[data-exiting='true'] .picker {
   transform: scale(0.92);
   opacity: 0.4;
 }
@@ -32,7 +42,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: rgb(0 0 0 / 35%);
+  background: var(--black-a6);
   pointer-events: none;
 }
 
@@ -42,11 +52,11 @@
   left: 50%;
   z-index: 3;
   transform: translateX(-50%);
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: rgb(0 0 0 / 80%);
-  color: #fff;
-  font-size: 14px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--black-a11);
+  color: var(--white-a12);
+  font-size: var(--font-size-2);
   pointer-events: none;
 }
 
@@ -56,12 +66,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: safe center;
-  gap: 16px;
+  gap: var(--space-4);
   overflow: auto;
-  padding: 20px;
+  padding: var(--space-5);
 }
 
-.picker p { margin: 0; }
+.picker p {
+  margin: 0;
+}
 
 .choices {
   --gap: 12px;
@@ -73,16 +85,14 @@
   flex-shrink: 0;
 }
 
-.choices button { aspect-ratio: 1; }
+.choices button {
+  aspect-ratio: 1;
+}
 
 .picker > button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--hairline);
+  gap: var(--space-2);
 }
 
 .divider {
@@ -95,29 +105,42 @@
   cursor: col-resize;
   touch-action: none;
   user-select: none;
-  transition: left 180ms ease, top 180ms ease;
+  transition:
+    left 180ms ease,
+    top 180ms ease;
 }
 
 .handle {
   width: 4px;
   height: 48px;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 40%);
-  transition: width 120ms ease, height 120ms ease, background-color 120ms ease;
+  border-radius: var(--radius-3);
+  background: var(--gray-8);
+  transition:
+    width 120ms ease,
+    height 120ms ease,
+    background-color 120ms ease;
   pointer-events: none;
 }
 
-.divider:hover .handle, .divider:focus-visible .handle { background: #fff; }
+.divider:hover .handle,
+.divider:focus-visible .handle {
+  background: var(--accent-9);
+}
 
 .workspace[data-dragging='true'] .handle {
   width: 8px;
   height: 64px;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgb(0 0 0 / 60%);
+  background: var(--accent-9);
+  box-shadow: var(--shadow-2);
 }
 
-.workspace[data-dragging='true'] .pane { pointer-events: none; }
-.workspace[data-dragging='true'] .pane, .workspace[data-dragging='true'] .divider { transition: none; }
+.workspace[data-dragging='true'] .pane {
+  pointer-events: none;
+}
+.workspace[data-dragging='true'] .pane,
+.workspace[data-dragging='true'] .divider {
+  transition: none;
+}
 
 .workspace[data-portrait='true'] .divider {
   left: 0;
@@ -126,21 +149,37 @@
   cursor: row-resize;
 }
 
-.workspace[data-portrait='true'] .handle { width: 48px; height: 4px; }
-.workspace[data-portrait='true'][data-dragging='true'] .handle { width: 64px; height: 8px; }
-
-@media (prefers-reduced-motion: reduce) {
-  .pane, .divider, .content, .handle { transition: none; }
+.workspace[data-portrait='true'] .handle {
+  width: 48px;
+  height: 4px;
+}
+.workspace[data-portrait='true'][data-dragging='true'] .handle {
+  width: 64px;
+  height: 8px;
 }
 
-.pane[inert] .content { opacity: 0.85; }
-.picker small { color: var(--muted); text-align: center; }
+@media (prefers-reduced-motion: reduce) {
+  .pane,
+  .divider,
+  .content,
+  .handle {
+    transition: none;
+  }
+}
+
+.pane[inert] .content {
+  opacity: 0.85;
+}
+.picker small {
+  color: var(--gray-11);
+  text-align: center;
+}
 
 .waitingMask {
   position: absolute;
   z-index: 3;
   border-radius: var(--radius);
-  background: rgb(0 0 0 / 20%);
+  background: var(--black-a4);
   backdrop-filter: blur(2px);
   pointer-events: none;
 }

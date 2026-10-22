@@ -1,4 +1,5 @@
-import { Check, Copy, CircleAlert } from 'lucide-react'
+import { Button } from './Button.tsx'
+import { Check, Copy, CircleAlert } from './icons.tsx'
 import { useEffect, useState } from 'react'
 import styles from './CopyButton.module.css'
 
@@ -14,7 +15,8 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
     return () => window.clearTimeout(timer)
   }, [state])
   return (
-    <button
+    <Button
+      appearance="quiet"
       type="button"
       className={styles.button}
       title={title}
@@ -35,6 +37,6 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
       ) : (
         <Copy size={13} strokeWidth={1.75} />
       )}
-    </button>
+    </Button>
   )
 }

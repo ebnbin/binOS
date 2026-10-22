@@ -1,4 +1,4 @@
 .text {
-  font-size: 14px;
-  color: var(--text-2);
+  font-size: var(--font-size-2);
+  color: var(--gray-11);
 }

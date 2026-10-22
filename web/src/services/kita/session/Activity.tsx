@@ -1,4 +1,5 @@
-import { ChevronRight } from 'lucide-react'
+import { Button } from '../../../ui/Button.tsx'
+import { ChevronRight } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Activity.module.css'
@@ -30,13 +31,20 @@ export function Activity({
   const [open, setOpen] = useState(defaultOpen)
   return (
     <div className={styles.activity} data-status={status} data-quiet={quiet || undefined} data-open={open || undefined}>
-      <button type="button" className={styles.row} onClick={() => setOpen(!open)} disabled={!body} aria-expanded={body ? open : undefined}>
+      <Button
+        appearance="quiet"
+        type="button"
+        className={styles.row}
+        onClick={() => setOpen(!open)}
+        disabled={!body}
+        aria-expanded={body ? open : undefined}
+      >
         <span className={styles.dot} />
         <span className={styles.label}>{label}</span>
         {detail && <span className={styles.detail}>{detail}</span>}
         {meta && <span className={styles.meta}>{meta}</span>}
         {body && <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />}
-      </button>
+      </Button>
       {!open && preview && <pre className={styles.preview}>{preview}</pre>}
       {open && body && <div className={styles.body}>{body()}</div>}
     </div>
