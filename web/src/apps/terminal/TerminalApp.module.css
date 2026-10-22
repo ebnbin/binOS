@@ -28,25 +28,6 @@
 .actions {
   gap: 8px;
 }
-.app button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.app button:hover {
-  background: var(--hover);
-}
-.app button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--text-2);
-  outline-offset: 2px;
-}
 .tabs {
   display: flex;
   gap: 5px;
@@ -57,28 +38,22 @@
 }
 .tabs button {
   white-space: nowrap;
-  color: var(--text-2);
-}
-.tabs button[aria-current] {
-  color: var(--text);
-  border-color: var(--text-2);
-  background: var(--surface);
 }
 .pane {
   flex: 1;
   min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: #161513;
-  color: #ecebe7;
+  background: var(--code);
+  color: var(--text);
   overflow: hidden;
 }
 .status {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 11px;
-  color: #aaa59b;
+  font-size: 12px;
+  color: var(--muted);
   padding: 7px 14px;
   flex-shrink: 0;
 }
@@ -86,16 +61,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #d4862b;
+  background: var(--live);
 }
 .status > span[data-connected='true'] {
-  background: #8db68a;
+  background: var(--positive);
 }
 .status button {
   margin-left: auto;
-  color: #ecebe7;
-  background: #24221e;
-  border-color: #55514a;
 }
 .terminal {
   flex: 1;
@@ -115,7 +87,7 @@
   gap: 12px;
   justify-content: space-between;
   padding: 7px 12px;
-  font-size: 11px;
+  font-size: 12px;
   border-top: 1px solid var(--border);
 }
 .footer > span {
@@ -130,7 +102,7 @@
 }
 .connection {
   padding: 5px 12px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-2);
   max-height: 140px;
   overflow: auto;
@@ -181,7 +153,7 @@
   left: 12px;
   right: 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface);
   padding: 14px;
   box-shadow: var(--shadow);
@@ -193,9 +165,6 @@
 .confirm span {
   flex: 1;
 }
-.confirm button:last-child {
-  color: var(--danger);
-}
 .keys {
   display: none;
   gap: 5px;
@@ -204,9 +173,6 @@
   flex-shrink: 0;
 }
 .keys button {
-  background: #24221e;
-  border-color: #55514a;
-  color: #ecebe7;
   white-space: nowrap;
 }
 @media (pointer: coarse) {
@@ -224,4 +190,9 @@
   .confirm {
     flex-wrap: wrap;
   }
+}
+
+.terminal {
+  background: var(--code);
+  color: var(--text);
 }

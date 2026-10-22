@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button.tsx'
 import type { CSSProperties } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import type { ApplicationDefinition } from '../apps/types.ts'
@@ -33,6 +34,10 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
 
   return (
     <div className={styles.desktop} style={vars}>
+      <header className={styles.header}>
+        <h1>binOS</h1>
+        <span>桌面</span>
+      </header>
       <div className={styles.columns}>
         {columns.map((column, index) => (
           <div key={index} className={styles.grid} style={{ gridTemplateRows: `repeat(${column.rows}, var(--cell))` }}>
@@ -43,7 +48,9 @@ export function Desktop({ width, onOpen }: { width: number; onOpen: (app: string
                   key={item.id}
                   item={item}
                   apps={apps}
-                  style={{ gridArea: `${place.row + 1} / ${place.column + 1} / span ${place.height} / span ${place.width}` }}
+                  style={{
+                    gridArea: `${place.row + 1} / ${place.column + 1} / span ${place.height} / span ${place.width}`,
+                  }}
                   onOpen={onOpen}
                 />
               )
@@ -72,12 +79,12 @@ function Entry({
   }
   if (item.kind === 'shortcut') {
     return (
-      <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
+      <Button type="button" className={styles.icon} data-app={app.id} style={style} onPress={() => onOpen(app.id)}>
         <span className={styles.glyph}>
           <app.icon strokeWidth={1.75} />
         </span>
         <span className={styles.label}>{app.name}</span>
-      </button>
+      </Button>
     )
   }
   return <WidgetHost item={item} application={app} style={style} onOpen={onOpen} />

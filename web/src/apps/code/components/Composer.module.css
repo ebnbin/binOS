@@ -9,7 +9,7 @@
   margin: 0 auto;
   padding: 12px 12px 10px 18px;
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
   cursor: text;
@@ -30,24 +30,7 @@
 }
 
 .input {
-  display: block;
   width: 100%;
-  min-height: 26px;
-  max-height: 200px;
-  field-sizing: content;
-  padding: 2px 0 0;
-  border: 0;
-  outline: none;
-  background: none;
-  resize: none;
-}
-
-.input::placeholder {
-  color: var(--muted);
-}
-
-.input:read-only {
-  cursor: default;
 }
 
 .bar {
@@ -67,25 +50,6 @@
   max-width: min(220px, 100%);
   height: 28px;
   min-width: 0;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
-}
-
-@media (hover: hover) {
-  .choice:hover:not(:disabled) {
-    background: var(--hover);
-  }
-}
-
-.choice:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 
 .action {
@@ -95,20 +59,10 @@
   width: 34px;
   height: 34px;
   flex: none;
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
-  transition:
-    opacity 0.15s,
-    transform 0.15s var(--ease);
 }
 
 .action:active:not(:disabled) {
   transform: scale(0.92);
-}
-
-.action:disabled {
-  opacity: 0.22;
 }
 
 .interrupt {
@@ -117,20 +71,6 @@
   gap: 4px;
   height: 30px;
   margin-left: auto;
-  padding: 0 11px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-@media (hover: hover) {
-  .interrupt:hover {
-    background: var(--hover);
-  }
 }
 
 .interrupt + .interrupt {
@@ -197,7 +137,7 @@
 .stopIcon {
   width: 11px;
   height: 11px;
-  border-radius: 2.5px;
+  border-radius: 8px;
   background: currentColor;
 }
 
@@ -209,4 +149,25 @@
   .card {
     padding: 10px 10px 8px 16px;
   }
+}
+
+.card {
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: none;
+  background: var(--sidebar);
+}
+.card:focus-within {
+  border-color: var(--ink);
+}
+.bar {
+  gap: 8px;
+  margin-top: 12px;
+}
+.choice {
+  height: auto;
+}
+.action {
+  width: 36px;
+  height: 36px;
 }

@@ -1,6 +1,6 @@
-import { useEffect, useRef } from 'react'
+import { Content, Dialog, DialogContainer } from '@react-spectrum/s2'
+import { style } from '@react-spectrum/s2/style' with { type: 'macro' }
 import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 
 export function ModalHost({
   label,
@@ -15,25 +15,17 @@ export function ModalHost({
   children: ReactNode
   dismissible?: boolean
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
-  return createPortal(
-    <dialog
-      ref={dialog}
-      className={className}
-      aria-label={label}
-      onClose={onClose}
-      onCancel={(event) => {
-        if (!dismissible) event.preventDefault()
-      }}
-      onClick={(event) => {
-        if (dismissible && event.target === dialog.current) onClose()
-      }}
-    >
-      {children}
-    </dialog>,
-    document.body,
+  return (
+    <DialogContainer onDismiss={onClose}>
+      <Dialog
+        aria-label={label}
+        UNSAFE_className={className}
+        size="L"
+        isDismissible={dismissible}
+        isKeyboardDismissDisabled={!dismissible}
+      >
+        <Content styles={style({ padding: 0, minHeight: 0, overflow: 'auto', flexGrow: 1 })}>{children}</Content>
+      </Dialog>
+    </DialogContainer>
   )
 }

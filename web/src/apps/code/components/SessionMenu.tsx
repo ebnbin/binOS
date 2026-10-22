@@ -1,6 +1,7 @@
+import { Field } from '../../../ui/Field.tsx'
+import { Menu, MenuItem, MenuTrigger, Text } from '@react-spectrum/s2'
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
+import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from '../../../ui/icons.tsx'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { editSession } from '../api.ts'
@@ -19,7 +20,6 @@ export function SessionActions({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const renaming = useRef(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   async function edit(change: { pinned?: boolean; archived?: boolean }) {
@@ -35,71 +35,63 @@ export function SessionActions({
     }
   }
   return (
-    <Dropdown.Root
-      open={open}
-      onOpenChange={(next) => {
-        setError('')
-        onOpenChange(next)
-      }}
-      modal={false}
-    >
-      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
-      <Dropdown.Portal>
-        <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
+    <>
+      <MenuTrigger
+        isOpen={open}
+        onOpenChange={(next) => {
+          setError('')
+          onOpenChange(next)
+        }}
+        align="end"
+      >
+        {children}
+        <Menu
           aria-label="会话操作"
-          onCloseAutoFocus={(event) => {
-            if (renaming.current) event.preventDefault()
+          disabledKeys={saving ? ['rename', 'pin', 'archive'] : []}
+          onAction={(key) => {
+            if (key === 'rename') {
+              onOpenChange(false)
+              requestAnimationFrame(onRename)
+            } else if (key === 'pin') void edit({ pinned: !session.pinned })
+            else if (key === 'archive') void edit({ archived: !session.archived })
           }}
         >
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={() => {
-              renaming.current = true
-              onOpenChange(false)
-              onRename()
-            }}
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ pinned: !session.pinned })
-            }}
-          >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ archived: !session.archived })
-            }}
-          >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </Dropdown.Item>
+          <MenuItem id="rename">
+            <Pencil />
+            <Text>重命名</Text>
+          </MenuItem>
+          <MenuItem id="pin" shouldCloseOnSelect={false}>
+            {session.pinned ? <PinOff /> : <Pin />}
+            <Text>{session.pinned ? '取消置顶' : '置顶'}</Text>
+          </MenuItem>
+          <MenuItem id="archive" shouldCloseOnSelect={false}>
+            {session.archived ? <ArchiveRestore /> : <Archive />}
+            <Text>{session.archived ? '取消归档' : '归档'}</Text>
+          </MenuItem>
           {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
+            <MenuItem id="error" isDisabled textValue={error}>
+              <Text>
+                <span className={styles.error} role="alert">
+                  {error}
+                </span>
+              </Text>
+            </MenuItem>
           )}
-        </Dropdown.Content>
-      </Dropdown.Portal>
-    </Dropdown.Root>
+        </Menu>
+      </MenuTrigger>
+    </>
   )
 }
 
-export function RenameInput({ session, className, onDone }: { session: SessionSummary; className?: string; onDone: () => void }) {
+export function RenameInput({
+  session,
+  className,
+  onDone,
+}: {
+  session: SessionSummary
+  className?: string
+  onDone: () => void
+}) {
   const [value, setValue] = useState(session.title)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -127,15 +119,15 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <Field
         className={styles.rename}
         value={value}
         autoFocus
         readOnly={saving}
         aria-invalid={Boolean(error)}
         onFocus={(event) => event.currentTarget.select()}
-        onChange={(event) => {
-          setValue(event.target.value)
+        onValueChange={(value) => {
+          setValue(value)
           setError('')
         }}
         onBlur={() => void finish(value.trim() || undefined)}

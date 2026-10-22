@@ -1,51 +1,48 @@
-/* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
-   除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
-   固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
 .shell {
-  --radius: 12px;
-
+  --radius: 16px;
   position: fixed;
   inset: 0 0 auto;
   display: flex;
   flex-direction: column;
   height: var(--viewport-height, 100dvh);
-  padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px)) env(safe-area-inset-right)
-    env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px) + 8px)
+    calc(env(safe-area-inset-right) + 8px) calc(env(safe-area-inset-bottom) + 8px) calc(env(safe-area-inset-left) + 8px);
+  gap: 8px;
   overflow: hidden;
-  background: #000;
+  background: var(--bg);
 }
-
-@media (pointer: coarse) {
-  .shell {
-    --radius: 22px;
-  }
-}
-
 .shell[data-bar='left'],
 .shell[data-bar='right'] {
   flex-direction: row;
 }
-
-/* 键盘挡住了底部的安全区域 */
 .shell[data-bar='hidden'] {
   padding-bottom: 0;
 }
-
-/* 装成 app 后，浏览器的窗口按钮浮在顶部这一条上，可以拖动窗口 */
 .titleBar {
   position: absolute;
   inset: 0 0 auto;
   height: env(titlebar-area-height, 0px);
   app-region: drag;
 }
-
 .screen {
   position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--bg);
+  background: var(--sidebar);
   color: var(--text);
+}
+@media (pointer: coarse) {
+  .shell {
+    --radius: 12px;
+    gap: 4px;
+    padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px))
+      env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .screen {
+    border: 0;
+  }
 }

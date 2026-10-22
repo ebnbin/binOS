@@ -6,7 +6,7 @@
   padding: 10px 12px;
   overflow: auto;
   border: 1px solid var(--hairline);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--code);
   font-family: var(--mono);
   font-size: 12px;
@@ -38,7 +38,7 @@
 
 .note {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -59,7 +59,7 @@
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, #2da44e 14%, transparent);
+  background: color-mix(in srgb, var(--positive) 14%, transparent);
 }
 
 .diffLine[data-change='removed'] {

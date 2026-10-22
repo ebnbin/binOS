@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Button.tsx'
 import { useEffect, useState } from 'react'
 import { useConnected } from '../../events.ts'
 import type { WidgetContext } from '../types.ts'
@@ -26,12 +27,11 @@ export function SystemWidget({ size, open }: WidgetContext) {
   const fresh = snapshot && sampledNow - snapshot.at < 30_000 && !error && !status?.collectionError
 
   return (
-    <button
+    <Button
       type="button"
       className={styles.widget}
       data-size={size}
-      onClick={(event) => {
-        event.stopPropagation()
+      onPress={() => {
         open('/')
       }}
       title="打开宿主监控"
@@ -49,6 +49,6 @@ export function SystemWidget({ size, open }: WidgetContext) {
         {!fresh ? '状态待更新' : '已连接'}
         {version && <span className={styles.version}>{version.slice(0, 7)}</span>}
       </span>
-    </button>
+    </Button>
   )
 }

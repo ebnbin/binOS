@@ -17,7 +17,7 @@
 }
 .caption {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   margin: 14px 10px 7px;
 }
@@ -25,17 +25,8 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 7px 10px;
   width: 100%;
-  border-radius: 6px;
   text-align: left;
-}
-.sidebar button:hover,
-.entry:hover {
-  background: var(--hover);
-}
-.sidebar .active {
-  background: var(--bubble);
 }
 .main {
   flex: 1;
@@ -52,21 +43,9 @@
 }
 .toolbar button {
   display: flex;
-  padding: 5px;
-  border-radius: 5px;
-}
-.app button:disabled,
-.dialog button:disabled {
-  opacity: 0.35;
 }
 .app input,
 .dialog input {
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  font: inherit;
-  padding: 6px 8px;
   min-width: 0;
 }
 .path {
@@ -75,8 +54,6 @@
 }
 .path input {
   width: 100%;
-  font-family: var(--mono);
-  font-size: 12px;
 }
 .controls {
   display: flex;
@@ -97,8 +74,6 @@
 }
 .search input {
   width: 100%;
-  border: 0;
-  background: transparent;
 }
 .actions {
   display: flex;
@@ -114,7 +89,7 @@
   align-items: center;
   border: 1px solid var(--border);
   padding: 4px 8px;
-  border-radius: 5px;
+  border-radius: 8px;
   color: var(--text);
   text-decoration: none;
   font-size: 12px;
@@ -140,7 +115,7 @@
   background: var(--surface);
   color: var(--muted);
   border-bottom: 1px solid var(--border);
-  font-size: 11px;
+  font-size: 12px;
 }
 .name {
   display: flex;
@@ -157,15 +132,12 @@
   flex-shrink: 0;
 }
 .folder {
-  color: #5c9fcd;
-  fill: color-mix(in srgb, #5c9fcd 18%, transparent);
+  color: var(--spectrum-yellow);
+  fill: color-mix(in srgb, var(--spectrum-yellow) 18%, transparent);
 }
 .meta {
   color: var(--muted);
-  font-size: 11px;
-}
-.entry.selected {
-  background: color-mix(in srgb, #448cd4 18%, var(--surface));
+  font-size: 12px;
 }
 .grid {
   display: grid;
@@ -175,9 +147,7 @@
 }
 .grid .entry {
   display: flex;
-  padding: 12px 6px;
   justify-content: center;
-  border-radius: 8px;
 }
 .grid .name {
   flex-direction: column;
@@ -195,7 +165,7 @@
   padding: 7px 14px;
   border-top: 1px solid var(--border);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   display: flex;
   gap: 20px;
 }
@@ -246,11 +216,6 @@
   gap: 16px;
   justify-content: flex-end;
 }
-.dialog button {
-  padding: 5px 14px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-}
 @container files (width < 650px) {
   .sidebar {
     width: 120px;
@@ -275,5 +240,55 @@
 @container files (width < 400px) {
   .sidebar {
     display: none;
+  }
+}
+
+.app {
+  font-size: 14px;
+}
+.sidebar {
+  width: 200px;
+  padding: 24px 12px;
+}
+.sidebar button {
+  justify-content: start;
+  padding: 8px 12px;
+  height: auto;
+  min-height: 40px;
+}
+.sidebar .active {
+  color: var(--text);
+  background: var(--hover);
+  box-shadow: inset 3px 0 var(--ink);
+}
+.toolbar {
+  background: var(--sidebar);
+  padding: 16px;
+}
+.controls,
+.actions {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.entry {
+  min-height: 48px;
+  border-radius: 0;
+}
+.entry.selected {
+  background: var(--hover);
+  color: var(--text);
+}
+.grid .entry {
+  height: auto;
+  min-height: 104px;
+  border-radius: 12px;
+}
+.search {
+  min-width: 160px;
+}
+@container files (width < 650px) {
+  .sidebar {
+    width: 132px;
+    padding: 12px 4px;
   }
 }

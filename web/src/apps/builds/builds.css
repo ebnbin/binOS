@@ -1,21 +1,89 @@
-.builds-page { padding: 20px; height: 100%; overflow: auto; color: var(--text); }
-.builds-page header, .builds-row, .builds-page nav, .builds-page form { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.builds-page header { justify-content: space-between; }
-.builds-page h1 { margin: 0; font-size: 22px; }
-.builds-page p, .builds-page small { color: var(--muted); }
-.builds-page button, .builds-page input:not([type=checkbox]), .builds-page select { border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; background: var(--surface); color: var(--text); }
-.builds-page button { cursor: pointer; }
-.builds-page button:disabled { opacity: .5; cursor: default; }
-.builds-page button[aria-pressed=true] { background: var(--text); color: var(--surface); }
-.builds-page form, .builds-settings { padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-.builds-page form label { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 160px; }
-.builds-settings { display: flex; flex-direction: column; gap: 10px; }
-.builds-page article { padding: 16px; margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; }
-.builds-row { margin: 8px 0; }
-.builds-page .builds-error { color: #c44; white-space: pre-wrap; overflow-wrap: anywhere; }
-.builds-notice { padding: 10px; background: #c9951818; border-radius: 8px; }
-.builds-artifact { display: block; padding: 10px 0; overflow-wrap: anywhere; text-decoration: underline; }
-.builds-log { position: absolute; inset: 0; background: var(--surface, white); z-index: 5; display: flex; flex-direction: column; padding: 16px; }
-.builds-log pre { overflow: auto; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+.builds-page {
+  padding: 20px;
+  height: 100%;
+  overflow: auto;
+  color: var(--text);
+}
+.builds-page header,
+.builds-row,
+.builds-page nav,
+.builds-page form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.builds-page header {
+  justify-content: space-between;
+}
+.builds-page h1 {
+  margin: 0;
+  font-size: 22px;
+}
+.builds-page p,
+.builds-page small {
+  color: var(--muted);
+}
+.builds-page form,
+.builds-settings {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.builds-page form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+}
+.builds-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.builds-page article {
+  padding: 16px;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.builds-row {
+  margin: 8px 0;
+}
+.builds-page .builds-error {
+  color: var(--danger);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.builds-notice {
+  padding: 10px;
+  background: var(--danger-bg);
+  border-radius: 8px;
+}
+.builds-artifact {
+  display: block;
+  padding: 10px 0;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+}
+.builds-log {
+  position: absolute;
+  inset: 0;
+  background: var(--surface, white);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.builds-log pre {
+  overflow: auto;
+  flex: 1;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
 
-.builds-settings input[type=checkbox] { appearance: auto; width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; }
+.builds-settings input[type='checkbox'] {
+  width: 16px;
+}

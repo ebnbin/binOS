@@ -1,7 +1,21 @@
 import type { Entry } from '@binos/server/services/kita/types'
 import { diffLines } from 'diff'
-import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import {
+  AppWindow,
+  Bot,
+  FilePen,
+  FilePlus,
+  FileText,
+  Globe,
+  Image,
+  ListTodo,
+  PackageSearch,
+  Search,
+  Sparkles,
+  SquareTerminal,
+  Wrench,
+} from '../../../ui/icons.tsx'
+import type { SystemIcon } from '../../../ui/icons.tsx'
 
 export type ToolCall = Extract<Entry, { type: 'tool_call' }>
 export type ToolResult = Extract<Entry, { type: 'tool_result' }>
@@ -26,7 +40,7 @@ export function callDuration({ call, result, live }: CallState, now: number): nu
 export type ToolCategory = 'command' | 'read' | 'edit' | 'search' | 'web' | 'browser' | 'subagent' | 'other'
 
 // 一次调用显示成：图标、动作、对象（命令、路径、搜索词……）
-type ToolLabel = { icon: LucideIcon; verb: string; category: ToolCategory; detail?: string }
+type ToolLabel = { icon: SystemIcon; verb: string; category: ToolCategory; detail?: string }
 
 // 浏览器的工具，没列出的直接用工具名
 const browserVerbs: Record<string, string> = {
@@ -46,7 +60,9 @@ const browserVerbs: Record<string, string> = {
 }
 
 // 原始参数里的第一个字符串
-const firstText = (input: unknown) => Object.values((input ?? {}) as Record<string, unknown>).find((value) => typeof value === 'string') as string | undefined
+const firstText = (input: unknown) =>
+  Object.values((input ?? {}) as Record<string, unknown>).find((value) => typeof value === 'string') as
+    string | undefined
 
 export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
   switch (tool.kind) {
@@ -59,7 +75,12 @@ export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
         ? { icon: FilePlus, verb: '写入', category: 'edit', detail: tool.path }
         : { icon: FilePen, verb: '修改', category: 'edit', detail: tool.path }
     case 'search':
-      return { icon: Search, verb: tool.target === 'files' ? '查找文件' : '搜索', category: 'search', detail: tool.pattern }
+      return {
+        icon: Search,
+        verb: tool.target === 'files' ? '查找文件' : '搜索',
+        category: 'search',
+        detail: tool.pattern,
+      }
     case 'web_search':
       return { icon: Globe, verb: '搜索网页', category: 'search', detail: tool.query }
     case 'web_fetch':
@@ -67,7 +88,12 @@ export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
     case 'image_view':
       return { icon: Image, verb: '查看图片', category: 'read', detail: tool.path }
     case 'browser':
-      return { icon: AppWindow, verb: browserVerbs[tool.action] ?? `浏览器 ${tool.action}`, category: 'browser', detail: tool.target }
+      return {
+        icon: AppWindow,
+        verb: browserVerbs[tool.action] ?? `浏览器 ${tool.action}`,
+        category: 'browser',
+        detail: tool.target,
+      }
     case 'mcp':
       return { icon: Wrench, verb: `${tool.server} ${tool.tool}`, category: 'other', detail: firstText(input) }
     case 'subagent':
@@ -79,7 +105,12 @@ export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
     case 'todo':
       return { icon: ListTodo, verb: '更新待办', category: 'other' }
     case 'other':
-      return { icon: Wrench, verb: name.replace(/^mcp__/, '').replaceAll('__', ' '), category: 'other', detail: firstText(input) }
+      return {
+        icon: Wrench,
+        verb: name.replace(/^mcp__/, '').replaceAll('__', ' '),
+        category: 'other',
+        detail: firstText(input),
+      }
   }
 }
 
@@ -112,7 +143,10 @@ export function lineChanges({ tool }: ToolCall): { added: number; removed: numbe
         return change.op === 'add' ? { added: count, removed: 0 } : { added: 0, removed: count }
       }
       const body = lines.filter((line) => !line.startsWith('+++') && !line.startsWith('---'))
-      return { added: body.filter((line) => line.startsWith('+')).length, removed: body.filter((line) => line.startsWith('-')).length }
+      return {
+        added: body.filter((line) => line.startsWith('+')).length,
+        removed: body.filter((line) => line.startsWith('-')).length,
+      }
     }
   }
 }

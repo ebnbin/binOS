@@ -1,7 +1,22 @@
+import { Field } from '../../ui/Field.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
 import { Checkbox } from '../../ui/Checkbox.tsx'
 import { Select } from '../../ui/Select.tsx'
-import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowUp,
+  ChevronRight,
+  Download,
+  File,
+  Folder,
+  Home,
+  List,
+  LayoutGrid,
+  RefreshCw,
+  Search,
+  Upload,
+} from '../../ui/icons.tsx'
 import { useEffect, useRef, useState } from 'react'
 import { FilePreview } from '../../services/preview/index.ts'
 import type { WindowContext } from '../types.ts'
@@ -95,7 +110,9 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
     }
   }
   const entries = (listing?.entries || [])
-    .filter((e) => (hidden || !e.name.startsWith('.')) && e.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()))
+    .filter(
+      (e) => (hidden || !e.name.startsWith('.')) && e.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
+    )
     .sort(
       (a, b) =>
         Number(b.directory) - Number(a.directory) ||
@@ -108,7 +125,9 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
   const current = listing?.entries.find((e) => e.path === selected[0])
   const download = (file: string) => `${base}/download?${new URLSearchParams({ path: file })}`
   function select(entry: Entry, multi: boolean) {
-    setSelected((old) => (multi ? (old.includes(entry.path) ? old.filter((p) => p !== entry.path) : [...old, entry.path]) : [entry.path]))
+    setSelected((old) =>
+      multi ? (old.includes(entry.path) ? old.filter((p) => p !== entry.path) : [...old, entry.path]) : [entry.path],
+    )
   }
   return (
     <div className={styles.app}>
@@ -122,40 +141,45 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             ['下载', listing.home + '/Downloads'],
             ['图片', listing.home + '/Pictures'],
           ].map(([label, dir]) => (
-            <button key={dir} className={listing.path === dir ? styles.active : ''} disabled={busy} onClick={() => go(dir)}>
+            <Button
+              key={dir}
+              className={listing.path === dir ? styles.active : ''}
+              disabled={busy}
+              onPress={() => go(dir)}
+            >
               <Folder size={17} />
               {label}
-            </button>
+            </Button>
           ))}
         <div className={styles.caption}>位置</div>
-        <button disabled={busy} onClick={() => go('/')}>
+        <Button disabled={busy} onPress={() => go('/')}>
           <Home size={17} />
           Macintosh HD
-        </button>
-        <button disabled={busy} onClick={() => go('/Volumes')}>
+        </Button>
+        <Button disabled={busy} onPress={() => go('/Volumes')}>
           <Folder size={17} />
           外置磁盘
-        </button>
+        </Button>
         {listing && (
-          <button disabled={busy} onClick={() => go(listing.home + '/.Trash')}>
+          <Button disabled={busy} onPress={() => go(listing.home + '/.Trash')}>
             <Folder size={17} />
             废纸篓
-          </button>
+          </Button>
         )}
       </aside>
       <main className={styles.main}>
         <header className={styles.toolbar}>
-          <button title="后退" aria-label="后退" disabled={busy} onClick={ctx.back}>
+          <Button title="后退" aria-label="后退" disabled={busy} onPress={ctx.back}>
             <ArrowLeft size={18} />
-          </button>
-          <button
+          </Button>
+          <Button
             title="上一级"
             aria-label="上一级"
             disabled={busy || !listing || listing.parent === listing.path}
-            onClick={() => listing && go(listing.parent)}
+            onPress={() => listing && go(listing.parent)}
           >
             <ArrowUp size={18} />
-          </button>
+          </Button>
           <form
             className={styles.path}
             onSubmit={(e) => {
@@ -163,25 +187,30 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
               go(location)
             }}
           >
-            <input
+            <Field
               aria-label="文件夹路径"
               disabled={busy}
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onValueChange={(value) => setLocation(value)}
               placeholder="输入绝对路径"
             />
           </form>
-          <button title="刷新" aria-label="刷新" disabled={loading || busy} onClick={() => void load(route)}>
+          <Button title="刷新" aria-label="刷新" disabled={loading || busy} onPress={() => void load(route)}>
             <RefreshCw size={17} />
-          </button>
-          <button title={grid ? '列表视图' : '图标视图'} aria-label="切换视图" onClick={() => setGrid(!grid)}>
+          </Button>
+          <Button title={grid ? '列表视图' : '图标视图'} aria-label="切换视图" onPress={() => setGrid(!grid)}>
             {grid ? <List size={18} /> : <LayoutGrid size={18} />}
-          </button>
+          </Button>
         </header>
         <div className={styles.controls}>
           <label className={styles.search}>
             <Search size={15} />
-            <input aria-label="搜索当前文件夹" placeholder="搜索当前文件夹" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Field
+              aria-label="搜索当前文件夹"
+              placeholder="搜索当前文件夹"
+              value={search}
+              onValueChange={(value) => setSearch(value)}
+            />
           </label>
           <Select
             label="排序"
@@ -196,31 +225,37 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
           <Checkbox label="隐藏文件" checked={hidden} onCheckedChange={setHidden} />
         </div>
         <div className={styles.actions}>
-          <button disabled={busy || !listing || loading} onClick={() => setDialog({ action: 'mkdir', value: '未命名文件夹' })}>
+          <Button
+            disabled={busy || !listing || loading}
+            onPress={() => setDialog({ action: 'mkdir', value: '未命名文件夹' })}
+          >
             新建文件夹
-          </button>
-          <button disabled={busy || !listing || loading} onClick={() => upload.current?.click()}>
+          </Button>
+          <Button disabled={busy || !listing || loading} onPress={() => upload.current?.click()}>
             <Upload size={14} />
             上传
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={busy || selected.length !== 1}
-            onClick={() => current && (current.directory ? go(current.path) : setPreview(current))}
+            onPress={() => current && (current.directory ? go(current.path) : setPreview(current))}
           >
             打开
-          </button>
-          <button disabled={busy || selected.length !== 1} onClick={() => setDialog({ action: 'rename', value: current?.name || '' })}>
+          </Button>
+          <Button
+            disabled={busy || selected.length !== 1}
+            onPress={() => setDialog({ action: 'rename', value: current?.name || '' })}
+          >
             重命名
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: false })}>
+          </Button>
+          <Button disabled={!selected.length || busy} onPress={() => setClipboard({ paths: selected, move: false })}>
             复制
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: true })}>
+          </Button>
+          <Button disabled={!selected.length || busy} onPress={() => setClipboard({ paths: selected, move: true })}>
             剪切
-          </button>
-          <button
+          </Button>
+          <Button
             disabled={!clipboard || busy || !listing || loading}
-            onClick={() =>
+            onPress={() =>
               void run(async () => {
                 for (const file of clipboard!.paths)
                   await operation(clipboard!.move ? 'move' : 'copy', file, { destination: listing!.path })
@@ -229,10 +264,10 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             }
           >
             粘贴{clipboard ? ` (${clipboard.paths.length})` : ''}
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setDialog({ action: 'trash', value: '' })}>
+          </Button>
+          <Button disabled={!selected.length || busy} onPress={() => setDialog({ action: 'trash', value: '' })}>
             移到废纸篓
-          </button>
+          </Button>
           {current && selected.length === 1 && !current.directory && (
             <a href={download(current.path) + `&name=${encodeURIComponent(current.name)}`}>
               <Download size={14} />
@@ -278,12 +313,12 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
                 </div>
               )}
               {entries.map((entry) => (
-                <button
+                <Button
                   key={entry.path}
                   disabled={busy}
                   className={`${styles.entry} ${selected.includes(entry.path) ? styles.selected : ''}`}
                   aria-pressed={selected.includes(entry.path)}
-                  onClick={(e) => select(entry, e.metaKey || e.ctrlKey || e.shiftKey)}
+                  onPress={(e) => select(entry, e.metaKey || e.ctrlKey || e.shiftKey)}
                   onDoubleClick={() => (entry.directory ? go(entry.path) : setPreview(entry))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -297,7 +332,11 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
                   }}
                 >
                   <span className={styles.name}>
-                    {entry.directory ? <Folder className={styles.folder} size={grid ? 48 : 19} /> : <File size={grid ? 44 : 18} />}
+                    {entry.directory ? (
+                      <Folder className={styles.folder} size={grid ? 48 : 19} />
+                    ) : (
+                      <File size={grid ? 44 : 18} />
+                    )}
                     <span>
                       {entry.name}
                       {entry.symlink ? ' ↗' : ''}
@@ -314,7 +353,7 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
                       <span className={styles.meta}>{entry.directory ? '—' : size(entry.size)}</span>
                     </>
                   )}
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -352,29 +391,42 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
               void run(async () => {
                 if (dialog.action === 'trash') {
                   for (const file of selected) await operation('trash', file)
-                } else await operation(dialog.action, dialog.action === 'mkdir' ? listing!.path : selected[0], { name: dialog.value })
+                } else
+                  await operation(dialog.action, dialog.action === 'mkdir' ? listing!.path : selected[0], {
+                    name: dialog.value,
+                  })
               })
             }}
           >
             <strong>
-              {dialog.action === 'trash' ? `将 ${selected.length} 个项目移到废纸篓？` : dialog.action === 'mkdir' ? '新建文件夹' : '重命名'}
+              {dialog.action === 'trash'
+                ? `将 ${selected.length} 个项目移到废纸篓？`
+                : dialog.action === 'mkdir'
+                  ? '新建文件夹'
+                  : '重命名'}
             </strong>
             {dialog.action === 'trash' ? (
               <p>文件会移到 macOS 的废纸篓。</p>
             ) : (
-              <input
+              <Field
                 autoFocus
                 aria-label="名称"
                 value={dialog.value}
                 onFocus={(e) => e.target.select()}
-                onChange={(e) => setDialog({ ...dialog, value: e.target.value })}
+                onValueChange={(value) => setDialog({ ...dialog, value: value })}
               />
             )}
             <div>
-              <button type="button" disabled={busy} onClick={() => setDialog(undefined)}>
+              <Button type="button" disabled={busy} onPress={() => setDialog(undefined)}>
                 取消
-              </button>
-              <button disabled={busy || (dialog.action !== 'trash' && !dialog.value.trim())}>确认</button>
+              </Button>
+              <Button
+                appearance="primary"
+                type="submit"
+                disabled={busy || (dialog.action !== 'trash' && !dialog.value.trim())}
+              >
+                确认
+              </Button>
             </div>
           </form>
         </ModalHost>

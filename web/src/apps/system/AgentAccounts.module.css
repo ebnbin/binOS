@@ -61,11 +61,11 @@
 
 .status {
   color: var(--danger);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .status[data-ok='true'] {
-  color: #34c759;
+  color: var(--positive);
 }
 
 .version {
@@ -112,12 +112,12 @@
 
 .note {
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .mono {
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .attention {
@@ -142,14 +142,6 @@
 
 .loginActions button {
   height: 32px;
-  padding: 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
 }
 
 .login {

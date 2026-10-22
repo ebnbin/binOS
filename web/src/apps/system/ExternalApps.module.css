@@ -26,22 +26,6 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: var(--text-2);
-  font-size: 13px;
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: 0.4;
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--hover);
-  }
 }
 
 .list {
@@ -59,9 +43,6 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 8px;
-  border-radius: 8px;
-  color: var(--text-2);
   text-align: left;
 }
 
@@ -95,22 +76,6 @@
   font-size: 13px;
 }
 
-.editor input {
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  outline: none;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-}
-
-.editor input:focus {
-  border-color: var(--muted);
-}
-
 .icons {
   display: flex;
   flex-wrap: wrap;
@@ -122,13 +87,6 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 9px;
-  color: var(--text-2);
-}
-
-.icons button[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--on-ink);
 }
 
 .actions {
@@ -141,33 +99,4 @@
   flex: 1;
 }
 
-.actions button {
-  padding: 5px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-}
-
-.primary {
-  background: var(--ink);
-  color: var(--on-ink);
-}
-
-.primary:disabled {
-  opacity: 0.35;
-}
-
-.secondary {
-  background: var(--bubble);
-}
-
-.danger {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
 /* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: 16px;
-  }
-}

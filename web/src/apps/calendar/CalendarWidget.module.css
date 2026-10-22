@@ -31,19 +31,6 @@
   place-items: center;
   min-width: 28px;
   height: 32px;
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--text-2);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--sidebar);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--live);
-  outline-offset: 1px;
 }
 
 .month {
@@ -57,7 +44,7 @@
 
 .month th {
   height: 28px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--muted);
 }
@@ -73,7 +60,6 @@
 
 .month td[data-outside='true'] {
   color: var(--muted);
-  opacity: 0.5;
 }
 
 .month td span {

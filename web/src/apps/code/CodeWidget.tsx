@@ -1,4 +1,5 @@
-import { SquarePen } from 'lucide-react'
+import { Button } from '../../ui/Button.tsx'
+import { SquarePen } from '../../ui/icons.tsx'
 import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
 import { formatTime } from '../../ui/time.ts'
@@ -15,18 +16,17 @@ export function CodeWidget({ size, open }: WidgetContext) {
       <header className={styles.header}>
         <span className={styles.name}>Code</span>
         {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
+        <Button
           type="button"
           className={styles.new}
           aria-label="新对话"
           title="新对话"
-          onClick={(event) => {
-            event.stopPropagation()
+          onPress={() => {
             open('/new')
           }}
         >
           <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        </Button>
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>
@@ -39,18 +39,17 @@ export function CodeWidget({ size, open }: WidgetContext) {
         <ul className={styles.list}>
           {shown.map((session) => (
             <li key={session.id}>
-              <button
+              <Button
                 type="button"
                 className={styles.row}
-                onClick={(event) => {
-                  event.stopPropagation()
+                onPress={() => {
                   open(`/${session.id}`)
                 }}
               >
                 <span className={styles.dot} data-running={session.running} />
                 <span className={styles.title}>{session.title || '新对话'}</span>
                 <span className={styles.time}>{session.updatedAt ? formatTime(new Date(session.updatedAt)) : ''}</span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

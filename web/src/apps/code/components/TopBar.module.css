@@ -35,24 +35,6 @@
   gap: 4px;
   min-width: 0;
   margin: 0 -8px;
-  padding: 5px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--hover);
 }
 
 .titleChevron {
@@ -85,22 +67,13 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 2px 8px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
 }
 
 .prMenu {
   display: flex;
   flex-direction: column;
   width: 360px;
-  max-height: min(320px, var(--radix-popover-content-available-height));
+  max-height: min(320px, 70dvh);
   overflow-y: auto;
   padding: 4px;
   box-shadow: var(--shadow);
@@ -144,18 +117,18 @@
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: #1a7f37;
+  color: var(--positive);
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: #8250df;
+  color: var(--spectrum-purple);
 }
 
 .pr {
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: 16px;
   background: var(--hover);
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
@@ -171,11 +144,11 @@
 }
 
 .pr[data-state='open'] a:first-child {
-  color: #1a7f37;
+  color: var(--positive);
 }
 
 .pr[data-state='merged'] a:first-child {
-  color: #8250df;
+  color: var(--spectrum-purple);
 }
 
 .pr .preview {
@@ -205,4 +178,10 @@
   .bar span.singleColumnOnly {
     display: inline;
   }
+}
+
+.bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: 64px;
 }

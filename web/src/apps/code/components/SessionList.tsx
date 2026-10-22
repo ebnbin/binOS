@@ -1,3 +1,5 @@
+import { Field } from '../../../ui/Field.tsx'
+import { Button } from '../../../ui/Button.tsx'
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/kita/types'
 import {
@@ -14,7 +16,7 @@ import {
   Search,
   SquarePen,
   X,
-} from 'lucide-react'
+} from '../../../ui/icons.tsx'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
@@ -57,13 +59,13 @@ export function SessionList({
         <Quota />
       </header>
       <AuthBanner />
-      <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
+      <Button appearance="primary" type="button" className={styles.newButton} onPress={() => onNavigate('/new')}>
         <SquarePen size={16} strokeWidth={1.75} />
         新对话
-      </button>
-      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>
+      </Button>
+      <Button type="button" className={styles.projectButton} onPress={() => setCreating(!creating)}>
         创建项目
-      </button>
+      </Button>
       {creating && (
         <form
           className={styles.projectForm}
@@ -82,26 +84,26 @@ export function SessionList({
               .finally(() => setSaving(false))
           }}
         >
-          <input
+          <Field
             autoFocus
             aria-label="项目名称"
             placeholder="项目名称"
             maxLength={100}
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onValueChange={(value) => setName(value)}
           />
-          <button type="submit" disabled={!name.trim() || saving}>
+          <Button appearance="primary" type="submit" disabled={!name.trim() || saving}>
             {saving ? '创建中…' : '创建'}
-          </button>
+          </Button>
           {error && <p role="alert">{error}</p>}
         </form>
       )}
       <label className={styles.search}>
         <Search size={14} strokeWidth={1.75} />
-        <input
+        <Field
           type="search"
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onValueChange={(value) => setQuery(value)}
           placeholder="搜索对话与消息"
           aria-label="搜索全部历史内容"
           autoComplete="off"
@@ -111,18 +113,31 @@ export function SessionList({
           }}
         />
         {query && (
-          <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
+          <Button type="button" className={styles.clear} onPress={() => setQuery('')} aria-label="清除搜索">
             <X size={13} strokeWidth={2} />
-          </button>
+          </Button>
         )}
       </label>
       <nav className={styles.list}>
         <ul>
-          {([['builds', '构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
+          {(
+            [
+              ['builds', '构建', Hammer],
+              ['devices', '设备', Smartphone],
+            ] as const
+          ).map(([name, label, Icon]) => (
             <li key={name}>
-              <button type="button" className={styles.item} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
-                <span className={styles.line}><Icon size={16} strokeWidth={1.75} /><span className={styles.title}>{label}</span></span>
-              </button>
+              <Button
+                type="button"
+                className={styles.item}
+                aria-current={currentTool === name ? 'page' : undefined}
+                onPress={() => onNavigate(`/${name}`)}
+              >
+                <span className={styles.line}>
+                  <Icon size={16} strokeWidth={1.75} />
+                  <span className={styles.title}>{label}</span>
+                </span>
+              </Button>
             </li>
           ))}
         </ul>
@@ -143,9 +158,13 @@ export function SessionList({
             <section key={project.id}>
               <div className={styles.projectHeader}>
                 <span>{project.name}</span>
-                <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
+                <Button
+                  type="button"
+                  aria-label={`在 ${project.name} 中新建对话`}
+                  onPress={() => onNavigate(`/new?project=${project.id}`)}
+                >
                   <SquarePen size={14} />
-                </button>
+                </Button>
               </div>
               <Sections
                 sessions={sessions.filter((session) => session.project === project.id)}
@@ -163,7 +182,11 @@ export function SessionList({
 }
 
 function useSearch(query: string) {
-  const [result, setResult] = useState<{ query: string; data?: Awaited<ReturnType<typeof searchContent>>; failed?: boolean }>()
+  const [result, setResult] = useState<{
+    query: string
+    data?: Awaited<ReturnType<typeof searchContent>>
+    failed?: boolean
+  }>()
   const [revision, setRevision] = useState(0)
   useEffect(
     () =>
@@ -221,7 +244,13 @@ function Sections({
   const items = (list: SessionSummary[], clock = false) => (
     <ul>
       {list.map((session) => (
-        <SessionItem key={session.id} session={session} current={session.id === current} clock={clock} onNavigate={onNavigate} />
+        <SessionItem
+          key={session.id}
+          session={session}
+          current={session.id === current}
+          clock={clock}
+          onNavigate={onNavigate}
+        />
       ))}
     </ul>
   )
@@ -236,15 +265,15 @@ function Sections({
       {items(others)}
       {archived.length > 0 && (
         <>
-          <button
+          <Button
             type="button"
             className={styles.archivedToggle}
-            onClick={() => setShowArchived(!showArchived)}
+            onPress={() => setShowArchived(!showArchived)}
             aria-expanded={showArchived}
           >
             <ChevronRight size={13} strokeWidth={2} className={styles.toggleChevron} />
             已归档 {archived.length}
-          </button>
+          </Button>
           {(showArchived || searching) && items(archived)}
         </>
       )}
@@ -270,11 +299,11 @@ function SessionItem({
       {renaming ? (
         <RenameInput session={session} onDone={() => setRenaming(false)} />
       ) : (
-        <button
+        <Button
           type="button"
           className={styles.item}
           aria-current={current ? 'page' : undefined}
-          onClick={() => onNavigate(`/${session.id}`)}
+          onPress={() => onNavigate(`/${session.id}`)}
         >
           <span className={styles.line}>
             {session.running ? (
@@ -287,13 +316,13 @@ function SessionItem({
             </span>
           </span>
           <SessionMeta session={session} clock={clock} />
-        </button>
+        </Button>
       )}
       {!renaming && (
         <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-          <button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
+          <Button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
             <MoreHorizontal size={15} strokeWidth={1.75} />
-          </button>
+          </Button>
         </SessionActions>
       )}
     </li>
@@ -330,7 +359,11 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
         )}
         {session.outcome && !session.running && !session.waiting && (
           <span className={session.outcome === 'error' ? styles.error : undefined}>
-            {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+            {session.outcome === 'error' ? (
+              <CircleAlert size={12} strokeWidth={2} />
+            ) : (
+              <CircleStop size={12} strokeWidth={2} />
+            )}
             {session.outcome === 'error' ? '出错' : '已停止'}
           </span>
         )}

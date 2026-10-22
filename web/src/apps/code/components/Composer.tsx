@@ -1,5 +1,7 @@
+import { Area } from '../../../ui/Field.tsx'
+import { Button } from '../../../ui/Button.tsx'
 import { Select } from '../../../ui/Select.tsx'
-import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from '../../../ui/icons.tsx'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -226,24 +228,32 @@ export function Composer({
                     icon={ArrowUp}
                     label="现在发送"
                     className={styles.queueButton}
-                    onClick={() => void sendQueued(sessionId, item.id)}
+                    onPress={() => void sendQueued(sessionId, item.id)}
                   />
                 )}
-                <IconButton icon={X} label="撤回到输入框" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
+                <IconButton
+                  icon={X}
+                  label="撤回到输入框"
+                  className={styles.queueButton}
+                  onPress={() => void withdraw(item.id)}
+                />
               </li>
             ))}
           </ul>
         )}
         {pending.length > 0 && (
           <div className={styles.attachments}>
-            <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
+            <PendingAttachments
+              files={pending}
+              onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)}
+            />
           </div>
         )}
-        <textarea
+        <Area
           ref={textareaRef}
           className={styles.input}
           value={input}
-          onChange={(event) => setInput(event.target.value)}
+          onValueChange={(value) => setInput(value)}
           onKeyDown={onKeyDown}
           onPaste={onPaste}
           placeholder={running ? '补充或纠正，agent 会在下一步看到' : '输入消息'}
@@ -270,11 +280,12 @@ export function Composer({
             label={enterSends ? '添加附件（也可以粘贴或拖进来）' : '添加附件'}
             className={styles.attach}
             disabled={sending}
-            onClick={() => fileInputRef.current?.click()}
+            onPress={() => fileInputRef.current?.click()}
           />
           {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
           {choosable.length > 1 && (
             <Select
+              quiet
               className={styles.choice}
               value={choice.agent}
               disabled={agentFixed}
@@ -285,19 +296,28 @@ export function Composer({
             />
           )}
           <Select
+            quiet
             className={styles.choice}
             value={choice.model ?? defaultModel?.id ?? ''}
             disabled={running}
             title={running ? '下一轮生效' : '模型'}
             label="模型"
-            onValueChange={(model) => onChoice({ ...choice, model: model === defaultModel?.id ? undefined : model || undefined })}
+            onValueChange={(model) =>
+              onChoice({ ...choice, model: model === defaultModel?.id ? undefined : model || undefined })
+            }
             options={[
               ...(!defaultModel ? [{ value: '', label: '模型信息暂不可用', disabled: true }] : []),
-              ...models.map((model) => ({ value: model.id, label: `${model.name}${model.id === defaultModel?.id ? '（默认）' : ''}` })),
-              ...(choice.model && !models.some((model) => model.id === choice.model) ? [{ value: choice.model, label: choice.model }] : []),
+              ...models.map((model) => ({
+                value: model.id,
+                label: `${model.name}${model.id === defaultModel?.id ? '（默认）' : ''}`,
+              })),
+              ...(choice.model && !models.some((model) => model.id === choice.model)
+                ? [{ value: choice.model, label: choice.model }]
+                : []),
             ]}
           />
           <Select
+            quiet
             className={styles.choice}
             value={choice.effort ?? ''}
             disabled={running}
@@ -318,36 +338,44 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+            <Button
+              appearance="negative"
+              type="button"
+              className={styles.action}
+              onPress={onStop}
+              aria-label="停止"
+              title="停止"
+            >
               <span className={styles.stopIcon} />
-            </button>
+            </Button>
           ) : (
             <>
               {running && (
                 <>
-                  <button
+                  <Button
                     type="button"
                     className={styles.interrupt}
-                    onClick={() => void send('interrupt')}
+                    onPress={() => void send('interrupt')}
                     aria-label="打断并发送"
                     title="打断正在做的事，马上处理这句话"
                   >
                     <Zap size={14} strokeWidth={2} />
                     打断
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className={styles.interrupt}
-                    onClick={() => void send('queue')}
+                    onPress={() => void send('queue')}
                     aria-label="排队"
                     title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
                   >
                     <ListPlus size={14} strokeWidth={2} />
                     排队
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <Button
+                appearance="primary"
                 type="submit"
                 className={styles.action}
                 disabled={!canSend}
@@ -355,7 +383,7 @@ export function Composer({
                 title={running ? '插话：agent 在下一步看到' : '发送'}
               >
                 <ArrowUp size={17} strokeWidth={2.2} />
-              </button>
+              </Button>
             </>
           )}
         </div>

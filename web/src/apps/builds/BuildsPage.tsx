@@ -1,11 +1,28 @@
+import { Checkbox, Picker, PickerItem, SegmentedControl, SegmentedControlItem } from '@react-spectrum/s2'
+import { Field } from '../../ui/Field.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { useCallback, useEffect, useState } from 'react'
 import type { Build, Snapshot, Target } from '@binos/server/apps/builds/types'
 import './builds.css'
 const base = '/api/apps/builds'
-const targetLabels: Record<Target, string> = { android: 'Android APK', 'ios-simulator': 'iOS 模拟器', 'ios-adhoc': 'iOS Ad Hoc' }
-const statusLabels = { queued: '排队中', running: '构建中', success: '成功', failed: '失败', cancelled: '已取消', interrupted: '已中断' }
+const targetLabels: Record<Target, string> = {
+  android: 'Android APK',
+  'ios-simulator': 'iOS 模拟器',
+  'ios-adhoc': 'iOS Ad Hoc',
+}
+const statusLabels = {
+  queued: '排队中',
+  running: '构建中',
+  success: '成功',
+  failed: '失败',
+  cancelled: '已取消',
+  interrupted: '已中断',
+}
 async function request(body?: unknown): Promise<Snapshot> {
-  const r = await fetch(base, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined)
+  const r = await fetch(
+    base,
+    body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : undefined,
+  )
   const data = await r.json()
   if (!r.ok) throw new Error(data.error ?? '请求失败')
   return data
@@ -20,49 +37,237 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
   const [log, setLog] = useState<Build>()
   const [text, setText] = useState('')
   const [clock, setClock] = useState(() => Date.now())
-  const load = useCallback(async () => { try { setData(await request()); setClock(Date.now()); setError('') } catch (e) { setError(String(e)) } }, [])
-  useEffect(() => { const initial = setTimeout(() => void load(), 0); const timer = setInterval(() => { if (!document.hidden) void load() }, 4000); return () => { clearTimeout(initial); clearInterval(timer) } }, [load])
+  const load = useCallback(async () => {
+    try {
+      setData(await request())
+      setClock(Date.now())
+      setError('')
+    } catch (e) {
+      setError(String(e))
+    }
+  }, [])
+  useEffect(() => {
+    const initial = setTimeout(() => void load(), 0)
+    const timer = setInterval(() => {
+      if (!document.hidden) void load()
+    }, 4000)
+    return () => {
+      clearTimeout(initial)
+      clearInterval(timer)
+    }
+  }, [load])
   useEffect(() => {
     if (!log) return
     let active = true
-    const read = async () => { try { const r = await fetch(`${base}/${log.id}/log`); if (!r.ok) throw new Error('日志读取失败'); const value = await r.text(); if (active) setText(value) } catch (e) { if (active) setText(String(e)) } }
-    void read(); const timer = setInterval(() => void read(), 2000)
-    return () => { active = false; clearInterval(timer) }
+    const read = async () => {
+      try {
+        const r = await fetch(`${base}/${log.id}/log`)
+        if (!r.ok) throw new Error('日志读取失败')
+        const value = await r.text()
+        if (active) setText(value)
+      } catch (e) {
+        if (active) setText(String(e))
+      }
+    }
+    void read()
+    const timer = setInterval(() => void read(), 2000)
+    return () => {
+      active = false
+      clearInterval(timer)
+    }
   }, [log])
   async function install(id: string) {
     setBusy(true)
     try {
-      const r = await fetch(`${base}/${id}/install`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
+      const r = await fetch(`${base}/${id}/install`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
       const value = await r.json()
       if (!r.ok) throw new Error(value.error ?? '无法创建安装链接')
       window.location.href = value.url
-    } catch (e) { setError(String(e)) } finally { setBusy(false) }
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
   }
-  async function act(body: unknown) { setBusy(true); try { setData(await request(body)); setError('') } catch (e) { setError(String(e)) } finally { setBusy(false) } }
-  return <section className="builds-page">
-    <header><div><h1>构建</h1><p>Android 与 iOS 的持续集成、日志和产物</p></div><button disabled={busy} onClick={() => void act({ action: 'poll' })}>检查更新</button></header>
-    {data?.mode === 'mock' && <p className="builds-notice">预览模式：模拟构建，与正式构建及签名隔离。</p>}
-    {error && <p role="alert" className="builds-error">{error}</p>}
-    {data?.pollError && <p role="alert" className="builds-error">检查仓库失败：{data.pollError}</p>}
-    {data && <div className="builds-settings">
-      <label><input type="checkbox" checked={data.settings.automatic} disabled={busy} onChange={(e) => void act({ action: 'settings', ...data.settings, automatic: e.target.checked })} />自动构建 main 和 PR</label>
-      <label><input type="checkbox" checked={data.settings.adhoc} disabled={busy} onChange={(e) => void act({ action: 'settings', ...data.settings, adhoc: e.target.checked })} />自动构建 Ad Hoc（需要签名证书及已注册设备）</label>
-      {data.checkedAt && <small>上次检查：{new Date(data.checkedAt).toLocaleString()}</small>}
-    </div>}
-    <form onSubmit={(e) => { e.preventDefault(); void act({ action: 'enqueue', ref: ref.trim(), targets: target === 'both' ? ['android', 'ios-simulator'] : [target] }) }}>
-      <label>构建来源<input aria-label="构建来源" required value={ref} onChange={(e) => setRef(e.target.value)} placeholder="main、pr/编号、完整提交号" /></label>
-      <label>构建目标<select value={target} onChange={(e) => setTarget(e.target.value)}><option value="both">Android + iOS 模拟器</option>{Object.entries(targetLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <button disabled={busy || !data} type="submit">开始构建</button>
-    </form>
-    <nav aria-label="构建筛选">{[['all', '全部'], ['main', 'main'], ['pr', 'PR'], ['manual', '手动']].map(([key, label]) => <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}</nav>
-    {!data ? <p>正在连接构建服务…</p> : !data.builds.length ? <p>暂无构建。提交包含移动端构建脚本后将自动构建，也可以手动指定来源。</p> : data.builds.filter((b) => filter === 'all' || b.trigger === filter).map((b) => <article key={b.id}>
-      <div className="builds-row"><strong>{targetLabels[b.target]}</strong><span data-status={b.status}>{statusLabels[b.status]}</span><code title={b.commit}>{b.commit.slice(0, 7)}</code><span>{b.trigger === 'pr' ? `PR #${b.pr}` : b.trigger === 'manual' ? '手动' : 'main'}</span></div>
-      <small>{new Date(b.createdAt).toLocaleString()}{b.startedAt && ` · 用时 ${Math.max(0, Math.round(((b.endedAt ? Date.parse(b.endedAt) : clock) - Date.parse(b.startedAt)) / 1000))} 秒`}</small>
-      {b.error && <p className="builds-error">{b.error}</p>}
-      <div className="builds-row"><button onClick={() => { setText('读取日志…'); setLog(b) }}>查看日志</button>{['queued', 'running'].includes(b.status) ? <button disabled={busy} onClick={() => void act({ action: 'cancel', id: b.id })}>取消</button> : <button disabled={busy} onClick={() => void act({ action: 'retry', id: b.id })}>重新构建</button>}</div>
-      {data.mode === 'real' && b.target === 'ios-adhoc' && b.status === 'success' && <div className="builds-row"><button disabled={busy} onClick={() => void install(b.id)}>在 iPhone / iPad 上安装</button><small>仅限描述文件内已注册的设备，安装链接有效期 24 小时</small></div>}
-      {b.artifacts.map((a) => <a className="builds-artifact" key={a.name} href={`${base}/${b.id}/artifacts/${encodeURIComponent(a.name)}`} download title={`SHA-256: ${a.sha256}`}>{a.name} · {(a.size / 1024 / 1024).toFixed(1)} MB ↓</a>)}
-    </article>)}
-    {log && <section className="builds-log" aria-label="构建日志"><header><strong>{targetLabels[log.target]} · {log.commit.slice(0, 7)}</strong><a href={`${base}/${log.id}/log?download=1`} download>下载完整日志</a><button onClick={() => setLog(undefined)}>关闭日志</button></header><pre>{text}</pre></section>}
-  </section>
+  async function act(body: unknown) {
+    setBusy(true)
+    try {
+      setData(await request(body))
+      setError('')
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="builds-page">
+      <header>
+        <div>
+          <h1>构建</h1>
+          <p>Android 与 iOS 的持续集成、日志和产物</p>
+        </div>
+        <Button disabled={busy} onPress={() => void act({ action: 'poll' })}>
+          检查更新
+        </Button>
+      </header>
+      {data?.mode === 'mock' && <p className="builds-notice">预览模式：模拟构建，与正式构建及签名隔离。</p>}
+      {error && (
+        <p role="alert" className="builds-error">
+          {error}
+        </p>
+      )}
+      {data?.pollError && (
+        <p role="alert" className="builds-error">
+          检查仓库失败：{data.pollError}
+        </p>
+      )}
+      {data && (
+        <div className="builds-settings">
+          <Checkbox
+            isSelected={data.settings.automatic}
+            isDisabled={busy}
+            onChange={(automatic) => void act({ action: 'settings', ...data.settings, automatic })}
+          >
+            自动构建 main 和 PR
+          </Checkbox>
+          <Checkbox
+            isSelected={data.settings.adhoc}
+            isDisabled={busy}
+            onChange={(adhoc) => void act({ action: 'settings', ...data.settings, adhoc })}
+          >
+            自动构建 Ad Hoc（需要签名证书及已注册设备）
+          </Checkbox>
+          {data.checkedAt && <small>上次检查：{new Date(data.checkedAt).toLocaleString()}</small>}
+        </div>
+      )}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          void act({
+            action: 'enqueue',
+            ref: ref.trim(),
+            targets: target === 'both' ? ['android', 'ios-simulator'] : [target],
+          })
+        }}
+      >
+        <label>
+          构建来源
+          <Field
+            aria-label="构建来源"
+            required
+            value={ref}
+            onValueChange={(value) => setRef(value)}
+            placeholder="main、pr/编号、完整提交号"
+          />
+        </label>
+        <label>
+          构建目标
+          <Picker aria-label="构建目标" value={target} onChange={(key) => setTarget(String(key))}>
+            <PickerItem id="both">Android + iOS 模拟器</PickerItem>
+            {Object.entries(targetLabels).map(([key, label]) => (
+              <PickerItem key={key} id={key}>
+                {label}
+              </PickerItem>
+            ))}
+          </Picker>
+        </label>
+        <Button disabled={busy || !data} type="submit">
+          开始构建
+        </Button>
+      </form>
+      <SegmentedControl aria-label="构建筛选" selectedKey={filter} onSelectionChange={(key) => setFilter(String(key))}>
+        {[
+          ['all', '全部'],
+          ['main', 'main'],
+          ['pr', 'PR'],
+          ['manual', '手动'],
+        ].map(([key, label]) => (
+          <SegmentedControlItem key={key} id={key}>
+            {label}
+          </SegmentedControlItem>
+        ))}
+      </SegmentedControl>
+      {!data ? (
+        <p>正在连接构建服务…</p>
+      ) : !data.builds.length ? (
+        <p>暂无构建。提交包含移动端构建脚本后将自动构建，也可以手动指定来源。</p>
+      ) : (
+        data.builds
+          .filter((b) => filter === 'all' || b.trigger === filter)
+          .map((b) => (
+            <article key={b.id}>
+              <div className="builds-row">
+                <strong>{targetLabels[b.target]}</strong>
+                <span data-status={b.status}>{statusLabels[b.status]}</span>
+                <code title={b.commit}>{b.commit.slice(0, 7)}</code>
+                <span>{b.trigger === 'pr' ? `PR #${b.pr}` : b.trigger === 'manual' ? '手动' : 'main'}</span>
+              </div>
+              <small>
+                {new Date(b.createdAt).toLocaleString()}
+                {b.startedAt &&
+                  ` · 用时 ${Math.max(0, Math.round(((b.endedAt ? Date.parse(b.endedAt) : clock) - Date.parse(b.startedAt)) / 1000))} 秒`}
+              </small>
+              {b.error && <p className="builds-error">{b.error}</p>}
+              <div className="builds-row">
+                <Button
+                  onPress={() => {
+                    setText('读取日志…')
+                    setLog(b)
+                  }}
+                >
+                  查看日志
+                </Button>
+                {['queued', 'running'].includes(b.status) ? (
+                  <Button disabled={busy} onPress={() => void act({ action: 'cancel', id: b.id })}>
+                    取消
+                  </Button>
+                ) : (
+                  <Button disabled={busy} onPress={() => void act({ action: 'retry', id: b.id })}>
+                    重新构建
+                  </Button>
+                )}
+              </div>
+              {data.mode === 'real' && b.target === 'ios-adhoc' && b.status === 'success' && (
+                <div className="builds-row">
+                  <Button disabled={busy} onPress={() => void install(b.id)}>
+                    在 iPhone / iPad 上安装
+                  </Button>
+                  <small>仅限描述文件内已注册的设备，安装链接有效期 24 小时</small>
+                </div>
+              )}
+              {b.artifacts.map((a) => (
+                <a
+                  className="builds-artifact"
+                  key={a.name}
+                  href={`${base}/${b.id}/artifacts/${encodeURIComponent(a.name)}`}
+                  download
+                  title={`SHA-256: ${a.sha256}`}
+                >
+                  {a.name} · {(a.size / 1024 / 1024).toFixed(1)} MB ↓
+                </a>
+              ))}
+            </article>
+          ))
+      )}
+      {log && (
+        <section className="builds-log" aria-label="构建日志">
+          <header>
+            <strong>
+              {targetLabels[log.target]} · {log.commit.slice(0, 7)}
+            </strong>
+            <a href={`${base}/${log.id}/log?download=1`} download>
+              下载完整日志
+            </a>
+            <Button onPress={() => setLog(undefined)}>关闭日志</Button>
+          </header>
+          <pre>{text}</pre>
+        </section>
+      )}
+    </section>
+  )
 }

@@ -76,10 +76,6 @@
   place-items: center;
   width: 20px;
   height: 20px;
-  border: 2px solid var(--surface);
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
 }
 
 /* 触屏上按钮太小不好点，扩大可点区域 */

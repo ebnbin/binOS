@@ -1,5 +1,5 @@
 .added {
-  color: #1a7f37;
+  color: var(--positive);
   font-family: var(--mono);
 }
 

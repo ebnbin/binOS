@@ -12,11 +12,3 @@
 .message p {
   margin: 0;
 }
-
-.message button {
-  padding: 4px 14px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--on-ink);
-  font-size: 13px;
-}

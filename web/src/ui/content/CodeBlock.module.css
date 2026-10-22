@@ -1,7 +1,7 @@
 .block {
   overflow: hidden;
   border: 1px solid var(--hairline);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--code);
 }
 
@@ -23,7 +23,7 @@
   padding: 10px 0;
   overflow: auto;
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--text);
 }

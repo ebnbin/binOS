@@ -36,7 +36,6 @@
 }
 
 .missing button {
-  color: var(--text);
   text-decoration: underline;
 }
 

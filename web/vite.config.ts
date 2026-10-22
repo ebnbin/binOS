@@ -1,12 +1,24 @@
 import { Resvg } from '@resvg/resvg-js'
 import react from '@vitejs/plugin-react'
+import macros from 'unplugin-parcel-macros'
 import { defineConfig } from 'vite'
 import type { Plugin } from 'vite'
 import { logoSvg } from './src/logo.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), appFiles()],
+  plugins: [macros.vite(), react(), appFiles()],
+  optimizeDeps: { exclude: ['@react-spectrum/s2/style'] },
+  build: {
+    cssMinify: 'lightningcss',
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (/macro-.*\.css$/.test(id) || /@react-spectrum\/s2\/.*\.css$/.test(id)) return 'spectrum-styles'
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/install': { target: `http://127.0.0.1:${process.env.BINOS_SERVER_PORT ?? 3000}` },

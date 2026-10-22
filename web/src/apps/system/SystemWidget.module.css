@@ -40,11 +40,15 @@
 }
 
 .dot[data-connected='true'] {
-  background: #34c759;
+  background: var(--positive);
 }
 
 .version {
   font-family: var(--mono);
 }
 
-.metrics { margin-top: 12px; color: var(--text-2); font-size: 12px; }
+.metrics {
+  margin-top: 12px;
+  color: var(--text-2);
+  font-size: 12px;
+}

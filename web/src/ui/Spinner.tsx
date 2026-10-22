@@ -1,5 +1,5 @@
-import styles from './Spinner.module.css'
+import { ProgressCircle } from '@react-spectrum/s2'
 
 export function Spinner() {
-  return <span className={styles.spinner} role="status" aria-label="进行中" />
+  return <ProgressCircle size="S" isIndeterminate aria-label="进行中" />
 }

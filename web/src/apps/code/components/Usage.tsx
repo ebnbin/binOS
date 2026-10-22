@@ -1,3 +1,5 @@
+import { ProgressCircle } from '@react-spectrum/s2'
+import { Button } from '../../../ui/Button.tsx'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
@@ -30,7 +32,6 @@ export function Usage({ session }: { session: SessionSummary }) {
   const ratio = context ? Math.min(context.tokens / context.window, 1) : 0
   const level = ratio >= 0.9 ? 'danger' : ratio >= 0.7 ? 'warning' : undefined
   const total = tokens && tokens.input + tokens.output + tokens.cacheRead + tokens.cacheWrite
-  const circumference = 2 * Math.PI * 8
   return (
     <Popover
       label="会话用量"
@@ -39,7 +40,7 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <Button
           type="button"
           className={styles.ring}
           data-level={level}
@@ -47,21 +48,8 @@ export function Usage({ session }: { session: SessionSummary }) {
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
-          <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
-            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
-            <circle
-              cx="10"
-              cy="10"
-              r="8"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - ratio)}
-            />
-          </svg>
-        </button>
+          <ProgressCircle size="S" value={ratio * 100} aria-label={`上下文 ${Math.round(ratio * 100)}%`} />
+        </Button>
       }
     >
       <div className={styles.line}>
@@ -82,7 +70,9 @@ export function Usage({ session }: { session: SessionSummary }) {
       )}
       <div className={styles.line}>
         <span className={styles.label}>本会话</span>
-        <span>{total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}</span>
+        <span>
+          {total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}
+        </span>
       </div>
       {/* 每次请求都要把整个上下文再读一遍，所以读缓存占了绝大部分 */}
       {tokens && (

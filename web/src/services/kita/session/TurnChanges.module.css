@@ -1,6 +1,6 @@
 .card {
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--hairline);
   font-size: 13px;
@@ -28,20 +28,7 @@
   gap: 6px;
   width: 100%;
   min-height: 30px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 7px;
-  background: none;
-  color: var(--text);
-  font: inherit;
   text-align: left;
-  cursor: pointer;
-}
-
-@media (hover: hover) {
-  .row:hover {
-    background: var(--hover);
-  }
 }
 
 .chevron {
@@ -61,7 +48,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 
 .dir {
@@ -78,7 +65,7 @@
 .kind {
   flex: none;
   padding: 0 6px;
-  border-radius: 999px;
+  border-radius: 16px;
   background: var(--hover);
   color: var(--muted);
   font-size: 11.5px;
@@ -95,7 +82,7 @@
 }
 
 .added {
-  color: #1a7f37;
+  color: var(--positive);
 }
 
 .removed {

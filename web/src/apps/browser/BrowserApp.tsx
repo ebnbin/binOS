@@ -1,4 +1,6 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from 'lucide-react'
+import { Field } from '../../ui/Field.tsx'
+import { Button } from '../../ui/Button.tsx'
+import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from '../../ui/icons.tsx'
 import { useEffect, useState } from 'react'
 import { IconButton } from '../../ui/IconButton.tsx'
 import type { WindowContext } from '../types.ts'
@@ -6,7 +8,8 @@ import { addressRoute, browserAddress, routeAddress } from './address.ts'
 import styles from './BrowserApp.module.css'
 
 // 顶层导航会替换整个 binOS，不能随嵌入网页一起放开。
-const sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals'
+const sandbox =
+  'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals'
 
 export function BrowserApp({ ctx }: { ctx: WindowContext }) {
   const requested = routeAddress(ctx.route)
@@ -22,10 +25,14 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
     setPreviousUrl(url)
     setAddress(url)
     setError('')
-    setHistory((previous) => previous.entries[previous.index] === url ? previous : {
-      entries: [...previous.entries.slice(0, previous.index + 1), url],
-      index: previous.index + 1,
-    })
+    setHistory((previous) =>
+      previous.entries[previous.index] === url
+        ? previous
+        : {
+            entries: [...previous.entries.slice(0, previous.index + 1), url],
+            index: previous.index + 1,
+          },
+    )
   }
 
   useEffect(() => setTitle(url ? new URL(url).host : ''), [url, setTitle])
@@ -47,26 +54,45 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <div className={styles.toolbar}>
         <div className={styles.navigation}>
-          <IconButton icon={ArrowLeft} label="上一个输入的网址" disabled={history.index === 0} onClick={() => move(-1)} />
-          <IconButton icon={ArrowRight} label="下一个输入的网址" disabled={history.index === history.entries.length - 1} onClick={() => move(1)} />
-          <IconButton icon={RotateCw} label="重新打开输入的网址" disabled={!url} onClick={() => setRevision((value) => value + 1)} />
-          <IconButton icon={House} label="浏览器首页" onClick={() => visit('')} />
+          <IconButton
+            icon={ArrowLeft}
+            label="上一个输入的网址"
+            disabled={history.index === 0}
+            onPress={() => move(-1)}
+          />
+          <IconButton
+            icon={ArrowRight}
+            label="下一个输入的网址"
+            disabled={history.index === history.entries.length - 1}
+            onPress={() => move(1)}
+          />
+          <IconButton
+            icon={RotateCw}
+            label="重新打开输入的网址"
+            disabled={!url}
+            onPress={() => setRevision((value) => value + 1)}
+          />
+          <IconButton icon={House} label="浏览器首页" onPress={() => visit('')} />
         </div>
-        <form className={styles.address} onSubmit={(event) => {
-          event.preventDefault()
-          try {
-            const next = browserAddress(address)
-            if (new URL(next).origin === window.location.origin) throw new Error('请在新标签页中打开 binOS 自身的网址')
-            visit(next)
-          } catch (reason) {
-            setError(reason instanceof Error ? reason.message : '网址格式不正确')
-          }
-        }}>
-          <input
+        <form
+          className={styles.address}
+          onSubmit={(event) => {
+            event.preventDefault()
+            try {
+              const next = browserAddress(address)
+              if (new URL(next).origin === window.location.origin)
+                throw new Error('请在新标签页中打开 binOS 自身的网址')
+              visit(next)
+            } catch (reason) {
+              setError(reason instanceof Error ? reason.message : '网址格式不正确')
+            }
+          }}
+        >
+          <Field
             aria-label="网址"
             placeholder="输入网址"
             value={address}
-            onChange={(event) => setAddress(event.target.value)}
+            onValueChange={(value) => setAddress(value)}
             onFocus={(event) => event.target.select()}
             type="text"
             inputMode="url"
@@ -74,11 +100,28 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
             autoCorrect="off"
             spellCheck={false}
           />
-          <button type="submit">前往</button>
+          <Button appearance="primary" type="submit">
+            前往
+          </Button>
         </form>
-        {url && <a className={styles.external} href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址" title="在新标签页打开输入的网址"><ArrowUpRight size={19} /></a>}
+        {url && (
+          <a
+            className={styles.external}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="在新标签页打开输入的网址"
+            title="在新标签页打开输入的网址"
+          >
+            <ArrowUpRight size={19} />
+          </a>
+        )}
       </div>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
       {url ? (
         <>
           <div className={styles.notice}>

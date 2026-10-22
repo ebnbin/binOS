@@ -1,6 +1,5 @@
-import * as Primitive from '@radix-ui/react-popover'
+import { DialogTrigger, Popover as SpectrumPopover } from '@react-spectrum/s2'
 import type { ReactElement, ReactNode } from 'react'
-import styles from './Popover.module.css'
 
 export function Popover({
   trigger,
@@ -22,20 +21,11 @@ export function Popover({
   align?: 'start' | 'end'
 }) {
   return (
-    <Primitive.Root open={open} onOpenChange={onOpenChange}>
-      <Primitive.Trigger asChild>{trigger}</Primitive.Trigger>
-      <Primitive.Portal>
-        <Primitive.Content
-          aria-label={label}
-          side={side}
-          align={align}
-          sideOffset={8}
-          collisionPadding={12}
-          className={`${styles.content} ${className ?? ''}`}
-        >
-          {children}
-        </Primitive.Content>
-      </Primitive.Portal>
-    </Primitive.Root>
+    <DialogTrigger isOpen={open} onOpenChange={onOpenChange}>
+      {trigger}
+      <SpectrumPopover aria-label={label} placement={`${side} ${align}`} UNSAFE_className={className} hideArrow>
+        {children}
+      </SpectrumPopover>
+    </DialogTrigger>
   )
 }

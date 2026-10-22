@@ -28,7 +28,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #42806b;
+  color: var(--positive);
   font-size: 12px;
 }
 .freshness::before {
@@ -56,21 +56,12 @@
   align-items: center;
   gap: 10px;
   flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
   text-align: left;
-  color: var(--text-2);
-}
-.sections button[aria-current='page'] {
-  background: var(--ink);
-  color: var(--on-ink);
-  border-color: var(--ink);
 }
 .sections small {
   display: block;
   opacity: 0.65;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 2px;
 }
 .body {
@@ -145,7 +136,7 @@
   border-radius: 8px;
   appearance: none;
   background: var(--bubble);
-  accent-color: #5e9a8b;
+  accent-color: var(--ink);
 }
 .card progress::-webkit-progress-bar,
 .volume progress::-webkit-progress-bar {
@@ -154,12 +145,12 @@
 }
 .card progress::-webkit-progress-value,
 .volume progress::-webkit-progress-value {
-  background: #5e9a8b;
+  background: var(--ink);
   border-radius: 8px;
 }
 .card progress::-moz-progress-bar,
 .volume progress::-moz-progress-bar {
-  background: #5e9a8b;
+  background: var(--ink);
   border-radius: 8px;
 }
 .speeds {
@@ -179,7 +170,7 @@
   color: var(--text);
 }
 .speeds small {
-  font-size: 11px;
+  font-size: 12px;
 }
 .section {
   margin-bottom: 18px;
@@ -231,13 +222,6 @@
 .actions button {
   display: inline-flex;
   align-items: center;
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--surface);
-}
-.app button:disabled {
-  opacity: 0.4;
 }
 .rows {
   margin: 0;
@@ -262,7 +246,6 @@
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 0;
   width: 100%;
   text-align: left;
 }
@@ -293,7 +276,6 @@
     gap: 6px;
   }
   .sections button {
-    padding: 10px 8px;
     gap: 7px;
   }
   .sections small {
@@ -326,4 +308,24 @@
   .cards {
     grid-template-columns: 1fr;
   }
+}
+
+.sections {
+  padding: 16px 24px;
+  background: var(--sidebar);
+}
+.sections > div {
+  width: min(100%, 720px);
+  margin: 0 auto;
+}
+.cards {
+  gap: 20px;
+}
+.card,
+.section {
+  border-color: var(--hairline);
+  padding: 24px;
+}
+.top {
+  padding: 16px 24px;
 }

@@ -6,7 +6,7 @@
 
 .ring g,
 .window {
-  --window: #2fa84f;
+  --window: var(--positive);
 }
 
 .ring [data-longest],
@@ -81,7 +81,7 @@
 .bar {
   position: relative;
   height: 6px;
-  border-radius: 999px;
+  border-radius: 16px;
   background: var(--hover);
 }
 
@@ -103,6 +103,6 @@
   bottom: -3px;
   width: 2px;
   margin-left: -1px;
-  border-radius: 1px;
+  border-radius: 8px;
   background: var(--text-2);
 }

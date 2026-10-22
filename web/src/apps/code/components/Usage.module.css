@@ -3,30 +3,10 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--muted);
-  cursor: pointer;
 }
 
 .ring svg {
   transform: rotate(-90deg);
-}
-
-@media (hover: hover) {
-  .ring:hover {
-    background: var(--hover);
-  }
-}
-
-.ring[data-level='warning'] {
-  color: var(--live);
-}
-
-.ring[data-level='danger'] {
-  color: var(--danger);
 }
 
 .panel {
@@ -57,7 +37,7 @@
 .bar {
   height: 6px;
   margin-top: -2px;
-  border-radius: 999px;
+  border-radius: 16px;
   background: var(--hover);
   overflow: hidden;
 }

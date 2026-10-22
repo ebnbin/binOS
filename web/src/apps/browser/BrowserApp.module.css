@@ -29,16 +29,9 @@
 .address input {
   width: 100%;
   min-width: 0;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 16px;
 }
 .address button {
   flex-shrink: 0;
-  padding: 7px 10px;
-  font-size: 13px;
 }
 .external {
   display: grid;
@@ -103,4 +96,22 @@
   .external {
     margin-left: auto;
   }
+}
+
+.toolbar {
+  padding: 14px 20px;
+  gap: 12px;
+  background: var(--sidebar);
+}
+.address {
+  border: 0;
+  background: transparent;
+  gap: 8px;
+}
+.home {
+  background: var(--sidebar);
+}
+.home h1 {
+  font-size: 32px;
+  font-weight: 700;
 }

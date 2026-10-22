@@ -1,10 +1,15 @@
-import { ExternalLink } from 'lucide-react'
+import { Button } from '../../../ui/Button.tsx'
+import { ExternalLink } from '../../../ui/icons.tsx'
 import { useEffect, useState } from 'react'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
 import styles from '../Login.module.css'
 
-type Step = { name: 'starting' } | { name: 'waiting'; id: string; url: string; code: string } | { name: 'done' } | { name: 'failed'; error: string }
+type Step =
+  | { name: 'starting' }
+  | { name: 'waiting'; id: string; url: string; code: string }
+  | { name: 'done' }
+  | { name: 'failed'; error: string }
 
 // 等用户授权时多久问一次结果
 const pollInterval = 2000
@@ -78,9 +83,9 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
             <Spinner /> 等你授权，授权后这里会自动更新
           </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button type="button" className={styles.secondary} onPress={onClose}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -88,9 +93,9 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
         <>
           <p className={styles.done}>登录好了，下一轮回答起用新的登录</p>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button appearance="primary" type="button" className={styles.primary} onPress={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -98,12 +103,17 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
         <>
           <p className={styles.error}>{step.error}</p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button type="button" className={styles.secondary} onPress={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
+            </Button>
+            <Button
+              appearance="primary"
+              type="button"
+              className={styles.primary}
+              onPress={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}
+            >
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}
