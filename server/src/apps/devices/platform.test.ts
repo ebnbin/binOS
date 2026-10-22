@@ -1,14 +1,17 @@
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { EventEmitter } from 'node:events'
 import { afterAll, describe, expect, it, vi } from 'vitest'
 
-const { execute, controls } = vi.hoisted(() => ({
+const { execute, launch, controls } = vi.hoisted(() => ({
   execute: vi.fn<(command: string, args: string[]) => Promise<{ stdout: string | Buffer }>>(),
+  launch: vi.fn<(...args: unknown[]) => unknown>(),
   controls: { empty: false, other: false, capture: '', iosState: 'Booted', iosName: 'iPhone', androidConnected: false },
 }))
 vi.mock('node:child_process', async (original) => ({
   ...await original<typeof import('node:child_process')>(),
+  spawn: launch,
   execFile: Object.assign(() => {}, { [Symbol.for('nodejs.util.promisify.custom')]: execute }),
 }))
 const root = mkdtempSync(path.join(os.tmpdir(), 'binos-platform-'))
@@ -59,6 +62,28 @@ describe('平台操作', () => {
     controls.other = false
     await destroy(device)
     expect(existsSync(directory)).toBe(false)
+  })
+  it('Android 网络发现保持默认实例，临时目录独立，避免客户端连接不存在的发现文件', async () => {
+    const { avdDir } = await import('./config.js')
+    const directory = path.join(avdDir, 'Android.avd')
+    mkdirSync(directory, { recursive: true })
+    writeFileSync(path.join(directory, 'config.ini'), 'target=android-36\n')
+    launch.mockImplementation(() => Object.assign(new EventEmitter(), { pid: process.pid, exitCode: null, signalCode: null, unref() {} }))
+    const previous = process.env.NETSIM_INSTANCE
+    process.env.NETSIM_INSTANCE = '123'
+    try {
+      await reset({ id: 'android-network-test', platform: 'android', name: 'Android', target: 'emulator-0', status: 'cleaning' })
+      const [, args, options] = launch.mock.calls.at(-1)!
+      const flags = args as string[]
+      const env = (options as { env: NodeJS.ProcessEnv }).env
+      expect(flags[flags.indexOf('-netsim-args') + 1]).not.toContain('--instance')
+      expect(env.NETSIM_INSTANCE).toBeUndefined()
+      expect(env.TMPDIR).toContain('binos-emu-')
+      expect(env.NETSIM_HCI_PORT).toBe('6402')
+    } finally {
+      if (previous === undefined) delete process.env.NETSIM_INSTANCE
+      else process.env.NETSIM_INSTANCE = previous
+    }
   })
   it('iOS 查询后已经关闭的竞态不会阻止恢复清理', async () => {
     await expect(reset({ id: 'ios', platform: 'ios', name: 'iPhone', target: 'ios-id', status: 'cleaning' })).resolves.toBeUndefined()

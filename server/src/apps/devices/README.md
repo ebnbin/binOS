@@ -10,7 +10,7 @@
 
 需要已安装的 Xcode、iOS runtime、Android SDK platform-tools、emulator 和系统镜像。不需要来源 AVD，也不自动安装 SDK 或镜像。默认 Android 镜像为 `system-images;android-36;google_apis_playstore;arm64-v8a`，iOS 优先使用 iPhone 18 Pro，选择本机支持该机型的最新可用 runtime；未安装该机型对应 runtime 时选择可用 iPhone。显式指定的机型和 runtime 必须兼容，否则返回明确错误。服务启动环境可设置 `ANDROID_HOME`、`BINOS_ANDROID_IMAGE`、`BINOS_IOS_DEVICE_TYPE` 和 `BINOS_IOS_RUNTIME`，改变后需重启服务。
 
-真实设备使用专属 Android AVD 目录和 iOS device set，默认无窗口。Android 各实例使用独立临时目录和网络模拟实例编号，进程身份包含 PID 与启动时间。已有模拟器只读发现，不参与分配或销毁。
+真实设备使用专属 Android AVD 目录和 iOS device set，默认无窗口。Android 各实例使用独立临时目录和 HCI 端口，网络服务保持默认实例编号以匹配模拟器客户端的发现文件，进程身份包含 PID 与启动时间。已有模拟器只读发现，不参与分配或销毁。
 
 `BINOS_TEST_INSTANCE=1` 的开发与 PR 预览默认使用模拟设备，执行完整调度流程但不操作实际模拟器。真实模式为 `BINOS_DEVICES_MODE=real`；同一数据目录不能混用模式。
 
