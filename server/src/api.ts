@@ -30,31 +30,36 @@ const registryBody = validator('json', (value, c) => {
   return external ? { external } : c.text('Bad Request', 400)
 })
 
-export const api = new Hono()
-  .basePath('/api')
-  // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
-  .get('/health', (c) => c.json({ version }))
-  .use(requireOwner, requirePreflight)
-  // app 注册表：整份读取，整份替换
-  .get('/apps', (c) => c.json(readRegistry()))
-  .put('/apps', registryBody, (c) => {
-    saveRegistry(c.req.valid('json'))
-    return c.json({ ok: true as const }, 200)
-  })
-  .route('/kita', kitaApi)
-  // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
-  .get('/events', (c) =>
-    streamSSE(c, async (stream) => {
-      await stream.write(connectedPreamble)
-      const send = (event: ChangeEvent) => void stream.writeSSE({ data: JSON.stringify(event) })
-      stream.onAbort(onChange(send))
-      await keepAlive(stream)
-    }),
-  )
+export function createApi(authorize: MiddlewareHandler = requireOwner) {
+  const api = new Hono()
+    .basePath('/api')
+    // 上线脚本在本机检查它，拿不到 Access 凭证，所以注册在身份校验之前
+    .get('/health', (c) => c.json({ version }))
+    .use(authorize, requirePreflight)
+    // app 注册表：整份读取，整份替换
+    .get('/apps', (c) => c.json(readRegistry()))
+    .put('/apps', registryBody, (c) => {
+      saveRegistry(c.req.valid('json'))
+      return c.json({ ok: true as const }, 200)
+    })
+    .route('/kita', kitaApi)
+    // 页面只连这一条全局通知；断线重连后页面会全部重新读取，这里不补发
+    .get('/events', (c) =>
+      streamSSE(c, async (stream) => {
+        await stream.write(connectedPreamble)
+        const send = (event: ChangeEvent) => void stream.writeSSE({ data: JSON.stringify(event) })
+        stream.onAbort(onChange(send))
+        await keepAlive(stream)
+      }),
+    )
 
-// app 的路由不在 AppType 里，页面用各个 app 自己导出的类型
-for (const app of serverApps) {
-  api.route(`/apps/${app.id}`, app.api)
+  // app 的路由不在 AppType 里，页面用各个 app 自己导出的类型
+  for (const app of serverApps) {
+    api.route(`/apps/${app.id}`, app.api)
+  }
+
+  return api
 }
 
+export const api = createApi()
 export type AppType = typeof api

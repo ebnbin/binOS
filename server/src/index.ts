@@ -6,13 +6,14 @@ import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { downloadsRouter } from './apps/builds/install.js'
-import { api } from './api.js'
-import { codeDir, libraryDir, serverLockPath } from './paths.js'
+import { api, createApi } from './api.js'
+import { apiSocketPath, codeDir, libraryDir, serverLockPath } from './paths.js'
 import { previewProxy } from './previews.js'
 import { acquireProcessLock } from './process.js'
 import { serverPort } from './production.js'
 import { serverApps } from './apps/index.js'
 import { migrateAgentToKita } from './migrations/kita.js'
+import { startLocalApi } from './local-api.js'
 import { startKitaService } from './services/kita/index.js'
 
 // 一个根目录的数据只能由一个后端读写：两个后端会同时跟进同一轮回答，重复写入记录
@@ -21,6 +22,12 @@ if (holder) {
   throw new Error(`根目录 ${path.dirname(libraryDir)} 已有后端在运行（进程 ${holder.pid}）`)
 }
 migrateAgentToKita(path.dirname(libraryDir))
+// 免 Cloudflare 凭证的 API 只挂在受文件权限保护的 socket 上，不经过预览转发。
+const localServer = await startLocalApi(createApi(async (_c, next) => { await next() }).fetch, apiSocketPath)
+console.log(`binOS 本机 API：${apiSocketPath}`)
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.once(signal, () => { localServer.close(); process.exit(0) })
+}
 startKitaService()
 for (const app of serverApps) {
   app.start?.()
