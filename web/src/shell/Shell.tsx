@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { FloatingPlayer, MusicStatusButton } from '../apps/music/FloatingPlayer.tsx'
 import { useApplicationsLoaded } from '../apps/index.ts'
 import { useElementSize } from '../ui/useElementSize.ts'
 import { useBarPlacement } from './bar-placement.ts'
@@ -13,6 +15,13 @@ export function Shell() {
   const [main, size] = useElementSize<HTMLDivElement>()
   const controller = useShellController(size)
   const placement = useBarPlacement()
+  const [musicCollapsed, setMusicCollapsed] = useState(false)
+  const musicVisible = !controller.home && controller.windows.some(item => item.window.applicationId === 'music' && controller.panes.includes(item.id))
+  const [previousMusicVisible, setPreviousMusicVisible] = useState(musicVisible)
+  if (previousMusicVisible !== musicVisible) {
+    setPreviousMusicVisible(musicVisible)
+    setMusicCollapsed(false)
+  }
 
   return (
     <div className={styles.shell} data-bar={placement}>
@@ -41,10 +50,14 @@ export function Shell() {
             {controller.home && <Desktop width={size.width} onOpen={controller.open} />}
           </>
         )}
+        {loaded && size && !musicVisible && (
+          <FloatingPlayer screen={size} collapsed={musicCollapsed} onCollapse={() => setMusicCollapsed(true)} onOpen={() => controller.open('music')} locked={controller.picking} />
+        )}
       </div>
       {placement !== 'hidden' && (
         <TaskBar
           placement={placement}
+          accessory={!musicVisible && <MusicStatusButton collapsed={musicCollapsed} onToggle={() => setMusicCollapsed(value => !value)} />}
           windows={controller.windows}
           groups={controller.groups}
           locked={controller.picking}
