@@ -25,6 +25,7 @@ export function rootLayout(root: string) {
     appsDir: path.join(libraryDir, 'Apps'),
     // agent 服务的数据：thread、额度和登录的状况
     kitaServiceDir: path.join(libraryDir, 'Services', 'kita'),
+    devicesServiceDir: path.join(libraryDir, 'Services', 'devices'),
     // 上线服务的数据：上一个版本、上线过程中的临时文件、上线失败的提交和锁
     deployDir: path.join(libraryDir, 'Services', 'deploy'),
   }

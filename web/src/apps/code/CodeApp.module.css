@@ -57,8 +57,21 @@
   }
 }
 
-.development { display: flex; flex-direction: column; height: 100%; min-height: 0; }
-.tabs { display: flex; gap: 4px; padding: 6px 12px; border-bottom: 1px solid var(--border); }
-.tabs button { padding: 6px 14px; border-radius: 6px; color: var(--muted); cursor: pointer; }
-.tabs button[aria-current=page] { color: var(--text); background: var(--hover); }
-.content { flex: 1; min-height: 0; position: relative; }
+.toolBar {
+  display: none;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+}
+
+@container agent (width < 960px) {
+  .toolBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+}

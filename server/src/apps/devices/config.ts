@@ -2,9 +2,9 @@ import { existsSync, readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import os from 'node:os'
 import path from 'node:path'
-import { appDir, codeDir, isTestInstance } from '../../paths.js'
+import { codeDir, devicesServiceDir, isTestInstance } from '../../paths.js'
 
-export const dataDir = appDir('devices')
+export const dataDir = devicesServiceDir
 export const socketPath = path.join(os.tmpdir(), `binos-devices-${createHash('sha256').update(dataDir).digest('hex').slice(0, 16)}.sock`)
 export const statePath = path.join(dataDir, 'state.json')
 export const lockPath = path.join(dataDir, 'manager.lock')

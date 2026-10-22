@@ -8,6 +8,8 @@ import {
   Gauge,
   GitPullRequest,
   Hourglass,
+  Hammer,
+  Smartphone,
   MoreHorizontal,
   Search,
   SquarePen,
@@ -32,12 +34,14 @@ export function SessionList({
   projects,
   failed,
   current,
+  currentTool,
   onNavigate,
 }: {
   sessions: SessionSummary[] | undefined
   projects: Project[] | undefined
   failed: boolean
   current: number | null
+  currentTool?: 'builds' | 'devices'
   onNavigate: (route: string) => void
 }) {
   const [creating, setCreating] = useState(false)
@@ -113,6 +117,15 @@ export function SessionList({
         )}
       </label>
       <nav className={styles.list}>
+        <ul>
+          {([['builds', '构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
+            <li key={name}>
+              <button type="button" className={styles.item} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
+                <span className={styles.line}><Icon size={16} strokeWidth={1.75} /><span className={styles.title}>{label}</span></span>
+              </button>
+            </li>
+          ))}
+        </ul>
         {query.trim() ? (
           <SearchResults
             query={query.trim()}
