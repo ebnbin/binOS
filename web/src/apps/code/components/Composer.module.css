@@ -11,7 +11,7 @@
   border: 1px solid var(--border);
   border-radius: 22px;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 3%);
   cursor: text;
   transition: border-color 0.15s;
 }
@@ -32,7 +32,7 @@
 .input {
   display: block;
   width: 100%;
-  min-height: 26px;
+  min-height: 52px;
   max-height: 200px;
   field-sizing: content;
   padding: 2px 0 0;
@@ -52,40 +52,17 @@
 
 .bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
+  justify-content: flex-start;
+  gap: 2px;
   margin-top: 6px;
 }
 
 .attach {
-  margin: -2px 0 -2px -10px;
-}
-
-.choice {
-  max-width: min(220px, 100%);
-  height: 28px;
-  min-width: 0;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
-}
-
-@media (hover: hover) {
-  .choice:hover:not(:disabled) {
-    background: var(--hover);
-  }
-}
-
-.choice:disabled {
-  opacity: 0.5;
-  cursor: default;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-left: -8px;
 }
 
 .action {
@@ -209,4 +186,126 @@
   .card {
     padding: 10px 10px 8px 16px;
   }
+}
+
+.model {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.model span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.model svg { flex: none; }
+.model:disabled, .settings:disabled { opacity: 0.5; }
+
+.settings {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.modelMenu {
+  z-index: 1000;
+  width: 320px;
+  max-width: calc(100vw - 24px);
+  max-height: min(420px, var(--radix-select-content-available-height));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.modelList { padding: 6px; }
+.modelOption {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 32px 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+.modelOption small { color: var(--muted); font-size: 11px; }
+.modelOption[data-highlighted] { background: var(--hover); }
+.modelOption[data-disabled] { opacity: 0.4; cursor: default; }
+.selected { position: absolute; right: 12px; top: 18px; }
+.settingsMenu { width: 200px; padding: 6px; }
+.settingsTitle { display: block; margin: 6px 10px; font-size: 13px; color: var(--text-2); }
+.settingsMenu [role='group'] { display: flex; flex-direction: column; gap: 2px; }
+.settingsMenu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+}
+.settingsMenu button[aria-pressed='true'] { color: var(--text); background: var(--hover); }
+@media (hover: hover) {
+  .settingsMenu button:hover:not(:disabled), .model:hover:not(:disabled), .settings:hover:not(:disabled) { background: var(--hover); }
+}
+@media (pointer: coarse) {
+  .attach, .settings, .model, .action { min-height: 44px; }
+  .attach, .action { width: 44px; }
+  .settings { min-width: 44px; }
+  .settingsMenu button { min-height: 44px; }
+}
+@container agent (width < 400px) {
+  .bar:has(.interrupt) { flex-wrap: wrap; }
+  .bar:has(.interrupt) .actions { width: 100%; justify-content: flex-end; }
+}
+
+@media (pointer: coarse) and (width < 600px) {
+  :global([data-radix-popper-content-wrapper]):has(.modelMenu) {
+    position: fixed !important;
+    inset: auto 12px 12px !important;
+    transform: none !important;
+  }
+  .modelMenu {
+    width: calc(100vw - 24px);
+    max-height: 60dvh;
+    border-radius: 20px;
+  }
+  .modelList { max-height: 60dvh; }
 }

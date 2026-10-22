@@ -61,7 +61,6 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
           ) : (
             <>
               <TopBar
-                onBuild={project === 'binos' ? (ref) => ctx.navigate(`/builds?ref=${encodeURIComponent(ref)}`) : undefined}
                 title={title}
                 sessionId={sessionId}
                 session={session}

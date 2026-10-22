@@ -194,6 +194,12 @@
     border-bottom: 1px solid var(--hairline);
   }
 
+  .bar:has(.heading:last-child)::after {
+    content: '';
+    width: 36px;
+    flex: none;
+  }
+
   .heading {
     justify-content: center;
   }
