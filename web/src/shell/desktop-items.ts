@@ -13,6 +13,7 @@ const widget = (id: string, applicationId: string, widgetId: string, size: Widge
 // 外部 app 的图标排在系统 app 后面
 const defaultDesktop = (apps: ApplicationDefinition[]): DesktopItem[] => [
   widget('system-status', 'system', 'status', '4x2'),
+  shortcut('kita'),
   shortcut('code'),
   shortcut('browser'),
   shortcut('system'),
