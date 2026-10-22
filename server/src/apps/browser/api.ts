@@ -15,7 +15,7 @@ export const browserApi = new Hono()
       return {
         async onOpen(_event, ws) {
           try {
-            connection = await connectBrowser(c.req.query('session'), (message) => ws.send(JSON.stringify(message)), () => ws.close())
+            connection = await connectBrowser(c.req.query('session'), (message) => ws.send(JSON.stringify(message)), (code) => ws.close(code))
             if (closed) connection.dispose()
             else for (const message of pending.splice(0)) connection.receive(message)
           } catch (error) {
