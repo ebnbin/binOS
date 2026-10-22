@@ -115,9 +115,9 @@ async function bootAndroid(device: Device, wipe: boolean) {
   const temp = androidTemp(device)
   await mkdir(temp, { recursive: true, mode: 0o700 })
   const log = openSync(path.join(emulatorHome, `${device.id}.log`), 'a', 0o600)
-  const env: NodeJS.ProcessEnv = { ...toolEnv, ANDROID_EMULATOR_HOME: emulatorHome, TMPDIR: temp, ANDROID_TMP: temp, NETSIM_INSTANCE: port, NETSIM_HCI_PORT: String(Number(port) + 6402) }
-  for (const key of ['NETSIM_GRPC_PORT', 'NETSIM_TCP_PORT', 'NETSIM_WS_PORT']) delete env[key]
-  const child = spawn(emulator, ['-avd', device.name, '-port', port, '-no-window', '-no-audio', '-no-snapshot', '-no-metrics', '-netsim-args', `--instance ${port} --hci-port ${Number(port) + 6402}`, ...(wipe ? ['-wipe-data'] : [])], {
+  const env: NodeJS.ProcessEnv = { ...toolEnv, ANDROID_EMULATOR_HOME: emulatorHome, TMPDIR: temp, ANDROID_TMP: temp, NETSIM_HCI_PORT: String(Number(port) + 6402) }
+  for (const key of ['NETSIM_INSTANCE', 'NETSIM_GRPC_PORT', 'NETSIM_TCP_PORT', 'NETSIM_WS_PORT']) delete env[key]
+  const child = spawn(emulator, ['-avd', device.name, '-port', port, '-no-window', '-no-audio', '-no-snapshot', '-no-metrics', '-netsim-args', `--hci-port ${Number(port) + 6402}`, ...(wipe ? ['-wipe-data'] : [])], {
     env, stdio: ['ignore', log, log], detached: true,
   })
   closeSync(log)
