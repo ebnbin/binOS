@@ -1,3 +1,4 @@
+import { readProfile, profileInstructions } from './profile.js'
 import { drivers } from './drivers/index.js'
 import { createKitaSession, getKitaSession, onKitaSessionEvent, startSessions } from './sessions.js'
 import type { KitaSessionOptions } from './sessions.js'
@@ -12,7 +13,10 @@ export type { Event, Item, Turn, SessionMetadata } from './journal.js'
 export function forApp(owner: string) {
   if (!owner.trim()) throw new Error('Kita 需要调用方身份')
   return {
-    createSession: (options: Omit<KitaSessionOptions, 'owner'>) => createKitaSession({ ...options, owner }),
+    createSession: ({ context = 'neutral', ...options }: Omit<KitaSessionOptions, 'owner'> & { context?: 'personal' | 'neutral' }) => createKitaSession({
+      ...options, owner,
+      ...(context === 'personal' && { instructions: [profileInstructions(readProfile()), options.instructions].filter(Boolean).join('\n\n') }),
+    }),
     getSession: (id: string) => getKitaSession(id, owner),
     onEvent: (listener: (id: string, event: KitaSessionEvent) => void) => onKitaSessionEvent(owner, listener),
   }

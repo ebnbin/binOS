@@ -19,7 +19,9 @@
     "./apps/system/types": "./src/apps/system/types.ts",
     "./apps/terminal/types": "./src/apps/terminal/sessions.ts",
     "./apps/devices/api": "./src/apps/devices/api.ts",
-    "./apps/devices/types": "./src/apps/devices/types.ts"
+    "./apps/devices/types": "./src/apps/devices/types.ts",
+    "./services/kita/profile": "./src/services/kita/profile.ts",
+    "./apps/kita/types": "./src/apps/kita/store.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

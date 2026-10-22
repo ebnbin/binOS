@@ -1,8 +1,13 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Smartphone, Terminal } from 'lucide-react'
+import { Sparkles, CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Smartphone, Terminal } from 'lucide-react'
 import { lazy } from 'react'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
+  {
+    id: 'kita', name: 'Kita', icon: Sparkles,
+    mainWindow: { viewId: 'main' },
+    views: { main: { kind: 'window', component: lazy(() => import('./kita/KitaApp.tsx').then((module) => ({ default: module.KitaApp }))) } },
+  },
   {
     id: 'calendar',
     name: '日历',
