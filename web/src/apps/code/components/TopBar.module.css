@@ -132,3 +132,17 @@
   color: inherit;
   text-decoration: none;
 }
+@container agent (width < 500px) {
+  .heading {
+    flex-wrap: nowrap;
+  }
+  .heading > .id {
+    display: none;
+  }
+  .titleWrap {
+    flex: 1;
+  }
+  .titleButton {
+    max-width: 100%;
+  }
+}

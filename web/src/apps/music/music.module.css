@@ -576,3 +576,12 @@
 .widgetArt[data-playing='true'] {
   box-shadow: 0 0 0 2px var(--color-accent);
 }
+@container music (width < 720px) {
+  .player {
+    flex: none;
+  }
+  .library {
+    flex: none;
+    min-height: 340px;
+  }
+}

@@ -76,11 +76,11 @@
   color: var(--color-on-accent);
   background: var(--color-accent);
 }
-.sections button:nth-child(2) svg {
+.sections button:nth-of-type(2) svg {
   background: #8757c8;
   color: white;
 }
-.sections button:nth-child(3) svg {
+.sections button:nth-of-type(3) svg {
   background: #65758b;
   color: white;
 }
