@@ -1,4 +1,4 @@
-import { CircleAlert } from 'lucide-react'
+import { CircleAlert } from './icons.tsx'
 import type { ReactNode } from 'react'
 import styles from './Alert.module.css'
 

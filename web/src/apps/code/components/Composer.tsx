@@ -1,5 +1,7 @@
+import { Input, Textarea } from '../../../ui/Input.tsx'
+import { Button } from '../../../ui/Button.tsx'
 import { Select } from '../../../ui/Select.tsx'
-import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from '../../../ui/icons.tsx'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -143,8 +145,10 @@ export function Composer({
       sendingRef.current = false
       setSending(false)
       const textarea = textareaRef.current
-      if (enterSends && textarea?.closest('form')?.contains(document.activeElement)) {
-        textarea.focus({ preventScroll: true })
+      const root = textarea?.getRootNode()
+      const owner = root instanceof ShadowRoot ? root.host : textarea
+      if (enterSends && owner?.closest('form')?.contains(document.activeElement)) {
+        textarea?.focus({ preventScroll: true })
       }
     }
   }
@@ -239,7 +243,7 @@ export function Composer({
             <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
           </div>
         )}
-        <textarea
+        <Textarea
           ref={textareaRef}
           className={styles.input}
           value={input}
@@ -254,7 +258,7 @@ export function Composer({
           autoFocus={enterSends}
         />
         <div className={styles.bar}>
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
             multiple
@@ -318,14 +322,14 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+            <Button variant="filled-icon" type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
               <span className={styles.stopIcon} />
-            </button>
+            </Button>
           ) : (
             <>
               {running && (
                 <>
-                  <button
+                  <Button
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('interrupt')}
@@ -334,8 +338,8 @@ export function Composer({
                   >
                     <Zap size={14} strokeWidth={2} />
                     打断
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('queue')}
@@ -344,10 +348,11 @@ export function Composer({
                   >
                     <ListPlus size={14} strokeWidth={2} />
                     排队
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <Button
+                variant="filled-icon"
                 type="submit"
                 className={styles.action}
                 disabled={!canSend}
@@ -355,7 +360,7 @@ export function Composer({
                 title={running ? '插话：agent 在下一步看到' : '发送'}
               >
                 <ArrowUp size={17} strokeWidth={2.2} />
-              </button>
+              </Button>
             </>
           )}
         </div>

@@ -4,15 +4,15 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--surface);
+  background: var(--md-sys-color-surface-container-lowest);
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 8px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-8);
+  padding: var(--space-8);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 .navigation {
   display: flex;
@@ -22,48 +22,29 @@
   align-items: center;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-}
-.address input {
-  width: 100%;
-  min-width: 0;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 16px;
+  gap: 8px;
 }
 .address button {
-  flex-shrink: 0;
-  padding: 7px 10px;
-  font-size: 13px;
+  flex: none;
 }
 .external {
   display: grid;
   place-items: center;
   width: 36px;
   height: 36px;
-  color: var(--text-2);
-  border-radius: 8px;
-}
-.external:hover,
-.address button:hover {
-  background: var(--hover);
 }
 .notice {
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--text-2);
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-8) var(--space-12);
+  font-size: var(--md-sys-typescale-body-small-size);
+  color: var(--md-sys-color-on-surface-variant);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
 }
 .error {
   margin: 0;
-  padding: 8px 12px;
-  color: var(--danger);
-  background: var(--danger-bg);
-  font-size: 13px;
+  padding: var(--space-8) var(--space-12);
+  color: var(--md-sys-color-error);
+  background: var(--md-sys-color-error-container);
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
 .frame {
   flex: 1;
@@ -80,20 +61,20 @@
   align-items: center;
   justify-content: center;
   overflow: auto;
-  padding: 32px 24px;
+  padding: var(--space-32) var(--space-24);
   text-align: center;
-  color: var(--text-2);
+  color: var(--md-sys-color-on-surface-variant);
 }
 .home h1 {
-  color: var(--text);
-  font-size: 22px;
+  color: var(--md-sys-color-on-surface);
+  font-size: var(--md-sys-typescale-title-large-size);
   font-weight: 500;
   margin: 16px 0 8px;
 }
 .home p {
   max-width: 380px;
   margin: 4px 0;
-  font-size: 13px;
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
 @container browser (width < 440px) {
   .address {

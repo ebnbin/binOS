@@ -31,8 +31,8 @@ import {
   Terminal,
   Utensils,
   Wallet,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+} from '../../ui/icons.tsx'
+import type { MaterialIcon } from '../../ui/icons.tsx'
 
 // 外部 app 可选的图标，清单里存键名
 export const icons = {
@@ -68,7 +68,7 @@ export const icons = {
   leaf: Leaf,
   heart: Heart,
   star: Star,
-} satisfies Record<string, LucideIcon>
+} satisfies Record<string, MaterialIcon>
 
 export type IconName = keyof typeof icons
 

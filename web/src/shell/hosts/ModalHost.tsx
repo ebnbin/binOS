@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useReducedMotion } from '../../ui/useReducedMotion.ts'
+import '@material/web/dialog/dialog.js'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import styles from './ModalHost.module.css'
 
 export function ModalHost({
   label,
@@ -15,25 +17,22 @@ export function ModalHost({
   children: ReactNode
   dismissible?: boolean
 }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    dialog.current?.showModal()
-  }, [])
+  const quick = useReducedMotion()
   return createPortal(
-    <dialog
-      ref={dialog}
-      className={className}
+    <md-dialog
+      quick={quick}
+      open
       aria-label={label}
-      onClose={onClose}
-      onCancel={(event) => {
+      className={`${styles.dialog} ${className ?? ''}`}
+      oncancel={(event) => {
         if (!dismissible) event.preventDefault()
       }}
-      onClick={(event) => {
-        if (dismissible && event.target === dialog.current) onClose()
-      }}
+      onclosed={onClose}
     >
-      {children}
-    </dialog>,
+      <div slot="content" className={styles.content}>
+        {children}
+      </div>
+    </md-dialog>,
     document.body,
   )
 }

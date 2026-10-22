@@ -1,10 +1,21 @@
-import * as Primitive from '@radix-ui/react-select'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import '@material/web/select/outlined-select.js'
+import '@material/web/select/select-option.js'
+import type { MdOutlinedSelect } from '@material/web/select/outlined-select.js'
+import { useLayoutEffect, useRef } from 'react'
+import { useReducedMotion } from './useReducedMotion.ts'
 import styles from './Select.module.css'
 
 type Option = { value: string; label: string; disabled?: boolean }
 
-export function Select({ value, options, onValueChange, label, title, disabled, className }: {
+export function Select({
+  value,
+  options,
+  onValueChange,
+  label,
+  title,
+  disabled,
+  className,
+}: {
   value: string
   options: Option[]
   onValueChange: (value: string) => void
@@ -13,28 +24,36 @@ export function Select({ value, options, onValueChange, label, title, disabled, 
   disabled?: boolean
   className?: string
 }) {
-  // Radix 的空字符串用于清除选择；加前缀让业务里的默认选项也能被选中。
-  const encode = (value: string) => `option:${value}`
+  const quick = useReducedMotion()
+  const select = useRef<MdOutlinedSelect>(null)
+  useLayoutEffect(() => {
+    const element = select.current
+    let active = true
+    void element?.updateComplete.then(() => {
+      if (active) element.value = value
+    })
+    return () => {
+      active = false
+    }
+  }, [value, options])
   return (
-    <Primitive.Root value={encode(value)} onValueChange={(next) => onValueChange(next.slice(7))} disabled={disabled}>
-      <Primitive.Trigger aria-label={label} title={title} className={`${styles.trigger} ${className ?? ''}`}>
-        <span className={styles.value}><Primitive.Value /></span>
-        <Primitive.Icon className={styles.icon}><ChevronDown size={13} /></Primitive.Icon>
-      </Primitive.Trigger>
-      <Primitive.Portal>
-        <Primitive.Content className={styles.content} position="popper" sideOffset={6} collisionPadding={8}>
-          <Primitive.ScrollUpButton className={styles.scroll}><ChevronUp size={14} /></Primitive.ScrollUpButton>
-          <Primitive.Viewport className={styles.viewport}>
-            {options.map((option) => (
-              <Primitive.Item key={option.value} value={encode(option.value)} disabled={option.disabled} className={styles.item}>
-                <Primitive.ItemText>{option.label}</Primitive.ItemText>
-                <Primitive.ItemIndicator className={styles.indicator}><Check size={14} /></Primitive.ItemIndicator>
-              </Primitive.Item>
-            ))}
-          </Primitive.Viewport>
-          <Primitive.ScrollDownButton className={styles.scroll}><ChevronDown size={14} /></Primitive.ScrollDownButton>
-        </Primitive.Content>
-      </Primitive.Portal>
-    </Primitive.Root>
+    <md-outlined-select
+      ref={select}
+      quick={quick}
+      className={`${styles.control} ${className ?? ''}`}
+      label={label}
+      aria-label={label}
+      title={title}
+      value={value}
+      disabled={disabled ?? false}
+      menuPositioning="popover"
+      onchange={(event) => onValueChange((event.currentTarget as MdOutlinedSelect).value)}
+    >
+      {options.map((option) => (
+        <md-select-option key={option.value} value={option.value} selected={option.value === value} disabled={option.disabled ?? false}>
+          <div slot="headline">{option.label}</div>
+        </md-select-option>
+      ))}
+    </md-outlined-select>
   )
 }

@@ -1,10 +1,10 @@
-import type { LucideIcon } from 'lucide-react'
+import type { MaterialIcon } from '../ui/icons.tsx'
 import type { ComponentType } from 'react'
 
 export type ApplicationDefinition = {
   id: string
   name: string
-  icon: LucideIcon
+  icon: MaterialIcon
   // 独立部署的 web app 的网址，来自 app 注册表
   url?: string
   views: Record<string, ViewDefinition>
@@ -15,8 +15,7 @@ export type ApplicationDefinition = {
 }
 
 export type ViewDefinition =
-  | { kind: 'window'; component: ComponentType<{ ctx: WindowContext }> }
-  | { kind: 'widget'; component: ComponentType<WidgetContext> }
+  { kind: 'window'; component: ComponentType<{ ctx: WindowContext }> } | { kind: 'widget'; component: ComponentType<WidgetContext> }
 
 // route 由 app 自己解释，窗口内容不依赖 Shell 的布局和存储。
 export type WindowContext = {

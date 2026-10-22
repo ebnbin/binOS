@@ -1,3 +1,4 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
@@ -39,7 +40,7 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <Button
           type="button"
           className={styles.ring}
           data-level={level}
@@ -61,7 +62,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeDashoffset={circumference * (1 - ratio)}
             />
           </svg>
-        </button>
+        </Button>
       }
     >
       <div className={styles.line}>

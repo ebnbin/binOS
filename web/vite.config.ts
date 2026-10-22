@@ -41,8 +41,8 @@ function appFiles(): Plugin {
     // 桌面上装成 app 后去掉浏览器的标题栏，由菜单栏占据窗口顶部
     display_override: ['window-controls-overlay'],
     display: 'standalone',
-    background_color: '#000000',
-    theme_color: '#000000',
+    background_color: '#f3edf7',
+    theme_color: '#f3edf7',
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
       { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },

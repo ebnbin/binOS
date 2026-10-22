@@ -1,5 +1,6 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -53,10 +54,10 @@ function SessionTitle({ session }: { session: SessionSummary }) {
   return (
     <span className={styles.titleWrap}>
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-        <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
+        <Button variant="surface" type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
           <span className={styles.title}>{session.title || '（无内容）'}</span>
           <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
-        </button>
+        </Button>
       </SessionActions>
     </span>
   )
@@ -76,10 +77,10 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           label="对话的 PR"
           className={styles.prMenu}
           trigger={
-            <button type="button" className={styles.finished} aria-label="查看对话的 PR">
+            <Button type="button" className={styles.finished} aria-label="查看对话的 PR">
               <GitMerge size={13} strokeWidth={2} />
               {finished.length}
-            </button>
+            </Button>
           }
         >
           {[...prs].reverse().map((pr) => (

@@ -1,0 +1,42 @@
+.control {
+  vertical-align: middle;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.surface {
+  position: relative;
+  isolation: isolate;
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.surface:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.surface > md-ripple,
+.surface > md-focus-ring {
+  border-radius: inherit;
+}
+
+.content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.surface:focus-visible {
+  outline: none;
+}
+
+.control {
+  --md-icon-size: 18px;
+}
+.control:is(md-icon-button, md-filled-icon-button) {
+  --md-icon-size: 24px;
+}

@@ -1,8 +1,12 @@
+import { useReducedMotion } from '../../../ui/useReducedMotion.ts'
+import { Input } from '../../../ui/Input.tsx'
+import '@material/web/menu/menu.js'
+import '@material/web/menu/menu-item.js'
+import type { MdMenu } from '@material/web/menu/menu.js'
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
-import { useRef, useState } from 'react'
-import type { ReactElement } from 'react'
+import { cloneElement, useLayoutEffect, useRef, useState } from 'react'
+import type { ReactElement, HTMLAttributes, Ref } from 'react'
+import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from '../../../ui/icons.tsx'
 import { editSession } from '../api.ts'
 import styles from './SessionMenu.module.css'
 
@@ -19,9 +23,15 @@ export function SessionActions({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const quick = useReducedMotion()
+  const anchor = useRef<HTMLElement>(null)
+  const menu = useRef<MdMenu>(null)
   const renaming = useRef(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  useLayoutEffect(() => {
+    if (menu.current) menu.current.anchorElement = anchor.current
+  })
   async function edit(change: { pinned?: boolean; archived?: boolean }) {
     setSaving(true)
     setError('')
@@ -34,68 +44,81 @@ export function SessionActions({
       setSaving(false)
     }
   }
+  const original = children.props as HTMLAttributes<HTMLElement>
   return (
-    <Dropdown.Root
-      open={open}
-      onOpenChange={(next) => {
-        setError('')
-        onOpenChange(next)
-      }}
-      modal={false}
-    >
-      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
-      <Dropdown.Portal>
-        <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
-          aria-label="会话操作"
-          onCloseAutoFocus={(event) => {
-            if (renaming.current) event.preventDefault()
+    <>
+      {cloneElement(children as ReactElement<HTMLAttributes<HTMLElement> & { ref?: Ref<HTMLElement> }>, {
+        ref: anchor,
+        'aria-haspopup': 'menu',
+        'aria-expanded': open,
+        onClick: (event) => {
+          original.onClick?.(event)
+          if (event.defaultPrevented) return
+          setError('')
+          const next = !menu.current?.open
+          if (menu.current) menu.current.open = next
+          onOpenChange(next)
+        },
+        onKeyDown: (event) => {
+          original.onKeyDown?.(event)
+          if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
+          event.preventDefault()
+          if (menu.current) {
+            menu.current.defaultFocus = event.key === 'ArrowUp' ? 'last-item' : 'first-item'
+            menu.current.open = true
+          }
+          onOpenChange(true)
+        },
+      })}
+      <md-menu
+        quick={quick}
+        role="menu"
+        ref={menu}
+        open={open}
+        positioning="popover"
+        aria-label="会话操作"
+        className={styles.menu}
+        anchorCorner="end-end"
+        menuCorner="start-end"
+        yOffset={8}
+        onclosing={() => {
+          if (!menu.current?.open) onOpenChange(false)
+        }}
+        onclosed={() => {
+          if (renaming.current) {
+            renaming.current = false
+            onRename()
+            if (menu.current) menu.current.skipRestoreFocus = false
+          }
+        }}
+      >
+        <md-menu-item
+          keepOpen
+          disabled={saving}
+          onClick={() => {
+            renaming.current = true
+            if (menu.current) menu.current.skipRestoreFocus = true
+            onOpenChange(false)
           }}
         >
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={() => {
-              renaming.current = true
-              onOpenChange(false)
-              onRename()
-            }}
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ pinned: !session.pinned })
-            }}
-          >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ archived: !session.archived })
-            }}
-          >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </Dropdown.Item>
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-        </Dropdown.Content>
-      </Dropdown.Portal>
-    </Dropdown.Root>
+          <Pencil slot="start" size={24} />
+          <div slot="headline">重命名</div>
+        </md-menu-item>
+        <md-menu-item keepOpen disabled={saving} onClick={() => void edit({ pinned: !session.pinned })}>
+          {session.pinned ? <PinOff slot="start" /> : <Pin slot="start" />}
+          <div slot="headline">{session.pinned ? '取消置顶' : '置顶'}</div>
+        </md-menu-item>
+        <md-menu-item keepOpen disabled={saving} onClick={() => void edit({ archived: !session.archived })}>
+          {session.archived ? <ArchiveRestore slot="start" /> : <Archive slot="start" />}
+          <div slot="headline">{session.archived ? '取消归档' : '归档'}</div>
+        </md-menu-item>
+        {error && (
+          <p role="alert" className={styles.error}>
+            {error}
+          </p>
+        )}
+      </md-menu>
+    </>
   )
 }
 
@@ -127,7 +150,7 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <Input
         className={styles.rename}
         value={value}
         autoFocus

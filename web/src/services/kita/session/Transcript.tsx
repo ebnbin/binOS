@@ -1,5 +1,6 @@
+import { Button } from '../../../ui/Button.tsx'
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
@@ -182,7 +183,11 @@ function renderBlocks(blocks: Block[], context: Context, last: Block | undefined
       case 'attachments':
         return <AttachmentList key={block.key} thread={thread} attachments={block.attachments} />
       case 'text':
-        return <div key={block.key} data-thread-item={block.key}><Markdown thread={thread} text={block.text} files={block.files} /></div>
+        return (
+          <div key={block.key} data-thread-item={block.key}>
+            <Markdown thread={thread} text={block.text} files={block.files} />
+          </div>
+        )
       case 'steps':
         return <Steps key={block.key} steps={block.steps} context={context} last={block === last} />
       case 'interrupted':
@@ -281,25 +286,38 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   const open = userOpen ?? (context.live !== null && last)
   return (
     <div className={styles.worked} data-open={open || undefined}>
-      <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
+      <Button variant="surface" type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
         <span>
           {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
           {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
         </span>
         <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
-      </button>
+      </Button>
       {open && <div className={styles.steps}>{list}</div>}
     </div>
   )
 }
 
 function compactText({ trigger, preTokens, postTokens }: CompactItem) {
-  const sizes = preTokens !== undefined && postTokens !== undefined ? `（${formatTokens(preTokens)} → ${formatTokens(postTokens)} token）` : ''
+  const sizes =
+    preTokens !== undefined && postTokens !== undefined ? `（${formatTokens(preTokens)} → ${formatTokens(postTokens)} token）` : ''
   return `${trigger === 'manual' ? '手动' : '自动'}压缩了上下文${sizes}`
 }
 
 // 一轮的结尾：停止、出错，以及这一轮的统计
-function TurnEnd({ thread, agent, item, reply, edits }: { thread: string; agent: AgentId | undefined; item: TurnEndItem; reply: string; edits: CallState[] }) {
+function TurnEnd({
+  thread,
+  agent,
+  item,
+  reply,
+  edits,
+}: {
+  thread: string
+  agent: AgentId | undefined
+  item: TurnEndItem
+  reply: string
+  edits: CallState[]
+}) {
   const files = fileChanges(edits)
   const { durationMs, outputTokens, context, model, outcome, error } = item
   const stats = [
@@ -323,7 +341,10 @@ function TurnEnd({ thread, agent, item, reply, edits }: { thread: string; agent:
       {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
       <div className={styles.stats}>
         <span
-          title={[`${formatFull(new Date(item.time))} 答完`, context && `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token`]
+          title={[
+            `${formatFull(new Date(item.time))} 答完`,
+            context && `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token`,
+          ]
             .filter(Boolean)
             .join('\n')}
         >

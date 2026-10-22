@@ -1,172 +1,92 @@
 .dock {
   flex: none;
-  padding: 0 28px 20px;
+  padding: 0 24px 24px;
 }
-
 .card {
   position: relative;
-  max-width: 724px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 12px 12px 10px 18px;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  padding: 16px;
+  border: 1px solid transparent;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
   cursor: text;
-  transition: border-color 0.15s;
+  transition: border-color var(--md-sys-motion-duration-short);
 }
-
 .card:focus-within {
-  border-color: color-mix(in srgb, var(--muted) 55%, transparent);
+  border-color: var(--md-sys-color-primary);
 }
-
 .card.dragging {
-  border-color: var(--text-2);
+  border-color: var(--md-sys-color-primary);
   border-style: dashed;
 }
-
 .attachments {
-  padding: 4px 0 10px;
+  padding: 4px 0 12px;
 }
-
 .input {
   display: block;
   width: 100%;
-  min-height: 26px;
-  max-height: 200px;
-  field-sizing: content;
-  padding: 2px 0 0;
-  border: 0;
-  outline: none;
-  background: none;
-  resize: none;
+  --md-outlined-text-field-outline-width: 0px;
+  --md-outlined-text-field-hover-outline-width: 0px;
+  --md-outlined-text-field-focus-outline-width: 0px;
+  --md-outlined-text-field-container-shape: 16px;
 }
-
-.input::placeholder {
-  color: var(--muted);
-}
-
-.input:read-only {
-  cursor: default;
-}
-
 .bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 8px;
+  margin-top: 12px;
 }
-
 .attach {
-  margin: -2px 0 -2px -10px;
+  flex: none;
 }
-
 .choice {
-  max-width: min(220px, 100%);
-  height: 28px;
-  min-width: 0;
-  padding: 0 6px;
-  border: 0;
-  border-radius: 8px;
-  background: none;
-  color: var(--text-2);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
+  max-width: min(240px, 100%);
+  min-width: 120px;
+  --md-outlined-select-text-field-input-text-size: 14px;
 }
-
-@media (hover: hover) {
-  .choice:hover:not(:disabled) {
-    background: var(--hover);
-  }
-}
-
-.choice:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
 .action {
   display: grid;
-  margin-left: auto;
   place-items: center;
-  width: 34px;
-  height: 34px;
   flex: none;
-  border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
-  transition:
-    opacity 0.15s,
-    transform 0.15s var(--ease);
-}
-
-.action:active:not(:disabled) {
-  transform: scale(0.92);
-}
-
-.action:disabled {
-  opacity: 0.22;
-}
-
-.interrupt {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 30px;
   margin-left: auto;
-  padding: 0 11px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background-color 0.15s;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
 }
-
-@media (hover: hover) {
-  .interrupt:hover {
-    background: var(--hover);
-  }
+.interrupt {
+  flex: none;
+  margin-left: auto;
 }
-
 .interrupt + .interrupt {
   margin-left: 0;
 }
-
 .interrupt + .action {
-  margin-left: 8px;
+  margin-left: 0;
 }
-
-/* 排队的消息：输入框里面最上面，一条一行 */
 .queue {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: -4px -4px 8px -8px;
-  padding: 0 0 6px;
-  border-bottom: 1px solid var(--hairline);
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
   list-style: none;
 }
-
 .queue li {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 30px;
+  min-height: 40px;
   padding-left: 8px;
-  font-size: 13px;
-  color: var(--text-2);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
-
 .queueIcon {
   flex: none;
-  color: var(--muted);
 }
-
 .queueText {
   flex: 1;
   min-width: 0;
@@ -174,39 +94,33 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
 .queueFiles {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 2px;
-  font-size: 12px;
-  color: var(--muted);
+  gap: 4px;
+  font-size: var(--md-sys-typescale-body-small-size);
 }
-
 .queueButton {
   flex: none;
-  width: 28px;
-  height: 28px;
 }
-
 .busy {
-  background: var(--bubble);
+  background: transparent;
 }
-
 .stopIcon {
-  width: 11px;
-  height: 11px;
-  border-radius: 2.5px;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
   background: currentColor;
 }
-
 @container agent (width < 600px) {
   .dock {
-    padding: 0 10px 10px;
+    padding: 0 12px 12px;
   }
-
   .card {
-    padding: 10px 10px 8px 16px;
+    padding: 12px;
+  }
+  .bar {
+    gap: 4px;
   }
 }

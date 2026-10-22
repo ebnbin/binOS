@@ -1,13 +1,23 @@
-import * as Primitive from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
+import '@material/web/checkbox/checkbox.js'
+import type { MdCheckbox } from '@material/web/checkbox/checkbox.js'
 import styles from './Checkbox.module.css'
 
-export function Checkbox({ checked, onCheckedChange, label }: { checked: boolean; onCheckedChange: (checked: boolean) => void; label: string }) {
+export function Checkbox({
+  checked,
+  onCheckedChange,
+  label,
+}: {
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+  label: string
+}) {
   return (
     <label className={styles.label}>
-      <Primitive.Root className={styles.control} checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)}>
-        <Primitive.Indicator className={styles.indicator}><Check size={12} strokeWidth={3} /></Primitive.Indicator>
-      </Primitive.Root>
+      <md-checkbox
+        checked={checked}
+        aria-label={label}
+        onchange={(event) => onCheckedChange((event.currentTarget as MdCheckbox).checked)}
+      />
       {label}
     </label>
   )

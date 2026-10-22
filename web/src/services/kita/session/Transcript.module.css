@@ -2,7 +2,7 @@
 .turn {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-12);
 }
 
 .user {
@@ -12,16 +12,16 @@
   align-self: flex-end;
   max-width: 100%;
   min-width: 0;
-  gap: 3px;
+  gap: var(--space-4);
 }
 
 .userText {
   max-width: 100%;
   min-width: 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--hairline);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-lowest);
+  box-shadow: 0 0 0 1px var(--md-sys-color-outline-variant);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -33,10 +33,10 @@
 .userMeta {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   min-height: 24px;
-  font-size: 11.5px;
-  color: var(--muted);
+  font-size: var(--md-sys-typescale-body-small-size);
+  color: var(--md-sys-color-on-surface-variant);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
@@ -65,17 +65,11 @@
 .workedRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-8);
   width: 100%;
   min-height: 26px;
   padding: 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
   text-align: left;
-  cursor: pointer;
 }
 
 .workedRow::after {
@@ -83,25 +77,18 @@
   flex: 1;
   height: 1px;
   margin-left: 6px;
-  background: var(--hairline);
 }
 
-.workedRow > span {
+.workedRow > span:not(:global(.material-symbols-rounded)) {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-@media (hover: hover) {
-  .workedRow:hover {
-    color: var(--text-2);
-  }
-}
-
 .workedChevron {
   flex: none;
-  transition: transform 0.2s var(--ease);
+  transition: transform 0.2s var(--md-sys-motion-easing-standard);
 }
 
 .worked[data-open] .workedChevron {
@@ -109,15 +96,15 @@
 }
 
 .errors {
-  color: var(--danger);
+  color: var(--md-sys-color-error);
 }
 
 .divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--muted);
+  gap: var(--space-12);
+  font-size: var(--md-sys-typescale-body-small-size);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .divider::before,
@@ -125,38 +112,44 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--hairline);
+  background: var(--md-sys-color-outline-variant);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  padding-top: 4px;
+  padding-top: var(--space-4);
 }
 
 .time {
   align-self: center;
   margin-top: 8px;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--md-sys-typescale-body-small-size);
+  color: var(--md-sys-color-on-surface-variant);
   font-variant-numeric: tabular-nums;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   margin-top: 2px;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: var(--md-sys-typescale-body-small-size);
+  color: var(--md-sys-color-on-surface-variant);
   font-variant-numeric: tabular-nums;
 }
 
 .status {
   width: fit-content;
-  font-size: 14px;
+  font-size: var(--md-sys-typescale-body-medium-size);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--muted) 35%, var(--text) 50%, var(--muted) 65%) 0 0 / 300% 100%;
+  background: linear-gradient(
+      90deg,
+      var(--md-sys-color-on-surface-variant) 35%,
+      var(--md-sys-color-on-surface) 50%,
+      var(--md-sys-color-on-surface-variant) 65%
+    )
+    0 0 / 300% 100%;
   background-clip: text;
   color: transparent;
   animation: shimmer 2.2s linear infinite;

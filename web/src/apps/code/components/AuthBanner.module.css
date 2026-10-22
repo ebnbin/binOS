@@ -5,38 +5,27 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   width: 100%;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--live) 14%, transparent);
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
+  padding: var(--space-8) var(--space-12);
   text-align: left;
-  cursor: pointer;
 }
 
-.row > svg {
+.row > :global(.material-symbols-rounded) {
   flex: none;
-  color: var(--live);
+  color: var(--md-sys-color-tertiary);
 }
 
-.banner[data-tone='bad'] .row {
-  background: var(--danger-bg);
+.banner[data-tone='bad'] .row > :global(.material-symbols-rounded) {
+  color: var(--md-sys-color-error);
 }
 
-.banner[data-tone='bad'] .row > svg {
-  color: var(--danger);
-}
-
-.row > span:first-of-type {
+.row > span:nth-child(2) {
   flex: 1;
   min-width: 0;
 }
 
 .action {
   flex: none;
-  font-weight: 550;
+  font-weight: 500;
 }

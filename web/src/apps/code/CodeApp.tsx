@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Button.tsx'
 import { useEffect, useRef, useState } from 'react'
 import type { WindowContext } from '../types.ts'
 import styles from './CodeApp.module.css'
@@ -28,7 +29,11 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
 
   const sessionId = route.name === 'session' ? route.id : null
   const session = sessions?.find((item) => item.id === sessionId)
-  const project = session?.project ?? (sessionId === created?.id ? created.project : undefined) ?? (route.name === 'new' ? route.project : undefined) ?? 'binos'
+  const project =
+    session?.project ??
+    (sessionId === created?.id ? created.project : undefined) ??
+    (route.name === 'new' ? route.project : undefined) ??
+    'binos'
   const missing = sessionId !== null && sessions !== undefined && !session && sessionId !== created?.id
   const title = missing ? '对话不存在' : (session?.title ?? '')
 
@@ -54,16 +59,16 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
           {missing ? (
             <div className={styles.missing}>
               <p>这个对话不存在</p>
-              <button type="button" onClick={() => ctx.navigate('/')}>
+              <Button type="button" onClick={() => ctx.navigate('/')}>
                 返回对话列表
-              </button>
+              </Button>
             </div>
           ) : (
             <Conversation
               project={project}
               projects={projects}
               onProject={(id) => ctx.navigate(`/new?project=${encodeURIComponent(id)}`, { replace: true })}
-              key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? route.item ?? '' : ''}`}
+              key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? (route.item ?? '') : ''}`}
               targetItem={route.name === 'session' ? route.item : undefined}
               sessionId={sessionId}
               session={session}

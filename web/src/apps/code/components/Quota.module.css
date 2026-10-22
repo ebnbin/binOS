@@ -3,47 +3,42 @@
 }
 
 .summary {
+  border-radius: var(--md-sys-shape-corner-full);
+  min-width: 0;
+  min-height: 32px;
   display: flex;
-  gap: 10px;
-  padding: 3px 9px 3px 6px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  gap: var(--space-12);
+  padding: var(--space-4) var(--space-8) var(--space-4) var(--space-8);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--danger);
+  color: var(--md-sys-color-error);
 }
 
 .details {
   width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px 14px 14px;
-  box-shadow: var(--shadow);
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-16) var(--space-16);
+  box-shadow: var(--md-sys-elevation-level1);
 }
 
 .details h3 {
   margin: 0 0 10px;
-  font-size: 12px;
+  font-size: var(--md-sys-typescale-body-small-size);
   font-weight: 500;
-  color: var(--muted);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .details section + section {
-  padding-top: 14px;
-  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-16);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
 }

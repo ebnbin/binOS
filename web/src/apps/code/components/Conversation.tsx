@@ -1,8 +1,9 @@
+import { Button } from '../../../ui/Button.tsx'
 import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { ArrowDown } from 'lucide-react'
+import { ArrowDown } from '../../../ui/icons.tsx'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
@@ -160,9 +161,9 @@ export function Conversation({
           </div>
         </div>
         {awayFromBottom && (
-          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
+          <Button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
             <ArrowDown size={16} strokeWidth={2} />
-          </button>
+          </Button>
         )}
       </div>
       <Composer

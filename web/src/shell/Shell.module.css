@@ -1,8 +1,5 @@
-/* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
-   除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
-   固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
 .shell {
-  --radius: 12px;
+  --radius: var(--md-sys-shape-corner-extra-large);
 
   position: fixed;
   inset: 0 0 auto;
@@ -12,12 +9,12 @@
   padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px)) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
-  background: #000;
+  background: var(--md-sys-color-surface-container);
 }
 
 @media (pointer: coarse) {
   .shell {
-    --radius: 22px;
+    --radius: var(--md-sys-shape-corner-extra-large);
   }
 }
 
@@ -46,6 +43,6 @@
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius);
-  background: var(--bg);
-  color: var(--text);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
 }

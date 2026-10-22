@@ -1,11 +1,13 @@
 .content {
+  position: fixed;
   z-index: 1000;
-  max-width: var(--radix-popover-content-available-width);
-  max-height: var(--radix-popover-content-available-height);
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
   overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
+  padding: 12px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level2);
 }

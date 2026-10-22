@@ -1,3 +1,4 @@
+import { Button } from '../ui/Button.tsx'
 import type { CSSProperties } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import type { ApplicationDefinition } from '../apps/types.ts'
@@ -72,12 +73,12 @@ function Entry({
   }
   if (item.kind === 'shortcut') {
     return (
-      <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
+      <Button variant="surface" type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
         <span className={styles.glyph}>
           <app.icon strokeWidth={1.75} />
         </span>
         <span className={styles.label}>{app.name}</span>
-      </button>
+      </Button>
     )
   }
   return <WidgetHost item={item} application={app} style={style} onOpen={onOpen} />

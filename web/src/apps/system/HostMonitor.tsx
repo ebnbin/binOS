@@ -1,5 +1,6 @@
+import { Progress } from '../../ui/Progress.tsx'
 import type { MonitorStatus } from '@binos/server/apps/system/types'
-import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from 'lucide-react'
+import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from '../../ui/icons.tsx'
 import { bytes } from './format.ts'
 import styles from './Monitor.module.css'
 
@@ -26,7 +27,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
             CPU
           </h2>
           <strong>{cpu === null ? '采样中' : `${cpu.toFixed(0)}%`}</strong>
-          <progress aria-label="CPU 使用率" max={100} value={cpu || 0} />
+          <Progress aria-label="CPU 使用率" max={100} value={cpu || 0} />
           <p>当前总使用率</p>
         </section>
         <section className={styles.card}>
@@ -38,10 +39,12 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
             {bytes(usedMemory)}
             <small> / {bytes(s.memory.total)}</small>
           </strong>
-          {usedMemory !== null && <progress aria-label="内存使用量" max={s.memory.total} value={usedMemory} />}
+          {usedMemory !== null && <Progress aria-label="内存使用量" max={s.memory.total} value={usedMemory} />}
           <p>
             内存压力：
-            <span className={s.memory.pressure === 'warning' || s.memory.pressure === 'critical' ? styles.bad : ''}>{pressureNames[s.memory.pressure]}</span>
+            <span className={s.memory.pressure === 'warning' || s.memory.pressure === 'critical' ? styles.bad : ''}>
+              {pressureNames[s.memory.pressure]}
+            </span>
           </p>
           <small className={styles.note}>已用量扣除文件缓存，为估算值。</small>
         </section>
@@ -93,7 +96,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
                     {bytes(volume.available)} 可用 / 共 {bytes(volume.total)}
                   </span>
                 </header>
-                <progress aria-label={`${name}使用量`} max={volume.total || 1} value={Math.max(0, volume.total - volume.available)} />
+                <Progress aria-label={`${name}使用量`} max={volume.total || 1} value={Math.max(0, volume.total - volume.available)} />
                 <p>已使用 {bytes(Math.max(0, volume.total - volume.available))}</p>
               </article>
             )

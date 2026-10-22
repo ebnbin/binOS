@@ -7,44 +7,48 @@
 }
 
 .time {
-  font-size: 34px;
-  font-weight: 650;
+  font-size: var(--md-sys-typescale-headline-large-size);
+  font-weight: 500;
   letter-spacing: -0.03em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
 .widget[data-size='2x2'] .time {
-  font-size: 28px;
+  font-size: var(--md-sys-typescale-headline-medium-size);
 }
 
 .date {
-  color: var(--text-2);
-  font-size: 13px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-medium-size);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-8);
   margin-top: auto;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
 }
 
 .dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--danger);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-error);
 }
 
 .dot[data-connected='true'] {
-  background: #34c759;
+  background: var(--md-sys-color-tertiary);
 }
 
 .version {
-  font-family: var(--mono);
+  font-family: var(--md-ref-typeface-mono);
 }
 
-.metrics { margin-top: 12px; color: var(--text-2); font-size: 12px; }
+.metrics {
+  margin-top: 12px;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--md-sys-typescale-body-small-size);
+}

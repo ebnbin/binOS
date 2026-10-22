@@ -1,4 +1,5 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
+import { Button } from '../../../ui/Button.tsx'
+import { ChevronRight, FileDiff } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
@@ -36,13 +37,13 @@ function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   const [open, setOpen] = useState(false)
   return (
     <li data-open={open || undefined}>
-      <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
+      <Button variant="surface" type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
         <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
         <span className={styles.name}>{file.path.split('/').at(-1)}</span>
         <span className={styles.dir}>{directory(file.path)}</span>
         {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
         <Counts added={file.added} removed={file.removed} />
-      </button>
+      </Button>
       {open && (
         <div className={styles.body}>
           {file.calls.map(({ call, result }) => (

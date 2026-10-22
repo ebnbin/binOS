@@ -1,5 +1,4 @@
-import styles from './Spinner.module.css'
-
+import '@material/web/progress/circular-progress.js'
 export function Spinner() {
-  return <span className={styles.spinner} role="status" aria-label="进行中" />
+  return <md-circular-progress indeterminate aria-label="进行中" style={{ width: 24, height: 24 }} />
 }
