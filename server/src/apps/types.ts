@@ -6,4 +6,5 @@ export type ServerApp = {
   // 各个 app 的路由类型不同，页面直接用 app 自己导出的类型
   api: Hono<any, any, any>
   start?(): void
+  stop?(): void | Promise<void>
 }

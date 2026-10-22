@@ -21,7 +21,8 @@
     "./apps/devices/api": "./src/apps/devices/api.ts",
     "./apps/devices/types": "./src/apps/devices/types.ts",
     "./apps/builds/types": "./src/apps/builds/types.ts",
-    "./apps/music/commands": "./src/apps/music/commands.ts"
+    "./apps/music/commands": "./src/apps/music/commands.ts",
+    "./apps/browser/protocol": "./src/apps/browser/protocol.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -32,6 +33,7 @@
     "@hono/node-server": "^2.1.5",
     "hono": "^4.13.13",
     "node-pty": "^1.1.0",
+    "playwright-core": "^1.64.1",
     "ws": "^8.22.0",
     "youtubei.js": "^18.2.0"
   },

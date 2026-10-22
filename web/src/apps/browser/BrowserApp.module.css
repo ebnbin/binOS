@@ -104,3 +104,60 @@
     margin-left: auto;
   }
 }
+
+.modeBar {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.modeBar button {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.modeBar button[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--hover);
+}
+.modeContent, .remote {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.remoteViewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: white;
+}
+.remoteImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+}
+.remoteStatus {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #555;
+  background: #ffffffd9;
+  pointer-events: none;
+}
+.remoteInput {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  resize: none;
+}
