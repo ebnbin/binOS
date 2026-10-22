@@ -143,7 +143,7 @@ class Session {
     // 有界面 Chrome 的 screencast 位图不保证匹配模拟视口，因此只用它监听重绘。
     this.streaming = true
     this.lastFrame = undefined
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 0, maxWidth: 64, maxHeight: 64 })
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 85, maxWidth: 64, maxHeight: 64 })
     this.refreshTimer = setInterval(() => this.captureNext(true), 200)
     this.refreshTimer.unref()
     this.captureNext(true)
