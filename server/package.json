@@ -20,7 +20,8 @@
     "./apps/terminal/types": "./src/apps/terminal/sessions.ts",
     "./apps/devices/api": "./src/apps/devices/api.ts",
     "./apps/devices/types": "./src/apps/devices/types.ts",
-    "./apps/builds/types": "./src/apps/builds/types.ts"
+    "./apps/builds/types": "./src/apps/builds/types.ts",
+    "./apps/music/commands": "./src/apps/music/commands.ts"
   },
   "scripts": {
     "dev": "tsx watch src/index.ts",

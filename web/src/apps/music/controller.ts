@@ -105,7 +105,7 @@ export class MusicController {
     this.wantsPlay = true
     if (this.state.status === 'playing' || this.state.status === 'loading') return
     if (this.player && this.state.status === 'paused') {
-      this.update({ error: undefined })
+      this.update({ status: 'loading', error: undefined })
       this.player.play()
     } else void this.select(Math.max(0, this.state.index))
   }
@@ -139,7 +139,8 @@ export class MusicController {
     this.update({ volume: next }, true)
   }
 
-  cycleRepeat() { this.update({ repeat: this.state.repeat === 'off' ? 'all' : this.state.repeat === 'all' ? 'one' : 'off' }, true) }
+  setRepeat(repeat: MusicState['repeat']) { this.update({ repeat }, true) }
+  cycleRepeat() { this.setRepeat(this.state.repeat === 'off' ? 'all' : this.state.repeat === 'all' ? 'one' : 'off') }
 
   remove(index: number) {
     if (index < 0 || index >= this.state.queue.length) return

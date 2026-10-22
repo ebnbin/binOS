@@ -1,4 +1,10 @@
 import { Hono } from 'hono'
+import { bodyLimit } from 'hono/body-limit'
+import { streamSSE } from 'hono/streaming'
+import { connectedPreamble } from '../../sse.js'
+import { parsePlayerCommand, playerCommandSchema } from './commands.js'
+import { MusicPlayers, PlayerError, parsePlayerReport } from './players.js'
+import { musicContract } from './contract.js'
 import { validator } from 'hono/validator'
 import { notifyChange } from '../../events.js'
 import type { MusicApiError } from './types.js'
@@ -7,7 +13,7 @@ import { MusicError, requireCapability, type MusicProvider } from './provider.js
 import { youtubeOfficial } from './youtubeOfficial.js'
 import { youtubeMusic } from './youtubeMusic.js'
 
-export function createMusicApi(adapters: MusicProvider[]) {
+export function createMusicApi(adapters: MusicProvider[], players = new MusicPlayers()) {
   const providers = new Map(adapters.map(provider => [provider.info().id, provider]))
   const getProvider = (id: string) => {
     const provider = providers.get(id)
@@ -16,10 +22,51 @@ export function createMusicApi(adapters: MusicProvider[]) {
   }
   return new Hono()
     .use('*', async (c, next) => { c.header('Cache-Control', 'no-store'); await next() })
+    .use(bodyLimit({ maxSize: 2 * 1024 * 1024, onError: c => c.json({ error: '请求体不能超过 2 MiB。', code: 'invalid-input' }, 413) }))
     .onError((error, c) => {
+      if (error instanceof PlayerError) return c.json({ error: error.message, code: error.code }, error.status)
       if (error instanceof MusicError) return c.json({ error: error.message, code: error.code } satisfies MusicApiError, error.code === 'invalid-input' ? 400 : error.code === 'unsupported' ? 422 : error.code === 'configuration' ? 409 : error.code === 'quota' ? 429 : 502)
       return c.json({ error: '音乐来源暂时无法完成请求，请稍后重试或检查连接设置。', code: 'unavailable' } satisfies MusicApiError, 502)
     })
+    .get('/', (c) => c.json({ ...musicContract, playerCommandSchema }))
+    .get('/players/connect', (c) => {
+      const label = c.req.query('label')?.trim()
+      if (!label || label.length > 100) throw new PlayerError('请输入不超过 100 字的播放器名称。', 'invalid-input', 400)
+      players.checkCapacity()
+      return streamSSE(c, async stream => {
+        let finish = () => {}
+        const done = new Promise<void>(resolve => { finish = resolve })
+        const id = players.connect(label, message => {
+          void stream.writeSSE({ data: JSON.stringify(message) }).catch(() => players.disconnect(id))
+        }, finish)
+        const timer = setInterval(() => players.sweep(), 5000)
+        const ping = setInterval(() => { void stream.writeSSE({ event: 'ping', data: '' }).catch(() => players.disconnect(id)) }, 15000)
+        stream.onAbort(() => players.disconnect(id))
+        try {
+          await stream.write(connectedPreamble)
+          await stream.writeSSE({ data: JSON.stringify({ type: 'connected', playerId: id }) })
+          await done
+        } finally {
+          clearInterval(timer)
+          clearInterval(ping)
+          players.disconnect(id)
+        }
+      })
+    })
+    .get('/players', (c) => c.json({ players: players.list() }))
+    .get('/players/:id', (c) => c.json(players.get(c.req.param('id')).snapshot))
+    .post('/players/:id/report', async (c) => {
+      players.report(c.req.param('id'), parsePlayerReport(await c.req.json().catch(() => null)))
+      return c.json({ ok: true })
+    })
+    .post('/players/:id/commands', async (c) => {
+      const body = await c.req.json().catch(() => null) as { id?: unknown; command?: unknown } | null
+      const command = parsePlayerCommand(body?.command)
+      if (typeof body?.id !== 'string' || !command) throw new PlayerError('请输入指令 ID 和有效的 command。', 'invalid-input', 400)
+      const result = players.submit(c.req.param('id'), body.id, command)
+      return c.json(result, result.status === 'pending' ? 202 : 200)
+    })
+    .get('/commands/:id', (c) => c.json(players.result(c.req.param('id'))))
     .get('/queue', (c) => c.json(readQueue()))
     .post('/queue', async (c) => c.json(mutateQueue(await c.req.json().catch(() => null))))
     .get('/providers', (c) => c.json({ providers: adapters.map(provider => provider.info()) }))
