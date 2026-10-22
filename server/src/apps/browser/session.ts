@@ -1,34 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { mkdirSync } from 'node:fs'
-import path from 'node:path'
-import { chromium } from 'playwright-core'
-import type { BrowserContext, CDPSession, Page } from 'playwright-core'
-import { appDir } from '../../paths.js'
+import type { CDPSession, Page } from 'playwright-core'
+import { chromeContext, disconnectChrome } from './connection.js'
 import type { ClientMessage, ServerMessage } from './protocol.js'
 
-let browser: Promise<BrowserContext> | undefined
 const sessions = new Map<string, Session>()
 let opening = 0
-let idle: ReturnType<typeof setTimeout> | undefined
-
-function context() {
-  if (!browser) {
-    const profile = path.join(appDir('browser'), 'profile')
-    mkdirSync(profile, { recursive: true })
-    browser = chromium.launchPersistentContext(profile, {
-      channel: 'chrome', headless: true, chromiumSandbox: true,
-      viewport: { width: 1200, height: 800 }, acceptDownloads: false,
-    }).then(async (value) => {
-      value.on('close', () => { browser = undefined })
-      for (const page of value.pages()) await page.close()
-      return value
-    }).catch(() => {
-      browser = undefined
-      throw new Error('无法启动远程浏览器，请确认 Mac 已安装 Google Chrome，且浏览器配置未被其他进程占用')
-    })
-  }
-  return browser
-}
 
 class Session {
   readonly id = randomUUID()
@@ -194,15 +170,11 @@ class Session {
     this.send = undefined
     this.disconnect = undefined
     void this.page.close().catch(() => {})
-    if (!sessions.size && !opening) {
-      idle = setTimeout(() => { if (!sessions.size && !opening) void browser?.then((value) => value.close()).catch(() => {}) }, 60000)
-      idle.unref()
-    }
+
   }
 }
 
 export async function connectBrowser(id: string | undefined, send: (message: ServerMessage) => void, close: () => void) {
-  clearTimeout(idle)
   let session = id ? sessions.get(id) : undefined
   if (session?.send) throw new Error('此浏览器页面已在其他连接中打开')
   if (!session) {
@@ -210,7 +182,7 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
     opening++
     let page: Page | undefined
     try {
-      page = await (await context()).newPage()
+      page = await (await chromeContext()).newPage()
       session = new Session(page)
       await session.start()
       sessions.set(session.id, session)
@@ -285,6 +257,8 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
 }
 
 export async function stopBrowser() {
-  clearTimeout(idle)
-  await browser?.then((value) => value.close()).catch(() => {})
+  const owned = [...sessions.values()]
+  for (const session of owned) { session.disconnect?.(); session.destroy() }
+  await Promise.allSettled(owned.map((session) => session.page.close()))
+  await disconnectChrome()
 }
