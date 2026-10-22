@@ -1,5 +1,6 @@
-import { Select } from '../../../ui/Select.tsx'
-import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import * as Select from '@radix-ui/react-select'
+import { Popover } from '../../../ui/Popover.tsx'
+import { ArrowUp, Check, ChevronDown, Clock, Settings2, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -66,7 +67,13 @@ export function Composer({
   const catalog = catalogs.find((item) => item.agent === choice.agent)
   const models = catalog?.models ?? []
   const defaultModel = models.find((model) => model.isDefault)
-  const efforts = models.find((model) => model.id === choice.model)?.efforts ?? catalog?.efforts ?? []
+  const efforts = models.find((model) => model.id === (choice.model ?? defaultModel?.id))?.efforts ?? catalog?.efforts ?? []
+  const selectedModel = models.find((model) => model.id === choice.model) ?? (!choice.model ? defaultModel : undefined)
+  const modelValue = `${choice.agent}:${choice.model ?? defaultModel?.id ?? ''}`
+  const modelOptions = choosable.flatMap((item) => item.models.map((model) => ({
+    value: `${item.agent}:${model.id}`, agent: item.agent, model,
+    disabled: agentFixed && item.agent !== choice.agent,
+  })))
   const canSend = !sending && hasContent
 
   function addFiles(files: File[]) {
@@ -272,92 +279,99 @@ export function Composer({
             disabled={sending}
             onClick={() => fileInputRef.current?.click()}
           />
-          {/* 用于下一轮，回答过程中插的话沿用这一轮的 */}
-          {choosable.length > 1 && (
-            <Select
-              className={styles.choice}
-              value={choice.agent}
-              disabled={agentFixed}
-              title={agentFixed ? '对话开始后不能换 agent' : 'agent'}
-              label="agent"
-              onValueChange={(agent) => onChoice({ agent: agent as Choice['agent'] })}
-              options={choosable.map(({ agent }) => ({ value: agent, label: agents[agent].name }))}
-            />
-          )}
-          <Select
-            className={styles.choice}
-            value={choice.model ?? defaultModel?.id ?? ''}
-            disabled={running}
-            title={running ? '下一轮生效' : '模型'}
-            label="模型"
-            onValueChange={(model) => onChoice({ ...choice, model: model === defaultModel?.id ? undefined : model || undefined })}
-            options={[
-              ...(!defaultModel ? [{ value: '', label: '模型信息暂不可用', disabled: true }] : []),
-              ...models.map((model) => ({ value: model.id, label: `${model.name}${model.id === defaultModel?.id ? '（默认）' : ''}` })),
-              ...(choice.model && !models.some((model) => model.id === choice.model) ? [{ value: choice.model, label: choice.model }] : []),
-            ]}
-          />
-          <Select
-            className={styles.choice}
-            value={choice.effort ?? ''}
-            disabled={running}
-            title={running ? '下一轮生效' : '思考程度'}
-            label="思考程度"
-            onValueChange={(effort) => onChoice({ ...choice, effort: effort || undefined })}
-            options={[
-              { value: '', label: '默认思考' },
-              ...efforts.map((effort) => ({ value: effort, label: `思考：${effortName(effort)}` })),
-              ...(choice.effort && !efforts.includes(choice.effort)
-                ? [{ value: choice.effort, label: `思考：${effortName(choice.effort)}` }]
-                : []),
-            ]}
-          />
-          {session && <Usage session={session} />}
-          {sending ? (
-            <span className={`${styles.action} ${styles.busy}`}>
-              <Spinner />
-            </span>
-          ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
-              <span className={styles.stopIcon} />
+          <Select.Root value={modelValue} disabled={running} onValueChange={(value) => {
+            const option = modelOptions.find((item) => item.value === value)
+            if (!option) return
+            onChoice({ agent: option.agent, model: option.model.isDefault ? undefined : option.model.id,
+              ...(option.agent === choice.agent && choice.effort && option.model.efforts.includes(choice.effort) && { effort: choice.effort }) })
+          }}>
+            <Select.Trigger className={styles.model} aria-label="模型" title={running ? '回答结束后可切换模型' : '选择模型'}>
+              <span>{selectedModel?.name ?? choice.model ?? agents[choice.agent].name}</span>
+              <ChevronDown size={13} />
+            </Select.Trigger>
+            <Select.Portal>
+              <Select.Content className={styles.modelMenu} position="popper" side="top" sideOffset={8} collisionPadding={12}>
+                <Select.Viewport className={styles.modelList}>
+                  {modelOptions.map((option) => (
+                    <Select.Item key={option.value} value={option.value} disabled={option.disabled} className={styles.modelOption}>
+                      <Select.ItemText>{option.model.name}</Select.ItemText>
+                      <small>{agents[option.agent].name}{option.model.isDefault ? ' · 默认' : ''}</small>
+                      <Select.ItemIndicator className={styles.selected}><Check size={16} /></Select.ItemIndicator>
+                    </Select.Item>
+                  ))}
+                  {!modelOptions.some((option) => option.value === modelValue) && (
+                    <Select.Item value={modelValue} className={styles.modelOption}>
+                      <Select.ItemText>{choice.model ?? '模型信息暂不可用'}</Select.ItemText>
+                    </Select.Item>
+                  )}
+                </Select.Viewport>
+              </Select.Content>
+            </Select.Portal>
+          </Select.Root>
+          <Popover label="思考程度" side="top" align="start" className={styles.settingsMenu} trigger={
+            <button type="button" className={styles.settings} disabled={running} aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`} title="思考程度">
+              <Settings2 size={18} />
+              {choice.effort && <span>{effortName(choice.effort)}</span>}
             </button>
-          ) : (
-            <>
-              {running && (
-                <>
-                  <button
-                    type="button"
-                    className={styles.interrupt}
-                    onClick={() => void send('interrupt')}
-                    aria-label="打断并发送"
-                    title="打断正在做的事，马上处理这句话"
-                  >
-                    <Zap size={14} strokeWidth={2} />
-                    打断
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.interrupt}
-                    onClick={() => void send('queue')}
-                    aria-label="排队"
-                    title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
-                  >
-                    <ListPlus size={14} strokeWidth={2} />
-                    排队
-                  </button>
-                </>
-              )}
-              <button
-                type="submit"
-                className={styles.action}
-                disabled={!canSend}
-                aria-label={running ? '插话' : '发送'}
-                title={running ? '插话：agent 在下一步看到' : '发送'}
-              >
-                <ArrowUp size={17} strokeWidth={2.2} />
+          }>
+            <span className={styles.settingsTitle}>思考程度</span>
+            <div role="group" aria-label="思考程度">
+              {['', ...new Set([...efforts, ...(choice.effort ? [choice.effort] : [])])].map((effort) => (
+                <button key={effort} type="button" disabled={running} aria-pressed={(choice.effort ?? '') === effort}
+                  onClick={() => onChoice({ ...choice, effort: effort || undefined })}>
+                  {effort ? effortName(effort) : '默认'}
+                </button>
+              ))}
+            </div>
+          </Popover>
+          <div className={styles.actions}>
+            {session && <Usage session={session} />}
+            {sending ? (
+              <span className={`${styles.action} ${styles.busy}`}>
+                <Spinner />
+              </span>
+            ) : running && !hasContent ? (
+              <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+                <span className={styles.stopIcon} />
               </button>
-            </>
-          )}
+            ) : (
+              <>
+                {running && (
+                  <>
+                    <button
+                      type="button"
+                      className={styles.interrupt}
+                      onClick={() => void send('interrupt')}
+                      aria-label="打断并发送"
+                      title="打断正在做的事，马上处理这句话"
+                    >
+                      <Zap size={14} strokeWidth={2} />
+                      打断
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.interrupt}
+                      onClick={() => void send('queue')}
+                      aria-label="排队"
+                      title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
+                    >
+                      <ListPlus size={14} strokeWidth={2} />
+                      排队
+                    </button>
+                  </>
+                )}
+                <button
+                  type="submit"
+                  className={styles.action}
+                  disabled={!canSend}
+                  aria-label={running ? '插话' : '发送'}
+                  title={running ? '插话：agent 在下一步看到' : '发送'}
+                >
+                  <ArrowUp size={17} strokeWidth={2.2} />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </form>
     </div>
