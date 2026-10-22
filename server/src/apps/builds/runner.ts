@@ -25,7 +25,10 @@ try {
     try {
       await new Promise<void>((resolve, reject) => {
         child = spawn('/bin/bash', ['scripts/mobile-build.sh', target], { cwd: source, detached: true, stdio: ['ignore', log, log], env: { ...process.env, BINOS_BUILD_OUTPUT: output, BINOS_BUILD_NUMBER: number } })
-        if (child.pid) writeFileSync(path.join(path.dirname(result), 'child.json'), JSON.stringify({ pid: child.pid, startedAt: processStartTime(child.pid) }))
+        if (child.pid) {
+          const startedAt = processStartTime(child.pid)
+          if (startedAt) writeFileSync(path.join(path.dirname(result), 'child.json'), JSON.stringify({ pid: child.pid, startedAt }))
+        }
         child.on('error', reject)
         child.on('exit', (code, signal) => code === 0 ? resolve() : reject(new Error(`构建退出：${code ?? signal}`)))
       })

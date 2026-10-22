@@ -11,7 +11,10 @@ const repo = path.resolve(import.meta.dirname, '../../../..')
 const env = { ...process.env, BINOS_ROOT: root, BINOS_TEST_INSTANCE: '1' }
 const cli = async (...args: string[]) => JSON.parse((await exec(path.join(repo, 'bin/binos'), ['builds', ...args], { env, timeout: 15_000 })).stdout) as Snapshot
 async function until(test: () => Promise<boolean>) { for (let i = 0; i < 120; i++) { if (await test()) return; await new Promise((r) => setTimeout(r, 100)) } throw new Error('构建验证超时') }
-afterAll(async () => { await cli('stop').catch(() => {}); rmSync(root, { recursive: true, force: true }) })
+afterAll(async () => {
+  for (let i = 0; i < 50; i++) { try { await cli('stop'); break } catch { await new Promise((r) => setTimeout(r, 100)) } }
+  await new Promise((r) => setTimeout(r, 200)); rmSync(root, { recursive: true, force: true })
+})
 it('独立服务在重启后接续构建，保存产物，支持重试和取消排队', async () => {
   const first = await cli('enqueue', 'main', 'android,ios-simulator')
   expect(first.mode).toBe('mock'); expect(first.builds).toHaveLength(2)
