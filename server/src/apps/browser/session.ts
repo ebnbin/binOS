@@ -13,7 +13,12 @@ class Session {
   expiry: ReturnType<typeof setTimeout> | undefined
   cdp!: CDPSession
   pendingFrame: number | undefined
-  deferredFrame: { sessionId: number; data: string; width: number; height: number } | undefined
+  deferredSource: number | undefined
+  capturing = false
+  streaming = false
+  revision = 0
+  lastCapture = 0
+  captureTimer: ReturnType<typeof setTimeout> | undefined
   frameWidth = 1200
   frameHeight = 800
   frame = 0
@@ -46,11 +51,13 @@ class Session {
     this.page.on('filechooser', () => this.emit({ type: 'error', message: '当前远程模式暂不支持文件上传' }))
     this.page.on('close', () => { this.disconnect?.(); this.destroy() })
     this.cdp.on('Page.screencastFrame', (frame) => {
-      if (Math.abs(frame.metadata.deviceWidth - this.width * this.scale) > 1 || Math.abs(frame.metadata.deviceHeight - this.height * this.scale) > 1) {
-        void this.cdp.send('Page.screencastFrameAck', { sessionId: frame.sessionId }).catch(() => {})
+      if (!this.send || !this.streaming) {
+        void this.releaseSource(frame.sessionId)
         return
       }
-      this.offerFrame({ sessionId: frame.sessionId, data: frame.data, width: this.width, height: this.height })
+      if (this.deferredSource !== undefined) void this.releaseSource(this.deferredSource)
+      this.deferredSource = frame.sessionId
+      this.captureNext()
     })
     await this.viewport()
   }
@@ -59,26 +66,47 @@ class Session {
     await this.cdp.send('Emulation.setDeviceMetricsOverride', {
       width: this.width, height: this.height, deviceScaleFactor: this.scale, mobile: false,
       screenWidth: this.width, screenHeight: this.height,
-      viewport: { x: 0, y: 0, width: this.width, height: this.height, scale: 1 },
     })
   }
 
-  offerFrame(frame: { sessionId: number; data: string; width: number; height: number }) {
-    if (!this.send) {
-      void this.cdp.send('Page.screencastFrameAck', { sessionId: frame.sessionId }).catch(() => {})
-      return
+  captureNext() {
+    if (!this.send || !this.streaming || this.capturing || this.pendingFrame !== undefined || this.deferredSource === undefined || this.captureTimer) return
+    this.captureTimer = setTimeout(() => {
+      this.captureTimer = undefined
+      void this.capture()
+    }, Math.max(0, 50 - (Date.now() - this.lastCapture)))
+    this.captureTimer.unref()
+  }
+
+  async capture() {
+    const sessionId = this.deferredSource
+    this.deferredSource = undefined
+    if (sessionId === undefined) return
+    const { width, height, revision } = this
+    this.capturing = true
+    this.lastCapture = Date.now()
+    try {
+      const { data } = await this.cdp.send('Page.captureScreenshot', {
+        format: 'jpeg', quality: 85, fromSurface: true, captureBeyondViewport: false,
+      })
+      if (revision !== this.revision || !this.streaming || !this.send) return
+      this.pendingFrame = sessionId
+      this.frame++
+      this.frameWidth = width
+      this.frameHeight = height
+      this.remainingFrame = data
+      this.fillChunks()
+    } catch {
+      await this.releaseSource(sessionId)
+      this.disconnect?.()
+    } finally {
+      this.capturing = false
+      this.captureNext()
     }
-    if (this.pendingFrame !== undefined) {
-      if (this.deferredFrame) void this.cdp.send('Page.screencastFrameAck', { sessionId: this.deferredFrame.sessionId }).catch(() => {})
-      this.deferredFrame = frame
-      return
-    }
-    this.pendingFrame = frame.sessionId
-    this.frame++
-    this.frameWidth = frame.width
-    this.frameHeight = frame.height
-    this.remainingFrame = frame.data
-    this.fillChunks()
+  }
+
+  async releaseSource(sessionId: number) {
+    await this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {})
   }
 
   emit(message: ServerMessage) {
@@ -104,11 +132,9 @@ class Session {
   }
 
   async stream() {
-    await this.cdp.send('Page.startScreencast', {
-      format: 'jpeg', quality: 85,
-      maxWidth: Math.min(2560, Math.round(this.width * this.scale)),
-      maxHeight: Math.min(2560, Math.round(this.height * this.scale)),
-    })
+    // 有界面 Chrome 的 screencast 位图不保证匹配模拟视口，因此只用它监听重绘。
+    this.streaming = true
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 0, maxWidth: 1, maxHeight: 1 })
   }
 
   async command(message: ClientMessage) {
@@ -121,8 +147,7 @@ class Session {
       case 'reload': await this.page.reload({ waitUntil: 'commit', timeout: 20000 }); break
       case 'resize': {
         if (message.width === this.width && message.height === this.height && message.scale === this.scale) break
-        await this.cdp.send('Page.stopScreencast')
-        await this.ack()
+        await this.stopStream()
         this.width = message.width
         this.height = message.height
         this.scale = Math.min(message.scale, 2560 / Math.max(this.width, this.height))
@@ -164,20 +189,34 @@ class Session {
     }
   }
 
-  async ack() {
+  async ack(includeDeferred = true) {
     const sessionId = this.pendingFrame
-    const deferred = this.deferredFrame
-    this.deferredFrame = undefined
-    if (deferred) void this.cdp.send('Page.screencastFrameAck', { sessionId: deferred.sessionId }).catch(() => {})
+    if (includeDeferred) {
+      const deferred = this.deferredSource
+      this.deferredSource = undefined
+      if (deferred !== undefined) void this.releaseSource(deferred)
+    }
     this.pendingFrame = undefined
     this.remainingFrame = ''
     this.chunksInFlight = 0
-    if (sessionId !== undefined) await this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {})
+    if (sessionId !== undefined) await this.releaseSource(sessionId)
+  }
+
+  async stopStream() {
+    this.streaming = false
+    this.revision++
+    clearTimeout(this.captureTimer)
+    this.captureTimer = undefined
+    await this.cdp.send('Page.stopScreencast').catch(() => {})
+    await this.ack()
   }
 
   destroy() {
     if (!sessions.delete(this.id)) return
     clearTimeout(this.expiry)
+    clearTimeout(this.captureTimer)
+    this.streaming = false
+    this.revision++
     this.send = undefined
     this.disconnect = undefined
     void this.page.close().catch(() => {})
@@ -219,8 +258,7 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
     current.send = undefined
     current.disconnect = undefined
     current.queue = current.queue.then(async () => {
-      await current.cdp.send('Page.stopScreencast').catch(() => {})
-      await current.ack()
+      await current.stopStream()
     })
     current.expiry = setTimeout(() => current.destroy(), 60000)
     current.expiry.unref()
@@ -232,7 +270,7 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
     current.emit({ type: 'ping' })
     if (!polling) {
       polling = true
-      void current.metadata().catch(dispose).finally(() => { polling = false })
+      void current.metadata().catch(() => dispose()).finally(() => { polling = false })
     }
   }, 1000)
   timer.unref()
@@ -257,12 +295,7 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
         if (current.chunksInFlight <= 0) return
         current.chunksInFlight--
         current.fillChunks()
-        if (!current.chunksInFlight) {
-          const latest = current.deferredFrame
-          current.deferredFrame = undefined
-          void current.ack()
-          if (latest) current.offerFrame(latest)
-        }
+        if (!current.chunksInFlight) void current.ack(false).then(() => current.captureNext())
         return
       }
       if (queued >= 128) return dispose()

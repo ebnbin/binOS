@@ -114,23 +114,49 @@ describe('remote browser reconnection', () => {
     expect(third.close).not.toHaveBeenCalled()
   })
 
-  it('rejects frames from the old viewport and accepts the matching high density frame', async () => {
+  it('captures the current viewport instead of transmitting compositor frame pixels', async () => {
     const current = client()
     const connection = await connectBrowser(undefined, current.send, current.close)
+    const originalSend = fixture.cdp.send.getMockImplementation()!
+    fixture.cdp.send.mockImplementation(async (method) => method === 'Page.captureScreenshot' ? { data: 'viewport-pixels' } : originalSend(method))
     connection.receive({ type: 'resize', width: 402, height: 524, scale: 2 })
-    await vi.waitFor(() => expect(fixture.cdp.send).toHaveBeenCalledWith('Emulation.setDeviceMetricsOverride', expect.objectContaining({
-      width: 402, height: 524, deviceScaleFactor: 2,
-      viewport: { x: 0, y: 0, width: 402, height: 524, scale: 1 },
-    })))
-    fixture.cdp.emit('Page.screencastFrame', { sessionId: 70, data: 'old', metadata: { deviceWidth: 1200, deviceHeight: 800 } })
-    fixture.cdp.emit('Page.screencastFrame', { sessionId: 71, data: 'low-density', metadata: { deviceWidth: 402, deviceHeight: 524 } })
-    expect(current.messages.filter((message) => message.type === 'frame')).toEqual([])
-    expect(fixture.cdp.send).toHaveBeenCalledWith('Page.screencastFrameAck', { sessionId: 70 })
-    expect(fixture.cdp.send).toHaveBeenCalledWith('Page.screencastFrameAck', { sessionId: 71 })
-    fixture.cdp.emit('Page.screencastFrame', { sessionId: 72, data: 'matching', metadata: { deviceWidth: 804, deviceHeight: 1048 } })
-    expect(current.messages.filter((message) => message.type === 'frame')).toEqual([
-      { type: 'frame', frame: 1, data: 'matching', more: false, width: 402, height: 524 },
-    ])
+    await vi.waitFor(() => expect(fixture.cdp.send).toHaveBeenCalledWith('Emulation.setDeviceMetricsOverride', expect.objectContaining({ width: 402, height: 524, deviceScaleFactor: 2 })))
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 70, data: 'compositor-pixels', metadata: { deviceWidth: 1200, deviceHeight: 800 } })
+    await vi.waitFor(() => expect(current.messages.filter((message) => message.type === 'frame')).toEqual([
+      { type: 'frame', frame: 1, data: 'viewport-pixels', more: false, width: 402, height: 524 },
+    ]))
+    expect(fixture.cdp.send).toHaveBeenCalledWith('Page.captureScreenshot', { format: 'jpeg', quality: 85, fromSurface: true, captureBeyondViewport: false })
+  })
+
+  it('discards an in-flight capture when the viewport changes', async () => {
+    const current = client()
+    const connection = await connectBrowser(undefined, current.send, current.close)
+    let finish: (value: { data: string }) => void = () => {}
+    const screenshot = new Promise<{ data: string }>((resolve) => { finish = resolve })
+    const originalSend = fixture.cdp.send.getMockImplementation()!
+    let captures = 0
+    fixture.cdp.send.mockImplementation(async (method) => {
+      if (method === 'Page.captureScreenshot') return ++captures === 1 ? screenshot : { data: 'new-size' }
+      return originalSend(method)
+    })
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 70 })
+    await vi.waitFor(() => expect(captures).toBe(1))
+    connection.receive({ type: 'resize', width: 402, height: 524, scale: 2 })
+    await vi.waitFor(() => expect(fixture.cdp.send).toHaveBeenCalledWith('Emulation.setDeviceMetricsOverride', expect.objectContaining({ width: 402, height: 524 })))
+    finish({ data: 'old-size' })
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 71 })
+    await vi.waitFor(() => expect(current.messages.filter((message) => message.type === 'frame')).toEqual([
+      { type: 'frame', frame: 1, data: 'new-size', more: false, width: 402, height: 524 },
+    ]))
+  })
+
+  it('closes a failed metadata connection normally so the client can retry', async () => {
+    const current = client()
+    await connectBrowser(undefined, current.send, current.close)
+    fixture.cdp.send.mockRejectedValueOnce(new Error('Connection failed'))
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(current.close).toHaveBeenCalledExactlyOnceWith(1000)
+    expect(current.messages).not.toContainEqual({ type: 'replaced' })
   })
 
 })
