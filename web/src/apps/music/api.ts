@@ -1,5 +1,5 @@
 import type { MusicApi } from '@binos/server/apps/music/api'
-import type { CatalogPage, MusicApiError } from '@binos/server/apps/music/types'
+import type { CatalogPage, Lyrics, MusicApiError, PlaybackSource, ProviderInfo, QueueMutation, QueueSnapshot } from '@binos/server/apps/music/types'
 import { hc } from 'hono/client'
 
 const client = hc<MusicApi>(`${window.location.origin}/api/apps/music`)
@@ -10,16 +10,15 @@ async function json<T>(response: Response): Promise<T> {
   }
   return response.json() as Promise<T>
 }
-
-export async function catalog(provider: string, operation: 'search' | 'resolve', query: string, page?: string, signal?: AbortSignal) {
-  const response = await client.providers[':provider'][':operation'].$get({ param: { provider, operation }, query: { q: query, page } }, { init: { signal } })
-  return json<CatalogPage>(response)
+async function request<T>(provider: string, operation: string, query: string, page?: string, signal?: AbortSignal) {
+  return json<T>(await client.providers[':provider'][':operation'].$get({ param: { provider, operation }, query: { q: query, page } }, { init: { signal } }))
 }
-
-export async function readMusicSettings() { return json<{ youtubeConfigured: boolean }>(await client.settings.$get()) }
-export async function saveYouTubeKey(youtubeApiKey: string) { return json<{ youtubeConfigured: boolean }>(await client.settings.$put({ json: { youtubeApiKey } })) }
-
-export async function readQueue() { return json<import('@binos/server/apps/music/types').QueueSnapshot>(await client.queue.$get()) }
-export async function mutateQueue(mutation: import('@binos/server/apps/music/types').QueueMutation) {
-  return json<import('@binos/server/apps/music/types').QueueSnapshot>(await client.queue.$post({ json: mutation }))
+export const catalog = (provider: string, operation: 'search' | 'resolve' | 'playlist' | 'recommendations', query: string, page?: string, signal?: AbortSignal) => request<CatalogPage>(provider, operation, query, page, signal)
+export const playbackSource = (provider: string, id: string, signal?: AbortSignal) => request<PlaybackSource>(provider, 'playback', id, undefined, signal)
+export const readLyrics = (provider: string, id: string, signal?: AbortSignal) => request<Lyrics>(provider, 'lyrics', id, undefined, signal)
+export async function listProviders() { return json<{ providers: ProviderInfo[] }>(await client.providers.$get()) }
+export async function configureProvider(provider: string, values: Record<string, string>) {
+  return json<ProviderInfo>(await client.providers[':provider'].settings.$put({ param: { provider }, json: values }))
 }
+export async function readQueue() { return json<QueueSnapshot>(await client.queue.$get()) }
+export async function mutateQueue(mutation: QueueMutation) { return json<QueueSnapshot>(await client.queue.$post({ json: mutation })) }

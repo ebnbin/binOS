@@ -1,23 +1,21 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MusicController, restoreMusic } from './controller.ts'
-import type { MusicPlayer, PlaybackProvider, PlayerEvent, Track } from './types.ts'
+import type { MusicPlayer, PlayerEvent, Track } from './types.ts'
 
 const track = (id: string, provider = 'audio'): Track => ({ ref: { provider, id }, title: id, artists: ['Artist'], externalUrl: `https://example.com/${id}` })
 
 function setup(pending = false) {
   const engines: { player: MusicPlayer; emit(event: PlayerEvent): void; ready(): void }[] = []
-  const makeProvider = (id: string): PlaybackProvider => ({
-    id, name: id, createPlayer(emit) {
-      let ready = () => {}
-      const player: MusicPlayer = {
-        load: vi.fn<MusicPlayer['load']>(() => pending ? new Promise<void>((resolve) => { ready = resolve }) : Promise.resolve()),
-        play: vi.fn<MusicPlayer['play']>(), pause: vi.fn<MusicPlayer['pause']>(), seek: vi.fn<MusicPlayer['seek']>(), setVolume: vi.fn<MusicPlayer['setVolume']>(), destroy: vi.fn<MusicPlayer['destroy']>(),
-      }
-      engines.push({ player, emit, ready: () => ready() })
-      return player
-    },
-  })
-  return { engines, music: new MusicController([makeProvider('audio'), makeProvider('other')]) }
+  const createPlayer = (_ref: Track['ref'], emit: (event: PlayerEvent) => void): MusicPlayer => {
+    let ready = () => {}
+    const player: MusicPlayer = {
+      load: vi.fn<MusicPlayer['load']>(() => pending ? new Promise<void>((resolve) => { ready = resolve }) : Promise.resolve()),
+      play: vi.fn<MusicPlayer['play']>(), pause: vi.fn<MusicPlayer['pause']>(), seek: vi.fn<MusicPlayer['seek']>(), setVolume: vi.fn<MusicPlayer['setVolume']>(), destroy: vi.fn<MusicPlayer['destroy']>(),
+    }
+    engines.push({ player, emit, ready: () => ready() })
+    return player
+  }
+  return { engines, music: new MusicController(createPlayer) }
 }
 
 describe('音乐播放会话', () => {

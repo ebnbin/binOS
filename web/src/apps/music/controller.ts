@@ -1,5 +1,5 @@
 import type { QueueOperation } from '@binos/server/apps/music/types'
-import type { MusicPlayer, MusicState, PlaybackProvider, Track } from './types.ts'
+import type { MusicPlayer, MusicState, PlayerFactory, Track } from './types.ts'
 
 const initial: MusicState = { queue: [], index: -1, status: 'idle', positionMs: 0, durationMs: 0, volume: 0.7, repeat: 'off' }
 export const trackKey = (track: Track) => `${track.ref.provider}:${track.ref.id}`
@@ -26,12 +26,12 @@ export class MusicController {
   private generation = 0
   private wantsPlay = false
   private queueChanged?: (operation: QueueOperation) => void
-  private providers: PlaybackProvider[]
+  private createPlayer: PlayerFactory
   private persist?: (state: MusicState) => void
 
-  constructor(providers: PlaybackProvider[], restored?: unknown, persist?: (state: MusicState) => void, queueChanged?: (operation: QueueOperation) => void) {
+  constructor(createPlayer: PlayerFactory, restored?: unknown, persist?: (state: MusicState) => void, queueChanged?: (operation: QueueOperation) => void) {
     this.queueChanged = queueChanged
-    this.providers = providers
+    this.createPlayer = createPlayer
     this.persist = persist
     this.state = restoreMusic(restored)
   }
@@ -64,11 +64,9 @@ export class MusicController {
     this.player?.destroy()
     this.player = undefined
     this.wantsPlay = true
-    this.update({ index, status: 'loading', positionMs: 0, durationMs: track.durationMs ?? 0, error: undefined }, true)
-    const provider = this.providers.find((provider) => provider.id === track.ref.provider)
-    if (!provider) { this.update({ status: 'error', error: '这个音乐来源暂不可用，请切换曲目。' }); return }
+    this.update({ index, status: 'loading', positionMs: 0, durationMs: track.durationMs ?? 0, error: undefined, controls: { seek: false, volume: false }, embedEngine: undefined }, true)
     try {
-      const player = provider.createPlayer((event) => {
+      const player = this.createPlayer(track.ref, (event) => {
         if (generation !== this.generation) return
         if (!this.wantsPlay && (event.status === 'playing' || event.status === 'loading')) {
           if (event.status === 'playing') this.player?.pause()
@@ -81,6 +79,7 @@ export class MusicController {
           else this.next(true)
         }
       })
+      if (!player) throw new Error('这个音乐来源暂不可用，请切换曲目。')
       this.player = player
       await player.load(track.ref)
       if (generation !== this.generation) return
@@ -167,6 +166,6 @@ export class MusicController {
     this.wantsPlay = false
     this.player?.destroy()
     this.player = undefined
-    this.update({ status: 'idle', positionMs: 0, durationMs: 0, error: undefined })
+    this.update({ status: 'idle', positionMs: 0, durationMs: 0, error: undefined, embedEngine: undefined, controls: undefined })
   }
 }

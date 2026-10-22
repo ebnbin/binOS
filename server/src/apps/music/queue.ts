@@ -3,7 +3,7 @@ import path from 'node:path'
 import { notifyChange } from '../../events.js'
 import { appDir } from '../../paths.js'
 import type { QueueMutation, QueueSnapshot, Track } from './types.js'
-import { MusicError } from './youtube.js'
+import { MusicError } from './provider.js'
 
 const file = () => path.join(appDir('music'), 'queue.json')
 const key = (track: Track) => JSON.stringify([track.ref.provider, track.ref.id])

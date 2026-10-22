@@ -1,5 +1,6 @@
 import { LoaderCircle, Pause, Play, Repeat, Repeat1, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react'
 import { music, useMusic } from './store.ts'
+import { useProviders } from './providers.ts'
 import styles from './music.module.css'
 
 function formatDuration(ms: number) {
@@ -9,11 +10,14 @@ function formatDuration(ms: number) {
 
 export function Transport({ compact = false }: { compact?: boolean }) {
   const state = useMusic()
+  const { providers } = useProviders()
+  const current = state.queue[state.index]
+  const playable = providers.find(provider => provider.id === current?.ref.provider)?.capabilities.playback.state === 'available'
   const active = state.status === 'playing' || state.status === 'loading'
   return (
     <div className={styles.transport} data-compact={compact}>
       <button type="button" aria-label="上一首" title="上一首" disabled={!state.queue.length} onClick={() => music.previous()}><SkipBack size={compact ? 16 : 20} /></button>
-      <button type="button" className={styles.play} aria-label={active ? '暂停' : state.status === 'error' ? '重试播放' : '播放'} title={active ? '暂停' : '播放'} disabled={!state.queue.length} onClick={() => music.toggle()}>
+      <button type="button" className={styles.play} aria-label={active ? '暂停' : state.status === 'error' ? '重试播放' : '播放'} title={active ? '暂停' : '播放'} disabled={!state.queue.length || !active && !playable} onClick={() => music.toggle()}>
         {state.status === 'loading' ? <LoaderCircle className={styles.spinner} size={compact ? 18 : 24} /> : active ? <Pause size={compact ? 18 : 24} fill="currentColor" /> : <Play size={compact ? 18 : 24} fill="currentColor" />}
       </button>
       <button type="button" aria-label="下一首" title="下一首" disabled={!state.queue.length} onClick={() => music.next()}><SkipForward size={compact ? 16 : 20} /></button>
@@ -27,7 +31,7 @@ export function PlayerControls() {
   return (
     <div className={styles.controls}>
       <div className={styles.progress}>
-        <input type="range" aria-label="播放进度" min={0} max={state.durationMs || 1} step={1000} value={Math.min(state.positionMs, state.durationMs || 0)} disabled={!state.durationMs || ['idle', 'error'].includes(state.status)} onChange={(event) => music.seek(Number(event.target.value))} />
+        <input type="range" aria-label="播放进度" min={0} max={state.durationMs || 1} step={1000} value={Math.min(state.positionMs, state.durationMs || 0)} disabled={state.controls?.seek === false || !state.durationMs || ['idle', 'error'].includes(state.status)} onChange={(event) => music.seek(Number(event.target.value))} />
         <div className={styles.times}><span>{formatDuration(state.positionMs)}</span><span>{state.durationMs ? formatDuration(state.durationMs) : '—:—'}</span></div>
       </div>
       <div className={styles.controlRow}>
@@ -35,7 +39,7 @@ export function PlayerControls() {
         <Transport />
         <label className={styles.volume} title="音量">
           {state.volume ? <Volume2 size={17} /> : <VolumeX size={17} />}
-          <input type="range" aria-label="音量" min={0} max={1} step={0.01} value={state.volume} onChange={(event) => music.setVolume(Number(event.target.value))} />
+          <input type="range" aria-label="音量" min={0} max={1} step={0.01} value={state.volume} disabled={state.controls?.volume === false} onChange={(event) => music.setVolume(Number(event.target.value))} />
         </label>
       </div>
     </div>
