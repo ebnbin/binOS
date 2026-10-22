@@ -25,8 +25,15 @@ migrateAgentToKita(path.dirname(libraryDir))
 // 免 Cloudflare 凭证的 API 只挂在受文件权限保护的 socket 上，不经过预览转发。
 const localServer = await startLocalApi(createApi(async (_c, next) => { await next() }).fetch, apiSocketPath)
 console.log(`binOS 本机 API：${apiSocketPath}`)
+let stopping = false
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
-  process.once(signal, () => { localServer.close(); process.exit(0) })
+  process.once(signal, () => {
+    if (stopping) return
+    stopping = true
+    localServer.close()
+    setTimeout(() => process.exit(0), 5000).unref()
+    void Promise.allSettled(serverApps.map((app) => app.stop?.())).finally(() => process.exit(0))
+  })
 }
 startKitaService()
 for (const app of serverApps) {

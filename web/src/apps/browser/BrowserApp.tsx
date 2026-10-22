@@ -1,14 +1,15 @@
 import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../ui/IconButton.tsx'
 import type { WindowContext } from '../types.ts'
 import { addressRoute, browserAddress, routeAddress } from './address.ts'
+import { RemoteBrowser } from './RemoteBrowser.tsx'
 import styles from './BrowserApp.module.css'
 
 // 顶层导航会替换整个 binOS，不能随嵌入网页一起放开。
 const sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals'
 
-export function BrowserApp({ ctx }: { ctx: WindowContext }) {
+function IframeBrowser({ ctx }: { ctx: WindowContext }) {
   const requested = routeAddress(ctx.route)
   const url = requested && new URL(requested).origin !== window.location.origin ? requested : ''
   const [address, setAddress] = useState(url)
@@ -104,4 +105,18 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
       )}
     </div>
   )
+}
+
+export function BrowserApp({ ctx }: { ctx: WindowContext }) {
+  const [remote, setRemote] = useState(false)
+  const remoteSession = useRef<string | undefined>(undefined)
+  return <div className={styles.app}>
+    <div className={styles.modeBar} role="group" aria-label="浏览模式">
+      <button type="button" aria-pressed={!remote} onClick={() => setRemote(false)}>嵌入模式</button>
+      <button type="button" aria-pressed={remote} onClick={() => setRemote(true)}>远程模式</button>
+    </div>
+    <div className={styles.modeContent}>
+      {remote ? <RemoteBrowser ctx={ctx} session={remoteSession} /> : <IframeBrowser ctx={ctx} />}
+    </div>
+  </div>
 }
