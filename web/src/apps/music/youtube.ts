@@ -1,4 +1,4 @@
-import type { MusicPlayer, PlaybackProvider, PlayerEvent, TrackRef } from './types.ts'
+import type { MusicPlayer, PlayerEvent, TrackRef } from './types.ts'
 import styles from './music.module.css'
 
 type YouTubePlayer = {
@@ -164,4 +164,4 @@ class YouTubeMusicPlayer implements MusicPlayer {
   }
 }
 
-export const youtubeProvider: PlaybackProvider = { id: 'youtube', name: 'YouTube', createPlayer: (emit) => new YouTubeMusicPlayer(emit) }
+export const createYouTubePlayer = (emit: (event: PlayerEvent) => void): MusicPlayer => new YouTubeMusicPlayer(emit)

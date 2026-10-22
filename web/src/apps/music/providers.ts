@@ -1,23 +1,22 @@
-import type { CatalogPage } from '@binos/server/apps/music/types'
-import type { ComponentType } from 'react'
-import { catalog } from './api.ts'
-import type { PlaybackProvider } from './types.ts'
-import { youtubeProvider } from './youtube.ts'
-import { YouTubeInspector, YouTubeSettings } from './YouTubeSettings.tsx'
+import { useSyncExternalStore } from 'react'
+import type { ProviderInfo } from '@binos/server/apps/music/types'
+import { onChange } from '../../events.ts'
+import { listProviders } from './api.ts'
 
-export type MusicProvider = PlaybackProvider & {
-  acceptsLink(input: string): boolean
-  search(query: string, page?: string, signal?: AbortSignal): Promise<CatalogPage>
-  resolve(input: string, page?: string, signal?: AbortSignal): Promise<CatalogPage>
-  Settings?: ComponentType
-  Inspector?: ComponentType
+let state: { providers: ProviderInfo[]; error?: string } = { providers: [] }
+const listeners = new Set<() => void>()
+let generation = 0
+export async function refreshProviders() {
+  const current = ++generation
+  try {
+    const result = await listProviders()
+    if (current === generation) state = result
+  } catch (error) { if (current === generation) state = { ...state, error: error instanceof Error ? error.message : '无法读取音乐来源。' } }
+  listeners.forEach(listener => listener())
 }
-
-export const musicProviders: MusicProvider[] = [{
-  ...youtubeProvider,
-  acceptsLink: (input) => /^https?:\/\//i.test(input) || /^[\w-]{11}$/.test(input),
-  search: (query, page, signal) => catalog('youtube', 'search', query, page, signal),
-  resolve: (input, page, signal) => catalog('youtube', 'resolve', input, page, signal),
-  Settings: YouTubeSettings,
-  Inspector: YouTubeInspector,
-}]
+const unsubscribe = onChange(event => { if (!event || event.type === 'music') void refreshProviders() })
+void refreshProviders()
+export function useProviders() {
+  return useSyncExternalStore(listener => { listeners.add(listener); return () => { listeners.delete(listener) } }, () => state)
+}
+if (import.meta.hot) import.meta.hot.dispose(unsubscribe)

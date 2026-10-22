@@ -1,9 +1,7 @@
-import type { CatalogPage, MusicErrorCode, Track } from './types.js'
+import type { CatalogPage, Track } from './types.js'
 
-export class MusicError extends Error {
-  code: MusicErrorCode
-  constructor(message: string, code: MusicErrorCode) { super(message); this.code = code }
-}
+import { MusicError } from './provider.js'
+export { MusicError } from './provider.js'
 
 export function parseYouTubeInput(input: string): { kind: 'track' | 'playlist'; id: string } | undefined {
   const value = input.trim()

@@ -1,3 +1,4 @@
+import type { ProviderInfo } from './types.js'
 import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -9,7 +10,7 @@ process.env.BINOS_ROOT = root
 process.env.BINOS_TEST_INSTANCE = '1'
 const { musicApi } = await import('./api.js')
 const settingsFile = path.join(root, 'Library', 'Apps', 'music', 'settings.json')
-const settings = (youtubeApiKey: unknown) => musicApi.request('/settings', { method: 'PUT', body: JSON.stringify({ youtubeApiKey }), headers: { 'Content-Type': 'application/json' } })
+const settings = (youtubeApiKey: unknown) => musicApi.request('/providers/youtube/settings', { method: 'PUT', body: JSON.stringify({ apiKey: youtubeApiKey }), headers: { 'Content-Type': 'application/json' } })
 beforeEach(() => rmSync(path.dirname(settingsFile), { recursive: true, force: true }))
 afterEach(() => vi.unstubAllGlobals())
 afterAll(() => rmSync(root, { recursive: true, force: true }))
@@ -31,15 +32,17 @@ describe('YouTube 内容入口', () => {
     expect(await missing.json()).toMatchObject({ code: 'configuration' })
     expect((await musicApi.request('/providers/youtube/resolve?q=https://localhost/private')).status).toBe(400)
     expect(fetch).not.toHaveBeenCalled()
-    expect((await musicApi.request('/providers/unknown/search?q=hello')).status).toBe(404)
+    expect((await musicApi.request('/providers/unknown/search?q=hello')).status).toBe(422)
   })
 
   it('搜索密钥只写入受限文件，读取设置不会泄露密钥', async () => {
     expect((await settings('test-search-key')).status).toBe(200)
-    expect(JSON.parse(readFileSync(settingsFile, 'utf8'))).toEqual({ youtubeApiKey: 'test-search-key' })
+    expect(JSON.parse(readFileSync(settingsFile, 'utf8'))).toEqual({ providers: { youtube: { apiKey: 'test-search-key' } } })
     expect(statSync(settingsFile).mode & 0o777).toBe(0o600)
-    const response = await musicApi.request('/settings')
-    expect(await response.json()).toEqual({ youtubeConfigured: true })
+    const response = await musicApi.request('/providers')
+    const data = await response.json() as { providers: ProviderInfo[] }
+    expect(JSON.stringify(data)).not.toContain('test-search-key')
+    expect(data.providers.find(provider => provider.id === 'youtube')!.configuration.fields[0].configured).toBe(true)
     expect((await settings('bad\nkey')).status).toBe(400)
     expect((await settings(null)).status).toBe(400)
   })
