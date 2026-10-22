@@ -1,3 +1,4 @@
+import { apiSocketPath } from '../../../paths.js'
 import type { AgentId } from '../types.js'
 import { claude } from './claude/driver.js'
 import { codex } from './codex/driver.js'
@@ -9,7 +10,7 @@ export const drivers: Record<AgentId, Driver> = { claude, codex }
 export function agentEnv(agent: AgentId): NodeJS.ProcessEnv {
   const inherited = Object.values(drivers).map((driver) => driver.inheritedEnv)
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !inherited.some((pattern) => pattern.test(key))))
-  return { ...env, ...drivers[agent].env }
+  return { ...env, ...drivers[agent].env, BINOS_API_SOCKET: apiSocketPath }
 }
 
 // 不适用于这个 agent 的模型和思考程度去掉，用 agent 的默认

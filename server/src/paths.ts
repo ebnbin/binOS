@@ -1,7 +1,9 @@
 import path from 'node:path'
+import { localApiSocketPath } from './local-api-path.js'
 import { rootFromEnv, rootLayout } from './layout.js'
 
 const layout = rootLayout(rootFromEnv())
+export const apiSocketPath = localApiSocketPath(layout.rootDir)
 
 export const isTestInstance = process.env.BINOS_TEST_INSTANCE === '1'
 

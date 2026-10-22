@@ -201,9 +201,12 @@ export class KitaSession {
   private async ensureHost(model: string | undefined, effort: string | undefined): Promise<boolean> {
     const info = sessionInfo(this.id)
     const driver = drivers[info.agent]
-    const instructions = info.instructions ?? ''
-    const env = { ...agentEnv(info.agent), ...driver.authEnv?.(), BINOS_THREAD_ID: this.id, BINOS_DEVICES_CLI: path.join(codeDir, 'bin/binos') }
-    const stamp = launchStamp([model, effort, instructions, driver.authEnv?.()], [info.cwd, driver.configDir], driver.command)
+    const instructions = [
+      '本机 binOS API 通过 Unix socket 调用，路径在环境变量 BINOS_API_SOCKET 中。例如 curl --unix-socket "$BINOS_API_SOCKET" http://localhost/api/apps/music 可读取音乐接口说明。写操作使用 Content-Type: application/json。此入口不需要 Cloudflare 登录凭证，连接的是当前 session 所属实例。',
+      info.instructions,
+    ].filter(Boolean).join('\n\n')
+    const env: NodeJS.ProcessEnv = { ...agentEnv(info.agent), ...driver.authEnv?.(), BINOS_THREAD_ID: this.id, BINOS_DEVICES_CLI: path.join(codeDir, 'bin/binos') }
+    const stamp = launchStamp([model, effort, instructions, driver.authEnv?.(), env.BINOS_API_SOCKET], [info.cwd, driver.configDir], driver.command)
     if (this.host?.running() && this.host.stamp === stamp) {
       return true
     }
