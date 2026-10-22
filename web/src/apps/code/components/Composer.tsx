@@ -58,6 +58,7 @@ export function Composer({
   const [sending, setSending] = useState(false)
   const sendingRef = useRef(false)
   const [dragging, setDragging] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasContent = input.trim() !== '' || pending.length > 0
@@ -308,7 +309,7 @@ export function Composer({
               </Select.Content>
             </Select.Portal>
           </Select.Root>
-          <Popover label="思考程度" side="top" align="start" className={styles.settingsMenu} trigger={
+          <Popover open={settingsOpen} onOpenChange={setSettingsOpen} label="思考程度" side="top" align="start" className={styles.settingsMenu} trigger={
             <button type="button" className={styles.settings} disabled={running} aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`} title="思考程度">
               <Settings2 size={18} />
               {choice.effort && <span>{effortName(choice.effort)}</span>}
@@ -318,8 +319,12 @@ export function Composer({
             <div role="group" aria-label="思考程度">
               {['', ...new Set([...efforts, ...(choice.effort ? [choice.effort] : [])])].map((effort) => (
                 <button key={effort} type="button" disabled={running} aria-pressed={(choice.effort ?? '') === effort}
-                  onClick={() => onChoice({ ...choice, effort: effort || undefined })}>
+                  onClick={() => {
+                    onChoice({ ...choice, effort: effort || undefined })
+                    setSettingsOpen(false)
+                  }}>
                   {effort ? effortName(effort) : '默认'}
+                  {(choice.effort ?? '') === effort && <Check size={16} aria-hidden="true" />}
                 </button>
               ))}
             </div>

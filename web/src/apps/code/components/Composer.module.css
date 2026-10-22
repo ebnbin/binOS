@@ -265,22 +265,25 @@
 .modelOption[data-highlighted] { background: var(--hover); }
 .modelOption[data-disabled] { opacity: 0.4; cursor: default; }
 .selected { position: absolute; right: 12px; top: 18px; }
-.settingsMenu { width: 240px; padding: 14px; }
-.settingsTitle { display: block; margin-bottom: 12px; font-size: 13px; color: var(--text-2); }
-.settingsMenu [role='group'] { display: flex; flex-wrap: wrap; gap: 6px; }
+.settingsMenu { width: 200px; padding: 6px; }
+.settingsTitle { display: block; margin: 6px 10px; font-size: 13px; color: var(--text-2); }
+.settingsMenu [role='group'] { display: flex; flex-direction: column; gap: 2px; }
 .settingsMenu button {
-  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
   min-height: 36px;
   padding: 6px 10px;
   border-radius: 8px;
-  background: var(--hover);
+  background: none;
   color: var(--text-2);
   font-size: 13px;
   cursor: pointer;
 }
-.settingsMenu button[aria-pressed='true'] { background: var(--ink); color: var(--on-ink); }
+.settingsMenu button[aria-pressed='true'] { color: var(--text); background: var(--hover); }
 @media (hover: hover) {
-  .model:hover:not(:disabled), .settings:hover:not(:disabled) { background: var(--hover); }
+  .settingsMenu button:hover:not(:disabled), .model:hover:not(:disabled), .settings:hover:not(:disabled) { background: var(--hover); }
 }
 @media (pointer: coarse) {
   .attach, .settings, .model, .action { min-height: 44px; }
