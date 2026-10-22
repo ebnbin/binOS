@@ -1,4 +1,4 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Smartphone, Terminal } from 'lucide-react'
+import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Terminal } from 'lucide-react'
 import { lazy } from 'react'
 import type { ApplicationDefinition } from './types.ts'
 
@@ -11,13 +11,6 @@ export const builtinApplications: ApplicationDefinition[] = [
       month: { kind: 'widget', component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))) },
     },
     widgets: { main: { name: '月历', viewId: 'month', sizes: ['4x4'] } },
-  },
-  {
-    id: 'devices',
-    name: 'Devices',
-    icon: Smartphone,
-    mainWindow: { viewId: 'main' },
-    views: { main: { kind: 'window', component: lazy(() => import('./devices/DevicesApp.tsx').then((module) => ({ default: module.DevicesApp }))) } },
   },
   {
     id: 'music',

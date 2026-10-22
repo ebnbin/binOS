@@ -1,3 +1,5 @@
+import { BuildsPage } from '../builds/BuildsPage.tsx'
+import { DevicesApp } from '../devices/DevicesApp.tsx'
 import { useEffect, useRef, useState } from 'react'
 import type { WindowContext } from '../types.ts'
 import styles from './CodeApp.module.css'
@@ -19,7 +21,7 @@ function parseRoute(route: string): Route {
 
 const sessionRoute = (id: number) => `/${id}`
 
-export function CodeApp({ ctx }: { ctx: WindowContext }) {
+function Conversations({ ctx }: { ctx: WindowContext }) {
   const route = parseRoute(ctx.route)
   const { sessions, projects, failed } = useSessions()
   // 刚建好的 session 可能还没出现在列表里，不能当成不存在
@@ -44,6 +46,7 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
         </div>
         <main className={styles.conversationPane}>
           <TopBar
+            onBuild={(ref) => ctx.navigate(`/builds?ref=${encodeURIComponent(ref)}`)}
             title={title}
             sessionId={sessionId}
             session={session}
@@ -79,4 +82,16 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
       </div>
     </div>
   )
+}
+
+export function CodeApp({ ctx }: { ctx: WindowContext }) {
+  const tab = ctx.route.startsWith('/builds') ? 'builds' : ctx.route.startsWith('/devices') ? 'devices' : 'sessions'
+  const { setTitle } = ctx
+  useEffect(() => { if (tab === 'builds') setTitle('构建') }, [tab, setTitle])
+  return <div className={styles.development}>
+    <nav className={styles.tabs} aria-label="开发导航">
+      {([['sessions', '/', '会话'], ['builds', '/builds', '构建'], ['devices', '/devices', '设备']] as const).map(([key, route, label]) => <button key={key} aria-current={tab === key ? 'page' : undefined} onClick={() => ctx.navigate(route)}>{label}</button>)}
+    </nav>
+    <div className={styles.content}>{tab === 'builds' ? <BuildsPage initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} /> : tab === 'devices' ? <DevicesApp ctx={ctx} /> : <Conversations ctx={ctx} />}</div>
+  </div>
 }

@@ -1,3 +1,5 @@
+import { buildsApi } from './builds/api.js'
+import { buildRequest } from './builds/client.js'
 import { devicesApi } from './devices/api.js'
 import { terminalApi } from './terminal/api.js'
 import { systemApi } from './system/api.js'
@@ -9,6 +11,7 @@ import { musicApi } from './music/api.js'
 
 export const serverApps: ServerApp[] = [
   { id: 'devices', api: devicesApi },
+  { id: 'builds', api: buildsApi, start: () => { void buildRequest({ action: 'status' }).catch(console.error) } },
   codeApp,
   { id: 'terminal', api: terminalApi },
   { id: 'files', api: filesApi },
