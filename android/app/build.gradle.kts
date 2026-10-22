@@ -13,7 +13,7 @@ android {
         applicationId = "app.binos"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
+        versionCode = providers.gradleProperty("ciBuildNumber").orNull?.toInt() ?: 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

@@ -9,6 +9,7 @@ export default defineConfig({
   plugins: [react(), appFiles()],
   server: {
     proxy: {
+      '/install': { target: `http://127.0.0.1:${process.env.BINOS_SERVER_PORT ?? 3000}` },
       '/api': {
         target: `http://127.0.0.1:${process.env.BINOS_SERVER_PORT ?? 3000}`,
         ws: true,

@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process'
-import { closeSync, openSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { closeSync, existsSync, openSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
 import { rootLayout } from '../server/src/layout.ts'
@@ -70,8 +70,9 @@ export async function stopPreviewServer(serverLock: string) {
   }
 }
 
-// 设备管理进程独立于网页后端；删除构建或数据前也要结束它，避免残留进程继续读写旧目录。
+// 设备和构建管理进程独立于网页后端；删除构建或数据前也要结束它，避免残留进程继续读写旧目录。
 export async function stopPreviewDevices(dir: string) {
+  await stopPreviewBuilds(dir)
   const lock = path.join(rootLayout(dir).appsDir, 'devices', 'manager.lock')
   const manager = readJson<ProcessIdentity>(lock)
   if (!manager || !isRunning(manager)) return
@@ -121,5 +122,27 @@ export function readJson<T>(file: string): T | undefined {
     return JSON.parse(readFileSync(file, 'utf8')) as T
   } catch {
     return undefined
+  }
+}
+
+async function stopPreviewBuilds(dir: string) {
+  const data = path.join(rootLayout(dir).appsDir, 'builds')
+  const manager = readJson<ProcessIdentity>(path.join(data, 'manager.lock'))
+  if (manager && isRunning(manager)) {
+    process.kill(manager.pid, 'SIGTERM')
+    for (let i = 0; i < 100 && isRunning(manager); i++) await sleep(100)
+    if (isRunning(manager)) throw new Error('构建预览服务未退出')
+  }
+  const results = path.join(data, 'results')
+  if (!existsSync(results)) return
+  for (const id of readdirSync(results)) {
+    const runner = readJson<ProcessIdentity>(path.join(results, id, 'runner.json'))
+    if (runner && isRunning(runner)) {
+      process.kill(runner.pid, 'SIGTERM')
+      for (let i = 0; i < 100 && isRunning(runner); i++) await sleep(100)
+      if (isRunning(runner)) throw new Error('预览构建未退出')
+    }
+    const child = readJson<ProcessIdentity>(path.join(results, id, 'child.json'))
+    if (child && isRunning(child)) { try { process.kill(-child.pid, 'SIGKILL') } catch { /* 进程已结束。 */ } }
   }
 }

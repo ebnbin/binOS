@@ -1,5 +1,5 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { Hammer, ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -15,12 +15,14 @@ export function TopBar({
   onBack,
   onNew,
   onScrollTop,
+  onBuild,
 }: {
   title: string
   sessionId: number | null
   session: SessionSummary | undefined
   onBack: () => void
   onNew: () => void
+  onBuild: (ref: string) => void
   onScrollTop: () => void
 }) {
   const prs = session?.prs ?? []
@@ -38,6 +40,7 @@ export function TopBar({
           </>
         )}
       </div>
+      <IconButton icon={Hammer} label="构建当前项目" onClick={() => onBuild(prs.find((pr) => pr.state === 'open') ? `pr/${prs.find((pr) => pr.state === 'open')!.number}` : 'main')} />
       <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} disabled={sessionId === null} />
     </header>
   )

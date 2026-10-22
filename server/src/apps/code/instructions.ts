@@ -9,4 +9,6 @@ export const transcriptPrompt = [
 
 const devicePrompt = `开发验证设备通过 "$BINOS_DEVICES_CLI" devices 使用。先 acquire --platform android|ios|both --reason 用途，返回租约 ID；用 run --lease ID -- 命令 执行，自动续租并注入 ANDROID_SERIAL、BINOS_IOS_UDID 和 BINOS_IOS_DEVICE_SET。iOS 命令必须带 xcrun simctl --set "$BINOS_IOS_DEVICE_SET"，不要使用 booted。用 screenshot 只截租约里的设备，验证后 release --lease ID。无受管理设备时请告知用户，不要接管已有模拟器或自行 provision。`
 
-export const codeInstructions = [transcriptPrompt, devicePrompt].join('\n\n')
+const buildPrompt = `移动端构建使用 "$BINOS_DEVICES_CLI" builds。status 查看队列与产物，enqueue main|pr/编号|完整提交号 android,ios-simulator 发起构建，retry 构建ID 重试。ios-adhoc 需要已配置的真机签名；模拟器包不能安装到真机。构建由独立服务在干净提交中执行，不需要申请模拟器。不要把签名密钥放入代码或产物。`
+
+export const codeInstructions = [transcriptPrompt, devicePrompt, buildPrompt].join('\n\n')
