@@ -7,7 +7,8 @@ import type { AgentId } from '../../services/kita/types.js'
 import { queueMessage, sendMessage, sendQueued, stopSession, unqueueMessage } from './messages.js'
 import type { MessageOptions } from './messages.js'
 import { pullRequests } from './pull-requests.js'
-import { createProject, listProjects, projectExists } from './projects.js'
+import { connectProject, createProject, listProjects, projectExists } from './projects.js'
+import { parseRepository, RepositoryError } from './repositories.js'
 import { readQueue } from './queue.js'
 import { listSessions, readSession, searchContent, searchSessions, sessionExists, sessionTitle, setUserState, threadOf } from './sessions.js'
 import type { SessionSummary, Upload } from './types.js'
@@ -63,6 +64,16 @@ const messageBody = validator('json', (value, c) => {
     ...(isName(body.effort) && { effort: body.effort }),
   }
   return message
+})
+
+const repositoryBody = validator('json', (value, c) => {
+  const body = value as { name?: unknown; repository?: unknown; create?: unknown } | null
+  const name = typeof body?.name === 'string' ? body.name.replace(/\p{Cc}/gu, ' ').trim() : ''
+  const repository = typeof body?.repository === 'string' ? parseRepository(body.repository) : undefined
+  if (!name || name.length > 100 || !repository || (body?.create !== undefined && typeof body.create !== 'boolean')) {
+    return c.json({ error: '请填写项目名称和 GitHub 仓库（owner/name）' }, 400)
+  }
+  return { name, repository, create: body?.create === true }
 })
 
 // 改名、置顶、归档，没给的项不动
@@ -125,19 +136,37 @@ function isUnread(id: number) {
 const toResult = (id: number | undefined) => (id === undefined ? ({ error: 'unavailable' } as const) : { id, kitaSession: readSession(id).kitaSession })
 
 async function send(sessionId: number | undefined, text: string, attachments: Upload[], options: MessageOptions) {
-  return toResult(await sendMessage(sessionId, text, attachments, options))
+  try {
+    return toResult(await sendMessage(sessionId, text, attachments, options))
+  } catch (error) {
+    if (error instanceof RepositoryError) return { error: error.message }
+    throw error
+  }
 }
 
 export const codeApi = new Hono()
   .get('/projects', (c) => c.json({ projects: listProjects() }))
-  .post('/projects', validator('json', (value, c) => {
-    const body = value as { name?: unknown } | null
-    const name = typeof body?.name === 'string' ? body.name.replace(/\p{Cc}/gu, ' ').trim() : ''
-    return !name || name.length > 100 ? c.text('Bad Request', 400) : { name }
-  }), (c) => {
-    const project = createProject(c.req.valid('json').name)
-    notifyChange({ type: 'project' })
-    return c.json({ project }, 201)
+  .post('/projects', repositoryBody, async (c) => {
+    const { name, repository, create } = c.req.valid('json')
+    try {
+      const project = await createProject(name, repository, create)
+      notifyChange({ type: 'project' })
+      return c.json({ project }, 201)
+    } catch (error) {
+      if (error instanceof RepositoryError) return c.json({ error: error.message }, 400)
+      throw error
+    }
+  })
+  .post('/projects/:project/repository', repositoryBody, async (c) => {
+    const { repository, create } = c.req.valid('json')
+    try {
+      const project = await connectProject(c.req.param('project'), repository, create)
+      notifyChange({ type: 'project' })
+      return c.json({ project }, 200)
+    } catch (error) {
+      if (error instanceof RepositoryError) return c.json({ error: error.message }, 400)
+      throw error
+    }
   })
   .get('/search', (c) => c.json(searchContent(c.req.query('q') ?? '')))
   // q：只要标题、用户的话或回复的文字里含有它的。按最近有动静的排在前面

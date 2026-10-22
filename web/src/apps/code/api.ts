@@ -34,6 +34,10 @@ export async function sendMessage(
   if (res?.status === 200) {
     return await res.json()
   }
+  if (res?.status === 503) {
+    const body = await res.json().catch(() => undefined)
+    if (body && 'error' in body && body.error !== 'unavailable') return { error: body.error }
+  }
   return { error: res?.status === 503 ? '消息没能交给 agent，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }
 
@@ -100,8 +104,12 @@ export async function listProjects() {
   return (await res.json()).projects
 }
 
-export async function createProject(name: string) {
-  const res = await client.projects.$post({ json: { name } })
-  if (!res.ok) throw new Error('创建项目失败')
-  return (await res.json()).project
+export async function createProject(name: string, repository: string, create: boolean, projectId?: string) {
+  const json = { name, repository, create }
+  const res = await (projectId
+    ? client.projects[':project'].repository.$post({ param: { project: projectId }, json })
+    : client.projects.$post({ json }))
+  const body = await res.json()
+  if ('error' in body) throw new Error(body.error)
+  return body.project
 }

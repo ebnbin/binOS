@@ -10,7 +10,7 @@ export type QueuedMessage = { id: string; time: string; text: string; attachment
 export type PullRequest = { url: string; number: number; state?: 'open' | 'merged' | 'closed'; title?: string; preview?: string }
 
 // 一个 session 是和 agent 的一段对话，内容在 agent 服务的 thread 里
-export type Project = { id: string; name: string }
+export type Project = { id: string; name: string; repository?: string; defaultBranch?: string }
 
 export type SessionSummary = {
   project: string

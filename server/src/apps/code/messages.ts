@@ -5,8 +5,10 @@ import { isPriced } from '../../services/kita/index.js'
 import { defaultAgent } from '../../services/kita/types.js'
 import type { AgentId } from '../../services/kita/types.js'
 import { pushQueue, readQueue, takeQueue, unshiftQueue } from './queue.js'
-import { repoDir } from './repositories.js'
-import { createSession, listSessions, sessionOf, setUserState, threadOf } from './sessions.js'
+import { defaultProject, listProjects, projectDirectory } from './projects.js'
+import { RepositoryError } from './repositories.js'
+import { projectInstructions } from './instructions.js'
+import { createSession, listSessions, readSession, sessionOf, setUserState, threadOf } from './sessions.js'
 import type { QueuedMessage, Upload } from './types.js'
 import { discardUploads, uploadFiles } from './uploads.js'
 import { recordQuotaSample } from './usage.js'
@@ -57,8 +59,15 @@ export type MessageOptions = { project?: string; interrupt?: boolean; agent?: Ag
 export async function sendMessage(sessionId: number | undefined, text: string, uploads: Upload[], options: MessageOptions): Promise<number | undefined> {
   let id = sessionId
   if (id === undefined) {
-    id = createSession(codeKita.createSession({ agent: options.agent ?? defaultAgent, cwd: repoDir, instructions: codeInstructions }).id, options.project)
+    const project = options.project ?? defaultProject
+    const cwd = projectDirectory(project)
+    const instructions = project === defaultProject ? codeInstructions : projectInstructions(listProjects().find((item) => item.id === project)!, cwd)
+    id = createSession(codeKita.createSession({ agent: options.agent ?? defaultAgent, cwd, instructions }).id, project)
   } else {
+    const project = readSession(id).project
+    if (project !== defaultProject && threadOf(id).metadata().cwd !== projectDirectory(project)) {
+      throw new RepositoryError('这个旧对话使用其他仓库的目录，请在当前项目中开启新对话')
+    }
     setUserState(id, { archived: undefined })
   }
   const { interrupt, model, effort } = options
