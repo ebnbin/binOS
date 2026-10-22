@@ -4,6 +4,7 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { createReadStream } from 'node:fs'
 import { buildRequest } from './client.js'
+import { installableBuild, installOrigin, installToken, ipaInfo } from './install.js'
 import { resultsDir } from './config.js'
 import { parseRequest } from './protocol.js'
 import type { Snapshot } from './types.js'
@@ -16,6 +17,16 @@ export const buildsApi = new Hono()
     const request = parseRequest(await c.req.json())
     if (request.action === 'stop' || request.action === 'handoff') return c.json({ error: '网页不能停止构建服务' }, 403)
     return c.json(await buildRequest(request))
+  })
+  .post('/:id/install', async (c) => {
+    const item = await installableBuild(c.req.param('id'))
+    if (!item) return c.notFound()
+    const body = await c.req.json() as { origin?: unknown }
+    const origin = installOrigin(body.origin)
+    await ipaInfo(item.file)
+    const token = installToken(item.build.id)
+    const url = `${origin}/install/${item.build.id}/${token}/manifest.plist?origin=${encodeURIComponent(origin)}`
+    return c.json({ url: `itms-services://?action=download-manifest&url=${encodeURIComponent(url)}`, expiresIn: 86400 })
   })
   .get('/:id/log', async (c) => {
     const id = c.req.param('id')

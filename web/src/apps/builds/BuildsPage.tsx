@@ -29,6 +29,15 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
     void read(); const timer = setInterval(() => void read(), 2000)
     return () => { active = false; clearInterval(timer) }
   }, [log])
+  async function install(id: string) {
+    setBusy(true)
+    try {
+      const r = await fetch(`${base}/${id}/install`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ origin: window.location.origin }) })
+      const value = await r.json()
+      if (!r.ok) throw new Error(value.error ?? '无法创建安装链接')
+      window.location.href = value.url
+    } catch (e) { setError(String(e)) } finally { setBusy(false) }
+  }
   async function act(body: unknown) { setBusy(true); try { setData(await request(body)); setError('') } catch (e) { setError(String(e)) } finally { setBusy(false) } }
   return <section className="builds-page">
     <header><div><h1>构建</h1><p>Android 与 iOS 的持续集成、日志和产物</p></div><button disabled={busy} onClick={() => void act({ action: 'poll' })}>检查更新</button></header>
@@ -51,6 +60,7 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
       <small>{new Date(b.createdAt).toLocaleString()}{b.startedAt && ` · 用时 ${Math.max(0, Math.round(((b.endedAt ? Date.parse(b.endedAt) : clock) - Date.parse(b.startedAt)) / 1000))} 秒`}</small>
       {b.error && <p className="builds-error">{b.error}</p>}
       <div className="builds-row"><button onClick={() => { setText('读取日志…'); setLog(b) }}>查看日志</button>{['queued', 'running'].includes(b.status) ? <button disabled={busy} onClick={() => void act({ action: 'cancel', id: b.id })}>取消</button> : <button disabled={busy} onClick={() => void act({ action: 'retry', id: b.id })}>重新构建</button>}</div>
+      {data.mode === 'real' && b.target === 'ios-adhoc' && b.status === 'success' && <div className="builds-row"><button disabled={busy} onClick={() => void install(b.id)}>在 iPhone / iPad 上安装</button><small>仅限描述文件内已注册的设备，安装链接有效期 24 小时</small></div>}
       {b.artifacts.map((a) => <a className="builds-artifact" key={a.name} href={`${base}/${b.id}/artifacts/${encodeURIComponent(a.name)}`} download title={`SHA-256: ${a.sha256}`}>{a.name} · {(a.size / 1024 / 1024).toFixed(1)} MB ↓</a>)}
     </article>)}
     {log && <section className="builds-log" aria-label="构建日志"><header><strong>{targetLabels[log.target]} · {log.commit.slice(0, 7)}</strong><a href={`${base}/${log.id}/log?download=1`} download>下载完整日志</a><button onClick={() => setLog(undefined)}>关闭日志</button></header><pre>{text}</pre></section>}

@@ -109,4 +109,8 @@ function endQuietlyOnAbort(body: ReadableStream<Uint8Array>, signal: AbortSignal
 }
 
 // pr-<编号> 子域名的请求先由正式版校验身份，再转给这个 PR 的预览实例；预览实例本身是测试实例，不再转发
-export const previewProxy = except((c) => isTestInstance || !previewName(c.req.url), requireOwner, forward)
+const previewOwner: MiddlewareHandler = (c, next) => {
+  if (['GET', 'HEAD'].includes(c.req.method) && /^\/install\/[a-f0-9-]{36}\/\d{13}\.[\w-]{43}\/(manifest\.plist|app\.ipa)$/.test(c.req.path)) return next()
+  return requireOwner(c, next)
+}
+export const previewProxy = except((c) => isTestInstance || !previewName(c.req.url), previewOwner, forward)
