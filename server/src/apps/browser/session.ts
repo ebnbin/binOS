@@ -46,7 +46,20 @@ class Session {
     this.page.on('filechooser', () => this.emit({ type: 'error', message: '当前远程模式暂不支持文件上传' }))
     this.page.on('close', () => { this.disconnect?.(); this.destroy() })
     this.cdp.on('Page.screencastFrame', (frame) => {
+      if (Math.abs(frame.metadata.deviceWidth - this.width * this.scale) > 1 || Math.abs(frame.metadata.deviceHeight - this.height * this.scale) > 1) {
+        void this.cdp.send('Page.screencastFrameAck', { sessionId: frame.sessionId }).catch(() => {})
+        return
+      }
       this.offerFrame({ sessionId: frame.sessionId, data: frame.data, width: this.width, height: this.height })
+    })
+    await this.viewport()
+  }
+
+  async viewport() {
+    await this.cdp.send('Emulation.setDeviceMetricsOverride', {
+      width: this.width, height: this.height, deviceScaleFactor: this.scale, mobile: false,
+      screenWidth: this.width, screenHeight: this.height,
+      viewport: { x: 0, y: 0, width: this.width, height: this.height, scale: 1 },
     })
   }
 
@@ -113,9 +126,7 @@ class Session {
         this.width = message.width
         this.height = message.height
         this.scale = Math.min(message.scale, 2560 / Math.max(this.width, this.height))
-        await this.cdp.send('Emulation.setDeviceMetricsOverride', {
-          width: this.width, height: this.height, deviceScaleFactor: this.scale, mobile: false,
-        })
+        await this.viewport()
         await this.stream()
         break
       }

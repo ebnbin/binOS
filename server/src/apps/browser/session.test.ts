@@ -113,4 +113,24 @@ describe('remote browser reconnection', () => {
     expect(fixture.page.close).not.toHaveBeenCalled()
     expect(third.close).not.toHaveBeenCalled()
   })
+
+  it('rejects frames from the old viewport and accepts the matching high density frame', async () => {
+    const current = client()
+    const connection = await connectBrowser(undefined, current.send, current.close)
+    connection.receive({ type: 'resize', width: 402, height: 524, scale: 2 })
+    await vi.waitFor(() => expect(fixture.cdp.send).toHaveBeenCalledWith('Emulation.setDeviceMetricsOverride', expect.objectContaining({
+      width: 402, height: 524, deviceScaleFactor: 2,
+      viewport: { x: 0, y: 0, width: 402, height: 524, scale: 1 },
+    })))
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 70, data: 'old', metadata: { deviceWidth: 1200, deviceHeight: 800 } })
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 71, data: 'low-density', metadata: { deviceWidth: 402, deviceHeight: 524 } })
+    expect(current.messages.filter((message) => message.type === 'frame')).toEqual([])
+    expect(fixture.cdp.send).toHaveBeenCalledWith('Page.screencastFrameAck', { sessionId: 70 })
+    expect(fixture.cdp.send).toHaveBeenCalledWith('Page.screencastFrameAck', { sessionId: 71 })
+    fixture.cdp.emit('Page.screencastFrame', { sessionId: 72, data: 'matching', metadata: { deviceWidth: 804, deviceHeight: 1048 } })
+    expect(current.messages.filter((message) => message.type === 'frame')).toEqual([
+      { type: 'frame', frame: 1, data: 'matching', more: false, width: 402, height: 524 },
+    ])
+  })
+
 })

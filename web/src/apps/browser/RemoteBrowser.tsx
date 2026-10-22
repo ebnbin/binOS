@@ -30,7 +30,12 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
     const rect = image.current!.getBoundingClientRect()
     const width = Number(image.current!.dataset.width || rect.width)
     const height = Number(image.current!.dataset.height || rect.height)
-    return { x: Math.max(0, Math.min(width, (event.clientX - rect.left) * width / rect.width)), y: Math.max(0, Math.min(height, (event.clientY - rect.top) * height / rect.height)) }
+    const scale = Math.min(rect.width / (image.current!.naturalWidth || width), rect.height / (image.current!.naturalHeight || height))
+    const paintedWidth = (image.current!.naturalWidth || width) * scale
+    const paintedHeight = (image.current!.naturalHeight || height) * scale
+    const left = rect.left + (rect.width - paintedWidth) / 2
+    const top = rect.top + (rect.height - paintedHeight) / 2
+    return { x: Math.max(0, Math.min(width, (event.clientX - left) * width / paintedWidth)), y: Math.max(0, Math.min(height, (event.clientY - top) * height / paintedHeight)) }
   }
 
   useEffect(() => {
