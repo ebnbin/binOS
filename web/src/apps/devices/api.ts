@@ -9,8 +9,8 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
 }
 export const readDevices = () => request<DevicesSnapshot>('')
 export const discoverDevices = () => request<DevicesSnapshot>('/discover', {})
-export const acquireDevices = (platforms: Platform[], reason: string) => request<LeaseResult>('/leases', { platforms, reason })
+export const acquireDevices = (platforms: Platform[], reason: string, requestId: string = crypto.randomUUID()) => request<LeaseResult>('/leases', { platforms, reason, requestId })
 export const releaseDevices = (id: string) => request(`/leases/${encodeURIComponent(id)}/release`, {})
-export const cancelDevices = () => request('/queue/cancel', {})
-export const controlDevice = (id: string, operation: 'maintenance' | 'restore') => request(`/${encodeURIComponent(id)}/control`, { operation })
+export const cancelDevices = (requestId: string) => request('/queue/cancel', { requestId })
+export const controlDevice = (id: string, operation: 'destroy') => request(`/${encodeURIComponent(id)}/control`, { operation })
 export const captureDevice = (id: string) => request<{ image: string; mime: string; at: number }>(`/${encodeURIComponent(id)}/screenshot`)

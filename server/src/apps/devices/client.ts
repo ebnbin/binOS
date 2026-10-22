@@ -3,12 +3,12 @@ import { createConnection } from 'node:net'
 import { closeSync, mkdirSync, openSync } from 'node:fs'
 import path from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { build, dataDir, mode, socketPath } from './config.js'
+import { adminSocketPath, build, dataDir, mode, socketPath } from './config.js'
 import type { Request, Snapshot } from './types.js'
 
-function send<T>(request: Request): Promise<T> {
+function send<T>(request: Request, admin = false): Promise<T> {
   return new Promise((resolve, reject) => {
-    const socket = createConnection(socketPath)
+    const socket = createConnection(admin ? adminSocketPath : socketPath)
     let output = ''
     socket.setEncoding('utf8')
     socket.setTimeout(request.action === 'run' ? request.timeout + 10_000 : 360_000, () => socket.destroy(new Error('设备服务响应超时')))
@@ -30,8 +30,8 @@ async function ensure() {
   try {
     const status = await send<Snapshot>({ action: 'status' })
     if (status.mode !== mode) throw new Error('该数据目录已有不同模式的设备服务，请使用独立目录')
-    if (status.build === build) return
-    await send({ action: 'stop' })
+    if (status.build === build && status.version === 2) return
+    await send({ action: 'stop' }, status.version === 2)
     await sleep(200)
   } catch (error) {
     if (!['ENOENT', 'ECONNREFUSED'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error
@@ -47,7 +47,10 @@ async function ensure() {
     } finally { closeSync(log) }
     for (let attempt = 0; attempt < 60; attempt++) {
       await sleep(100)
-      try { await send({ action: 'status' }); return } catch { /* 等待 socket 开始监听。 */ }
+      try {
+        const status = await send<Snapshot>({ action: 'status' })
+        if (status.build === build && status.version === 2) return
+      } catch { /* 等待 socket 开始监听。 */ }
     }
     throw new Error(`设备服务未能启动，请查看 ${path.join(dataDir, 'manager.log')}`)
   })().finally(() => { starting = undefined })
@@ -56,4 +59,9 @@ async function ensure() {
 export async function deviceRequest<T>(request: Request): Promise<T> {
   await ensure()
   return send<T>(request)
+}
+
+export async function adminDeviceRequest<T>(request: Request): Promise<T> {
+  await ensure()
+  return send<T>(request, true)
 }

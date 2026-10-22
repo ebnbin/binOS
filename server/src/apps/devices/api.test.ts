@@ -10,12 +10,12 @@ process.env.BINOS_TEST_INSTANCE = '1'
 const tsx = import.meta.resolve('tsx')
 process.execArgv.push('--import', tsx)
 const { api } = await import('../../api.js')
-const { deviceRequest } = await import('./client.js')
+const { deviceRequest, adminDeviceRequest } = await import('./client.js')
 const base = '/api/apps/devices'
 const post = (url: string, data: unknown) => api.request(`${base}${url}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
 afterAll(async () => {
   await new Promise((resolve) => setTimeout(resolve, 200))
-  await deviceRequest({ action: 'stop' })
+  await adminDeviceRequest({ action: 'stop' })
   rmSync(root, { recursive: true, force: true })
 })
 describe('Devices HTTP API', () => {
@@ -27,12 +27,19 @@ describe('Devices HTTP API', () => {
     for (const endpoint of ['/run', '/provision', '/stop']) expect((await post(endpoint, {})).status).toBe(404)
     expect((await post('/leases', { platforms: ['ios', 'ios'], reason: '' })).status).toBe(409)
     const acquired = await post('/leases', { owner: 'another-thread', platforms: ['android', 'ios'], reason: '手动测试' })
-    const lease = ((await acquired.json()) as LeaseResult).lease!
+    let result = await acquired.json() as LeaseResult
+    for (let i = 0; !result.lease && i < 100; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      result = await deviceRequest<LeaseResult>({ action: 'acquire', owner: 'manual', platforms: ['android', 'ios'], reason: '', requestId: result.requestId })
+    }
+    const lease = result.lease!
     expect(lease.owner).toBe('manual')
-    const capture = await api.request(`${base}/ios-preview/screenshot`)
+    const capture = await api.request(`${base}/${lease.devices[1]}/screenshot`)
     expect(capture.status).toBe(200)
     expect(((await capture.json()) as { image: string }).image.length).toBeGreaterThan(0)
-    expect((await post('/ios-preview/control', { operation: 'maintenance' })).status).toBe(409)
+    expect((await post(`/${lease.devices[1]}/control`, { operation: 'maintenance' })).status).toBe(409)
+    await expect(deviceRequest({ action: 'control', device: lease.devices[0], operation: 'destroy' })).rejects.toThrow('仅限')
+    await expect(deviceRequest({ action: 'stop' })).rejects.toThrow('仅限')
     expect((await post(`/leases/${lease.id}/release`, {})).status).toBe(200)
   }, 15_000)
 })

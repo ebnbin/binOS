@@ -6,6 +6,7 @@ import { codeDir, devicesServiceDir, isTestInstance } from '../../paths.js'
 
 export const dataDir = devicesServiceDir
 export const socketPath = path.join(os.tmpdir(), `binos-devices-${createHash('sha256').update(dataDir).digest('hex').slice(0, 16)}.sock`)
+export const adminSocketPath = socketPath.replace('.sock', '-admin.sock')
 export const statePath = path.join(dataDir, 'state.json')
 export const lockPath = path.join(dataDir, 'manager.lock')
 export const mode = process.env.BINOS_DEVICES_MODE === 'real' ? 'real' : isTestInstance || process.env.BINOS_DEVICES_MODE === 'mock' ? 'mock' : 'real'
@@ -15,7 +16,6 @@ export const emulator = path.join(sdkDir, 'emulator', 'emulator')
 export const avdDir = path.join(dataDir, 'avd')
 export const iosSet = path.join(dataDir, 'ios')
 export const emulatorHome = path.join(dataDir, 'emulator')
-export const emulatorTmp = path.join(dataDir, 'tmp')
 export const toolEnv = { ...process.env, ANDROID_HOME: sdkDir, ANDROID_AVD_HOME: avdDir }
 
 const versionFile = path.join(codeDir, 'VERSION')
