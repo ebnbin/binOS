@@ -28,15 +28,15 @@
   height: 38px;
   margin: 4px 12px 14px;
   padding: 0 12px;
-  border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface);
-  color: inherit;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
-  box-shadow: 0 1px 1px rgb(0 0 0 / 2%);
   transition: border-color 0.15s;
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
 }
 
 @media (hover: hover) {
@@ -95,11 +95,9 @@
 }
 
 .item[aria-current] {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow:
-    0 0 0 1px var(--hairline),
-    0 1px 2px rgb(0 0 0 / 4%);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
 }
 
 .line {
@@ -228,7 +226,7 @@
   height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 7px;
+  border-radius: 10px;
   background: var(--sidebar);
   color: var(--muted);
   cursor: pointer;
@@ -276,7 +274,7 @@
 
 .openPr {
   flex: none;
-  color: #1a7f37;
+  color: var(--success);
 }
 
 .error {

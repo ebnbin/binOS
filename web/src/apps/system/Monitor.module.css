@@ -12,8 +12,9 @@
   justify-content: space-between;
   padding: 14px 22px;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
   gap: 12px;
+  background: var(--glass);
+  border-bottom-color: var(--hairline);
 }
 .top > div {
   display: flex;
@@ -28,7 +29,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #42806b;
+  color: var(--success);
   font-size: 12px;
 }
 .freshness::before {
@@ -43,35 +44,6 @@
 }
 .freshness small {
   color: var(--muted);
-}
-.sections {
-  display: flex;
-  gap: 12px;
-  padding: 14px 22px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-}
-.sections button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  text-align: left;
-  color: var(--text-2);
-}
-.sections button[aria-current='page'] {
-  background: var(--ink);
-  color: var(--on-ink);
-  border-color: var(--ink);
-}
-.sections small {
-  display: block;
-  opacity: 0.65;
-  font-size: 11px;
-  margin-top: 2px;
 }
 .body {
   flex: 1;
@@ -105,10 +77,10 @@
 .card,
 .section {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
   padding: 22px;
   min-width: 0;
+  border: 0;
+  border-radius: 20px;
 }
 .card h2,
 .section h2 {
@@ -145,7 +117,7 @@
   border-radius: 8px;
   appearance: none;
   background: var(--bubble);
-  accent-color: #5e9a8b;
+  accent-color: var(--accent);
 }
 .card progress::-webkit-progress-bar,
 .volume progress::-webkit-progress-bar {
@@ -154,12 +126,12 @@
 }
 .card progress::-webkit-progress-value,
 .volume progress::-webkit-progress-value {
-  background: #5e9a8b;
+  background: var(--accent);
   border-radius: 8px;
 }
 .card progress::-moz-progress-bar,
 .volume progress::-moz-progress-bar {
-  background: #5e9a8b;
+  background: var(--accent);
   border-radius: 8px;
 }
 .speeds {
@@ -233,7 +205,7 @@
   align-items: center;
   padding: 7px 10px;
   border: 1px solid var(--border);
-  border-radius: 5px;
+  border-radius: 8px;
   background: var(--surface);
 }
 .app button:disabled {
@@ -288,17 +260,6 @@
   .freshness small {
     display: none;
   }
-  .sections {
-    padding: 10px 12px;
-    gap: 6px;
-  }
-  .sections button {
-    padding: 10px 8px;
-    gap: 7px;
-  }
-  .sections small {
-    font-size: 9px;
-  }
   .content {
     padding: 20px 12px;
   }
@@ -325,5 +286,20 @@
 @media (max-width: 380px) {
   .cards {
     grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 500px) {
+}
+.sections {
+  margin: 12px 22px 0;
+  display: flex;
+  flex-shrink: 0;
+}
+.sections svg {
+  color: var(--accent);
+}
+@media (max-width: 500px) {
+  .sections {
+    margin: 10px 12px 0;
   }
 }

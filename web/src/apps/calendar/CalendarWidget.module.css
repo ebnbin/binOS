@@ -16,8 +16,8 @@
 .header h2 {
   margin: 0;
   font-size: 16px;
-  font-weight: 600;
   white-space: nowrap;
+  font-weight: 700;
 }
 
 .actions {
@@ -85,7 +85,10 @@
 }
 
 .month td span[aria-current='date'] {
-  background: var(--live);
+  background: var(--danger);
   color: var(--surface);
   font-weight: 600;
+}
+.header h2::first-letter {
+  color: var(--danger);
 }

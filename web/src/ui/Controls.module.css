@@ -1,0 +1,60 @@
+:where(.button) {
+  border-radius: var(--radius-control);
+  font-weight: 500;
+  user-select: none;
+  -webkit-user-select: none;
+}
+:where(.button.filled, .button.tinted, .button.destructive) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 14px;
+}
+:where(.filled) {
+  background: var(--accent);
+  color: var(--on-ink);
+}
+:where(.tinted) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+:where(.destructive) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+:where(.button):disabled {
+  opacity: 0.4;
+}
+:where(.input):not([type='range'], [type='checkbox'], [type='file']) {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+:where(.textarea) {
+  resize: vertical;
+}
+:where(.select) {
+  appearance: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 9px;
+  background: var(--surface);
+  color: var(--text);
+}
+@media (pointer: coarse) {
+  :where(.filled, .tinted, .destructive) {
+    min-height: 44px;
+  }
+}
+
+.input[type='range'] {
+  appearance: auto;
+  accent-color: var(--accent);
+}
+.input[type='range']::-webkit-slider-thumb {
+  box-shadow: 0 1px 4px rgb(0 0 0 / 15%);
+}

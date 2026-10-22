@@ -1,0 +1,14 @@
+.icon {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 24%;
+  background: var(--app-tile);
+  color: white;
+  border: 1px solid rgb(255 255 255 / 28%);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.icon svg {
+  width: 48%;
+  height: 48%;
+}

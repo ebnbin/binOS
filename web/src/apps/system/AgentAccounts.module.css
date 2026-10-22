@@ -65,7 +65,7 @@
 }
 
 .status[data-ok='true'] {
-  color: #34c759;
+  color: var(--success);
 }
 
 .version {

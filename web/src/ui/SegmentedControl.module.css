@@ -1,0 +1,37 @@
+.group {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 3px;
+  padding: 3px;
+  min-width: 0;
+  background: var(--bubble);
+  border-radius: 12px;
+}
+.segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 5px 14px;
+  border-radius: 9px;
+  color: var(--text-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.segment svg {
+  flex: none;
+}
+.segment[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 14%);
+}
+@media (pointer: coarse) {
+  .segment {
+    min-height: 44px;
+    padding: 5px 10px;
+  }
+}

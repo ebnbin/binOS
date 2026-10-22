@@ -1,3 +1,4 @@
+import { Button, Input, Textarea } from '../../../ui/Controls.tsx'
 import { Select } from '../../../ui/Select.tsx'
 import { ArrowUp, Clock, ListPlus, Paperclip, X, Zap } from 'lucide-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
@@ -239,7 +240,7 @@ export function Composer({
             <PendingAttachments files={pending} onRemove={sending ? undefined : (key) => clearPending((item) => item.key !== key)} />
           </div>
         )}
-        <textarea
+        <Textarea
           ref={textareaRef}
           className={styles.input}
           value={input}
@@ -254,7 +255,7 @@ export function Composer({
           autoFocus={enterSends}
         />
         <div className={styles.bar}>
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
             multiple
@@ -318,14 +319,14 @@ export function Composer({
               <Spinner />
             </span>
           ) : running && !hasContent ? (
-            <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+            <Button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
               <span className={styles.stopIcon} />
-            </button>
+            </Button>
           ) : (
             <>
               {running && (
                 <>
-                  <button
+                  <Button
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('interrupt')}
@@ -334,8 +335,8 @@ export function Composer({
                   >
                     <Zap size={14} strokeWidth={2} />
                     打断
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     className={styles.interrupt}
                     onClick={() => void send('queue')}
@@ -344,10 +345,10 @@ export function Composer({
                   >
                     <ListPlus size={14} strokeWidth={2} />
                     排队
-                  </button>
+                  </Button>
                 </>
               )}
-              <button
+              <Button
                 type="submit"
                 className={styles.action}
                 disabled={!canSend}
@@ -355,7 +356,7 @@ export function Composer({
                 title={running ? '插话：agent 在下一步看到' : '发送'}
               >
                 <ArrowUp size={17} strokeWidth={2.2} />
-              </button>
+              </Button>
             </>
           )}
         </div>

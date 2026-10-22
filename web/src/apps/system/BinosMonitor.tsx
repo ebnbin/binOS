@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Controls.tsx'
 import type { MonitorStatus } from '@binos/server/apps/system/types'
 import { useConnected } from '../../events.ts'
 import { useApplications } from '../index.ts'
@@ -43,10 +44,10 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
         <section className={styles.section}>
           <h2>应用设置</h2>
           {apps.map((app) => (
-            <button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
+            <Button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
               {app.name}
               <span>{app.settings!.hint}</span>
-            </button>
+            </Button>
           ))}
         </section>
       )}

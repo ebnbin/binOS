@@ -6,7 +6,7 @@
 
 .ring g,
 .window {
-  --window: #2fa84f;
+  --window: var(--success);
 }
 
 .ring [data-longest],

@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Controls.tsx'
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
 import { ChevronLeft, RefreshCw } from 'lucide-react'
@@ -13,7 +14,15 @@ import { Spinner } from '../../ui/Spinner.tsx'
 import { formatMoment } from '../../ui/time.ts'
 import styles from './AgentAccounts.module.css'
 
-const planNames: Record<string, string> = { max: 'Max', pro: 'Pro', prolite: 'Pro Lite', plus: 'Plus', team: 'Team', enterprise: 'Enterprise', free: 'Free' }
+const planNames: Record<string, string> = {
+  max: 'Max',
+  pro: 'Pro',
+  prolite: 'Pro Lite',
+  plus: 'Plus',
+  team: 'Team',
+  enterprise: 'Enterprise',
+  free: 'Free',
+}
 
 // 各个 agent 的账号、登录凭证、额度和用量。打开时现查，令牌本身不经过页面
 export function AgentAccounts({ back }: { back: () => void }) {
@@ -40,7 +49,13 @@ export function AgentAccounts({ back }: { back: () => void }) {
       <header className={styles.bar}>
         <IconButton icon={ChevronLeft} label="返回" onClick={back} />
         <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <IconButton
+          icon={RefreshCw}
+          label="重新读取"
+          onClick={refresh}
+          disabled={loading}
+          className={loading ? styles.spinning : undefined}
+        />
       </header>
       {accounts === undefined ? (
         <div className={styles.loading}>
@@ -110,7 +125,11 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
           <Value value={row.value} note={row.note} expired={row.expired} />
         </Row>
       ))}
-      {attention && <p className={styles.attention} data-tone={attention.tone}>{attention.text}</p>}
+      {attention && (
+        <p className={styles.attention} data-tone={attention.tone}>
+          {attention.text}
+        </p>
+      )}
       {fix !== undefined ? (
         <div className={styles.login}>
           <view.Login fix={fix} onClose={() => setFix(undefined)} />
@@ -119,9 +138,9 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
         actions.length > 0 && (
           <div className={styles.loginActions}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <Button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )

@@ -13,10 +13,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <!-- 屏幕四周是纯黑的外框，系统状态栏和浏览器标题栏也是黑色。
-         iOS 装成 app 后用默认样式，页面从状态栏下面开始：不能用 black-translucent，
-         iOS 26 起页面画到状态栏下面时，顶部一截会变成毛玻璃，页面高度也会少一截 -->
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#e5eaf9" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#172031" />
     <title>binOS</title>
   </head>
   <body>

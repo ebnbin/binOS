@@ -1,4 +1,3 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
 .bar {
   display: flex;
   align-items: center;
@@ -6,12 +5,12 @@
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: 6px 0;
+  padding: 10px 8px;
 }
 
 .bar[data-placement='left'],
 .bar[data-placement='right'] {
-  padding: 0 6px;
+  padding: 8px;
 }
 
 .bar[data-placement='left'] {
@@ -21,17 +20,24 @@
 .dock {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   min-height: 0;
   max-width: 100%;
   max-height: 100%;
+  padding: 7px;
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  background: var(--glass);
+  backdrop-filter: blur(32px) saturate(1.7);
+  -webkit-backdrop-filter: blur(32px) saturate(1.7);
+  box-shadow: var(--shadow);
 }
 
 /* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
 .apps {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -54,23 +60,25 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  color: rgb(255 255 255 / 62%);
-  transition: background-color 0.15s, color 0.15s;
+  color: var(--text-2);
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: rgb(255 255 255 / 8%);
-    color: #fff;
+    background: var(--hover);
+    color: var(--text);
   }
 }
 
 .item[aria-pressed='true'] {
-  background: rgb(255 255 255 / 16%);
-  color: #fff;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* 正在显示的 app 旁边有个点 */
@@ -81,7 +89,7 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 70%);
+  background: var(--accent);
 }
 
 .bar[data-placement='left'] .item[data-visible='true']::after,
@@ -103,7 +111,7 @@
   width: 1px;
   height: 22px;
   margin: 0 6px;
-  background: rgb(255 255 255 / 18%);
+  background: var(--border);
 }
 
 .bar[data-placement='left'] .separator,
@@ -138,7 +146,7 @@
 
 .glyph i[data-active='true'] {
   opacity: 1;
-  background: #fff;
+  background: var(--accent);
 }
 
 .item[data-group='true'] {
@@ -150,7 +158,9 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
 }
 
-.item[data-group='true']::after { display: none; }
+.item[data-group='true']::after {
+  display: none;
+}
 
 .member {
   position: relative;
@@ -167,5 +177,27 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--accent);
+}
+@media (pointer: coarse) {
+  .item {
+    width: 44px;
+    height: 44px;
+  }
+  .dock {
+    border-radius: 26px;
+    padding: 5px;
+  }
+  .bar {
+    padding: 7px 6px;
+  }
+}
+
+.appIcon {
+  width: 32px;
+  height: 32px;
+}
+.item[data-group='true'] .appIcon {
+  width: 23px;
+  height: 23px;
 }

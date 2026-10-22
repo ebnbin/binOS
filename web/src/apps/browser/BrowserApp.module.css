@@ -13,6 +13,9 @@
   gap: 6px;
   padding: 8px;
   border-bottom: 1px solid var(--border);
+  background: var(--glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 .navigation {
   display: flex;

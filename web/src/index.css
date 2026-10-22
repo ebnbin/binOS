@@ -1,121 +1,193 @@
 :root {
   color-scheme: light;
-  --bg: #f8f7f4;
-  --sidebar: #f1efeb;
-  --surface: #ffffff;
-  --text: #24221e;
-  --text-2: #5f5b54;
-  --muted: #959087;
-  --border: #e7e4de;
-  --hairline: rgb(36 34 30 / 7%);
-  --hover: rgb(36 34 30 / 5%);
-  --bubble: #edebe6;
-  --code: #f6f5f2;
-  --ink: #24221e;
-  --on-ink: #ffffff;
-  --danger: #c8442f;
-  --danger-bg: #fbefec;
-  --live: #d4862b;
-  --scrim: rgb(20 18 15 / 32%);
-  --shadow: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px rgb(36 34 30 / 10%);
-
-  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --mono: 'SF Mono', ui-monospace, Menlo, monospace;
-  --ease: cubic-bezier(0.32, 0.72, 0, 1);
-
+  --bg: #f5f5f7;
+  --sidebar: #eeeef0;
+  --surface: #fff;
+  --text: #1d1d1f;
+  --text-2: #626267;
+  --muted: #68686e;
+  --border: rgb(60 60 67 / 18%);
+  --hairline: rgb(60 60 67 / 10%);
+  --hover: rgb(60 60 67 / 6%);
+  --bubble: #e9e9ed;
+  --code: #f2f2f5;
+  --accent: #0063cc;
+  --accent-soft: #e5f0ff;
+  --ink: var(--accent);
+  --on-ink: #fff;
+  --danger: #c92924;
+  --danger-bg: #fff0ef;
+  --live: #bd5700;
+  --success: #24813e;
+  --scrim: rgb(0 0 0 / 26%);
+  --glass: rgb(250 250 252 / 88%);
+  --glass-border: rgb(255 255 255 / 75%);
+  --wallpaper:
+    radial-gradient(ellipse at 15% 0%, #d9edff 0%, transparent 60%), radial-gradient(ellipse at 90% 95%, #eadbff 0%, transparent 60%),
+    linear-gradient(135deg, #e5eaf9, #f7e3ed);
+  --shadow: 0 2px 8px rgb(0 0 0 / 4%), 0 12px 30px rgb(0 0 0 / 5%);
+  --shadow-floating: 0 0 0 1px rgb(0 0 0 / 8%), 0 8px 24px rgb(0 0 0 / 12%), 0 24px 64px rgb(0 0 0 / 10%);
+  --sans: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --large-title: 700 34px/1.18 var(--sans);
+  --title: 700 28px/1.2 var(--sans);
+  --headline: 600 17px/1.3 var(--sans);
+  --body: 400 15px/1.5 var(--sans);
+  --caption: 400 12px/1.4 var(--sans);
+  --radius-control: 8px;
+  --radius-panel: 20px;
+  --radius-glass: 24px;
   font-family: var(--sans);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
+  accent-color: var(--accent);
 }
-
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #1b1a18;
-    --sidebar: #161513;
-    --surface: #23221f;
-    --text: #ecebe7;
-    --text-2: #b6b2aa;
-    --muted: #7f7a71;
-    --border: #33312d;
-    --hairline: rgb(255 255 255 / 6%);
-    --hover: rgb(255 255 255 / 5%);
-    --bubble: #2c2a27;
-    --code: #1f1e1b;
-    --ink: #ecebe7;
-    --on-ink: #1b1a18;
-    --danger: #f0806b;
-    --danger-bg: #33201b;
-    --live: #e8a24f;
-    --scrim: rgb(0 0 0 / 50%);
-    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px rgb(0 0 0 / 50%);
+    --bg: #1c1c1e;
+    --sidebar: #242426;
+    --surface: #2c2c2e;
+    --text: #f5f5f7;
+    --text-2: #b8b8bf;
+    --muted: #a0a0a8;
+    --border: rgb(235 235 245 / 19%);
+    --hairline: rgb(235 235 245 / 10%);
+    --hover: rgb(235 235 245 / 8%);
+    --bubble: #39393d;
+    --code: #242426;
+    --accent: #64adff;
+    --accent-soft: #173b60;
+    --on-ink: #071b31;
+    --danger: #ff8983;
+    --danger-bg: #402421;
+    --live: #ffb465;
+    --success: #78d68d;
+    --scrim: rgb(0 0 0 / 45%);
+    --glass: rgb(40 40 44 / 92%);
+    --glass-border: rgb(255 255 255 / 14%);
+    --wallpaper:
+      radial-gradient(ellipse at 5% 0%, #183969, transparent 65%), radial-gradient(ellipse at 95% 100%, #4a2856, transparent 65%),
+      linear-gradient(135deg, #172031, #292039);
+    --shadow: 0 3px 16px rgb(0 0 0 / 15%);
+    --shadow-floating: 0 0 0 1px rgb(0 0 0 / 30%), 0 16px 60px rgb(0 0 0 / 45%);
   }
 }
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  :root {
-    font-size: 16px;
-  }
-}
-
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
-
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
 }
-
-/* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: #000;
+  background: var(--bg);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
-
 body {
-  background: #000;
+  background: var(--bg);
   color: var(--text);
 }
-
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
   color: inherit;
 }
-
 input,
 textarea {
   appearance: none;
 }
-
 button {
   appearance: none;
   padding: 0;
   border: 0;
   background: none;
   cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 140ms ease,
+    opacity 140ms ease,
+    transform 140ms var(--ease);
 }
-
 button:disabled {
   cursor: default;
 }
-
-:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
-  outline-offset: 2px;
+button:active:not(:disabled) {
+  opacity: 0.7;
 }
-
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 3px;
+}
 ::selection {
-  background: color-mix(in srgb, var(--live) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+input:not([type='range'], [type='checkbox'], [type='file']):focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline-offset: 1px;
+}
+input[type='range'] {
+  appearance: auto;
+  accent-color: var(--accent);
+}
+progress {
+  accent-color: var(--accent);
+}
+dialog {
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-floating);
+}
+dialog::backdrop {
+  background: var(--scrim);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+@media (pointer: coarse) {
+  input:not([type='range'], [type='checkbox'], [type='file']),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass: var(--surface);
+  }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --border: currentColor;
+    --hairline: var(--border);
+    --glass: var(--surface);
+  }
 }

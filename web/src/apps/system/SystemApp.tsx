@@ -1,3 +1,5 @@
+import { SegmentedControl } from '../../ui/SegmentedControl.tsx'
+import { Button } from '../../ui/Controls.tsx'
 import { Activity, Bot, Monitor, RefreshCw } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useApplications } from '../index.ts'
@@ -45,26 +47,47 @@ export function SystemApp({ ctx }: { ctx: WindowContext }) {
           </span>
         </div>
         <div className={styles.actions}>
-          <button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
+          <Button title="立即采集" aria-label="立即采集" disabled={refreshing} onClick={() => void refresh()}>
             <RefreshCw size={16} className={refreshing ? styles.spin : ''} />
-          </button>
+          </Button>
         </div>
       </header>
-      <nav className={styles.sections} aria-label="系统分区">
-        {[
-          { id: 'host', name: '宿主 Mac', hint: '硬件与 macOS', icon: Monitor, route: '/' },
-          { id: 'agent', name: 'Agent', hint: '账号与额度', icon: Bot, route: '/agent' },
-          { id: 'binos', name: 'binOS', hint: '运行与维护', icon: Activity, route: '/binos' },
-        ].map((item) => (
-          <button key={item.id} aria-current={section === item.id ? 'page' : undefined} onClick={() => ctx.navigate(item.route)}>
-            <item.icon size={20} />
-            <span>
-              {item.name}
-              <small>{item.hint}</small>
-            </span>
-          </button>
-        ))}
-      </nav>
+      <SegmentedControl
+        label="系统分区"
+        className={styles.sections}
+        value={section}
+        onValueChange={(next) => ctx.navigate(next === 'host' ? '/' : next === 'agent' ? '/agent' : '/binos')}
+        options={[
+          {
+            value: 'host',
+            label: (
+              <>
+                <Monitor size={18} />
+                宿主 Mac
+              </>
+            ),
+          },
+          {
+            value: 'agent',
+            label: (
+              <>
+                <Bot size={18} />
+                Agent
+              </>
+            ),
+          },
+          {
+            value: 'binos',
+            label: (
+              <>
+                <Activity size={18} />
+                binOS
+              </>
+            ),
+          },
+        ]}
+      />
+
       {(error || stale || actionError) && (
         <div className={styles.warning} role="alert">
           {actionError || error || '监控采样超过 30 秒未更新'}。

@@ -31,7 +31,7 @@
 .app button {
   border: 1px solid var(--border);
   background: var(--surface);
-  border-radius: 7px;
+  border-radius: 10px;
   padding: 6px 10px;
   font-size: 12px;
   cursor: pointer;
@@ -53,7 +53,7 @@
   padding: 8px 12px;
   overflow-x: auto;
   flex-shrink: 0;
-  background: var(--sidebar);
+  background: var(--glass);
 }
 .tabs button {
   white-space: nowrap;
@@ -69,8 +69,8 @@
   min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: #161513;
-  color: #ecebe7;
+  background: var(--surface);
+  color: var(--text);
   overflow: hidden;
 }
 .status {
@@ -78,7 +78,7 @@
   align-items: center;
   gap: 7px;
   font-size: 11px;
-  color: #aaa59b;
+  color: var(--muted);
   padding: 7px 14px;
   flex-shrink: 0;
 }
@@ -86,16 +86,16 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #d4862b;
+  background: var(--live);
 }
 .status > span[data-connected='true'] {
-  background: #8db68a;
+  background: var(--success);
 }
 .status button {
   margin-left: auto;
-  color: #ecebe7;
-  background: #24221e;
-  border-color: #55514a;
+  color: var(--text);
+  background: var(--bubble);
+  border-color: var(--border);
 }
 .terminal {
   flex: 1;
@@ -176,25 +176,26 @@
   font-size: 12px;
 }
 .confirm {
-  position: absolute;
-  bottom: 50px;
-  left: 12px;
-  right: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  padding: 14px;
-  box-shadow: var(--shadow);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  width: min(340px, calc(100vw - 40px));
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
 }
 .confirm span {
-  flex: 1;
+  display: block;
+  margin: 0 0 24px;
+  font: var(--headline);
+}
+.confirm button {
+  min-height: 36px;
+  padding: 6px 20px;
+  border-radius: 10px;
+  background: var(--bubble);
 }
 .confirm button:last-child {
-  color: var(--danger);
+  margin-left: 8px;
+  background: var(--danger);
+  color: var(--surface);
 }
 .keys {
   display: none;
@@ -204,9 +205,9 @@
   flex-shrink: 0;
 }
 .keys button {
-  background: #24221e;
-  border-color: #55514a;
-  color: #ecebe7;
+  background: var(--bubble);
+  border-color: var(--border);
+  color: var(--text);
   white-space: nowrap;
 }
 @media (pointer: coarse) {

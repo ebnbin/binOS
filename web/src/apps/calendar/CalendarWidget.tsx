@@ -1,3 +1,4 @@
+import { Button } from '../../ui/Controls.tsx'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import styles from './CalendarWidget.module.css'
@@ -29,27 +30,50 @@ export function CalendarWidget() {
       <header className={styles.header}>
         <h2 aria-live="polite">{monthLabel.format(month)}</h2>
         <div className={styles.actions}>
-          <button type="button" aria-label="上一月" onClick={() => move(-1)}><ChevronLeft size={16} /></button>
-          <button type="button" onClick={() => {
-            const now = new Date()
-            setToday(now)
-            setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
-          }}>今天</button>
-          <button type="button" aria-label="下一月" onClick={() => move(1)}><ChevronRight size={16} /></button>
+          <Button type="button" aria-label="上一月" onClick={() => move(-1)}>
+            <ChevronLeft size={16} />
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              const now = new Date()
+              setToday(now)
+              setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
+            }}
+          >
+            今天
+          </Button>
+          <Button type="button" aria-label="下一月" onClick={() => move(1)}>
+            <ChevronRight size={16} />
+          </Button>
         </div>
       </header>
       <table className={styles.month} aria-label={monthLabel.format(month)}>
-        <thead><tr>{weekdays.map((day) => <th key={day} scope="col">{day}</th>)}</tr></thead>
-        <tbody>{Array.from({ length: 6 }, (_, week) => (
-          <tr key={week}>{days.slice(week * 7, week * 7 + 7).map((date) => {
-            const current = date.toDateString() === today.toDateString()
-            return (
-              <td key={date.getTime()} data-outside={date.getMonth() !== index}>
-                <span aria-label={dateLabel.format(date)} aria-current={current ? 'date' : undefined}>{date.getDate()}</span>
-              </td>
-            )
-          })}</tr>
-        ))}</tbody>
+        <thead>
+          <tr>
+            {weekdays.map((day) => (
+              <th key={day} scope="col">
+                {day}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: 6 }, (_, week) => (
+            <tr key={week}>
+              {days.slice(week * 7, week * 7 + 7).map((date) => {
+                const current = date.toDateString() === today.toDateString()
+                return (
+                  <td key={date.getTime()} data-outside={date.getMonth() !== index}>
+                    <span aria-label={dateLabel.format(date)} aria-current={current ? 'date' : undefined}>
+                      {date.getDate()}
+                    </span>
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
       </table>
     </section>
   )

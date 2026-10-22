@@ -102,7 +102,7 @@
 
 .markdown code {
   padding: 1px 5px;
-  border-radius: 5px;
+  border-radius: 8px;
   background: var(--bubble);
   font-family: var(--mono);
   font-size: 0.86em;

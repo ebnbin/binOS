@@ -30,7 +30,7 @@
   min-height: 30px;
   padding: 0 8px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 10px;
   background: none;
   color: var(--text);
   font: inherit;
@@ -95,7 +95,7 @@
 }
 
 .added {
-  color: #1a7f37;
+  color: var(--success);
 }
 
 .removed {

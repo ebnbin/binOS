@@ -18,7 +18,7 @@
   height: 64px;
   overflow: hidden;
   border: 1px solid var(--hairline);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--code);
 }
 
@@ -36,7 +36,7 @@
   height: 64px;
   padding: 0 14px 0 12px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   background: var(--surface);
   color: var(--text-2);
   font-size: 13px;

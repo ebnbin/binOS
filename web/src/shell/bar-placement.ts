@@ -11,7 +11,13 @@ function read(): BarPlacement {
     return 'bottom'
   }
   const target = document.activeElement
-  if (target instanceof HTMLElement && (target.isContentEditable || target.matches('input:not([type=button], [type=checkbox], [type=radio]), textarea, select'))) {
+  if (
+    target instanceof HTMLElement &&
+    (target.isContentEditable ||
+      target.matches(
+        'input:not([type]), input:is([type=text], [type=search], [type=url], [type=email], [type=password], [type=tel], [type=number]), textarea',
+      ))
+  ) {
     return 'hidden'
   }
   if (window.innerHeight >= sideBarBelow) {
@@ -25,12 +31,27 @@ export function useBarPlacement() {
   const [placement, setPlacement] = useState(read)
   useEffect(() => {
     // 失去焦点后，焦点可能马上又落到另一个输入框上，等这一轮事件结束再读
-    const update = () => window.setTimeout(() => setPlacement(read))
+    let target = document.activeElement
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const update = () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        target = document.activeElement
+        setPlacement(read())
+      })
+    }
+    // WebKit 移除聚焦的输入框时不一定发送 focusout。
+    const observer = new MutationObserver(() => {
+      if (target && !target.isConnected) update()
+    })
+    observer.observe(document.documentElement, { childList: true, subtree: true })
     window.addEventListener('resize', update)
     window.screen.orientation?.addEventListener('change', update)
     document.addEventListener('focusin', update)
     document.addEventListener('focusout', update)
     return () => {
+      clearTimeout(timer)
+      observer.disconnect()
       window.removeEventListener('resize', update)
       window.screen.orientation?.removeEventListener('change', update)
       document.removeEventListener('focusin', update)

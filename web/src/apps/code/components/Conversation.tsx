@@ -1,3 +1,4 @@
+import { Button } from '../../../ui/Controls.tsx'
 import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
@@ -160,9 +161,9 @@ export function Conversation({
           </div>
         </div>
         {awayFromBottom && (
-          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
+          <Button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
             <ArrowDown size={16} strokeWidth={2} />
-          </button>
+          </Button>
         )}
       </div>
       <Composer
