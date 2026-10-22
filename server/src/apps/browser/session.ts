@@ -51,7 +51,7 @@ class Session {
       void download.cancel().catch(() => {})
     })
     this.page.on('filechooser', () => this.emit({ type: 'error', message: '当前远程模式暂不支持文件上传' }))
-    this.page.on('close', () => { this.disconnect?.(); this.destroy() })
+    this.page.on('close', () => { this.emit({ type: 'closed' }); this.disconnect?.(); this.destroy() })
     this.cdp.on('Page.screencastFrame', (frame) => {
       if (!this.send || !this.streaming) {
         void this.releaseSource(frame.sessionId)
@@ -303,6 +303,12 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
     receive(message: ClientMessage) {
       if (disposed) return
       lastSeen = Date.now()
+      if (message.type === 'close') {
+        current.emit({ type: 'closed' })
+        dispose()
+        current.destroy()
+        return
+      }
       if (message.type === 'ping') return
       if (message.type === 'ack') {
         if (message.frame !== current.frame || current.pendingFrame === undefined) return

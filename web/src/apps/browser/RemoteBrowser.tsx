@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Keyboard, RotateCw } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Keyboard, RotateCw, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import type { BrowserState, ClientMessage, ServerMessage } from '@binos/server/apps/browser/protocol'
@@ -13,6 +13,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
   const [state, setState] = useState<BrowserState>({ url: '', title: '', canBack: false, canForward: false })
   const [status, setStatus] = useState('正在连接远程浏览器…')
   const [error, setError] = useState('')
+  const [closed, setClosed] = useState(false)
   const [retry, setRetry] = useState(0)
   const viewport = useRef<HTMLDivElement>(null)
   const image = useRef<HTMLImageElement>(null)
@@ -39,6 +40,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
   }
 
   useEffect(() => {
+    if (closed) return
     let stopped = false
     let reconnect: ReturnType<typeof setTimeout> | undefined
     let resizeTimer: ReturnType<typeof setTimeout> | undefined
@@ -122,6 +124,15 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
             parts = ''
             break
           }
+          case 'closed':
+            stopped = true
+            ready = false
+            session.current = undefined
+            image.current?.removeAttribute('src')
+            setError('')
+            setStatus('远程标签页已关闭')
+            setClosed(true)
+            break
           case 'replaced':
             replaced = true
             ready = false
@@ -189,7 +200,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
       connection?.close()
       if (socket.current === connection) socket.current = null
     }
-  }, [retry, session])
+  }, [closed, retry, session])
 
   useEffect(() => {
     if (initialUrl !== route.current) {
@@ -243,21 +254,22 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
   return <div className={styles.remote}>
     <div className={styles.toolbar}>
       <div className={styles.navigation}>
-        <IconButton icon={ArrowLeft} label="后退" disabled={!state.canBack} onClick={() => send({ type: 'back' })} />
-        <IconButton icon={ArrowRight} label="前进" disabled={!state.canForward} onClick={() => send({ type: 'forward' })} />
-        <IconButton icon={RotateCw} label="刷新网页" onClick={() => send({ type: 'reload' })} />
-        <IconButton icon={Keyboard} label="输入文字" onClick={() => input.current?.focus({ preventScroll: true })} />
+        <IconButton icon={ArrowLeft} label="后退" disabled={closed || !state.canBack} onClick={() => send({ type: 'back' })} />
+        <IconButton icon={ArrowRight} label="前进" disabled={closed || !state.canForward} onClick={() => send({ type: 'forward' })} />
+        <IconButton icon={RotateCw} label="刷新网页" disabled={closed} onClick={() => send({ type: 'reload' })} />
+        <IconButton icon={Keyboard} label="输入文字" disabled={closed} onClick={() => input.current?.focus({ preventScroll: true })} />
+        <IconButton icon={X} label="关闭远程标签页" disabled={closed || !session.current} onClick={() => send({ type: 'close' })} />
       </div>
       <form className={styles.address} onSubmit={(event) => { event.preventDefault(); visit() }}>
         <input aria-label="网址" value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder="输入网址" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-        <button type="submit" disabled={!!status && status !== '正在加载页面…'}>前往</button>
+        <button type="submit" disabled={closed || !!status && status !== '正在加载页面…'}>前往</button>
       </form>
-      <button type="button" onClick={() => setRetry((value) => value + 1)}>重新连接</button>
+      <button type="button" onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
     </div>
     <div className={styles.notice}>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
     <div ref={viewport} className={styles.remoteViewport}>
-      <img ref={image} className={styles.remoteImage} alt="远程浏览器页面" draggable={false}
+      <img ref={image} className={styles.remoteImage} style={closed ? { visibility: 'hidden' } : undefined} alt="远程浏览器页面" draggable={false}
         onPointerDown={(event) => pointer(event, 'down')}
         onPointerMove={(event) => pointer(event, 'move')}
         onPointerUp={(event) => pointer(event, 'up')}

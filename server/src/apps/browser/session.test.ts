@@ -114,6 +114,17 @@ describe('remote browser reconnection', () => {
     expect(third.close).not.toHaveBeenCalled()
   })
 
+  it('closes only the owned page and invalidates the remote session', async () => {
+    const current = client()
+    const connection = await connectBrowser(undefined, current.send, current.close)
+    connection.receive({ type: 'close' })
+    expect(current.messages).toContainEqual({ type: 'closed' })
+    expect(current.close).toHaveBeenCalledExactlyOnceWith(1000)
+    expect(fixture.page.close).toHaveBeenCalledOnce()
+    connection.receive({ type: 'navigate', url: 'https://example.com/' })
+    expect(fixture.page.goto).not.toHaveBeenCalled()
+  })
+
   it('captures the current viewport instead of transmitting compositor frame pixels', async () => {
     const current = client()
     const connection = await connectBrowser(undefined, current.send, current.close)

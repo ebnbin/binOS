@@ -6,7 +6,7 @@ export type ClientMessage =
   | { type: 'key'; action: 'down' | 'up'; key: string; code: string; modifiers: number }
   | { type: 'text'; text: string }
   | { type: 'ack'; frame: number }
-  | { type: 'back' | 'forward' | 'reload' | 'ping' }
+  | { type: 'back' | 'forward' | 'reload' | 'ping' | 'close' }
 
 export type BrowserState = { url: string; title: string; canBack: boolean; canForward: boolean }
 export type ServerMessage =
@@ -14,7 +14,7 @@ export type ServerMessage =
   | { type: 'state'; state: BrowserState }
   | { type: 'frame'; frame: number; data: string; more: boolean; width: number; height: number }
   | { type: 'error'; message: string }
-  | { type: 'ping' | 'replaced' }
+  | { type: 'ping' | 'replaced' | 'closed' }
 
 export function navigationUrl(value: string) {
   const url = new URL(value)
@@ -48,7 +48,7 @@ export function parseMessage(value: unknown): ClientMessage | undefined {
     case 'ack':
       if (number('frame', 1, Number.MAX_SAFE_INTEGER) && Number.isInteger(v.frame)) return { type: 'ack', frame: Number(v.frame) }
       return
-    case 'back': case 'forward': case 'reload': case 'ping':
+    case 'back': case 'forward': case 'reload': case 'ping': case 'close':
       return { type: v.type }
   }
 }
