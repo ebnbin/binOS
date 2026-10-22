@@ -38,8 +38,10 @@ binos builds stop
 
 ## 无线安装的入口配置
 
-Cloudflare Access 需要为 `binos.app/install/*` 添加独立的 Self-hosted 应用，使用 Bypass / Include Everyone 策略。此规则只覆盖安装清单和 IPA，网页与 API 仍使用原有登录策略。有效签名令牌是安装资源的访问凭据，不应公开分享安装链接。
+安装清单和 IPA 固定使用 `https://downloads.binos.app/install/`。该域名的所有请求先进入独立分发路由，普通网页、API 和其他路径返回 404。主站与 PR 预览没有匿名安装路径例外。开发实例仅允许在本机地址验证安装链路。
 
-预览域名也需要对应的 `/install/*` Access 应用才能从 iOS 无线安装；正式版代理仅对格式符合安装资源的 GET/HEAD 请求跳过浏览器身份校验，目标预览实例仍验证令牌。模拟构建没有 IPA，不显示安装按钮。正式版上线前不要将预览安装链接指向正式版。
+在现有 Cloudflare Tunnel 添加 Published application route：主机名 `downloads.binos.app`，Service 为 `http://127.0.0.1:24667`，Path 留空，HTTP Host Header 留空以保留原始域名。路由应位于可能覆盖它的通配符路由之前。保存时由控制台创建对应 DNS 记录。
+
+Cloudflare Access 为 `downloads.binos.app` 创建独立的 Self-hosted 应用，Path 留空，策略为 Bypass / Include Everyone。主站原有登录规则保留。有效签名令牌是下载资源的访问凭据，不应公开分享安装链接。不再需要主站 `/install/*` 的 Access Bypass 规则。
 
 网页下载 IPA 不等于安装。无线安装的设备必须包含在 Ad Hoc 描述文件中，满足应用的最低系统版本，并按 iOS 提示启用开发者模式。

@@ -6,6 +6,7 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { promisify } from 'node:util'
 import { Hono } from 'hono'
+import type { MiddlewareHandler } from 'hono'
 import { isTestInstance } from '../../paths.js'
 import { buildRequest } from './client.js'
 import { resultsDir } from './config.js'
@@ -22,13 +23,10 @@ export function validInstallToken(id: string, token: string, now = Date.now()) {
   const expected = Buffer.from(sign(id, match[1])); const given = Buffer.from(match[2])
   return given.length === expected.length && timingSafeEqual(given, expected)
 }
-export function installOrigin(value: unknown) {
-  if (typeof value !== 'string') throw new Error('需要安装页面的来源地址')
-  const url = new URL(value)
-  if (url.origin !== value || url.username || url.password) throw new Error('安装来源地址无效')
-  if (url.protocol === 'https:' && (url.hostname === 'binos.app' || /^pr-[1-9]\d*\.binos\.app$/.test(url.hostname)) && !url.port) return url.origin
+export function installationOrigin(requestUrl: string) {
+  const url = new URL(requestUrl)
   if (isTestInstance && url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)) return url.origin
-  throw new Error('安装地址必须来自 binOS 的 HTTPS 页面')
+  return 'https://downloads.binos.app'
 }
 export async function installableBuild(id: string): Promise<{ build: Build; file: string } | undefined> {
   if (!idValid(id)) return
@@ -79,8 +77,7 @@ export const installationApi = new Hono()
     if (!item) return c.notFound()
     if (resource === 'manifest.plist') {
       const url = new URL(c.req.url)
-      // 使用签发时嵌入的来源，避免依赖代理改写后的 Host 或 scheme。
-      const origin = installOrigin(c.req.query('origin'))
+      const origin = installationOrigin(c.req.url)
       const ipaUrl = `${origin}${url.pathname.replace(/manifest\.plist$/, 'app.ipa')}`
       c.header('Content-Type', 'application/xml; charset=utf-8')
       return c.body(manifest(ipaUrl, await ipaInfo(item.file)))
@@ -102,3 +99,12 @@ export const installationApi = new Hono()
   })
 
 installationApi.all('*', (c) => c.notFound())
+
+const downloads = new Hono().route('/install', installationApi).all('*', (c) => c.notFound())
+// 独立分发域名只处理签名下载；其他路径不进入网页、普通 API 或预览代理。
+export const downloadsRouter: MiddlewareHandler = async (c, next) => {
+  const url = new URL(c.req.url)
+  if (url.hostname === 'downloads.binos.app') return downloads.fetch(c.req.raw)
+  if (isTestInstance && ['localhost', '127.0.0.1'].includes(url.hostname) && (url.pathname === '/install' || url.pathname.startsWith('/install/'))) return downloads.fetch(c.req.raw)
+  return next()
+}

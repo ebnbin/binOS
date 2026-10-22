@@ -5,7 +5,7 @@ import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { installationApi } from './apps/builds/install.js'
+import { downloadsRouter } from './apps/builds/install.js'
 import { api } from './api.js'
 import { codeDir, libraryDir, serverLockPath } from './paths.js'
 import { previewProxy } from './previews.js'
@@ -26,7 +26,7 @@ for (const app of serverApps) {
   app.start?.()
 }
 
-const app = new Hono().use(previewProxy).route('/install', installationApi).route('/', api)
+const app = new Hono().use(downloadsRouter).use(previewProxy).route('/', api)
 
 // 开发时页面由 Vite 提供，没有 web/dist
 const webDist = path.join(codeDir, 'web', 'dist')

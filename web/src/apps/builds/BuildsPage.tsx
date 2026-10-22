@@ -32,7 +32,7 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
   async function install(id: string) {
     setBusy(true)
     try {
-      const r = await fetch(`${base}/${id}/install`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ origin: window.location.origin }) })
+      const r = await fetch(`${base}/${id}/install`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) })
       const value = await r.json()
       if (!r.ok) throw new Error(value.error ?? '无法创建安装链接')
       window.location.href = value.url

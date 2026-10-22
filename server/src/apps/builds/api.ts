@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Readable } from 'node:stream'
 import { createReadStream } from 'node:fs'
 import { buildRequest } from './client.js'
-import { installableBuild, installOrigin, installToken, ipaInfo } from './install.js'
+import { installableBuild, installationOrigin, installToken, ipaInfo } from './install.js'
 import { resultsDir } from './config.js'
 import { parseRequest } from './protocol.js'
 import type { Snapshot } from './types.js'
@@ -21,15 +21,14 @@ export const buildsApi = new Hono()
   .post('/:id/install', async (c) => {
     const item = await installableBuild(c.req.param('id'))
     if (!item) return c.notFound()
-    const body = await c.req.json() as { origin?: unknown }
-    const origin = installOrigin(body.origin)
+    const origin = installationOrigin(c.req.url)
     await ipaInfo(item.file)
     const token = installToken(item.build.id)
-    const url = `${origin}/install/${item.build.id}/${token}/manifest.plist?origin=${encodeURIComponent(origin)}`
-    const probe = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(10_000) })
-    const ready = probe.ok && (probe.headers.get('Content-Type') ?? '').includes('application/xml')
-    await probe.body?.cancel()
-    if (!ready) throw new Error('安装入口尚未就绪：请确认此版本已上线，并且 Cloudflare Access 已对 /install/* 设置独立 Bypass 策略')
+    const url = `${origin}/install/${item.build.id}/${token}/manifest.plist`
+    const probe = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(10_000) }).catch(() => undefined)
+    const ready = probe?.ok && (probe.headers.get('Content-Type') ?? '').includes('application/xml')
+    await probe?.body?.cancel()
+    if (!ready) throw new Error('安装入口尚未就绪：请确认此版本已上线，并且 downloads.binos.app 已连接 Tunnel 并配置独立的 Cloudflare Access Bypass 策略')
     return c.json({ url: `itms-services://?action=download-manifest&url=${encodeURIComponent(url)}`, expiresIn: 86400 })
   })
   .get('/:id/log', async (c) => {
