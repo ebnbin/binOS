@@ -9,7 +9,7 @@ let opening = 0
 class Session {
   readonly id = randomUUID()
   send: ((message: ServerMessage) => void) | undefined
-  disconnect: (() => void) | undefined
+  disconnect: ((replaced?: boolean) => void) | undefined
   expiry: ReturnType<typeof setTimeout> | undefined
   cdp!: CDPSession
   pendingFrame: number | undefined
@@ -170,13 +170,12 @@ class Session {
     this.send = undefined
     this.disconnect = undefined
     void this.page.close().catch(() => {})
-
   }
 }
 
-export async function connectBrowser(id: string | undefined, send: (message: ServerMessage) => void, close: () => void) {
+export async function connectBrowser(id: string | undefined, send: (message: ServerMessage) => void, close: (code?: number) => void) {
   let session = id ? sessions.get(id) : undefined
-  if (session?.send) throw new Error('此浏览器页面已在其他连接中打开')
+  session?.disconnect?.(true)
   if (!session) {
     if (sessions.size + opening >= 4) throw new Error('最多同时打开 4 个远程浏览器页面，请关闭不用的窗口后稍候重试')
     opening++
@@ -199,17 +198,22 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
   let lastSeen = Date.now()
   let queued = 0
   let polling = false
-  const dispose = () => {
+  const dispose = (replaced = false) => {
     if (disposed) return
     disposed = true
     clearInterval(timer)
+    if (replaced) {
+      try { send({ type: 'replaced' }) } catch { /* 旧连接可能已断网 */ }
+    }
     current.send = undefined
     current.disconnect = undefined
-    void current.cdp.send('Page.stopScreencast').catch(() => {})
-    void current.ack()
+    current.queue = current.queue.then(async () => {
+      await current.cdp.send('Page.stopScreencast').catch(() => {})
+      await current.ack()
+    })
     current.expiry = setTimeout(() => current.destroy(), 60000)
     current.expiry.unref()
-    close()
+    close(replaced ? 4001 : 1000)
   }
   current.disconnect = dispose
   const timer = setInterval(() => {
@@ -223,8 +227,13 @@ export async function connectBrowser(id: string | undefined, send: (message: Ser
   timer.unref()
   try {
     send({ type: 'ready', id: current.id })
-    await current.stream()
-    await current.metadata()
+    const start = current.queue.then(async () => {
+      if (disposed) return
+      await current.stream()
+      await current.metadata()
+    })
+    current.queue = start.catch(() => {})
+    await start
   } catch (error) { dispose(); throw error }
   return {
     dispose,

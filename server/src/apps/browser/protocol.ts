@@ -14,7 +14,7 @@ export type ServerMessage =
   | { type: 'state'; state: BrowserState }
   | { type: 'frame'; frame: number; data: string; more: boolean; width: number; height: number }
   | { type: 'error'; message: string }
-  | { type: 'ping' }
+  | { type: 'ping' | 'replaced' }
 
 export function navigationUrl(value: string) {
   const url = new URL(value)

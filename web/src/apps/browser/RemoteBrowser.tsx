@@ -43,6 +43,8 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
     let frame = 0
     let requestedNavigation: string | undefined
     let attempts = 0
+    let replaced = false
+    let lastMessage = Date.now()
     const resize = () => {
       clearTimeout(resizeTimer)
       resizeTimer = setTimeout(() => {
@@ -54,8 +56,12 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
     if (viewport.current) observer.observe(viewport.current)
     window.addEventListener('resize', resize)
     const connect = () => {
+      if (stopped || replaced) return
+      clearTimeout(reconnect)
       ready = false
       parts = ''
+      lastMessage = Date.now()
+      setError('')
       setStatus('正在连接远程浏览器…')
       const url = new URL('/api/apps/browser/socket', location.href)
       url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -65,6 +71,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
       socket.current = ws
       ws.onmessage = (event) => {
         if (stopped || connection !== ws) return
+        lastMessage = Date.now()
         const message = JSON.parse(event.data) as ServerMessage
         switch (message.type) {
           case 'ready': {
@@ -101,8 +108,8 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
             if (message.more) { send({ type: 'ack', frame: message.frame }); break }
             const target = image.current
             if (target) {
-              target.onload = () => { if (connection === ws && !stopped) { setStatus(''); send({ type: 'ack', frame: message.frame }) } }
-              target.onerror = () => { if (connection === ws && !stopped) send({ type: 'ack', frame: message.frame }) }
+              target.onload = () => { if (connection === ws && !stopped && !replaced) { setStatus(''); send({ type: 'ack', frame: message.frame }) } }
+              target.onerror = () => { if (connection === ws && !stopped && !replaced) send({ type: 'ack', frame: message.frame }) }
               target.dataset.width = String(message.width)
               target.dataset.height = String(message.height)
               target.src = `data:image/jpeg;base64,${parts}`
@@ -110,17 +117,40 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
             parts = ''
             break
           }
+          case 'replaced':
+            replaced = true
+            ready = false
+            setStatus('连接已由新连接接替')
+            break
           case 'ping': send({ type: 'ping' }); break
           case 'error': setError(message.message); break
         }
       }
-      ws.onclose = () => {
-        if (stopped) return
+      ws.onclose = (event) => {
+        if (stopped || connection !== ws) return
+        if (replaced || event.code === 4001) {
+          replaced = true
+          setStatus('连接已由新连接接替')
+          return
+        }
         ready = false
         setStatus('连接已断开')
         if (++attempts <= 3) reconnect = setTimeout(connect, 1500 * attempts)
       }
     }
+    const resume = () => {
+      if (stopped || replaced) return
+      const previous = connection
+      connection = undefined
+      previous?.close()
+      connect()
+    }
+    const visibility = () => { if (!document.hidden) resume() }
+    window.addEventListener('online', resume)
+    document.addEventListener('visibilitychange', visibility)
+    const watchdog = setInterval(() => {
+      if (ready && !document.hidden && Date.now() - lastMessage > 30000) resume()
+    }, 5000)
     const surface = image.current
     const wheel = (event: WheelEvent) => {
       event.preventDefault()
@@ -142,6 +172,9 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
     connect()
     return () => {
       stopped = true
+      clearInterval(watchdog)
+      window.removeEventListener('online', resume)
+      document.removeEventListener('visibilitychange', visibility)
       surface?.removeEventListener('wheel', wheel)
       editor?.removeEventListener('beforeinput', beforeInput)
       clearTimeout(reconnect)
