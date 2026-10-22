@@ -1,3 +1,4 @@
+import { connectPlayer } from './playerConnection.ts'
 import { onChange } from '../../events.ts'
 import { mutateQueue, readQueue } from './api.ts'
 import { QueueSync } from './queueSync.ts'
@@ -16,12 +17,13 @@ export const music = new MusicController(createMusicPlayer, saved, (state) => {
 
 export const queueSync = new QueueSync({ read: readQueue, mutate: mutateQueue }, tracks => music.replaceQueue(tracks))
 queueSync.enqueue({ type: 'initialize', tracks: music.getSnapshot().queue })
+const disconnectPlayer = connectPlayer(music, () => queueSync.refresh())
 const unsubscribeQueue = onChange(event => { if (!event || event.type === 'music') void queueSync.refresh() })
 export function useQueueSync() { return useSyncExternalStore(queueSync.subscribe, queueSync.getSnapshot) }
 
 export function useMusic() { return useSyncExternalStore(music.subscribe, music.getSnapshot) }
 
-if (import.meta.hot) import.meta.hot.dispose(() => { unsubscribeQueue(); queueSync.close(); music.stop() })
+if (import.meta.hot) import.meta.hot.dispose(() => { disconnectPlayer(); unsubscribeQueue(); queueSync.close(); music.stop() })
 
 if ('mediaSession' in navigator) {
   const actions: [MediaSessionAction, MediaSessionActionHandler][] = [

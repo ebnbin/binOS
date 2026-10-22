@@ -38,7 +38,8 @@ export class QueueSync {
     try {
       this.accept(await this.transport.read())
       if (!this.pending.length) this.status('队列已在设备间同步')
-    } catch { this.failed() }
+      return true
+    } catch { this.failed(); return false }
   }
   private failed() {
     if (this.closed) return
