@@ -1,6 +1,6 @@
 # Devices
 
-Devices 管理开发测试模拟器。网页、Claude 和 Codex 共用独立的本机设备服务；后端重启不结束设备服务或受管理命令。服务首次请求时启动，`binos devices serve` 也可前台运行。服务使用权限为 `0600` 的 Unix socket，数据保存在当前 `BINOS_ROOT/Library/Apps/devices/`。只有管理进程写登记簿。
+Devices 管理开发测试模拟器。网页、Claude 和 Codex 共用独立的本机设备服务；后端重启不结束设备服务或受管理命令。服务首次请求时启动，`binos devices serve` 也可前台运行。服务使用权限为 `0600` 的 Unix socket，数据保存在当前 `BINOS_ROOT/Library/Services/devices/`。只有管理进程写登记簿。
 
 ## 运行模式
 
