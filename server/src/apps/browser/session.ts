@@ -18,6 +18,8 @@ class Session {
   streaming = false
   revision = 0
   lastCapture = 0
+  lastFrame: string | undefined
+  refreshTimer: ReturnType<typeof setInterval> | undefined
   captureTimer: ReturnType<typeof setTimeout> | undefined
   frameWidth = 1200
   frameHeight = 800
@@ -69,11 +71,14 @@ class Session {
     })
   }
 
-  captureNext() {
-    if (!this.send || !this.streaming || this.capturing || this.pendingFrame !== undefined || this.deferredSource === undefined || this.captureTimer) return
+  captureNext(force = false) {
+    if (!this.send || !this.streaming) return
+    if (force && this.deferredSource === undefined) this.deferredSource = -1
+    if (this.capturing || this.pendingFrame !== undefined || this.deferredSource === undefined || this.captureTimer) return
     this.captureTimer = setTimeout(() => {
       this.captureTimer = undefined
-      void this.capture()
+      this.capturing = true
+      this.queue = this.queue.then(() => this.capture())
     }, Math.max(0, 50 - (Date.now() - this.lastCapture)))
     this.captureTimer.unref()
   }
@@ -81,7 +86,7 @@ class Session {
   async capture() {
     const sessionId = this.deferredSource
     this.deferredSource = undefined
-    if (sessionId === undefined) return
+    if (sessionId === undefined) { this.capturing = false; return }
     const { width, height, revision } = this
     this.capturing = true
     this.lastCapture = Date.now()
@@ -89,7 +94,9 @@ class Session {
       const { data } = await this.cdp.send('Page.captureScreenshot', {
         format: 'jpeg', quality: 85, fromSurface: true, captureBeyondViewport: false,
       })
-      if (revision !== this.revision || !this.streaming || !this.send) return
+      if (revision !== this.revision || !this.streaming || !this.send) { await this.releaseSource(sessionId); return }
+      if (data === this.lastFrame) { await this.releaseSource(sessionId); return }
+      this.lastFrame = data
       this.pendingFrame = sessionId
       this.frame++
       this.frameWidth = width
@@ -106,6 +113,7 @@ class Session {
   }
 
   async releaseSource(sessionId: number) {
+    if (sessionId < 0) return
     await this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {})
   }
 
@@ -134,7 +142,11 @@ class Session {
   async stream() {
     // 有界面 Chrome 的 screencast 位图不保证匹配模拟视口，因此只用它监听重绘。
     this.streaming = true
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 0, maxWidth: 1, maxHeight: 1 })
+    this.lastFrame = undefined
+    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 0, maxWidth: 64, maxHeight: 64 })
+    this.refreshTimer = setInterval(() => this.captureNext(true), 200)
+    this.refreshTimer.unref()
+    this.captureNext(true)
   }
 
   async command(message: ClientMessage) {
@@ -206,6 +218,7 @@ class Session {
     this.streaming = false
     this.revision++
     clearTimeout(this.captureTimer)
+    clearInterval(this.refreshTimer)
     this.captureTimer = undefined
     await this.cdp.send('Page.stopScreencast').catch(() => {})
     await this.ack()
@@ -215,6 +228,7 @@ class Session {
     if (!sessions.delete(this.id)) return
     clearTimeout(this.expiry)
     clearTimeout(this.captureTimer)
+    clearInterval(this.refreshTimer)
     this.streaming = false
     this.revision++
     this.send = undefined
