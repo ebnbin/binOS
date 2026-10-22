@@ -8,7 +8,7 @@
 
 创建、检查、预留、使用、清理、销毁和故障设备都占容量。创建意图先落盘，销毁确认成功才释放名额。归还后清理应用及数据，再保持启动供复用；闲置一小时后关闭并删除专属设备。状态读取、截图、健康检查和服务重启不延长闲置时间。
 
-需要已安装的 Xcode、iOS runtime、Android SDK platform-tools、emulator 和系统镜像。不需要来源 AVD，也不自动安装 SDK 或镜像。默认 Android 镜像为 `system-images;android-36;google_apis_playstore;arm64-v8a`，iOS 为 iPhone 18 Pro / iOS 27.1。服务启动环境可设置 `ANDROID_HOME`、`BINOS_ANDROID_IMAGE`、`BINOS_IOS_DEVICE_TYPE` 和 `BINOS_IOS_RUNTIME`，改变后需重启服务。
+需要已安装的 Xcode、iOS runtime、Android SDK platform-tools、emulator 和系统镜像。不需要来源 AVD，也不自动安装 SDK 或镜像。默认 Android 镜像为 `system-images;android-36;google_apis_playstore;arm64-v8a`，iOS 优先使用 iPhone 18 Pro，选择本机支持该机型的最新可用 runtime；未安装该机型对应 runtime 时选择可用 iPhone。显式指定的机型和 runtime 必须兼容，否则返回明确错误。服务启动环境可设置 `ANDROID_HOME`、`BINOS_ANDROID_IMAGE`、`BINOS_IOS_DEVICE_TYPE` 和 `BINOS_IOS_RUNTIME`，改变后需重启服务。
 
 真实设备使用专属 Android AVD 目录和 iOS device set，默认无窗口。Android 各实例使用独立临时目录和网络模拟实例编号，进程身份包含 PID 与启动时间。已有模拟器只读发现，不参与分配或销毁。
 
