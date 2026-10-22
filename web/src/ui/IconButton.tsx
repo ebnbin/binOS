@@ -10,7 +10,7 @@ export function IconButton({
 }: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
+      <Icon size={19} strokeWidth={1.7} aria-hidden="true" />
     </button>
   )
 }

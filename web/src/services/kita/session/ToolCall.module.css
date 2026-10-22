@@ -1,9 +1,6 @@
 .added {
-  color: #1a7f37;
-  font-family: var(--mono);
+  color: var(--color-green);
 }
-
 .removed {
-  color: var(--danger);
-  font-family: var(--mono);
+  color: var(--color-red);
 }

@@ -1,3 +1,4 @@
+import { Button, NavigationSplitView, Toolbar, ContentUnavailable } from '../../design/Components.tsx'
 import { ChevronLeft } from 'lucide-react'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { BuildsPage } from '../builds/BuildsPage.tsx'
@@ -10,7 +11,12 @@ import { SessionList } from './components/SessionList.tsx'
 import { TopBar } from './components/TopBar.tsx'
 import { useSessions } from './useSessions.ts'
 
-type Route = { name: 'builds' } | { name: 'devices' } | { name: 'home' } | { name: 'new'; project?: string } | { name: 'session'; id: number; item?: number }
+type Route =
+  | { name: 'builds' }
+  | { name: 'devices' }
+  | { name: 'home' }
+  | { name: 'new'; project?: string }
+  | { name: 'session'; id: number; item?: number }
 
 function parseRoute(route: string): Route {
   const path = route.split('?')[0]
@@ -33,7 +39,11 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
 
   const sessionId = route.name === 'session' ? route.id : null
   const session = sessions?.find((item) => item.id === sessionId)
-  const project = session?.project ?? (sessionId === created?.id ? created.project : undefined) ?? (route.name === 'new' ? route.project : undefined) ?? 'binos'
+  const project =
+    session?.project ??
+    (sessionId === created?.id ? created.project : undefined) ??
+    (route.name === 'new' ? route.project : undefined) ??
+    'binos'
   const missing = sessionId !== null && sessions !== undefined && !session && sessionId !== created?.id
   const tool = route.name === 'builds' || route.name === 'devices' ? route.name : undefined
   const title = tool ? (tool === 'builds' ? '构建' : '设备') : missing ? '对话不存在' : (session?.title ?? '')
@@ -43,60 +53,72 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
 
   return (
     <div className={styles.app}>
-      <div className={styles.layout} data-view={route.name === 'home' ? 'list' : 'conversation'}>
-        <div className={styles.listPane}>
-          <SessionList projects={projects} sessions={sessions} failed={failed} current={sessionId} currentTool={tool} onNavigate={ctx.navigate} />
-        </div>
-        <main className={styles.conversationPane}>
-          {tool ? (
-            <>
-              <header className={styles.toolBar}>
-                <IconButton icon={ChevronLeft} label="返回对话列表" onClick={() => ctx.navigate('/')} />
-                <span>{title}</span>
-              </header>
-              <div className={styles.content}>
-                {tool === 'builds' ? <BuildsPage key={ctx.route} initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} /> : <DevicesApp ctx={ctx} />}
-              </div>
-            </>
-          ) : (
-            <>
-              <TopBar
-                onBuild={(ref) => ctx.navigate(`/builds?ref=${encodeURIComponent(ref)}`)}
-                title={title}
+      <NavigationSplitView
+        view={route.name === 'home' ? 'list' : 'detail'}
+        sidebar={
+          <SessionList
+            projects={projects}
+            sessions={sessions}
+            failed={failed}
+            current={sessionId}
+            currentTool={tool}
+            onNavigate={ctx.navigate}
+          />
+        }
+      >
+        {tool ? (
+          <>
+            <Toolbar label={title} leading={<IconButton icon={ChevronLeft} label="返回对话列表" onClick={() => ctx.navigate('/')} />}>
+              {title}
+            </Toolbar>
+            <div className={styles.content}>
+              {tool === 'builds' ? (
+                <BuildsPage key={ctx.route} initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} />
+              ) : (
+                <DevicesApp ctx={ctx} />
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <TopBar
+              onBuild={(ref) => ctx.navigate(`/builds?ref=${encodeURIComponent(ref)}`)}
+              title={title}
+              sessionId={sessionId}
+              session={session}
+              onBack={ctx.back}
+              onNew={() => ctx.navigate(`/new?project=${encodeURIComponent(project)}`)}
+              onScrollTop={() => conversationScroll.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+            />
+            {missing ? (
+              <ContentUnavailable
+                title="这个对话不存在"
+                action={
+                  <Button variant="primary" onClick={() => ctx.navigate('/')}>
+                    返回对话列表
+                  </Button>
+                }
+              />
+            ) : (
+              <Conversation
+                project={project}
+                projects={projects}
+                onProject={(id) => ctx.navigate(`/new?project=${encodeURIComponent(id)}`, { replace: true })}
+                key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? (route.item ?? '') : ''}`}
+                targetItem={route.name === 'session' ? route.item : undefined}
                 sessionId={sessionId}
                 session={session}
-                onBack={ctx.back}
-                onNew={() => ctx.navigate(`/new?project=${encodeURIComponent(project)}`)}
-                onScrollTop={() => conversationScroll.current?.scrollTo({ top: 0, behavior: 'smooth' })}
+                thread={session?.kitaSession ?? (sessionId === created?.id ? created.kitaSession : undefined)}
+                scrollRef={conversationScroll}
+                onCreated={(id, thread) => {
+                  setCreated({ id, kitaSession: thread, project })
+                  ctx.navigate(sessionRoute(id), { replace: true })
+                }}
               />
-              {missing ? (
-                <div className={styles.missing}>
-                  <p>这个对话不存在</p>
-                  <button type="button" onClick={() => ctx.navigate('/')}>
-                    返回对话列表
-                  </button>
-                </div>
-              ) : (
-                <Conversation
-                  project={project}
-                  projects={projects}
-                  onProject={(id) => ctx.navigate(`/new?project=${encodeURIComponent(id)}`, { replace: true })}
-                  key={`${sessionId ?? 'new'}-${project}-${route.name === 'session' ? route.item ?? '' : ''}`}
-                  targetItem={route.name === 'session' ? route.item : undefined}
-                  sessionId={sessionId}
-                  session={session}
-                  thread={session?.kitaSession ?? (sessionId === created?.id ? created.kitaSession : undefined)}
-                  scrollRef={conversationScroll}
-                  onCreated={(id, thread) => {
-                    setCreated({ id, kitaSession: thread, project })
-                    ctx.navigate(sessionRoute(id), { replace: true })
-                  }}
-                />
-              )}
-            </>
-          )}
-        </main>
-      </div>
+            )}
+          </>
+        )}
+      </NavigationSplitView>
     </div>
   )
 }

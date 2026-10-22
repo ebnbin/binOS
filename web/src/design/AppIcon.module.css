@@ -1,0 +1,27 @@
+.icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-icon);
+  color: #fff;
+  background: linear-gradient(160deg, var(--icon-top), var(--icon-bottom));
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 55%),
+    inset 0 -1px 1px rgb(0 0 0 / 14%),
+    0 3px 7px rgb(0 0 0 / 14%);
+}
+.icon svg {
+  width: 49%;
+  height: 49%;
+  filter: drop-shadow(0 1px 1px rgb(0 0 0 / 15%));
+}
+.icon[data-compact='true'] {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+.icon[data-compact='true'] svg {
+  width: 62%;
+  height: 62%;
+}

@@ -1,24 +1,26 @@
 .button {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
-  border-radius: 9px;
-  color: var(--text-2);
-  transition: background-color 0.15s;
+  min-width: var(--hit-target);
+  min-height: var(--hit-target);
+  border-radius: var(--radius-pill);
+  color: var(--color-accent);
+  transition:
+    background var(--duration-fast),
+    transform var(--duration-fast);
 }
-
+.button[aria-pressed='true'],
+.button[aria-expanded='true'] {
+  background: var(--color-accent-fill);
+}
+.button:active {
+  transform: scale(0.92);
+  background: var(--color-fill-hover);
+}
 @media (hover: hover) {
-  .button:hover:not(:disabled) {
-    background: var(--hover);
+  .button:hover {
+    background: var(--color-fill);
   }
-}
-
-.button:active:not(:disabled) {
-  background: var(--hover);
-}
-
-.button:disabled {
-  opacity: 0.35;
 }

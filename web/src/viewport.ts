@@ -19,10 +19,3 @@ export function followVisualViewport() {
   viewport.addEventListener('scroll', update)
   update()
 }
-
-// iOS 的双指缩放手势。index.css 的 touch-action 挡不住时由这里挡
-export function preventPinchZoom() {
-  for (const type of ['gesturestart', 'gesturechange']) {
-    document.addEventListener(type, (event) => event.preventDefault(), { passive: false })
-  }
-}

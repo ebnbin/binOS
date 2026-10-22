@@ -1,110 +1,68 @@
 .card {
   overflow: hidden;
-  border-radius: 10px;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--hairline);
-  font-size: 13px;
+  border: 1px solid var(--color-separator-subtle);
+  border-radius: var(--radius-row);
 }
-
 .header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 7px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--hairline);
-  color: var(--text-2);
-  font-weight: 500;
+  gap: var(--space-2);
+  min-height: var(--hit-target);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--type-footnote);
+  font-weight: var(--weight-medium);
 }
-
 .files {
-  margin: 0;
-  padding: 4px;
-  list-style: none;
+  display: flex;
+  flex-direction: column;
 }
-
 .row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
   width: 100%;
-  min-height: 30px;
-  padding: 0 8px;
-  border: 0;
-  border-radius: 7px;
-  background: none;
-  color: var(--text);
-  font: inherit;
+  min-height: var(--hit-target);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-separator-subtle);
   text-align: left;
-  cursor: pointer;
+  font-size: var(--type-footnote);
 }
-
-@media (hover: hover) {
-  .row:hover {
-    background: var(--hover);
-  }
-}
-
 .chevron {
-  flex: none;
-  color: var(--muted);
-  transition: transform 0.2s var(--ease);
+  transition: transform var(--duration-normal);
 }
-
-[data-open] > .row .chevron {
+.row[aria-expanded='true'] .chevron {
   transform: rotate(90deg);
 }
-
 .name {
-  flex: none;
-  max-width: 60%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-family: var(--mono);
-  font-size: 12.5px;
-}
-
-.dir {
-  flex: 1;
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 12px;
+  white-space: nowrap;
 }
-
+.dir,
 .kind {
-  flex: none;
-  padding: 0 6px;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
-  font-size: 11.5px;
+  color: var(--color-label-secondary);
+  font-size: var(--type-caption);
 }
-
 .counts {
   display: flex;
-  flex: none;
-  gap: 6px;
+  gap: var(--space-2);
   margin-left: auto;
-  font-family: var(--mono);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+  font: var(--type-caption) var(--font-code);
 }
-
 .added {
-  color: #1a7f37;
+  color: var(--color-green);
 }
-
 .removed {
-  color: var(--danger);
+  color: var(--color-red);
 }
-
 .body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px 4px 8px 27px;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-separator-subtle);
+}
+.files {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }

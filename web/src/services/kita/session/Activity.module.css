@@ -1,127 +1,90 @@
+.activity {
+  min-width: 0;
+}
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  min-height: 26px;
-  padding: 1px 0;
-  border: 0;
-  background: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13.5px;
+  min-height: var(--hit-target);
+  padding-block: var(--space-1);
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
   text-align: left;
-  cursor: pointer;
 }
-
-.row:disabled {
-  cursor: default;
-}
-
-/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
 .dot {
   width: 6px;
   height: 6px;
-  margin: 0 4px 0 1px;
+  margin-inline: 3px;
   flex: none;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--muted) 70%, transparent);
+  background: var(--color-label-tertiary);
 }
-
 [data-status='error'] > .row .dot {
-  background: var(--danger);
+  background: var(--color-red);
 }
-
 [data-status='running'] > .row .dot {
-  background: var(--live);
-  animation: pulse 1.2s ease-in-out infinite;
+  background: var(--color-accent);
+  animation: var(--motion-pulse);
 }
-
-@keyframes pulse {
-  50% {
-    opacity: 0.3;
-  }
-}
-
 .label {
-  flex: none;
-  max-width: 70%;
+  max-width: 65%;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--text);
-  font-weight: 500;
+  white-space: nowrap;
+  font-weight: var(--weight-medium);
+  color: var(--color-label);
 }
-
 [data-quiet] > .row .label {
-  color: var(--muted);
-  font-weight: 400;
+  color: var(--color-label-secondary);
+  font-weight: var(--weight-regular);
 }
-
 .detail {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--mono);
-  font-size: 12.5px;
+  white-space: nowrap;
+  font-family: var(--font-code);
+  font-size: var(--type-caption);
 }
-
 .meta {
   display: flex;
-  gap: 6px;
   flex: none;
+  gap: var(--space-1);
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--type-caption);
   font-variant-numeric: tabular-nums;
 }
-
 .chevron {
   flex: none;
-  opacity: 0;
-  transition:
-    opacity 0.15s,
-    transform 0.2s var(--ease);
+  color: var(--color-label-tertiary);
+  transition: transform var(--duration-normal);
 }
-
-@media (hover: hover) {
-  .row:hover .chevron {
-    opacity: 1;
-  }
-}
-
 .activity[data-open] > .row .chevron {
-  opacity: 1;
   transform: rotate(90deg);
 }
-
-/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
 .preview,
 .body {
-  margin: 0 0 4px 5px;
-  padding-left: 13px;
-  border-left: 1px solid var(--hairline);
+  margin-left: 6px;
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--color-separator);
 }
-
 .preview {
   overflow: hidden;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 1.55;
+  color: var(--color-label-secondary);
+  font-family: var(--font-code);
+  font-size: var(--type-caption);
+  line-height: 1.6;
   white-space: pre;
   text-overflow: ellipsis;
 }
-
-[data-status='error'] > .preview {
-  color: color-mix(in srgb, var(--danger) 80%, var(--muted));
-}
-
 .body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+[data-status='error'] > .preview {
+  color: var(--color-red);
 }

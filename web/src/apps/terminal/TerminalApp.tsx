@@ -97,7 +97,12 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
       {!!snapshot?.sessions.length && (
         <nav className={styles.tabs} aria-label="终端会话">
           {snapshot.sessions.map((item, index) => (
-            <button key={item.id} aria-current={item.id === id ? 'page' : undefined} onClick={() => navigate(`/${item.id}`)} title={item.cwd}>
+            <button
+              key={item.id}
+              aria-current={item.id === id ? 'page' : undefined}
+              onClick={() => navigate(`/${item.id}`)}
+              title={item.cwd}
+            >
               <TerminalIcon size={14} />
               终端 {index + 1}
             </button>
@@ -132,7 +137,15 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
       ) : (
         <div className={styles.empty}>
           <TerminalIcon size={36} strokeWidth={1.3} />
-          <h2>{!snapshot ? '正在连接宿主 Mac…' : !snapshot.available ? '需要安装 tmux' : id ? '这个终端已结束' : 'Mac 的命令行，在 binOS 中使用'}</h2>
+          <h2>
+            {!snapshot
+              ? '正在连接宿主 Mac…'
+              : !snapshot.available
+                ? '需要安装 tmux'
+                : id
+                  ? '这个终端已结束'
+                  : 'Mac 的命令行，在 binOS 中使用'}
+          </h2>
           {snapshot &&
             (snapshot.available ? (
               <>
@@ -161,14 +174,28 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
   const sendInput = useRef<(data: string) => void>(() => {})
   useEffect(() => {
     const element = host.current!
+    const theme = () => {
+      const css = getComputedStyle(element)
+      return {
+        background: css.getPropertyValue('--terminal-background').trim(),
+        foreground: css.getPropertyValue('--terminal-foreground').trim(),
+        cursor: css.getPropertyValue('--terminal-foreground').trim(),
+        selectionBackground: css.getPropertyValue('--terminal-selection').trim(),
+      }
+    }
     const terminal = new Terminal({
       cursorBlink: true,
       fontFamily: "'SF Mono', Menlo, monospace",
       fontSize: 14,
       scrollback: 10000,
-      theme: { background: '#161513', foreground: '#ecebe7', cursor: '#ecebe7', selectionBackground: '#55514a' },
+      theme: theme(),
       allowProposedApi: false,
     })
+    const appearance = window.matchMedia('(prefers-color-scheme: dark)')
+    const updateTheme = () => {
+      terminal.options.theme = theme()
+    }
+    appearance.addEventListener('change', updateTheme)
     const fit = new FitAddon()
     terminal.loadAddon(fit)
     terminal.open(element)
@@ -190,7 +217,12 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
     const resize = () => {
       if (!element.clientWidth || !element.clientHeight) return
       fit.fit()
-      if (ready) transport?.send({ type: 'resize', cols: Math.min(500, Math.max(2, terminal.cols)), rows: Math.min(200, Math.max(1, terminal.rows)) })
+      if (ready)
+        transport?.send({
+          type: 'resize',
+          cols: Math.min(500, Math.max(2, terminal.cols)),
+          rows: Math.min(200, Math.max(1, terminal.rows)),
+        })
     }
     const connect = () => {
       if (disposed) return
@@ -265,6 +297,7 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
       transport?.close()
       inputSubscription.dispose()
       binary.dispose()
+      appearance.removeEventListener('change', updateTheme)
       terminal.dispose()
     }
   }, [id, onExit, attempt])

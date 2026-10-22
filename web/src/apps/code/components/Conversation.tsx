@@ -1,3 +1,4 @@
+import { ContentUnavailable } from '../../../design/Components.tsx'
 import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
@@ -140,19 +141,21 @@ export function Conversation({
         >
           <div className={styles.column}>
             {sessionId === null ? (
-              <div className={styles.empty}>
-                <BrandMark size={44} />
-                <h1>开始新对话</h1>
-                <div className={styles.projectChoice}>
-                  项目
-                  <Select
-                    label="对话所属项目"
-                    value={project}
-                    onValueChange={onProject}
-                    options={projects?.map((item) => ({ value: item.id, label: item.name })) ?? []}
-                  />
-                </div>
-              </div>
+              <ContentUnavailable
+                icon={<BrandMark size={56} />}
+                title="开始新对话"
+                action={
+                  <div className={styles.projectChoice}>
+                    项目
+                    <Select
+                      label="对话所属项目"
+                      value={project}
+                      onValueChange={onProject}
+                      options={projects?.map((item) => ({ value: item.id, label: item.name })) ?? []}
+                    />
+                  </div>
+                }
+              />
             ) : (
               thread && <Transcript thread={thread} items={items} live={live} />
             )}

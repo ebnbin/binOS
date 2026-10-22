@@ -2,109 +2,79 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 0;
+  gap: var(--space-2);
 }
-
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex: none;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
-
 .name {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
+  font-size: var(--type-body);
 }
-
-.running {
-  color: var(--live);
-  font-size: 12px;
-}
-
 .new {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  margin: -4px -6px -4px auto;
-  border-radius: 8px;
-  color: var(--text-2);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--color-accent);
+  background: var(--color-accent-fill);
 }
-
 .summary {
   display: flex;
   align-items: baseline;
-  gap: 4px;
-  margin-top: auto;
+  gap: var(--space-2);
 }
-
 .count {
-  font-size: 30px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-size: 2.5rem;
+  letter-spacing: -0.05em;
+  font-weight: var(--weight-medium);
 }
-
-.muted {
-  color: var(--muted);
-  font-size: 13px;
+.muted,
+.empty {
+  color: var(--color-label-secondary);
+  font-size: var(--type-caption);
 }
-
+.running {
+  color: var(--color-accent);
+  font-size: var(--type-caption);
+}
 .list {
-  min-height: 0;
-  margin: 6px -8px 0;
+  list-style: none;
+  margin: 0;
   padding: 0;
   overflow: hidden;
-  list-style: none;
 }
-
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  padding: 5px 8px;
-  border-radius: 8px;
+  min-height: 34px;
+  border-top: 1px solid var(--color-separator-subtle);
   text-align: left;
-  font-size: 13px;
 }
-
-@media (hover: hover) {
-  .new:hover,
-  .row:hover {
-    background: var(--hover);
-  }
-}
-
 .dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--border);
+  background: var(--color-accent);
+  flex: none;
 }
-
-.dot[data-running='true'] {
-  background: var(--live);
-}
-
 .title {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  flex: 1;
+  font-size: var(--type-footnote);
 }
-
 .time {
-  flex: none;
-  color: var(--muted);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
+  font-size: 0.6875rem;
+  color: var(--color-label-secondary);
 }
-
 .empty {
-  margin: auto 0;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
+  margin-block: auto;
 }

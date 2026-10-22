@@ -2,120 +2,65 @@
   position: relative;
   display: flex;
   flex: 1;
-  flex-direction: column;
   min-height: 0;
 }
-
 .scroll {
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+  overflow: auto;
   overscroll-behavior: contain;
+  scroll-padding-block: var(--space-6);
 }
-
-.toBottom {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transform: translateX(-50%);
-  animation: appear 0.2s var(--ease) both;
-}
-
-@media (hover: hover) {
-  .toBottom:hover {
-    color: var(--text);
-  }
-}
-
 .column {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-8);
+  max-width: var(--content-width);
   min-height: 100%;
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 12px 28px 40px;
+  margin-inline: auto;
+  padding: var(--space-8) var(--space-6) var(--space-6);
 }
-
 .empty {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   flex: 1;
-  gap: 18px;
-  padding-bottom: 40px;
-  text-align: center;
-  animation: rise 0.5s var(--ease) both;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 240px;
+  padding: var(--space-8) 0;
 }
-
 .empty h1 {
+  font-size: var(--type-large-title);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.035em;
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
 }
-
-.empty p {
-  margin: -8px 0 0;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-}
-
-@keyframes appear {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 6px);
-  }
-}
-
-@container agent (width < 600px) {
-  .column {
-    gap: 26px;
-    padding: 18px 18px 28px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .empty,
-  .toBottom {
-    animation: none;
-  }
-}
-
 .projectChoice {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 14px;
+  gap: var(--space-3);
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
 }
-
-.projectChoice button {
-  max-width: 240px;
-  padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
+.toBottom {
+  position: absolute;
+  inset: auto 0 var(--space-3);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-inline: auto;
+  border: 1px solid var(--material-border);
+  border-radius: 50%;
+  background: var(--material-overlay);
+  color: var(--color-accent);
+  box-shadow: var(--shadow-panel);
+}
+@container agent (width < 500px) {
+  .column {
+    padding: var(--space-5) var(--space-4);
+  }
+  .empty h1 {
+    font-size: 1.75rem;
+  }
 }

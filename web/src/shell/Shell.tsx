@@ -15,7 +15,7 @@ export function Shell() {
   const placement = useBarPlacement()
 
   return (
-    <div className={styles.shell} data-bar={placement}>
+    <div className={styles.shell} data-bar={placement} data-home={controller.home}>
       <div className={styles.titleBar} />
       <div ref={main} className={styles.screen}>
         {loaded && size && (
@@ -38,7 +38,7 @@ export function Shell() {
               onTitle={controller.onTitle}
               onOpen={controller.open}
             />
-            {controller.home && <Desktop width={size.width} onOpen={controller.open} />}
+            {controller.home && <Desktop onOpen={controller.open} />}
           </>
         )}
       </div>

@@ -1,7 +1,24 @@
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Popover } from '../../ui/Popover.tsx'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
 import { Checkbox } from '../../ui/Checkbox.tsx'
 import { Select } from '../../ui/Select.tsx'
-import { ArrowLeft, ArrowUp, ChevronRight, Download, File, Folder, Home, List, LayoutGrid, RefreshCw, Search, Upload } from 'lucide-react'
+import {
+  ArrowLeft,
+  ArrowUp,
+  ChevronRight,
+  Download,
+  File,
+  Folder,
+  Home,
+  List,
+  LayoutGrid,
+  PanelLeft,
+  RefreshCw,
+  Search,
+  Upload,
+  MoreHorizontal,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { FilePreview } from '../../services/preview/index.ts'
 import type { WindowContext } from '../types.ts'
@@ -32,6 +49,8 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
   const [search, setSearch] = useState('')
   const [hidden, setHidden] = useState(false)
   const [grid, setGrid] = useState(false)
+  const [actionsOpen, setActionsOpen] = useState(false)
+  const [locationsOpen, setLocationsOpen] = useState(false)
   const [sort, setSort] = useState('name')
   const [selected, setSelected] = useState<string[]>([])
   const [clipboard, setClipboard] = useState<{ paths: string[]; move: boolean }>()
@@ -112,39 +131,29 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
   }
   return (
     <div className={styles.app}>
-      <aside className={styles.sidebar}>
-        <div className={styles.caption}>个人收藏</div>
-        {listing &&
-          [
-            ['个人目录', listing.home],
-            ['桌面', listing.home + '/Desktop'],
-            ['文稿', listing.home + '/Documents'],
-            ['下载', listing.home + '/Downloads'],
-            ['图片', listing.home + '/Pictures'],
-          ].map(([label, dir]) => (
-            <button key={dir} className={listing.path === dir ? styles.active : ''} disabled={busy} onClick={() => go(dir)}>
-              <Folder size={17} />
-              {label}
-            </button>
-          ))}
-        <div className={styles.caption}>位置</div>
-        <button disabled={busy} onClick={() => go('/')}>
-          <Home size={17} />
-          Macintosh HD
-        </button>
-        <button disabled={busy} onClick={() => go('/Volumes')}>
-          <Folder size={17} />
-          外置磁盘
-        </button>
-        {listing && (
-          <button disabled={busy} onClick={() => go(listing.home + '/.Trash')}>
-            <Folder size={17} />
-            废纸篓
-          </button>
-        )}
+      <aside className={styles.sidebar} aria-label="文件位置">
+        <Locations listing={listing} busy={busy} go={go} />
       </aside>
       <main className={styles.main}>
         <header className={styles.toolbar}>
+          <span className={styles.compactNavigation}>
+            <Popover
+              label="浏览位置"
+              open={locationsOpen}
+              onOpenChange={setLocationsOpen}
+              align="start"
+              trigger={<IconButton icon={PanelLeft} label="浏览位置" />}
+            >
+              <div
+                className={styles.locationMenu}
+                onClick={(event) => {
+                  if ((event.target as Element).closest('button')) setLocationsOpen(false)
+                }}
+              >
+                <Locations listing={listing} busy={busy} go={go} />
+              </div>
+            </Popover>
+          </span>
           <button title="后退" aria-label="后退" disabled={busy} onClick={ctx.back}>
             <ArrowLeft size={18} />
           </button>
@@ -203,42 +212,56 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
             <Upload size={14} />
             上传
           </button>
-          <button
-            disabled={busy || selected.length !== 1}
-            onClick={() => current && (current.directory ? go(current.path) : setPreview(current))}
+          <Popover
+            label="文件操作"
+            open={actionsOpen}
+            onOpenChange={setActionsOpen}
+            trigger={<IconButton icon={MoreHorizontal} label="更多文件操作" />}
           >
-            打开
-          </button>
-          <button disabled={busy || selected.length !== 1} onClick={() => setDialog({ action: 'rename', value: current?.name || '' })}>
-            重命名
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: false })}>
-            复制
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: true })}>
-            剪切
-          </button>
-          <button
-            disabled={!clipboard || busy || !listing || loading}
-            onClick={() =>
-              void run(async () => {
-                for (const file of clipboard!.paths)
-                  await operation(clipboard!.move ? 'move' : 'copy', file, { destination: listing!.path })
-                setClipboard(undefined)
-              })
-            }
-          >
-            粘贴{clipboard ? ` (${clipboard.paths.length})` : ''}
-          </button>
-          <button disabled={!selected.length || busy} onClick={() => setDialog({ action: 'trash', value: '' })}>
-            移到废纸篓
-          </button>
-          {current && selected.length === 1 && !current.directory && (
-            <a href={download(current.path) + `&name=${encodeURIComponent(current.name)}`}>
-              <Download size={14} />
-              下载
-            </a>
-          )}
+            <div
+              className={styles.actionMenu}
+              onClick={(event) => {
+                if ((event.target as Element).closest('button,a')) setActionsOpen(false)
+              }}
+            >
+              <button
+                disabled={busy || selected.length !== 1}
+                onClick={() => current && (current.directory ? go(current.path) : setPreview(current))}
+              >
+                打开
+              </button>
+              <button disabled={busy || selected.length !== 1} onClick={() => setDialog({ action: 'rename', value: current?.name || '' })}>
+                重命名
+              </button>
+              <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: false })}>
+                复制
+              </button>
+              <button disabled={!selected.length || busy} onClick={() => setClipboard({ paths: selected, move: true })}>
+                剪切
+              </button>
+              <button
+                disabled={!clipboard || busy || !listing || loading}
+                onClick={() =>
+                  void run(async () => {
+                    for (const file of clipboard!.paths)
+                      await operation(clipboard!.move ? 'move' : 'copy', file, { destination: listing!.path })
+                    setClipboard(undefined)
+                  })
+                }
+              >
+                粘贴{clipboard ? ` (${clipboard.paths.length})` : ''}
+              </button>
+              <button disabled={!selected.length || busy} onClick={() => setDialog({ action: 'trash', value: '' })}>
+                移到废纸篓
+              </button>
+              {current && selected.length === 1 && !current.directory && (
+                <a href={download(current.path) + `&name=${encodeURIComponent(current.name)}`}>
+                  <Download size={14} />
+                  下载
+                </a>
+              )}
+            </div>
+          </Popover>
           <input
             ref={upload}
             type="file"
@@ -281,7 +304,7 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
                 <button
                   key={entry.path}
                   disabled={busy}
-                  className={`${styles.entry} ${selected.includes(entry.path) ? styles.selected : ''}`}
+                  className={styles.entry}
                   aria-pressed={selected.includes(entry.path)}
                   onClick={(e) => select(entry, e.metaKey || e.ctrlKey || e.shiftKey)}
                   onDoubleClick={() => (entry.directory ? go(entry.path) : setPreview(entry))}
@@ -380,5 +403,44 @@ export function FilesApp({ ctx }: { ctx: WindowContext }) {
         </ModalHost>
       )}
     </div>
+  )
+}
+
+function Locations({ listing, busy, go }: { listing?: Listing; busy: boolean; go: (path: string) => void }) {
+  const favorites = listing
+    ? [
+        ['个人目录', listing.home],
+        ['桌面', `${listing.home}/Desktop`],
+        ['文稿', `${listing.home}/Documents`],
+        ['下载', `${listing.home}/Downloads`],
+        ['图片', `${listing.home}/Pictures`],
+      ]
+    : []
+  const locations = [['Macintosh HD', '/'], ['外置磁盘', '/Volumes'], ...(listing ? [['废纸篓', `${listing.home}/.Trash`]] : [])]
+  const groups = [
+    { title: '个人收藏', entries: favorites },
+    { title: '位置', entries: locations },
+  ]
+  return (
+    <>
+      {groups.map(({ title, entries }) => (
+        <section key={title}>
+          <h2 className={styles.caption}>{title}</h2>
+          {entries.map(([label, dir]) => (
+            <button
+              key={dir}
+              type="button"
+              className={listing?.path === dir ? styles.active : undefined}
+              aria-current={listing?.path === dir ? 'location' : undefined}
+              disabled={busy}
+              onClick={() => go(dir)}
+            >
+              {dir === '/' ? <Home size={17} /> : <Folder size={17} />}
+              {label}
+            </button>
+          ))}
+        </section>
+      ))}
+    </>
   )
 }

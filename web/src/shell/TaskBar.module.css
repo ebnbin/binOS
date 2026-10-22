@@ -1,171 +1,130 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
 .bar {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: 6px 0;
+  padding: var(--space-1);
 }
-
-.bar[data-placement='left'],
-.bar[data-placement='right'] {
-  padding: 0 6px;
-}
-
-.bar[data-placement='left'] {
-  order: -1;
-}
-
 .dock {
   display: flex;
   align-items: center;
-  gap: 4px;
-  min-width: 0;
-  min-height: 0;
+  gap: var(--space-1);
   max-width: 100%;
   max-height: 100%;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--material-border);
+  border-radius: var(--radius-panel);
+  background: var(--material-navigation);
+  backdrop-filter: var(--material-blur);
+  box-shadow: var(--shadow-panel);
 }
-
-/* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
 .apps {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   min-width: 0;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
 }
-
-.bar[data-placement='left'] .apps,
-.bar[data-placement='right'] .apps {
-  flex-direction: column;
-}
-
-.bar[data-placement='left'] .dock,
-.bar[data-placement='right'] .dock {
-  flex-direction: column;
-}
-
 .item {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  color: rgb(255 255 255 / 62%);
-  transition: background-color 0.15s, color 0.15s;
+  width: 44px;
+  height: 44px;
+  border-radius: 15px;
+  color: var(--color-label-secondary);
+  transition:
+    background var(--duration-fast),
+    transform var(--duration-fast);
 }
-
-@media (hover: hover) {
-  .item:hover {
-    background: rgb(255 255 255 / 8%);
-    color: #fff;
-  }
-}
-
 .item[aria-pressed='true'] {
-  background: rgb(255 255 255 / 16%);
-  color: #fff;
+  background: var(--color-fill-hover);
+  color: var(--color-label);
 }
-
-/* 正在显示的 app 旁边有个点 */
-.item[data-visible='true']::after {
+.item:active {
+  transform: scale(0.92);
+}
+.item[data-visible='true']::after,
+.member[data-focused='true']::after {
   content: '';
   position: absolute;
-  bottom: 3px;
+  bottom: 0;
+  left: calc(50% - 2px);
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 70%);
+  background: var(--color-label-secondary);
 }
-
-.bar[data-placement='left'] .item[data-visible='true']::after,
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  top: 18px;
-  bottom: auto;
-}
-
-.bar[data-placement='left'] .item[data-visible='true']::after {
-  right: 2px;
-}
-
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  left: 2px;
-}
-
 .separator {
-  flex: none;
   width: 1px;
-  height: 22px;
-  margin: 0 6px;
-  background: rgb(255 255 255 / 18%);
+  height: 26px;
+  margin: 0 4px;
+  background: var(--color-separator);
+  flex: none;
 }
-
-.bar[data-placement='left'] .separator,
-.bar[data-placement='right'] .separator {
-  width: 22px;
-  height: 1px;
-  margin: 6px 0;
-}
-
 .glyph {
   display: flex;
   gap: 2px;
-  width: 22px;
-  height: 16px;
+  width: 21px;
+  height: 17px;
 }
-
 .glyph[data-portrait='true'] {
   flex-direction: column;
-  width: 16px;
-  height: 20px;
+  width: 17px;
+  height: 21px;
 }
-
 .glyph i {
-  border-radius: 2px;
   background: currentColor;
-  opacity: 0.85;
+  border-radius: 3px;
 }
-
 .glyph i[data-active='false'] {
-  opacity: 0.3;
+  opacity: 0.35;
 }
-
-.glyph i[data-active='true'] {
-  opacity: 1;
-  background: #fff;
-}
-
 .item[data-group='true'] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 76px;
   gap: 5px;
-  width: 58px;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
 }
-
-.item[data-group='true']::after { display: none; }
-
+.item[data-group='true']::after {
+  display: none;
+}
 .member {
   position: relative;
   display: grid;
   place-items: center;
   height: 100%;
 }
-
-.member[data-focused='true']::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #fff;
+.bar[data-placement='left'] {
+  order: -1;
+}
+.bar:is([data-placement='left'], [data-placement='right']) :is(.dock, .apps) {
+  flex-direction: column;
+}
+.bar:is([data-placement='left'], [data-placement='right']) .separator {
+  width: 26px;
+  height: 1px;
+  margin: 4px 0;
+}
+@media (hover: hover) {
+  .item:hover {
+    background: var(--color-fill);
+    color: var(--color-label);
+    transform: translateY(-2px);
+  }
+}
+@media (pointer: coarse) {
+  .dock {
+    padding: 4px;
+    border-radius: 24px;
+  }
+  .item {
+    width: 44px;
+    height: 44px;
+  }
 }

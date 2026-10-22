@@ -1,96 +1,68 @@
 .list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
-
 .sent {
-  flex-direction: column;
-  width: 420px;
+  width: 440px;
+  max-width: 88%;
   align-self: flex-end;
-  justify-content: flex-end;
-  max-width: 78%;
+  flex-direction: column;
 }
-
 .thumb {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-row);
+  background: var(--color-secondary);
   overflow: hidden;
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
-  background: var(--code);
 }
-
 .thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .card {
   display: flex;
   align-items: center;
-  gap: 8px;
-  max-width: 220px;
-  height: 64px;
-  padding: 0 14px 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text-2);
-  font-size: 13px;
+  gap: var(--space-3);
+  max-width: 260px;
+  min-height: 64px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-separator-subtle);
+  border-radius: var(--radius-row);
+  background: var(--color-secondary);
+  color: var(--color-accent);
+  font-size: var(--type-footnote);
 }
-
-.card svg {
-  flex: none;
-}
-
 .name {
+  color: var(--color-label);
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--text);
+  text-overflow: ellipsis;
 }
-
 .link {
-  color: inherit;
   text-decoration: none;
+  color: inherit;
 }
-
-@media (hover: hover) {
-  .link:hover .card {
-    background: var(--hover);
-  }
-}
-
 .pending {
   position: relative;
 }
-
 .remove {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  right: -8px;
+  top: -8px;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--surface);
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: var(--ink);
-  color: var(--on-ink);
+  border: 2px solid var(--color-content);
+  background: var(--color-label-secondary);
+  color: var(--color-content);
 }
-
-/* 触屏上按钮太小不好点，扩大可点区域 */
 .remove::after {
   content: '';
   position: absolute;
-  inset: -8px;
-}
-
-@container agent (width < 600px) {
-  .sent {
-    max-width: 86%;
-  }
+  inset: -10px;
 }

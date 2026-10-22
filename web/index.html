@@ -7,16 +7,9 @@
     <!-- 正式版在 Cloudflare Access 后面，manifest 默认不带 cookie 去取会被拦下 -->
     <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
     <meta name="apple-mobile-web-app-title" content="binOS" />
-    <!-- 整个页面不缩放。maximum-scale=1 挡住 iOS 聚焦字号小于 16px 的输入框时的放大（外部 app 的输入框在 iframe 里也会触发），
-         user-scalable=no 对 Android 有效；iOS 不认它，双击和双指缩放由 index.css 的 touch-action 和 viewport.ts 的 preventPinchZoom 挡住 -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
-    />
-    <!-- 屏幕四周是纯黑的外框，系统状态栏和浏览器标题栏也是黑色。
-         iOS 装成 app 后用默认样式，页面从状态栏下面开始：不能用 black-translucent，
-         iOS 26 起页面画到状态栏下面时，顶部一截会变成毛玻璃，页面高度也会少一截 -->
-    <meta name="theme-color" content="#000000" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)" />
     <title>binOS</title>
   </head>
   <body>

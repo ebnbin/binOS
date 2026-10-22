@@ -1,11 +1,20 @@
 .content {
-  z-index: 1000;
-  max-width: var(--radix-popover-content-available-width);
+  z-index: 80;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 24px));
   max-height: var(--radix-popover-content-available-height);
   overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow);
+  padding: var(--space-2);
+  border: 1px solid var(--material-border);
+  border-radius: var(--radius-group);
+  background: var(--material-overlay);
+  backdrop-filter: var(--material-blur);
+  color: var(--color-label);
+  box-shadow: var(--shadow-overlay);
+  animation: var(--motion-present);
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+
+.content[data-state='closed'] {
+  animation: none;
 }

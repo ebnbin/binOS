@@ -1,22 +1,9 @@
 .message {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  display: grid;
+  place-content: center;
+  gap: var(--space-3);
   height: 100%;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.message p {
-  margin: 0;
-}
-
-.message button {
-  padding: 4px 14px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--on-ink);
-  font-size: 13px;
+  padding: var(--space-6);
+  color: var(--color-label-secondary);
+  text-align: center;
 }

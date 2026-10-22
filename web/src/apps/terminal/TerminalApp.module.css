@@ -1,227 +1,217 @@
 .app {
-  height: 100%;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background: var(--surface);
+  height: 100%;
+  background: var(--color-content);
+  container: terminal / inline-size;
 }
 .toolbar {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-}
-.toolbar strong,
-.actions,
-.app button {
-  display: flex;
   align-items: center;
-  gap: 7px;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  min-height: var(--toolbar-height);
+  padding: var(--space-3) var(--space-5);
+  background: var(--material-navigation);
 }
 .toolbar strong {
-  font-size: 13px;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-headline);
+  font-weight: var(--weight-semibold);
 }
 .actions {
-  gap: 8px;
+  display: flex;
+  gap: var(--space-2);
 }
-.app button {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 7px;
-  padding: 6px 10px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.app button:hover {
-  background: var(--hover);
-}
-.app button:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--text-2);
-  outline-offset: 2px;
+.actions button,
+.footer button,
+.status button,
+.empty button,
+.confirm button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--hit-target);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--color-accent);
+  background: var(--color-accent-fill);
+  font-size: var(--type-footnote);
 }
 .tabs {
   display: flex;
-  gap: 5px;
-  padding: 8px 12px;
-  overflow-x: auto;
-  flex-shrink: 0;
-  background: var(--sidebar);
+  gap: var(--space-1);
+  overflow: auto;
+  padding: var(--space-1) var(--space-3);
+  border-block: 1px solid var(--color-separator-subtle);
+  background: var(--color-secondary);
 }
 .tabs button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--hit-target);
+  padding-inline: var(--space-3);
+  border-radius: var(--radius-control);
   white-space: nowrap;
-  color: var(--text-2);
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
 }
-.tabs button[aria-current] {
-  color: var(--text);
-  border-color: var(--text-2);
-  background: var(--surface);
+.tabs button[aria-current='page'] {
+  background: var(--color-content);
+  color: var(--color-label);
+  box-shadow: var(--shadow-control);
 }
 .pane {
-  flex: 1;
-  min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: #161513;
-  color: #ecebe7;
-  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  background: var(--terminal-background);
 }
 .status {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 11px;
-  color: #aaa59b;
-  padding: 7px 14px;
-  flex-shrink: 0;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-label-secondary);
+  font-size: var(--type-caption);
 }
 .status > span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #d4862b;
+  background: var(--color-orange);
 }
 .status > span[data-connected='true'] {
-  background: #8db68a;
-}
-.status button {
-  margin-left: auto;
-  color: #ecebe7;
-  background: #24221e;
-  border-color: #55514a;
+  background: var(--color-green);
 }
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: 4px 10px 8px 14px;
+  padding: var(--space-2) var(--space-4);
 }
 .terminal :global(.xterm) {
   height: 100%;
 }
-.terminal :global(.xterm-screen) {
-  user-select: none;
+.keys {
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-separator-subtle);
+  background: var(--color-secondary);
+}
+.keys button {
+  flex: 1;
+  min-height: 44px;
+  min-width: 32px;
+  border-radius: var(--radius-control);
+  background: var(--color-content);
+  box-shadow: var(--shadow-control);
+  font-size: var(--type-caption);
 }
 .footer {
   display: flex;
-  align-items: center;
-  gap: 12px;
   justify-content: space-between;
-  padding: 7px 12px;
-  font-size: 11px;
-  border-top: 1px solid var(--border);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-separator-subtle);
+  font-size: var(--type-caption);
 }
 .footer > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--mono);
-  color: var(--text-2);
+  color: var(--color-label-secondary);
 }
 .footer button {
-  flex-shrink: 0;
+  flex: none;
+  background: none;
+  color: var(--color-red);
 }
 .connection {
-  padding: 5px 12px;
-  font-size: 11px;
-  color: var(--text-2);
-  max-height: 140px;
-  overflow: auto;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--type-caption);
+  color: var(--color-label-secondary);
+  background: var(--color-secondary);
 }
 .connection summary {
   cursor: pointer;
+  min-height: var(--hit-target);
+  display: list-item;
+  align-content: center;
 }
 .connection code {
   display: block;
-  user-select: text;
   overflow-wrap: anywhere;
-  padding: 8px 0;
-}
-.connection p {
-  margin: 0 0 5px;
-}
-.empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  text-align: center;
-  color: var(--text-2);
-}
-.empty h2 {
-  font-size: 17px;
-  font-weight: 500;
-  color: var(--text);
-}
-.empty p {
-  font-size: 13px;
-  max-width: 360px;
-}
-.empty button {
-  margin-top: 14px;
-}
-.error {
-  padding: 10px 14px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 12px;
+  font-family: var(--font-code);
 }
 .confirm {
-  position: absolute;
-  bottom: 50px;
-  left: 12px;
-  right: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  padding: 14px;
-  box-shadow: var(--shadow);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-red-fill);
+  color: var(--color-red);
+  font-size: var(--type-footnote);
 }
-.confirm span {
+.confirm > span {
   flex: 1;
 }
 .confirm button:last-child {
-  color: var(--danger);
+  background: var(--color-red);
+  color: var(--color-content);
 }
-.keys {
-  display: none;
-  gap: 5px;
-  padding: 8px;
-  overflow-x: auto;
-  flex-shrink: 0;
+.empty {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
 }
-.keys button {
-  background: #24221e;
-  border-color: #55514a;
-  color: #ecebe7;
-  white-space: nowrap;
+.empty > svg {
+  color: var(--color-label-tertiary);
+}
+.empty h2 {
+  margin: 0;
+  font-size: var(--type-title);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.025em;
+}
+.empty p {
+  margin: 0;
+  max-width: 480px;
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
+}
+.error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-red-fill);
+  color: var(--color-red);
+  font-size: var(--type-footnote);
+  overflow-wrap: anywhere;
 }
 @media (pointer: coarse) {
   .keys {
     display: flex;
   }
 }
-@media (max-width: 480px) {
+@container terminal (width < 500px) {
   .toolbar {
-    padding: 10px;
+    padding-inline: var(--space-3);
   }
   .actions button span {
     display: none;
-  }
-  .confirm {
-    flex-wrap: wrap;
   }
 }

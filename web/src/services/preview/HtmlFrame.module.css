@@ -1,23 +1,22 @@
 .frame {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-/* 网页大多默认白底黑字，不跟随 binOS 的深色模式 */
-.content {
-  display: block;
   width: 100%;
+  min-height: 0;
+  border-radius: var(--radius-row);
+  overflow: hidden;
+  background: var(--color-content);
+}
+.content {
+  width: 100%;
+  flex: none;
+  min-height: 0;
   border: 0;
   background: #fff;
 }
-
 .status {
-  display: block;
-  padding: 24px 12px;
-  color: var(--muted);
-  font-size: 13px;
+  padding: var(--space-4);
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
   text-align: center;
 }

@@ -1,44 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allowedLayouts, arrange, desktopColumns, fitLayout, normalizeGroups, normalizeWorkspace, packColumn, paneSizes, snapLayout, splitColumns } from './layout.ts'
-
-describe('desktopColumns', () => {
-  it('一栏 360～480，最多 3 栏，多出来的留给左右两边', () => {
-    expect(desktopColumns(360)).toEqual({ count: 1, columnWidth: 360, scale: 1 })
-    expect(desktopColumns(719)).toMatchObject({ count: 1, columnWidth: 480 })
-    expect(desktopColumns(744)).toMatchObject({ count: 2, columnWidth: 372 })
-    expect(desktopColumns(1080)).toMatchObject({ count: 3, columnWidth: 360 })
-    expect(desktopColumns(3440)).toMatchObject({ count: 3, columnWidth: 480 })
-  })
-})
-
-const icon = { width: 1, height: 1 }
-const small = { width: 2, height: 2 }
-const wide = { width: 4, height: 2 }
-const large = { width: 4, height: 4 }
-
-describe('packColumn', () => {
-  it('按顺序往后放，放不下就换行，不回头填前面的空', () => {
-    const { placements, rows } = packColumn([icon, icon, icon, wide, small, icon])
-    expect(placements.map(({ row, column }) => [row, column])).toEqual([[0, 0], [0, 1], [0, 2], [1, 0], [3, 0], [3, 2]])
-    expect(rows).toBe(5)
-  })
-})
-
-describe('splitColumns', () => {
-  it('按顺序切段，让最高的一栏尽量矮', () => {
-    expect(splitColumns([wide, wide, wide, wide], 2)).toEqual([0, 2])
-    expect(splitColumns([large, wide, wide], 2)).toEqual([0, 1])
-    expect(splitColumns([wide, large, wide, small, small], 3)).toEqual([0, 1, 2])
-  })
-
-  it('一样矮时让前面的栏多放', () => {
-    expect(splitColumns([wide, wide, wide], 2)).toEqual([0, 2])
-  })
-
-  it('内容比栏少时后面的栏空着', () => {
-    expect(splitColumns([wide], 3)).toEqual([0, 1, 1])
-  })
-})
+import { allowedLayouts, arrange, fitLayout, normalizeGroups, normalizeWorkspace, paneSizes, snapLayout } from './layout.ts'
 
 describe('allowedLayouts', () => {
   it('分屏时每个窗口的宽高都至少为 360', () => {
@@ -92,8 +53,14 @@ describe('arrange', () => {
 
 describe('分屏尺寸和吸附', () => {
   it('小窗口固定最小尺寸，大窗口占剩余空间', () => {
-    expect(paneSizes('1:2', { width: 1600, height: 900 })).toEqual([{ width: 360, height: 900 }, { width: 1234, height: 900 }])
-    expect(paneSizes('2:1', { width: 800, height: 1600 })).toEqual([{ width: 800, height: 1234 }, { width: 800, height: 360 }])
+    expect(paneSizes('1:2', { width: 1600, height: 900 })).toEqual([
+      { width: 360, height: 900 },
+      { width: 1234, height: 900 },
+    ])
+    expect(paneSizes('2:1', { width: 800, height: 1600 })).toEqual([
+      { width: 800, height: 1234 },
+      { width: 800, height: 360 },
+    ])
   })
 
   it('按当前方向吸附到最近的三个位置', () => {
@@ -141,7 +108,6 @@ describe('分屏缓冲区', () => {
   })
 })
 
-
 describe('分屏组', () => {
   it('保留多个完整分屏组，窗口不能重复归组', () => {
     const a = { id: 'one', layout: '1:2', slots: ['a', 'b'] }
@@ -150,12 +116,17 @@ describe('分屏组', () => {
   })
 
   it('窗口被关闭或数据不完整时解散该组', () => {
-    expect(normalizeGroups([
-      { id: 'missing', layout: '1:1', slots: ['a', 'gone'] },
-      { id: 'empty', layout: '1:1', slots: ['a', null] },
-      { id: 'duplicate', layout: '1:1', slots: ['a', 'a'] },
-      { id: 'single', layout: '1', slots: ['a', 'b'] },
-    ], ['a', 'b'])).toEqual([])
+    expect(
+      normalizeGroups(
+        [
+          { id: 'missing', layout: '1:1', slots: ['a', 'gone'] },
+          { id: 'empty', layout: '1:1', slots: ['a', null] },
+          { id: 'duplicate', layout: '1:1', slots: ['a', 'a'] },
+          { id: 'single', layout: '1', slots: ['a', 'b'] },
+        ],
+        ['a', 'b'],
+      ),
+    ).toEqual([])
   })
 
   it('重复组 id 不会占用后续合法分组的窗口', () => {

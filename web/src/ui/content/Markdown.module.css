@@ -2,177 +2,131 @@
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
-
 .markdown > :first-child {
   margin-top: 0;
 }
-
 .markdown > :last-child {
   margin-bottom: 0;
 }
-
 .markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-4);
 }
-
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: 26px 0 10px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  margin: var(--space-8) 0 var(--space-3);
+  line-height: 1.3;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
 }
-
 .markdown h1 {
+  font-size: 1.65em;
+}
+.markdown h2 {
   font-size: 1.4em;
 }
-
-.markdown h2 {
-  font-size: 1.22em;
-}
-
 .markdown h3 {
-  font-size: 1.08em;
+  font-size: 1.15em;
 }
-
 .markdown :is(h4, h5, h6) {
   font-size: 1em;
 }
-
 .markdown strong {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
-
 .markdown a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color 0.15s;
+  color: var(--color-accent);
+  text-decoration-thickness: 1px;
 }
-
-@media (hover: hover) {
-  .markdown a:hover {
-    text-decoration-color: currentColor;
-  }
-}
-
 .markdown :is(ul, ol) {
   padding-left: 1.5em;
 }
-
 .markdown li + li,
 .markdown li > :is(ul, ol) {
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
-
+.markdown li > p,
 .markdown li > :is(ul, ol) {
   margin-bottom: 0;
 }
-
 .markdown li::marker {
-  color: var(--muted);
+  color: var(--color-label-secondary);
 }
-
-.markdown li > p {
-  margin: 0;
-}
-
 .markdown input[type='checkbox'] {
-  margin: 0 6px 0 0;
-  vertical-align: -1px;
-  accent-color: var(--ink);
+  margin: 0 var(--space-2) 0 0;
+  accent-color: var(--color-accent);
 }
-
 .markdown :global(.contains-task-list) {
-  padding-left: 0.4em;
   list-style: none;
+  padding-left: 0.3em;
 }
-
 .markdown blockquote {
-  padding-left: 14px;
-  border-left: 3px solid var(--border);
-  color: var(--text-2);
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-label-secondary);
 }
-
 .markdown hr {
   height: 1px;
   border: 0;
-  background: var(--hairline);
+  background: var(--color-separator-subtle);
 }
-
 .markdown code {
-  padding: 1px 5px;
+  padding: 2px 5px;
   border-radius: 5px;
-  background: var(--bubble);
-  font-family: var(--mono);
-  font-size: 0.86em;
+  background: var(--color-secondary);
+  font: 0.875em var(--font-code);
 }
-
 .markdown .codeBlock code {
   padding: 0;
   border-radius: 0;
   background: none;
-  font-size: inherit;
+  font: inherit;
 }
-
 .markdown :global(.katex-display) {
-  margin: 0 0 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
+  margin-bottom: var(--space-4);
+  overflow: auto hidden;
 }
-
 .tableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  overflow: auto;
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-row);
 }
-
 .markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: 1.55;
+  font-size: 0.9375em;
+  line-height: 1.5;
 }
-
 .markdown :is(th, td) {
-  padding: 8px 12px;
+  padding: var(--space-3) var(--space-4);
   text-align: left;
   vertical-align: top;
 }
-
 .markdown th {
-  background: var(--code);
-  font-weight: 600;
-  white-space: nowrap;
+  background: var(--color-secondary);
+  font-weight: var(--weight-semibold);
 }
-
 .markdown tr + tr td,
 .markdown thead + tbody td {
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--color-separator-subtle);
 }
-
 .image {
   display: block;
   width: fit-content;
-  margin: 6px 0;
+  margin: var(--space-2) 0;
 }
-
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--code);
+  border-radius: var(--radius-row);
+  background: var(--color-secondary);
 }
-
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  color: var(--muted);
-  font-size: 0.9em;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-separator);
+  border-radius: var(--radius-control);
+  color: var(--color-label-secondary);
+  font-size: var(--type-footnote);
 }
