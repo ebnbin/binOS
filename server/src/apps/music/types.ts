@@ -26,7 +26,7 @@ export type ProviderInfo = {
   id: string
   name: string
   description: string
-  input: { resolvePatterns: string[] }
+  input: { references: { pattern: string; capability: 'resolve' | 'playlist' }[] }
   capabilities: ProviderCapabilities
   configuration: { fields: { id: string; label: string; description: string; secret: boolean; configured: boolean; links?: { label: string; url: string }[] }[] }
 }

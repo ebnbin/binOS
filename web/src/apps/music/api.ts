@@ -13,7 +13,7 @@ async function json<T>(response: Response): Promise<T> {
 async function request<T>(provider: string, operation: string, query: string, page?: string, signal?: AbortSignal) {
   return json<T>(await client.providers[':provider'][':operation'].$get({ param: { provider, operation }, query: { q: query, page } }, { init: { signal } }))
 }
-export const catalog = (provider: string, operation: 'search' | 'resolve' | 'recommendations', query: string, page?: string, signal?: AbortSignal) => request<CatalogPage>(provider, operation, query, page, signal)
+export const catalog = (provider: string, operation: 'search' | 'resolve' | 'playlist' | 'recommendations', query: string, page?: string, signal?: AbortSignal) => request<CatalogPage>(provider, operation, query, page, signal)
 export const playbackSource = (provider: string, id: string, signal?: AbortSignal) => request<PlaybackSource>(provider, 'playback', id, undefined, signal)
 export const readLyrics = (provider: string, id: string, signal?: AbortSignal) => request<Lyrics>(provider, 'lyrics', id, undefined, signal)
 export async function listProviders() { return json<{ providers: ProviderInfo[] }>(await client.providers.$get()) }

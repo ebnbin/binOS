@@ -9,6 +9,7 @@ export interface MusicProvider {
   info(): ProviderInfo
   configure?(values: Record<string, string>): void
   search?(query: string, page?: string): Promise<CatalogPage>
+  playlist?(input: string, page?: string): Promise<CatalogPage>
   resolve?(input: string, page?: string): Promise<CatalogPage>
   recommendations?(id: string, page?: string): Promise<CatalogPage>
   lyrics?(id: string): Promise<Lyrics>

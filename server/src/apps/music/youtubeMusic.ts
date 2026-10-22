@@ -1,7 +1,7 @@
 import { Innertube, Misc, Constants } from 'youtubei.js'
 import { MusicError, type MusicProvider } from './provider.js'
 import { providerSettings, saveProviderSettings } from './settings.js'
-import { parseYouTubeInput } from './youtube.js'
+import { parseYouTubeInput, youtubeInputRules } from './youtube.js'
 import type { CatalogPage, Track } from './types.js'
 
 type MusicPage = { contents?: unknown; has_continuation: boolean; getContinuation(): Promise<MusicPage> }
@@ -57,6 +57,13 @@ async function continuation(token: string, scope: string) {
   if (!entry || entry.scope !== scope || entry.expires < Date.now()) throw new MusicError('这次查询已过期，请重新查找。', 'invalid-input')
   return entry.load()
 }
+async function musicPlaylist(input: string, page?: string) {
+  const ref = parseYouTubeInput(input)
+  if (ref?.kind !== 'playlist') throw new MusicError('请输入有效的歌单链接。', 'invalid-input')
+  const scope = `playlist:${input}`
+  if (page) return continuation(page, scope)
+  return remember(await (await client()).music.getPlaylist(ref.id), scope)
+}
 function safeMediaUrl(value: string): URL {
   const url = new URL(value)
   if (url.protocol !== 'https:' || !url.hostname.endsWith('.googlevideo.com') || url.port || url.username || url.password) throw new MusicError('音乐来源返回了无效的音频地址。', 'unavailable')
@@ -98,7 +105,7 @@ export const youtubeMusic: MusicProvider = {
     const settings = providerSettings('youtube-music')
     const available = { state: 'available' } as const
     return { id: 'youtube-music', name: 'YouTube Music', description: '音乐曲库搜索、推荐和歌词；纯音频播放，无需开发者密钥。',
-      input: { resolvePatterns: ['^https?://', '^[\\w-]{11}$'] },
+      input: { references: youtubeInputRules },
       capabilities: { search: available, resolve: available, playlist: available, playback: available, recommendations: available, lyrics: available },
       configuration: { fields: [
         { id: 'cookie', label: '账号会话（可选）', description: '仅在需要账号访问时配置浏览器 Cookie；保存在服务端，不会读取或显示已有值。', secret: true, configured: Boolean(settings.cookie) },
@@ -111,12 +118,12 @@ export const youtubeMusic: MusicProvider = {
     if (page) return continuation(page, scope)
     return remember(await (await client()).music.search(query, { type: 'song' }), scope)
   },
+  playlist: musicPlaylist,
   async resolve(input, page) {
     const ref = parseYouTubeInput(input)
     if (!ref) throw new MusicError('无法识别此音乐链接。', 'invalid-input')
-    const scope = `resolve:${input}`
-    if (page) return continuation(page, scope)
-    if (ref.kind === 'playlist') return remember(await (await client()).music.getPlaylist(ref.id), scope)
+    if (ref.kind === 'playlist') return musicPlaylist(input, page)
+    if (page) throw new MusicError('单曲查询没有后续分页。', 'invalid-input')
     const info = await (await client()).getBasicInfo(ref.id, { client: 'VISIONOS' })
     if (!info.basic_info.title) throw new MusicError('未找到这首曲目。', 'unavailable')
     return { tracks: [{ ref: { provider: 'youtube-music', id: ref.id }, title: info.basic_info.title,

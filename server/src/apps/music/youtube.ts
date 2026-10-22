@@ -1,7 +1,14 @@
-import type { CatalogPage, Track } from './types.js'
+import type { CatalogPage, ProviderInfo, Track } from './types.js'
 
 import { MusicError } from './provider.js'
 export { MusicError } from './provider.js'
+
+export const youtubeInputRules: ProviderInfo['input']['references'] = [
+  { pattern: '^[\\w-]{11}$', capability: 'resolve' },
+  { pattern: '[?&]v=[\\w-]{11}(?:[&#]|$)', capability: 'resolve' },
+  { pattern: '^https?://[^#]*[?&]list=', capability: 'playlist' },
+  { pattern: '^https?://', capability: 'resolve' },
+]
 
 export function parseYouTubeInput(input: string): { kind: 'track' | 'playlist'; id: string } | undefined {
   const value = input.trim()

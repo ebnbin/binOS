@@ -58,7 +58,7 @@ export function createMusicApi(adapters: MusicProvider[]) {
         if (!provider.lyrics) throw new MusicError('此来源未提供歌词能力。', 'unsupported')
         return c.json(await provider.lyrics(q))
       }
-      if (operation !== 'search' && operation !== 'resolve' && operation !== 'recommendations') return c.notFound()
+      if (operation !== 'search' && operation !== 'resolve' && operation !== 'playlist' && operation !== 'recommendations') return c.notFound()
       requireCapability(provider, operation)
       const method = provider[operation]
       if (!method) throw new MusicError('此来源未提供这项曲库能力。', 'unsupported')

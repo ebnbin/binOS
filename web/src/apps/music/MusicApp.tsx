@@ -12,7 +12,7 @@ import { ProviderSettings } from './ProviderSettings.tsx'
 import { PlaybackInspector } from './PlaybackInspector.tsx'
 import styles from './music.module.css'
 
-const isReference = (provider: ProviderInfo, query: string) => provider.input.resolvePatterns.some(pattern => new RegExp(pattern, 'i').test(query))
+const inputOperation = (provider: ProviderInfo, query: string): 'search' | 'resolve' | 'playlist' => provider.input.references.find(rule => new RegExp(rule.pattern, 'i').test(query))?.capability ?? 'search'
 
 export function MusicApp({ ctx }: { ctx: WindowContext }) {
   const state = useMusic()
@@ -34,7 +34,7 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const request = useRef<AbortController | null>(null)
-  const submitted = useRef({ query: '', providerId: '', operation: 'search' as 'search' | 'resolve' | 'recommendations' })
+  const submitted = useRef({ query: '', providerId: '', operation: 'search' as 'search' | 'resolve' | 'playlist' | 'recommendations' })
   const { setTitle } = ctx
   useEffect(() => { setTitle(track?.title ?? '') }, [track?.title, setTitle])
   useEffect(() => () => request.current?.abort(), [])
@@ -49,7 +49,7 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
     setBusy(true)
     setMessage('')
     setTab('results')
-    const params = more ? submitted.current : { query: value, providerId: provider.id, operation: isReference(provider, value) ? 'resolve' as const : 'search' as const }
+    const params = more ? submitted.current : { query: value, providerId: provider.id, operation: inputOperation(provider, value) }
     submitted.current = params
     if (!more) setResults(undefined)
     try {
@@ -81,8 +81,9 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
     return () => controller.abort()
   }, [lyricProvider, lyricId, lyricKey, currentProvider?.capabilities.lyrics.state])
   if (!provider) return <div className={styles.empty}><p>{providersError ?? '正在读取音乐来源…'}</p>{providersError && <button type="button" onClick={() => void refreshProviders()}>重试</button>}</div>
-  const resolving = isReference(provider, query.trim())
-  const queryCapability = provider.capabilities[resolving ? 'resolve' : 'search']
+  const operation = inputOperation(provider, query.trim())
+  const resolving = operation !== 'search'
+  const queryCapability = provider.capabilities[operation]
 
   return (
     <div className={styles.app}>
