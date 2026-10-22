@@ -10,6 +10,8 @@ import { setTimeout as sleep } from 'node:timers/promises'
 import { isRunning, processStartTime } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
 import { adb, avdDir, emulator, emulatorHome, iosSet, javaHome, mode, sdkDir, toolEnv } from './config.js'
+import { iosProfile } from './ios-profile.js'
+import type { IosRuntime } from './ios-profile.js'
 import type { Device, ObservedDevice } from './types.js'
 
 const exec = promisify(execFile)
@@ -18,8 +20,8 @@ export async function tool(command: string, args: string[], timeout = 30_000) {
   return stdout.trim()
 }
 const sim = (args: string[], timeout?: number) => tool('xcrun', ['simctl', '--set', iosSet, ...args], timeout)
-type SimDevice = { udid: string; name: string; state: string; isAvailable?: boolean }
-const parseIos = (text: string) => Object.values((JSON.parse(text) as { devices: Record<string, SimDevice[]> }).devices).flat()
+type SimDevice = { udid: string; name: string; state: string; isAvailable?: boolean; runtime?: string }
+const parseIos = (text: string) => Object.entries((JSON.parse(text) as { devices: Record<string, SimDevice[]> }).devices).flatMap(([runtime, devices]) => devices.map((device) => ({ ...device, runtime })))
 
 export async function discover(): Promise<{ observed: ObservedDevice[]; discoveryErrors: string[] }> {
   if (mode === 'mock') return { observed: [], discoveryErrors: [] }
@@ -133,7 +135,7 @@ async function bootAndroid(device: Device, wipe: boolean) {
   child.unref()
   for (let attempt = 0; attempt < 150; attempt++) {
     if (failed) throw failed
-    if (child.exitCode !== null) throw new Error(`Android 模拟器退出：${child.exitCode}`)
+    if (child.exitCode !== null || child.signalCode !== null) throw new Error(`Android 模拟器退出：${child.signalCode ?? child.exitCode}`)
     try { await health(device); return } catch { /* 启动阶段等待设备就绪。 */ }
     await sleep(2000)
   }
@@ -170,9 +172,13 @@ export async function create(device: Device): Promise<Device> {
   if (device.platform === 'ios') {
     await mkdir(iosSet, { recursive: true })
     const found = parseIos(await sim(['list', 'devices', '--json'])).find((item) => item.name === device.name)
-    const runtime = process.env.BINOS_IOS_RUNTIME ?? 'com.apple.CoreSimulator.SimRuntime.iOS-27-1'
-    const target = found?.udid ?? await sim(['create', device.name, process.env.BINOS_IOS_DEVICE_TYPE ?? 'com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro', runtime], 120_000)
-    device = { ...device, target, system: runtime }
+    if (found) device = { ...device, target: found.udid, system: found.runtime }
+    else {
+      const installed = JSON.parse(await sim(['list', 'runtimes', '--json'])) as { runtimes: IosRuntime[] }
+      const profile = iosProfile(installed.runtimes, process.env.BINOS_IOS_DEVICE_TYPE, process.env.BINOS_IOS_RUNTIME)
+      const target = await sim(['create', device.name, profile.deviceType, profile.runtime], 120_000)
+      device = { ...device, target, system: profile.runtime }
+    }
   } else {
     const image = process.env.BINOS_ANDROID_IMAGE ?? 'system-images;android-36;google_apis_playstore;arm64-v8a'
     if (!/^system-images;android-[\w.-]+;[\w-]+;[\w-]+$/.test(image)) throw new Error('Android 系统镜像标识无效')
