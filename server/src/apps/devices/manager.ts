@@ -1,57 +1,90 @@
 import { randomUUID } from 'node:crypto'
-import { spawn } from 'node:child_process'
+import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { processStartTime, isRunning } from '../../process.js'
 import type { ProcessIdentity } from '../../process.js'
 import { build, dataDir, mode, statePath } from './config.js'
-import { deviceEnv, discover, health, message, provision, reset, screenshot } from './platform.js'
-import { event, release, requestLease, requireLease, schedule } from './state.js'
+import { create, destroy, deviceEnv, discover, health, message, reset, screenshot } from './platform.js'
+import { cancel, event, policy, release, requestLease, requireLease, schedule, transition } from './state.js'
 import { emptyState } from './types.js'
 import type { Device, LeaseResult, Request, Snapshot, State } from './types.js'
 
+type Job = { generation: string | undefined; abort: AbortController }
+type Run = { abort: AbortController; devices: string[] }
 export class Manager {
   state: State
   readonly startedAt = Date.now()
   private saved = ''
-  private jobs = new Map<string, Promise<void>>()
-  private busy = new Set<string>()
-  private captures = new Map<string, { time: number; result: ReturnType<typeof screenshot> }>()
+  private jobs = new Map<string, Job>()
+  private busy = new Map<string, Run>()
+  private captures = new Map<string, { generation?: string; time: number; result: ReturnType<typeof screenshot> }>()
   private observed: Snapshot['observed'] = []
   private discoveryErrors: string[] = []
   private lastHealth = 0
   private checking = false
-  private provisioning = false
+  private ticking = false
+  private stopping = false
   private runDir = path.join(dataDir, 'runs')
 
   constructor() {
     mkdirSync(this.runDir, { recursive: true })
+    this.state = emptyState()
     if (existsSync(statePath)) {
-      const saved = JSON.parse(readFileSync(statePath, 'utf8')) as State & { mode: string }
-      if (saved.version !== 1 || saved.mode !== mode || !Array.isArray(saved.devices) || !Array.isArray(saved.leases) || !Array.isArray(saved.queue) || !Array.isArray(saved.events)) throw new Error('设备登记簿格式或运行模式不匹配，已停止，未覆盖数据')
+      const saved = JSON.parse(readFileSync(statePath, 'utf8'))
+      if (![1, 2].includes(saved.version) || saved.mode !== mode || !Array.isArray(saved.devices) || !Array.isArray(saved.leases) || !Array.isArray(saved.queue) || !Array.isArray(saved.events)) throw new Error('设备登记簿格式或运行模式不匹配，已停止，未覆盖数据')
+      if (saved.version === 1) {
+        saved.version = 2
+        saved.ended = []
+        for (const device of saved.devices) {
+          device.generation = randomUUID()
+          device.idleSince = Date.now()
+          if (device.status === 'maintenance') device.status = 'broken'
+        }
+        for (const lease of saved.leases) lease.requestId = randomUUID()
+        for (const waiting of saved.queue) Object.assign(waiting, { id: randomUUID(), phase: 'waiting', devices: [] })
+      }
       this.state = saved
-    } else this.state = emptyState()
+      this.validate()
+    }
+    if (mode === 'real') {
+      const output = execFileSync('sysctl', ['-n', 'kern.boottime'], { encoding: 'utf8', timeout: 5000 })
+      const boot = Number(/sec = (\d+)/.exec(output)?.[1]) * 1000
+      if (!Number.isFinite(boot)) throw new Error('无法核对系统启动时间')
+      if (this.state.bootTime !== undefined && this.state.bootTime !== boot) {
+        for (const lease of [...this.state.leases]) release(this.state, lease, Date.now(), '系统重启，原租约已撤销')
+        for (const waiting of [...this.state.queue]) cancel(this.state, waiting, Date.now())
+        for (const device of this.state.devices) if (device.status === 'free') transition(device, Date.now() - (device.idleSince ?? 0) >= policy.deviceIdle ? 'destroying' : 'cleaning')
+      }
+      this.state.bootTime = boot
+    }
     for (const file of readdirSync(this.runDir)) {
       const record = path.join(this.runDir, file)
       const identity = JSON.parse(readFileSync(record, 'utf8')) as ProcessIdentity
       if (isRunning(identity)) {
         try { process.kill(-identity.pid, 'SIGKILL') } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error }
+        for (let attempt = 0; attempt < 100 && isRunning(identity); attempt++) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20)
+        if (isRunning(identity)) throw new Error('遗留设备命令尚未退出，稍后重试启动服务')
       }
       rmSync(record)
-    }
-    if (mode === 'mock' && this.state.devices.length === 0) {
-      this.state.devices = ['android', 'ios'].map((platform) => ({ id: `${platform}-preview`, platform: platform as Device['platform'], name: `${platform === 'ios' ? 'iPhone' : 'Android'} 预览设备`, target: `${platform}-preview`, status: 'free' }))
     }
     event(this.state, '设备管理服务启动', Date.now())
     this.save()
   }
+  private validate() {
+    const s = this.state
+    const ids = new Set(s.devices.map((device) => device.id))
+    const owners = [...s.leases, ...s.queue].map((item) => item.owner)
+    const assigned = [...s.leases, ...s.queue].flatMap((item) => item.devices)
+    if (!Array.isArray(s.ended) || ids.size !== s.devices.length || new Set(owners).size !== owners.length || new Set(assigned).size !== assigned.length || assigned.some((id) => !ids.has(id)) || s.devices.some((device) => !['android', 'ios'].includes(device.platform) || !['creating', 'checking', 'free', 'reserved', 'leased', 'cleaning', 'destroying', 'broken'].includes(device.status))) throw new Error('设备登记簿关系无效，已停止，未覆盖数据')
+  }
   snapshot(): Snapshot {
-    return { ...this.state, build, mode, pid: process.pid, startedAt: this.startedAt, observed: this.observed, discoveryErrors: this.discoveryErrors }
+    return structuredClone({ ...this.state, capacity: policy.capacity, build, mode, pid: process.pid, startedAt: this.startedAt, observed: this.observed, discoveryErrors: this.discoveryErrors })
   }
   private save() {
     const content = JSON.stringify({ ...this.state, mode }) + '\n'
     if (content === this.saved) return
-    writeFileSync(`${statePath}.tmp`, content, { mode: 0o600 })
+    writeFileSync(`${statePath}.tmp`, content, { mode: 0o600, flush: true })
     renameSync(`${statePath}.tmp`, statePath)
     this.saved = content
   }
@@ -60,9 +93,6 @@ export class Manager {
     if (!device) throw new Error('受管理设备不存在')
     return device
   }
-  private requireIdle(id: string) {
-    if (this.state.leases.some((lease) => lease.devices.includes(id)) || this.jobs.has(id)) throw new Error('设备正在使用或清理，请先等待并释放租约')
-  }
   private result(owner: string): LeaseResult {
     const lease = this.state.leases.find((item) => item.owner === owner)
     if (lease) {
@@ -70,81 +100,132 @@ export class Manager {
       lease.claimed = true
       for (const id of lease.devices) this.device(id).status = 'leased'
       this.save()
+      return { requestId: lease.requestId, lease: structuredClone(lease), env: deviceEnv(lease.devices.map((id) => this.device(id))) }
     }
-    return lease ? { lease, env: deviceEnv(lease.devices.map((id) => this.device(id))) } : { position: this.state.queue.findIndex((item) => item.owner === owner) + 1 }
+    const waiting = this.state.queue.find((item) => item.owner === owner)!
+    return { requestId: waiting.id, position: this.state.queue.filter((item) => item.phase !== 'failed').findIndex((item) => item.owner === owner) + 1, phase: waiting.phase, error: waiting.error }
   }
   tick() {
-    schedule(this.state, Date.now(), this.busy)
-    this.save()
-    for (const device of this.state.devices.filter((item) => item.status === 'cleaning')) {
-      if (this.jobs.has(device.id)) continue
-      const work = this.clean(device).finally(() => this.jobs.delete(device.id))
-      this.jobs.set(device.id, work)
-    }
-    if (!this.checking && Date.now() - this.lastHealth > 30_000) {
-      this.checking = true
-      this.lastHealth = Date.now()
-      void this.check().finally(() => { this.checking = false })
-    }
-  }
-  private async clean(device: Device) {
+    if (this.ticking || this.stopping) return
+    this.ticking = true
     try {
-      if (mode === 'mock') await reset(device)
-      else await this.resetWorker(device)
-      device.status = 'free'
-      delete device.error
-      event(this.state, '清理完成，设备可用', Date.now(), device.id)
+      schedule(this.state, Date.now(), new Set(this.busy.keys()))
+      this.save()
+      for (const device of this.state.devices) {
+        const job = this.jobs.get(device.id)
+        if (job) { if (job.generation !== device.generation) job.abort.abort(); continue }
+        if ([...this.busy.values()].some((run) => run.devices.includes(device.id))) continue
+        if (device.status === 'broken' && (device.attempts ?? 0) < 3 && Date.now() >= (device.retryAt ?? 0)) {
+          const attempts = device.attempts ?? 0
+          transition(device, 'destroying')
+          device.attempts = attempts
+          this.save()
+        }
+        if (!['creating', 'checking', 'cleaning', 'destroying'].includes(device.status) || Date.now() < (device.retryAt ?? 0)) continue
+        const entry = { generation: device.generation, abort: new AbortController() }
+        this.jobs.set(device.id, entry)
+        void this.work(device, entry).finally(() => {
+          if (this.jobs.get(device.id) === entry) this.jobs.delete(device.id)
+          this.tick()
+        }).catch((error) => console.error(message(error)))
+      }
+      if (!this.checking && Date.now() - this.lastHealth > 30_000) {
+        this.checking = true
+        this.lastHealth = Date.now()
+        void this.check().finally(() => { this.checking = false })
+      }
+    } finally { this.ticking = false }
+  }
+  private async work(device: Device, job: Job) {
+    const operation = device.status === 'creating' ? 'create' : device.status === 'destroying' ? 'destroy' : device.status === 'checking' ? 'check' : 'reset'
+    const generation = device.generation
+    try {
+      let result: Device | undefined
+      if (mode === 'mock') {
+        if (operation === 'create') result = await create(structuredClone(device))
+        else if (operation === 'destroy') await destroy(structuredClone(device))
+        else if (operation === 'check') {
+          try { await health(structuredClone(device)) } catch { await reset(structuredClone(device)) }
+        }
+        else await reset(structuredClone(device))
+      } else result = await this.worker(device, operation, job.abort.signal)
+      if (device.generation !== generation || job.abort.signal.aborted) return
+      if (operation === 'destroy') {
+        this.state.devices = this.state.devices.filter((item) => item.id !== device.id)
+        event(this.state, '设备已销毁，容量已释放', Date.now(), device.id)
+      } else {
+        if (result) { device.target = result.target; device.system = result.system }
+        transition(device, operation === 'reset' ? 'free' : 'reserved')
+        if (operation === 'reset') device.idleSince ??= Date.now()
+        delete device.error
+        device.checkedAt = Date.now()
+        event(this.state, operation === 'create' ? '设备初始化完成' : operation === 'check' ? '设备检查完成' : '设备清理完成', Date.now(), device.id)
+      }
     } catch (error) {
+      if (device.generation !== generation || job.abort.signal.aborted) return
       device.status = 'broken'
       device.error = message(error)
-      event(this.state, `清理失败：${device.error}`, Date.now(), device.id)
+      device.attempts = (device.attempts ?? 0) + 1
+      device.retryAt = Date.now() + device.attempts * 10_000
+      event(this.state, `${operation === 'destroy' ? '销毁' : '准备或清理'}失败：${device.error}`, Date.now(), device.id)
     }
-    device.checkedAt = Date.now()
     this.captures.delete(device.id)
     this.save()
   }
-  private resetWorker(device: Device) {
-    const record = path.join(this.runDir, `clean-${device.id}.json`)
-    return new Promise<void>((resolve, reject) => {
+  private worker(device: Device, operation: string, signal: AbortSignal) {
+    const record = path.join(this.runDir, `device-${device.id}.json`)
+    return new Promise<Device | undefined>((resolve, reject) => {
       const entry = path.join(import.meta.dirname, `worker${path.extname(import.meta.filename)}`)
-      const child = spawn(process.execPath, [...process.execArgv, entry, JSON.stringify(device)], { env: process.env, detached: true, stdio: ['ignore', 'ignore', 'pipe'] })
-      let errors = ''
+      const child = spawn(process.execPath, [...process.execArgv, entry], { env: process.env, detached: true, stdio: ['pipe', 'pipe', 'pipe'] })
+      let errors = '', output = ''
       const kill = () => { if (child.pid) { try { process.kill(-child.pid, 'SIGKILL') } catch { /* 已退出。 */ } } }
       const timer = setTimeout(kill, 10 * 60_000)
+      signal.addEventListener('abort', kill, { once: true })
+      if (signal.aborted) kill()
+      child.stdin.on('error', () => {})
       child.stderr.on('data', (chunk: Buffer) => { errors = (errors + chunk.toString()).slice(-1200) })
-      child.on('error', (error) => { clearTimeout(timer); rmSync(record, { force: true }); reject(error) })
+      child.stdout.on('data', (chunk: Buffer) => { output += chunk.toString(); if (output.length > 64 * 1024) kill() })
+      const done = () => { clearTimeout(timer); signal.removeEventListener('abort', kill); rmSync(record, { force: true }) }
+      child.on('error', (error) => { done(); reject(error) })
       child.on('close', (code) => {
-        clearTimeout(timer)
-        rmSync(record, { force: true })
-        if (code === 0) resolve()
-        else reject(new Error(errors.trim() || '设备清理进程退出或超时'))
+        done()
+        if (code !== 0 || signal.aborted) reject(new Error(errors.trim() || '设备操作退出、取消或超时'))
+        else {
+          try { resolve(operation === 'create' ? JSON.parse(output) as Device : undefined) } catch (error) { reject(error) }
+        }
       })
       if (child.pid) {
         const startedAt = processStartTime(child.pid)
         if (startedAt) {
-          try { writeFileSync(record, JSON.stringify({ pid: child.pid, startedAt })) } catch (error) { kill(); reject(error) }
+          try {
+            writeFileSync(record, JSON.stringify({ pid: child.pid, startedAt }), { mode: 0o600, flush: true })
+            child.stdin.end(JSON.stringify({ operation, device }))
+          } catch (error) { errors = message(error); kill() }
         } else kill()
       }
     })
   }
   private async check() {
-    for (const device of this.state.devices.filter((item) => item.status === 'free' || item.status === 'reserved' || item.status === 'leased')) {
-      const status = device.status
-      try {
-        await health(device)
-        if (device.status === status) delete device.error
-      } catch (error) {
-        if (device.status !== status) continue
-        const problem = message(error)
-        if (device.error !== problem) event(this.state, `健康检查失败：${problem}`, Date.now(), device.id)
-        device.error = problem
-        if (status === 'free') device.status = 'broken'
+    try {
+      for (const device of [...this.state.devices].filter((item) => ['free', 'reserved', 'leased'].includes(item.status))) {
+        const generation = device.generation, status = device.status
+        try {
+          await health(device)
+          if (device.generation === generation && device.status === status) delete device.error
+        } catch (error) {
+          if (device.generation !== generation || device.status !== status) continue
+          device.error = message(error)
+          if (status !== 'leased') device.status = 'broken'
+          event(this.state, `健康检查失败：${device.error}`, Date.now(), device.id)
+        }
+        device.checkedAt = Date.now()
       }
-      device.checkedAt = Date.now()
-    }
-    this.save()
+      this.save()
+    } catch (error) { console.error(message(error)) }
   }
   async handle(request: Request): Promise<unknown> {
+    if (this.stopping) throw new Error('设备服务正在停止，请稍后重试')
+    if (request.action !== 'status' && request.action !== 'stop') this.tick()
     const now = Date.now()
     switch (request.action) {
       case 'status': return this.snapshot()
@@ -155,7 +236,7 @@ export class Manager {
         return this.snapshot()
       }
       case 'acquire':
-        requestLease(this.state, request.owner, request.reason, request.platforms, now)
+        requestLease(this.state, request.owner, request.reason, request.platforms, now, request.requestId)
         this.tick()
         return this.result(request.owner)
       case 'renew': {
@@ -165,23 +246,32 @@ export class Manager {
         return this.result(request.owner)
       }
       case 'release': {
-        const lease = requireLease(this.state, request.owner, request.lease)
-        if (this.busy.has(lease.id)) throw new Error('受管理命令仍在执行，暂不能释放设备')
-        release(this.state, lease, now, '主动释放，正在清理设备')
+        const lease = this.state.leases.find((item) => item.id === request.lease && item.owner === request.owner)
+        if (!lease) return { ok: true }
+        if (this.busy.has(lease.id)) throw new Error('受管理命令仍在执行，暂不能归还设备')
+        release(this.state, lease, now, '主动归还，正在清理设备')
         this.tick()
         return { ok: true }
       }
-      case 'cancel':
-        this.state.queue = this.state.queue.filter((item) => item.owner !== request.owner)
-        event(this.state, '取消排队', now, undefined, request.owner)
-        this.save()
+      case 'cancel': {
+        const waiting = this.state.queue.find((item) => item.owner === request.owner && item.id === request.requestId)
+        if (waiting) cancel(this.state, waiting, now)
+        const lease = this.state.leases.find((item) => item.owner === request.owner && item.requestId === request.requestId && !item.claimed)
+        if (lease) release(this.state, lease, now, '取消尚未领取的设备')
+        this.tick()
         return { ok: true }
+      }
       case 'control': {
         const device = this.device(request.device)
-        this.requireIdle(device.id)
-        device.status = request.operation === 'maintenance' ? 'maintenance' : 'cleaning'
-        delete device.error
-        event(this.state, request.operation === 'maintenance' ? '进入维护状态' : '恢复并清理设备', now, device.id)
+        const lease = this.state.leases.find((item) => item.devices.includes(device.id))
+        if (lease) release(this.state, lease, now, '管理页面强制回收整组租约')
+        const waiting = this.state.queue.find((item) => item.devices.includes(device.id))
+        if (waiting) cancel(this.state, waiting, now)
+        transition(device, 'destroying')
+        this.captures.delete(device.id)
+        event(this.state, '管理页面请求销毁设备', now, device.id)
+        this.save()
+        if (lease) this.busy.get(lease.id)?.abort.abort()
         this.tick()
         return { ok: true }
       }
@@ -191,62 +281,68 @@ export class Manager {
           const lease = requireLease(this.state, request.owner!, request.lease!)
           if (!lease.devices.includes(device.id)) throw new Error('设备不属于当前租约')
         }
-        if (device.status === 'cleaning') throw new Error('设备正在清理，稍后再截图')
+        if (!['free', 'reserved', 'leased'].includes(device.status) || device.error) throw new Error('设备尚未就绪或正在回收')
         const previous = this.captures.get(device.id)
-        if (previous && now - previous.time < 5000) return previous.result
-        const result = screenshot(device)
-        const entry = { time: now, result }
+        const generation = device.generation
+        if (previous && previous.generation === generation && now - previous.time < 5000) return previous.result
+        const result = screenshot(device).then((capture) => {
+          if (device.generation !== generation) throw new Error('设备状态已改变，请重新截图')
+          if (request.owner) requireLease(this.state, request.owner, request.lease!)
+          return capture
+        })
+        const entry = { generation, time: now, result }
         this.captures.set(device.id, entry)
         result.then(() => { entry.time = Date.now() }, () => { if (this.captures.get(device.id) === entry) this.captures.delete(device.id) })
         return result
       }
-      case 'provision': {
-        if (this.provisioning) throw new Error('正在初始化设备，请稍后再试')
-        this.provisioning = true
-        try {
-          const id = `${request.platform}-${randomUUID().slice(0, 8)}`
-          let port = 5560
-          while (this.state.devices.some((device) => device.target === `emulator-${port}`)) port += 2
-          if (port > 5680) throw new Error('受管理设备数量超过限制')
-          const device = await provision(request.platform, id, request.source, request.runtime, port)
-          this.state.devices.push(device)
-          event(this.state, '创建独立受管理设备，正在初始化', now, id)
-          this.tick()
-          return device
-        } finally { this.provisioning = false }
-      }
       case 'run': return this.run(request)
       case 'stop':
-        if (this.busy.size || this.jobs.size || this.provisioning) throw new Error('正在执行命令或设备操作，暂不能停止服务')
+        if (this.busy.size || this.jobs.size) throw new Error('正在执行命令或设备操作，暂不能停止服务')
         return { ok: true }
     }
+  }
+  async shutdown() {
+    this.stopping = true
+    for (const job of this.jobs.values()) job.abort.abort()
+    for (const run of this.busy.values()) run.abort.abort()
+    for (let attempt = 0; attempt < 500 && (this.jobs.size || this.busy.size); attempt++) await new Promise((resolve) => setTimeout(resolve, 20))
+    if (this.jobs.size || this.busy.size) throw new Error('设备操作尚未停止，保留操作记录供重启恢复')
   }
   private async run(request: Extract<Request, { action: 'run' }>) {
     const lease = requireLease(this.state, request.owner, request.lease)
     if (this.busy.has(lease.id)) throw new Error('该租约已有命令在执行')
     const devices = lease.devices.map((id) => this.device(id))
     if (devices.some((device) => device.error || device.status !== 'leased')) throw new Error('设备健康检查未通过')
-    this.busy.add(lease.id)
+    const entry: Run = { abort: new AbortController(), devices: lease.devices }
+    this.busy.set(lease.id, entry)
     lease.lastSeen = Date.now()
     const record = path.join(this.runDir, `${lease.id}.json`)
     try {
       this.save()
       for (const device of devices) await health(device)
+      requireLease(this.state, request.owner, request.lease)
+      if (entry.abort.signal.aborted) throw new Error('租约已被强制回收')
       return await new Promise<{ code: number; stdout: string; stderr: string }>((resolve, reject) => {
-        const child = spawn(request.command[0], request.command.slice(1), {
-          cwd: request.cwd, env: { ...process.env, ...deviceEnv(devices), BINOS_THREAD_ID: request.owner }, detached: true, stdio: ['ignore', 'pipe', 'pipe'],
+        const runner = path.join(import.meta.dirname, `runner${path.extname(import.meta.filename)}`)
+        const child = spawn(process.execPath, [...process.execArgv, runner], {
+          cwd: request.cwd, env: { ...process.env, ...deviceEnv(devices), BINOS_THREAD_ID: request.owner }, detached: true, stdio: ['pipe', 'pipe', 'pipe'],
         })
         let stdout = '', stderr = '', reason = ''
         const kill = () => { if (child.pid) { try { process.kill(-child.pid, 'SIGKILL') } catch { /* 已退出。 */ } } }
+        entry.abort.signal.addEventListener('abort', kill, { once: true })
         const timer = setTimeout(() => { reason = '设备命令执行超时'; kill() }, request.timeout)
+        child.stdin.on('error', () => {})
         child.stdout.on('data', (chunk: Buffer) => { stdout += chunk.toString(); if (stdout.length > 1024 * 1024) { reason = '输出超过 1 MiB，请将完整日志写入文件'; kill() } })
         child.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); if (stderr.length > 1024 * 1024) { reason = '错误输出超过 1 MiB，请将日志写入文件'; kill() } })
-        child.on('error', (error) => { clearTimeout(timer); reject(error) })
-        child.on('close', (code) => { clearTimeout(timer); if (reason) reject(new Error(reason)); else resolve({ code: code ?? 1, stdout, stderr }) })
+        child.on('error', (error) => { clearTimeout(timer); entry.abort.signal.removeEventListener('abort', kill); reject(error) })
+        child.on('close', (code) => { kill(); clearTimeout(timer); entry.abort.signal.removeEventListener('abort', kill); if (entry.abort.signal.aborted) reject(new Error('租约已被强制回收')); else if (reason) reject(new Error(reason)); else resolve({ code: code ?? 1, stdout, stderr }) })
         if (child.pid) {
           const startedAt = processStartTime(child.pid)
           if (startedAt) {
-            try { writeFileSync(record, JSON.stringify({ pid: child.pid, startedAt })) } catch (error) { kill(); reject(error) }
+            try {
+              writeFileSync(record, JSON.stringify({ pid: child.pid, startedAt }), { mode: 0o600, flush: true })
+              child.stdin.end(JSON.stringify(request.command))
+            } catch (error) { reason = message(error); kill() }
           } else kill()
         }
       })
@@ -255,6 +351,7 @@ export class Manager {
       this.busy.delete(lease.id)
       lease.lastSeen = Date.now()
       this.save()
+      this.tick()
     }
   }
 }

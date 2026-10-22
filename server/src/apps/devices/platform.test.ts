@@ -1,11 +1,11 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterAll, describe, expect, it, vi } from 'vitest'
 
 const { execute, controls } = vi.hoisted(() => ({
   execute: vi.fn<(command: string, args: string[]) => Promise<{ stdout: string | Buffer }>>(),
-  controls: { empty: false, other: false, capture: '', iosState: 'Booted' },
+  controls: { empty: false, other: false, capture: '', iosState: 'Booted', iosName: 'iPhone', androidConnected: false },
 }))
 vi.mock('node:child_process', async (original) => ({
   ...await original<typeof import('node:child_process')>(),
@@ -14,10 +14,13 @@ vi.mock('node:child_process', async (original) => ({
 const root = mkdtempSync(path.join(os.tmpdir(), 'binos-platform-'))
 process.env.BINOS_ROOT = root
 process.env.BINOS_DEVICES_MODE = 'real'
-const { screenshot, reset } = await import('./platform.js')
+const { screenshot, reset, create, destroy } = await import('./platform.js')
 const png = Buffer.from('89504e470d0a1a0a', 'hex')
-execute.mockImplementation(async (_command, args) => {
-  if (args.includes('list')) return { stdout: JSON.stringify({ devices: { runtime: [{ udid: 'ios-id', name: 'iPhone', state: controls.iosState }] } }) }
+execute.mockImplementation(async (command, args) => {
+  if (command === 'ps') return { stdout: '' }
+  if (command.endsWith('/adb') && args[0] === 'devices') return { stdout: controls.androidConnected ? 'List of devices attached\nemulator-5560\tdevice\n' : 'List of devices attached\n' }
+  if (args.includes('delete')) return { stdout: '' }
+  if (args.includes('list')) return { stdout: JSON.stringify({ devices: { runtime: [{ udid: 'ios-id', name: controls.iosName, state: controls.iosState }] } }) }
   if (args.includes('shutdown')) { controls.iosState = 'Shutdown'; throw new Error('设备已经 Shutdown') }
   if (args.includes('erase') || args.includes('bootstatus')) return { stdout: '' }
   if (args.includes('boot')) { controls.iosState = 'Booted'; return { stdout: '' } }
@@ -31,6 +34,32 @@ execute.mockImplementation(async (_command, args) => {
 afterAll(() => rmSync(root, { recursive: true, force: true }))
 
 describe('平台操作', () => {
+  it('中断创建后按专属名称找回 iOS，重试不重复创建，销毁始终限定专属设备集', async () => {
+    const device = { id: 'ios-12345678', platform: 'ios' as const, name: 'binos-ios-12345678', target: '', status: 'creating' as const }
+    controls.iosName = device.name
+    const before = execute.mock.calls.length
+    const recovered = await create(device)
+    expect(recovered.target).toBe('ios-id')
+    expect(execute.mock.calls.slice(before).some(([, args]) => args.includes('create'))).toBe(false)
+    await destroy(recovered)
+    expect(execute.mock.calls.slice(before).filter(([command]) => command === 'xcrun').every(([, args]) => args[0] === 'simctl' && args[1] === '--set')).toBe(true)
+    controls.iosName = 'iPhone'
+  })
+  it('销毁拒绝错误归属；端口被其他模拟器使用时不删除目录', async () => {
+    const device = { id: 'android-12345678', platform: 'android' as const, name: 'binos-android-12345678', target: 'emulator-5560', status: 'destroying' as const }
+    const { avdDir } = await import('./config.js')
+    const directory = path.join(avdDir, `${device.name}.avd`)
+    mkdirSync(directory, { recursive: true })
+    await expect(destroy({ ...device, name: 'external' })).rejects.toThrow('归属无效')
+    controls.androidConnected = true
+    controls.other = true
+    await expect(destroy(device)).rejects.toThrow('其他模拟器')
+    expect(existsSync(directory)).toBe(true)
+    controls.androidConnected = false
+    controls.other = false
+    await destroy(device)
+    expect(existsSync(directory)).toBe(false)
+  })
   it('iOS 查询后已经关闭的竞态不会阻止恢复清理', async () => {
     await expect(reset({ id: 'ios', platform: 'ios', name: 'iPhone', target: 'ios-id', status: 'cleaning' })).resolves.toBeUndefined()
     expect(controls.iosState).toBe('Booted')

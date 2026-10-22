@@ -20,28 +20,29 @@ async function until(test: () => boolean | Promise<boolean>) {
   throw new Error('设备服务验证超时')
 }
 afterAll(async () => {
-  await cli('stop').catch(() => {})
+  const snapshot = await status().catch(() => undefined)
+  if (snapshot) process.kill(snapshot.pid, 'SIGTERM')
   rmSync(root, { recursive: true, force: true })
 })
 
 describe('独立进程设备服务', () => {
   it('CLI 共用服务；命令执行保活；服务重启保留租约并终止遗留命令；释放后清理', async () => {
     const first = await status()
-    const acquired = JSON.parse(await cli('acquire', '--platform', 'both', '--session', 'thread-a')) as LeaseResult
+    const acquired = JSON.parse(await cli('acquire', '--platform', 'both', '--session', 'thread-a', '--wait', '10')) as LeaseResult
     const lease = acquired.lease!
     const marker = path.join(root, 'started')
     const run = cli('run', '--lease', lease.id, '--session', 'thread-a', '--', process.execPath, '-e', `require('fs').writeFileSync(${JSON.stringify(marker)}, process.env.BINOS_THREAD_ID);setTimeout(()=>{},10000)`).then(() => 'success', () => 'disconnected')
     await until(() => existsSync(marker))
     expect(readFileSync(marker, 'utf8')).toBe('thread-a')
     await expect(cli('release', '--lease', lease.id, '--session', 'thread-a')).rejects.toThrow('受管理命令仍在执行')
-    await expect(cli('stop')).rejects.toThrow('正在执行命令')
+    await expect(cli('maintenance', lease.devices[0])).rejects.toThrow('未知设备命令')
     process.kill(first.pid, 'SIGKILL')
     expect(await run).toBe('disconnected')
     const restarted = await status()
     expect(restarted.pid).not.toBe(first.pid)
     expect(restarted.leases[0].id).toBe(lease.id)
     const output = await cli('run', '--lease', lease.id, '--session', 'thread-a', '--', process.execPath, '-e', "console.log(process.env.BINOS_THREAD_ID, process.env.ANDROID_SERIAL, process.env.BINOS_IOS_UDID)", '--', '--session', 'ignored')
-    expect(output).toContain('thread-a android-preview ios-preview')
+    expect(output).toContain('thread-a emulator-5560 ios-')
     await expect(cli('renew', '--lease', lease.id, '--session', 'thread-b')).rejects.toThrow('设备租约已失效')
     await cli('release', '--lease', lease.id, '--session', 'thread-a')
     await until(async () => (await status()).devices.every((device) => device.status === 'free'))

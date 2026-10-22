@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { execFile, spawn } from 'node:child_process'
 import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { closeSync, existsSync, openSync } from 'node:fs'
@@ -6,8 +7,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { promisify } from 'node:util'
 import { setTimeout as sleep } from 'node:timers/promises'
-import { adb, avdDir, emulator, emulatorHome, emulatorTmp, iosSet, javaHome, mode, sdkDir, toolEnv } from './config.js'
-import type { Device, ObservedDevice, Platform } from './types.js'
+import { isRunning, processStartTime } from '../../process.js'
+import type { ProcessIdentity } from '../../process.js'
+import { adb, avdDir, emulator, emulatorHome, iosSet, javaHome, mode, sdkDir, toolEnv } from './config.js'
+import type { Device, ObservedDevice } from './types.js'
 
 const exec = promisify(execFile)
 export async function tool(command: string, args: string[], timeout = 30_000) {
@@ -53,6 +56,41 @@ export async function health(device: Device) {
   }
 }
 
+function androidTemp(device: Device) {
+  return path.join('/tmp', `binos-emu-${createHash('sha256').update(avdDir + device.id).digest('hex').slice(0, 16)}`)
+}
+async function androidProcess(device: Device): Promise<ProcessIdentity | undefined> {
+  try {
+    const record = JSON.parse(await readFile(path.join(emulatorHome, `${device.id}.json`), 'utf8')) as ProcessIdentity & { name: string }
+    if (record.name !== device.name) throw new Error('Android 进程登记归属不匹配')
+    return record
+  } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error }
+}
+async function stopAndroid(device: Device) {
+  const identity = await androidProcess(device)
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const listed = await tool(adb, ['devices'])
+    const connected = listed.split('\n').find((line) => line.startsWith(`${device.target}\t`))
+    if (connected && !connected.endsWith('offline')) {
+      await ownedAndroid(device)
+      if (attempt === 0) await tool(adb, ['-s', device.target, 'emu', 'kill'])
+    }
+    const alive = identity && isRunning(identity)
+    if (alive && (attempt >= 10 || connected?.endsWith('offline'))) {
+      try { process.kill(-identity.pid, 'SIGKILL') } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error }
+    }
+    if (!connected && !alive) {
+      const processes = await tool('ps', ['-axo', 'command='])
+      const unrecorded = processes.split('\n').some((line) => /(?:qemu-system-|\/emulator\s)/.test(line) && line.split(/\s+/).some((arg) => arg === device.name || arg === `@${device.name}`))
+      if (!unrecorded) {
+        await rm(path.join(emulatorHome, `${device.id}.json`), { force: true })
+        return
+      }
+    }
+    await sleep(1000)
+  }
+  throw new Error('Android 进程尚未退出，保留设备与容量')
+}
 async function bootAndroid(device: Device, wipe: boolean) {
   const port = device.target.replace('emulator-', '')
   const config = await readFile(path.join(avdDir, `${device.name}.avd`, 'config.ini'), 'utf8')
@@ -72,14 +110,26 @@ async function bootAndroid(device: Device, wipe: boolean) {
   }
   if (!available) throw new Error(`端口 ${port} 正在使用，请先确认设备归属`)
   await mkdir(emulatorHome, { recursive: true })
-  await mkdir(emulatorTmp, { recursive: true })
+  const temp = androidTemp(device)
+  await mkdir(temp, { recursive: true, mode: 0o700 })
   const log = openSync(path.join(emulatorHome, `${device.id}.log`), 'a', 0o600)
-  const child = spawn(emulator, ['-avd', device.name, '-port', port, '-no-window', '-no-audio', '-no-snapshot', '-no-metrics', ...(wipe ? ['-wipe-data'] : [])], {
-    env: { ...toolEnv, ANDROID_EMULATOR_HOME: emulatorHome, TMPDIR: emulatorTmp }, stdio: ['ignore', log, log], detached: true,
+  const env: NodeJS.ProcessEnv = { ...toolEnv, ANDROID_EMULATOR_HOME: emulatorHome, TMPDIR: temp, ANDROID_TMP: temp, NETSIM_INSTANCE: port, NETSIM_HCI_PORT: String(Number(port) + 6402) }
+  for (const key of ['NETSIM_GRPC_PORT', 'NETSIM_TCP_PORT', 'NETSIM_WS_PORT']) delete env[key]
+  const child = spawn(emulator, ['-avd', device.name, '-port', port, '-no-window', '-no-audio', '-no-snapshot', '-no-metrics', '-netsim-args', `--instance ${port} --hci-port ${Number(port) + 6402}`, ...(wipe ? ['-wipe-data'] : [])], {
+    env, stdio: ['ignore', log, log], detached: true,
   })
   closeSync(log)
   let failed: Error | undefined
   child.on('error', (error) => { failed = error })
+  if (child.pid) {
+    const startedAt = processStartTime(child.pid)
+    if (!startedAt) {
+      try { process.kill(-child.pid, 'SIGKILL') } catch { /* 已退出。 */ }
+      throw new Error('无法登记 Android 进程')
+    }
+    try { await writeFile(path.join(emulatorHome, `${device.id}.json`), JSON.stringify({ pid: child.pid, startedAt, name: device.name }), { mode: 0o600 }) }
+    catch (error) { try { process.kill(-child.pid, 'SIGKILL') } catch { /* 已退出。 */ } throw error }
+  }
   child.unref()
   for (let attempt = 0; attempt < 150; attempt++) {
     if (failed) throw failed
@@ -109,45 +159,63 @@ export async function reset(device: Device) {
     }
     await sim(['bootstatus', device.target, '-b'], 300_000)
   } else {
-    let stopping = false
-    for (let attempt = 0; attempt < 30; attempt++) {
-      const devices = await tool(adb, ['devices'])
-      if (!devices.split('\n').some((line) => line.startsWith(`${device.target}\t`))) break
-      try {
-        await ownedAndroid(device)
-        if (!stopping) { await tool(adb, ['-s', device.target, 'emu', 'kill']); stopping = true }
-      } catch (error) {
-        if (error instanceof OwnershipError || attempt === 29) throw error
-      }
-      await sleep(1000)
-    }
+    await stopAndroid(device)
     await bootAndroid(device, true)
   }
   await health(device)
 }
 
-export async function provision(platform: Platform, id: string, source: string, runtime: string | undefined, port: number): Promise<Device> {
-  const name = `binos-${id}`
-  if (mode === 'mock') return { id, platform, name, target: platform === 'ios' ? id : `emulator-${port}`, status: 'cleaning' }
-  if (platform === 'ios') {
-    if (!source.startsWith('com.apple.CoreSimulator.SimDeviceType.') || !runtime?.startsWith('com.apple.CoreSimulator.SimRuntime.')) throw new Error('需要明确的 iOS device type 和 runtime 标识')
+export async function create(device: Device): Promise<Device> {
+  if (mode === 'mock') { await sleep(50); return { ...device, target: device.target || device.id, system: device.platform === 'ios' ? 'iOS-preview' : 'android-preview' } }
+  if (device.platform === 'ios') {
     await mkdir(iosSet, { recursive: true })
-    const target = await sim(['create', name, source, runtime], 120_000)
-    return { id, platform, name, target, system: runtime, status: 'cleaning' }
+    const found = parseIos(await sim(['list', 'devices', '--json'])).find((item) => item.name === device.name)
+    const runtime = process.env.BINOS_IOS_RUNTIME ?? 'com.apple.CoreSimulator.SimRuntime.iOS-27-1'
+    const target = found?.udid ?? await sim(['create', device.name, process.env.BINOS_IOS_DEVICE_TYPE ?? 'com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro', runtime], 120_000)
+    device = { ...device, target, system: runtime }
+  } else {
+    const image = process.env.BINOS_ANDROID_IMAGE ?? 'system-images;android-36;google_apis_playstore;arm64-v8a'
+    if (!/^system-images;android-[\w.-]+;[\w-]+;[\w-]+$/.test(image)) throw new Error('Android 系统镜像标识无效')
+    const parts = image.split(';')
+    const imageDir = path.join(sdkDir, ...parts)
+    if (!existsSync(path.join(imageDir, 'source.properties'))) throw new Error(`Android 系统镜像未安装：${image}`)
+    const directory = path.join(avdDir, `${device.name}.avd`)
+    await mkdir(directory, { recursive: true })
+    await writeFile(path.join(directory, 'config.ini'), [
+      `AvdId=${device.name}`, `avd.ini.displayname=${device.name}`, `image.sysdir.1=${imageDir}/`,
+      `target=${parts[1]}`, `tag.id=${parts[2]}`, `abi.type=${parts[3]}`, `hw.cpu.arch=${parts[3] === 'arm64-v8a' ? 'arm64' : parts[3]}`, 'hw.cpu.ncore=2', 'hw.ramSize=2048',
+      'hw.lcd.width=1080', 'hw.lcd.height=1920', 'hw.lcd.density=420', 'hw.gpu.enabled=yes', 'hw.gpu.mode=auto',
+      'hw.keyboard=yes', 'hw.mainKeys=no', 'disk.dataPartition.size=4G',
+    ].join('\n') + '\n')
+    device = { ...device, system: parts[1] }
   }
-  if (!/^[\w-]{1,100}$/.test(source)) throw new Error('Android 来源必须是已有 AVD 的名称')
-  const sourceDir = process.env.BINOS_ANDROID_SOURCE_AVDS ?? path.join(os.homedir(), '.android', 'avd')
-  const config = await readFile(path.join(sourceDir, `${source}.avd`, 'config.ini'), 'utf8')
-  const entries = config.split('\n').map((line) => { const at = line.indexOf('='); return at < 0 ? line : `${line.slice(0, at).trim()}=${line.slice(at + 1).trim()}` }).filter((line) => /^(hw\.|image\.sysdir\.1=|tag\.|abi\.type=|PlayStore\.enabled=|target=|skin\.name=)/.test(line) && !line.split('=')[0].endsWith('.path'))
-  const image = entries.find((line) => line.startsWith('image.sysdir.1='))?.split('=').slice(1).join('=').trim()
-  if (!image || !existsSync(path.resolve(sdkDir, image))) throw new Error('来源 AVD 的系统镜像未安装')
-  const directory = path.join(avdDir, `${name}.avd`)
-  await mkdir(directory, { recursive: true })
-  await writeFile(path.join(directory, 'config.ini'), `${entries.join('\n')}\nAvdId=${name}\navd.ini.displayname=${name}\n`)
-  const system = entries.find((line) => line.startsWith('target='))?.slice('target='.length)
-  if (!system) throw new Error('来源 AVD 缺少 target 版本')
-  await writeFile(path.join(avdDir, `${name}.ini`), `avd.ini.encoding=UTF-8\npath=${directory}\ntarget=${system}\n`)
-  return { id, platform, name, target: `emulator-${port}`, system, status: 'cleaning' }
+  await reset(device)
+  return device
+}
+export async function destroy(device: Device) {
+  if (mode === 'mock') { await sleep(50); return }
+  if (device.name !== `binos-${device.id}` || !/^(android|ios)-[a-z0-9-]+$/.test(device.id)) throw new Error('设备归属无效，拒绝销毁')
+  if (device.platform === 'ios') {
+    const devices = parseIos(await sim(['list', 'devices', '--json']))
+    const found = devices.find((item) => item.name === device.name && (!device.target || item.udid === device.target))
+    if (!found) {
+      if (device.target && devices.some((item) => item.udid === device.target)) throw new Error('iOS 设备名称与归属不匹配，保留容量')
+      return
+    }
+    if (found.state !== 'Shutdown') {
+      try { await sim(['shutdown', found.udid], 60_000) }
+      catch (error) {
+        if (parseIos(await sim(['list', 'devices', '--json'])).some((item) => item.udid === found.udid && item.state !== 'Shutdown')) throw error
+      }
+    }
+    await sim(['delete', found.udid], 120_000)
+  } else {
+    await stopAndroid(device)
+    const directory = path.join(avdDir, `${device.name}.avd`)
+    await rm(directory, { recursive: true, force: true })
+    await rm(path.join(avdDir, `${device.name}.ini`), { force: true })
+    await rm(androidTemp(device), { recursive: true, force: true })
+  }
 }
 export async function screenshot(device: Device) {
   if (mode === 'mock') {

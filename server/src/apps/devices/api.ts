@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { notifyChange } from '../../events.js'
 import { readSession, sessionExists, sessionOf, sessionTitle } from '../code/sessions.js'
-import { deviceRequest } from './client.js'
+import { adminDeviceRequest, deviceRequest } from './client.js'
 import { parseRequest } from './protocol.js'
 import type { LeaseResult, Snapshot } from './types.js'
 
@@ -34,21 +34,23 @@ export const devicesApi = new Hono()
   .post('/leases/:id/release', async (c) => {
     const status = await deviceRequest<Snapshot>({ action: 'status' })
     const lease = status.leases.find((item) => item.id === c.req.param('id'))
-    if (!lease) return c.json({ error: '租约已结束' }, 404)
+    if (!lease) return c.json({ ok: true })
+    if (lease.owner !== 'manual') return c.json({ error: '只能归还手动申请；回收其他会话请使用设备强制回收' }, 403)
     await deviceRequest({ action: 'release', lease: lease.id, owner: lease.owner })
     notifyChange({ type: 'devices' })
     return c.json({ ok: true })
   })
   .post('/queue/cancel', async (c) => {
-    await deviceRequest({ action: 'cancel', owner: 'manual' })
+    const body = await c.req.json() as { requestId: string }
+    await deviceRequest(parseRequest({ action: 'cancel', owner: 'manual', requestId: body.requestId }))
     notifyChange({ type: 'devices' })
     return c.json({ ok: true })
   })
   .post('/:id/control', async (c) => {
     const body = await c.req.json() as Record<string, unknown>
-    await deviceRequest(parseRequest({ ...body, action: 'control', device: c.req.param('id') }))
+    await adminDeviceRequest(parseRequest({ ...body, action: 'control', device: c.req.param('id') }))
     notifyChange({ type: 'devices' })
     return c.json({ ok: true })
   })
-  .get('/:id/screenshot', async (c) => c.json(await deviceRequest<{ image: string; mime: string; at: number }>({ action: 'screenshot', device: c.req.param('id') })))
+  .get('/:id/screenshot', async (c) => c.json(await adminDeviceRequest<{ image: string; mime: string; at: number }>({ action: 'screenshot', device: c.req.param('id') })))
 export type DevicesApi = typeof devicesApi

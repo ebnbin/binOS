@@ -73,7 +73,7 @@ export async function stopPreviewServer(serverLock: string) {
 // 设备和构建管理进程独立于网页后端；删除构建或数据前也要结束它，避免残留进程继续读写旧目录。
 export async function stopPreviewDevices(dir: string) {
   await stopPreviewBuilds(dir)
-  const lock = path.join(rootLayout(dir).appsDir, 'devices', 'manager.lock')
+  const lock = path.join(rootLayout(dir).devicesServiceDir, 'manager.lock')
   const manager = readJson<ProcessIdentity>(lock)
   if (!manager || !isRunning(manager)) return
   process.kill(manager.pid, 'SIGTERM')
