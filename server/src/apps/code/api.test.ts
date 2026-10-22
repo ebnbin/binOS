@@ -1,7 +1,12 @@
 import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
+
+vi.mock('./repositories.js', async (original) => ({
+  ...await original<typeof import('./repositories.js')>(),
+  prepareRepository: vi.fn<typeof import('./repositories.js').prepareRepository>(async (_id: string, repository: string) => ({ repository, defaultBranch: 'develop' })),
+}))
 
 const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
@@ -158,10 +163,13 @@ describe('projects', () => {
   it('默认使用 binOS 项目，新对话保存项目，项目重读后仍存在', async () => {
     const legacy = newSession('旧项目对话')
     expect(readSession(legacy.id).project).toBe('binos')
-    const created = await post('/api/apps/code/projects', JSON.stringify({ name: ' 第二个项目 ' }), 'application/json')
+    const created = await post('/api/apps/code/projects', JSON.stringify({ name: ' 第二个项目 ', repository: 'example/project' }), 'application/json')
     expect(created.status).toBe(201)
-    const { project } = await created.json() as { project: { id: string; name: string } }
-    expect(project.name).toBe('第二个项目')
+    const { project } = await created.json() as { project: { id: string; name: string; repository: string; defaultBranch: string } }
+    expect(project).toMatchObject({ name: '第二个项目', repository: 'example/project', defaultBranch: 'develop' })
+    const { projectDirectory } = await import('./projects.js')
+    expect(projectDirectory(project.id)).toBe(path.join(root, 'Library/Apps/code/repositories', project.id, 'main'))
+    expect(projectDirectory('binos')).not.toBe(projectDirectory(project.id))
     const listed = await api.request('/api/apps/code/projects')
     expect(((await listed.json()) as { projects: { id: string; name: string }[] }).projects).toContainEqual(project)
     const thread = createKitaSession({ type: 'session', time: time(), agent: 'claude', owner: 'code', cwd: root })
@@ -172,7 +180,55 @@ describe('projects', () => {
 
   it('拒绝空白和过长的项目名', async () => {
     for (const name of ['', '  ', 'x'.repeat(101)]) {
-      expect((await post('/api/apps/code/projects', JSON.stringify({ name }), 'application/json')).status).toBe(400)
+      expect((await post('/api/apps/code/projects', JSON.stringify({ name, repository: 'example/project' }), 'application/json')).status).toBe(400)
     }
   })
+})
+
+describe('项目仓库', () => {
+  it('拒绝非法仓库输入', async () => {
+    for (const repository of ['', 'missing-owner', '../repo', 'https://example.com/owner/repo', '--help', 'owner/repo/extra']) {
+      expect((await post('/api/apps/code/projects', JSON.stringify({ name: '项目', repository }), 'application/json')).status).toBe(400)
+    }
+  })
+
+  it('仓库初始化失败时不保存项目', async () => {
+    const { prepareRepository, RepositoryError } = await import('./repositories.js')
+    const before = await (await api.request('/api/apps/code/projects')).json()
+    vi.mocked(prepareRepository).mockRejectedValueOnce(new RepositoryError('无法访问仓库'))
+    const response = await post('/api/apps/code/projects', JSON.stringify({ name: '失败', repository: 'example/private', create: true }), 'application/json')
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: '无法访问仓库' })
+    expect(await (await api.request('/api/apps/code/projects')).json()).toEqual(before)
+  })
+
+  it('旧项目未关联仓库时不能从 binOS 启动新对话，关联后使用独立目录', async () => {
+    const { listProjects, projectDirectory } = await import('./projects.js')
+    const file = path.join(root, 'Library/Apps/code/projects.json')
+    writeFileSync(file, JSON.stringify([...listProjects(), { id: 'legacy', name: '旧项目' }]))
+    const response = await post('/api/apps/code/sessions', JSON.stringify({ text: '开发', project: 'legacy' }), 'application/json')
+    expect(await response.json()).toEqual({ error: '请先为这个项目关联 GitHub 仓库' })
+    const connected = await post('/api/apps/code/projects/legacy/repository', JSON.stringify({ name: '旧项目', repository: 'example/legacy' }), 'application/json')
+    expect(connected.status).toBe(200)
+    expect(projectDirectory('legacy')).toBe(path.join(root, 'Library/Apps/code/repositories/legacy/main'))
+    expect((await post('/api/apps/code/projects/legacy/repository', JSON.stringify({ name: '旧项目', repository: 'other/repo' }), 'application/json')).status).toBe(400)
+  })
+})
+
+
+it('新项目的 agent 会话使用自己的仓库目录和开发指引', async () => {
+  const { KitaSession } = await import('../../services/kita/sessions.js')
+  const { threadOf } = await import('./sessions.js')
+  const sent = vi.spyOn(KitaSession.prototype, 'send').mockResolvedValueOnce(true)
+  try {
+    const response = await post('/api/apps/code/sessions', JSON.stringify({ text: '开发新功能', project: 'legacy' }), 'application/json')
+    expect(response.status).toBe(200)
+    const { id } = await response.json() as { id: number }
+    expect(threadOf(id).metadata()).toMatchObject({ cwd: path.join(root, 'Library/Apps/code/repositories/legacy/main') })
+    expect(threadOf(id).metadata().instructions).toContain('example/legacy')
+    expect(threadOf(id).metadata().instructions).toContain('gh pr create')
+    expect(sent).toHaveBeenCalledOnce()
+  } finally {
+    sent.mockRestore()
+  }
 })

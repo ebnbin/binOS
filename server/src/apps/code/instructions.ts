@@ -1,3 +1,6 @@
+import path from 'node:path'
+import type { Project } from './types.js'
+
 // 追加给Code 会话 的系统提示：回复内容在 binOS 的网页上怎么显示
 export const transcriptPrompt = [
   '用户在 binOS 的网页上看你的回复，回复按 Markdown（GFM）渲染。',
@@ -12,3 +15,13 @@ const devicePrompt = `开发验证设备通过 "$BINOS_DEVICES_CLI" devices 使�
 const buildPrompt = `移动端构建使用 "$BINOS_DEVICES_CLI" builds。status 查看队列与产物，enqueue main|pr/编号|完整提交号 android,ios-simulator 发起构建，retry 构建ID 重试。ios-adhoc 需要已配置的真机签名；模拟器包不能安装到真机。构建由独立服务在干净提交中执行，不需要申请模拟器。不要把签名密钥放入代码或产物。`
 
 export const codeInstructions = [transcriptPrompt, devicePrompt, buildPrompt].join('\n\n')
+
+export function projectInstructions(project: Project, cwd: string): string {
+  return [transcriptPrompt, devicePrompt, [
+    `当前项目：${JSON.stringify(project.name)}，GitHub 仓库：${project.repository}。`,
+    `仓库目录：${JSON.stringify(path.dirname(cwd))}；默认分支：${JSON.stringify(project.defaultBranch)}；默认分支的 worktree：${JSON.stringify(cwd)}，只用于读取。`,
+    '先读取并遵循仓库里的 AGENTS.md。有明确开发任务时，git fetch origin，基于最新的远程默认分支，在默认 worktree 旁创建独立 worktree；目录名与分支名一致，只用小写字母、数字和连字符。不要直接修改默认分支。',
+    '在任务 worktree 中开发，按项目自己的工具安装依赖、运行检查和验证。提交后推送分支，用 gh pr create 创建 PR，将 PR 链接交给用户；后续修改继续提交推送到同一 PR。',
+    '只有用户明确要求合并时才合并 PR。合并或关闭后，清理本次任务的 worktree 和本地分支。预览和部署遵循项目自身配置。',
+  ].join('\n')].join('\n\n')
+}

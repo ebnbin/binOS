@@ -15,6 +15,7 @@ import {
   SquarePen,
   X,
 } from 'lucide-react'
+import { Select } from '../../../ui/Select.tsx'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
@@ -46,6 +47,9 @@ export function SessionList({
 }) {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
+  const [repository, setRepository] = useState('')
+  const [mode, setMode] = useState('existing')
+  const [connecting, setConnecting] = useState<string>()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [query, setQuery] = useState('')
@@ -61,7 +65,7 @@ export function SessionList({
         <SquarePen size={16} strokeWidth={1.75} />
         新对话
       </button>
-      <button type="button" className={styles.projectButton} onClick={() => setCreating(!creating)}>
+      <button type="button" className={styles.projectButton} disabled={saving} onClick={() => { setCreating(!creating); setConnecting(undefined); setMode('existing'); setName(''); setRepository(''); setError('') }}>
         创建项目
       </button>
       {creating && (
@@ -69,29 +73,46 @@ export function SessionList({
           className={styles.projectForm}
           onSubmit={(event) => {
             event.preventDefault()
-            if (!name.trim() || saving) return
+            if (!name.trim() || !repository.trim() || saving) return
             setSaving(true)
             setError('')
-            void createProject(name.trim())
+            void createProject(name.trim(), repository.trim(), mode === 'new', connecting)
               .then((project) => {
                 setName('')
+                setRepository('')
+                setConnecting(undefined)
                 setCreating(false)
                 onNavigate(`/new?project=${project.id}`)
               })
-              .catch(() => setError('创建失败，请重试'))
+              .catch((error: unknown) => setError(error instanceof Error ? error.message : '创建失败，请重试'))
               .finally(() => setSaving(false))
           }}
         >
           <input
             autoFocus
+            disabled={saving || !!connecting}
             aria-label="项目名称"
             placeholder="项目名称"
             maxLength={100}
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-          <button type="submit" disabled={!name.trim() || saving}>
-            {saving ? '创建中…' : '创建'}
+          <Select
+            label="仓库来源"
+            value={mode}
+            disabled={saving}
+            onValueChange={setMode}
+            options={[{ value: 'existing', label: '关联已有仓库' }, { value: 'new', label: '创建私有 GitHub 仓库' }]}
+          />
+          <input
+            aria-label="GitHub 仓库"
+            placeholder="owner/repository"
+            value={repository}
+            disabled={saving}
+            onChange={(event) => setRepository(event.target.value)}
+          />
+          <button type="submit" disabled={!name.trim() || !repository.trim() || saving}>
+            {saving ? '准备仓库中…' : connecting ? '关联' : '创建'}
           </button>
           {error && <p role="alert">{error}</p>}
         </form>
@@ -118,7 +139,7 @@ export function SessionList({
       </label>
       <nav className={styles.list}>
         <ul>
-          {([['builds', '构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
+          {([['builds', 'binOS 构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
             <li key={name}>
               <button type="button" className={styles.item} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
                 <span className={styles.line}><Icon size={16} strokeWidth={1.75} /><span className={styles.title}>{label}</span></span>
@@ -142,7 +163,20 @@ export function SessionList({
           projects.map((project) => (
             <section key={project.id}>
               <div className={styles.projectHeader}>
-                <span>{project.name}</span>
+                <span>
+                  {project.name}
+                  {project.repository && <a className={styles.repository} href={`https://github.com/${project.repository}`} target="_blank" rel="noreferrer">{project.repository}</a>}
+                </span>
+                {project.id !== 'binos' && !project.repository && (
+                  <button type="button" disabled={saving} onClick={() => {
+                    setMode('existing')
+                    setConnecting(project.id)
+                    setName(project.name)
+                    setRepository('')
+                    setError('')
+                    setCreating(true)
+                  }}>关联仓库</button>
+                )}
                 <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
                   <SquarePen size={14} />
                 </button>
