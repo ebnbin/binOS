@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { ExternalLink, X } from 'lucide-react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
@@ -21,6 +22,7 @@ function LayoutGlyph({ layout, portrait, active }: { layout: LayoutId; portrait:
 // 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、在新标签页打开外部 app、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
 export function TaskBar({
   placement,
+  accessory,
   windows,
   groups,
   locked,
@@ -37,6 +39,7 @@ export function TaskBar({
   onClose,
 }: {
   placement: Exclude<BarPlacement, 'hidden'>
+  accessory?: ReactNode
   windows: OpenWindow[]
   groups: SplitGroup[]
   locked: boolean
@@ -63,6 +66,7 @@ export function TaskBar({
         <button type="button" className={styles.item} aria-label="桌面" title="桌面" aria-pressed={home} onClick={onHome}>
           <BrandMark size={22} inverted />
         </button>
+        {accessory}
         {windows.length > 0 && <span className={styles.separator} />}
         <div className={styles.apps}>
           {windows.filter((item) => {
