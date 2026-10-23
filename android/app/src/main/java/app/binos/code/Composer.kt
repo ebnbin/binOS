@@ -29,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.automirrored.outlined.Send
@@ -55,6 +56,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -239,6 +241,7 @@ fun Composer(model: ConversationModel, session: SessionSummary?, running: Boolea
 
     if (modelSheet) {
         ModalBottomSheet(onDismissRequest = { modelSheet = false }) {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
             Text("模型", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
             // 能选的 agent：能用的，加上这个对话正在用的
             catalogs.filter { it.available || it.agent == choice.agent }.forEach { item ->
@@ -247,6 +250,7 @@ fun Composer(model: ConversationModel, session: SessionSummary?, running: Boolea
                     val disabled = agentFixed && item.agent != choice.agent
                     val selected = item.agent == choice.agent && (option.id == choice.model || choice.model == null && option.isDefault)
                     ListItem(
+                        colors = ListItemDefaults.colors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
                         headlineContent = { Text(option.name) },
                         supportingContent = { Text(listOfNotNull(agentName(item.agent), "默认".takeIf { option.isDefault }, "新对话才能换 agent".takeIf { disabled }).joinToString(" · ")) },
                         trailingContent = { if (selected) Icon(Icons.Outlined.Check, null, tint = MaterialTheme.colorScheme.primary) },
@@ -263,6 +267,7 @@ fun Composer(model: ConversationModel, session: SessionSummary?, running: Boolea
             }
             if (catalogs.isEmpty()) Text("模型信息暂不可用", Modifier.padding(24.dp))
             Spacer(Modifier.size(24.dp))
+            }
         }
     }
     if (usageSheet && session != null) {

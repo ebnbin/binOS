@@ -535,7 +535,6 @@ private fun SubagentView(state: CallState, context: TranscriptContext) {
                     progress?.activity,
                     progress?.toolUses?.let { "$it 次工具调用" },
                     progress?.tokens?.let { "${formatTokens(it)} token" },
-                    state.durationMs(context.now)?.takeIf { state.status != "running" }?.let { formatDuration(it) },
                 )
                 if (facts.isNotEmpty()) {
                     Text(facts.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)

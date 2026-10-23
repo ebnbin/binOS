@@ -58,6 +58,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +99,9 @@ class ConversationModel(val sessionId: Int?, initialProject: String?) : ViewMode
     var sending by mutableStateOf(false)
         private set
     var notice by mutableStateOf<String?>(null)
+    // 每次发送时加一，对话回到底部
+    var stickRequests by mutableStateOf(0)
+        private set
     private val drafts = app.getSharedPreferences("drafts", Context.MODE_PRIVATE)
     private val draftKey get() = "code/draft/${sessionId ?: "new-${project ?: ""}"}"
     var input by mutableStateOf(drafts.getString(draftKey, "") ?: "")
@@ -121,6 +125,7 @@ class ConversationModel(val sessionId: Int?, initialProject: String?) : ViewMode
         if (sending || input.isBlank() && pending.isEmpty()) return
         sending = true
         notice = null
+        stickRequests++
         viewModelScope.launch {
             try {
                 val uploads = pending.map { CodeStore.api.upload(resolver, it.uri) }
@@ -332,6 +337,17 @@ private fun TranscriptList(model: ConversationModel, thread: String, targetItem:
     val scope = rememberCoroutineScope()
     val reversed = remember(blocks) { blocks.asReversed() }
     val awayFromBottom by remember { derivedStateOf { listState.firstVisibleItemIndex > 1 } }
+    // 在底部时新内容到来会跟着滚到底；往上翻看时不打扰。倒序列表按条目保持位置，新条目插在前面时要手动滚回去
+    var stick by remember { mutableStateOf(targetItem == null) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.collect { scrolling ->
+            if (!scrolling) stick = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 120
+        }
+    }
+    LaunchedEffect(model.stickRequests) { stick = true }
+    LaunchedEffect(blocks.size, live?.text?.length, live?.thinking?.length, live != null, model.notice) {
+        if (stick) listState.scrollToItem(0)
+    }
 
     // 从搜索结果跳过来时，滚到那一条
     var located by remember { mutableStateOf(targetItem == null) }
@@ -383,7 +399,10 @@ private fun TranscriptList(model: ConversationModel, thread: String, targetItem:
         }
         if (awayFromBottom) {
             SmallFloatingActionButton(
-                onClick = { scope.launch { listState.animateScrollToItem(0) } },
+                onClick = {
+                    stick = true
+                    scope.launch { listState.animateScrollToItem(0) }
+                },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             ) { Icon(Icons.Outlined.KeyboardArrowDown, "回到底部") }
         }
