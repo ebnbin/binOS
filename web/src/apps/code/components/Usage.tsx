@@ -1,7 +1,10 @@
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
+import { buttonProps } from '../../../ui/button-props.ts'
 import { Popover } from '../../../ui/Popover.tsx'
+import { ProgressBar } from '../../../ui/ProgressBar.tsx'
+import overlay from '../../../ui/Overlay.module.css'
 import { codeUsage } from '../api.ts'
 import { formatTokens } from '../../../ui/format.ts'
 import { formatQuota } from '../format.ts'
@@ -41,13 +44,14 @@ export function Usage({ session }: { session: SessionSummary }) {
       trigger={
         <button
           type="button"
-          className={styles.ring}
+          {...buttonProps({ variant: 'invisible', size: 'small' }, styles.ring)}
+          data-icon-only=""
           data-level={level}
           aria-expanded={open}
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
-          <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
+          <svg viewBox="0 0 20 20" width={16} height={16} aria-hidden>
             <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
             <circle
               cx="10"
@@ -64,57 +68,58 @@ export function Usage({ session }: { session: SessionSummary }) {
         </button>
       }
     >
-      <div className={styles.line}>
-        <span className={styles.label}>上下文</span>
-        {context ? (
-          <span>
-            {formatTokens(context.tokens)} / {formatTokens(context.window)}
-            <span className={styles.muted}> · {Math.round(ratio * 100)}%</span>
-          </span>
-        ) : (
-          <span className={styles.muted}>答完第一轮后显示</span>
+      <div className={overlay.header}>
+        <h2 className={overlay.title}>会话用量</h2>
+      </div>
+      <div className={styles.rows}>
+        <div className={styles.line}>
+          <span className={styles.label}>上下文</span>
+          {context ? (
+            <span>
+              {formatTokens(context.tokens)} / {formatTokens(context.window)}
+              <span className={styles.muted}> · {Math.round(ratio * 100)}%</span>
+            </span>
+          ) : (
+            <span className={styles.muted}>答完第一轮后显示</span>
+          )}
+        </div>
+        {context && <ProgressBar progress={ratio * 100} tone={level === 'danger' ? 'danger' : level === 'warning' ? 'attention' : 'accent'} label="上下文" />}
+        <div className={styles.line}>
+          <span className={styles.label}>本会话</span>
+          <span>{total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}</span>
+        </div>
+        {/* 每次请求都要把整个上下文再读一遍，所以读缓存占了绝大部分 */}
+        {tokens && (
+          <div className={styles.parts}>
+            <span>输入 {formatTokens(tokens.input)}</span>
+            <span>读缓存 {formatTokens(tokens.cacheRead)}</span>
+            <span>写缓存 {formatTokens(tokens.cacheWrite)}</span>
+            <span>输出 {formatTokens(tokens.output)}</span>
+          </div>
+        )}
+        {session.priced && (
+          <>
+            <div className={styles.line}>
+              <span className={styles.label}>约占周额度</span>
+              {quota !== undefined ? <span>{formatQuota(quota)}</span> : <span className={styles.muted}>还估不出来</span>}
+            </div>
+            {usage?.week !== undefined && week?.resetsAt === usage.resetsAt && (
+              <div className={styles.line}>
+                <span className={styles.label}>这 7 天</span>
+                <span>
+                  binOS 约 {formatQuota(usage.week)}
+                  <span className={styles.muted}> · 订阅共 {Math.round(week.utilization * 100)}%</span>
+                </span>
+              </div>
+            )}
+            <p className={styles.note}>
+              {quota !== undefined
+                ? `订阅是 ${agents[session.agent].name} 自己的 app、网页版和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高`
+                : 'binOS 的用量让 7 天额度涨过 3% 后才估得出来'}
+            </p>
+          </>
         )}
       </div>
-      {context && (
-        <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
-        </div>
-      )}
-      <div className={styles.line}>
-        <span className={styles.label}>本会话</span>
-        <span>{total === undefined ? <span className={styles.muted}>还没有记录</span> : `${formatTokens(total)} token`}</span>
-      </div>
-      {/* 每次请求都要把整个上下文再读一遍，所以读缓存占了绝大部分 */}
-      {tokens && (
-        <div className={styles.parts}>
-          <span>输入 {formatTokens(tokens.input)}</span>
-          <span>读缓存 {formatTokens(tokens.cacheRead)}</span>
-          <span>写缓存 {formatTokens(tokens.cacheWrite)}</span>
-          <span>输出 {formatTokens(tokens.output)}</span>
-        </div>
-      )}
-      {session.priced && (
-        <>
-          <div className={styles.line}>
-            <span className={styles.label}>约占周额度</span>
-            {quota !== undefined ? <span>{formatQuota(quota)}</span> : <span className={styles.muted}>还估不出来</span>}
-          </div>
-          {usage?.week !== undefined && week?.resetsAt === usage.resetsAt && (
-            <div className={styles.line}>
-              <span className={styles.label}>这 7 天</span>
-              <span>
-                binOS 约 {formatQuota(usage.week)}
-                <span className={styles.muted}> · 订阅共 {Math.round(week.utilization * 100)}%</span>
-              </span>
-            </div>
-          )}
-          <p className={styles.note}>
-            {quota !== undefined
-              ? `订阅是 ${agents[session.agent].name} 自己的 app、网页版和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高`
-              : 'binOS 的用量让 7 天额度涨过 3% 后才估得出来'}
-          </p>
-        </>
-      )}
     </Popover>
   )
 }

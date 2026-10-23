@@ -1,0 +1,114 @@
+/* Primer SegmentedControl：浅灰轨道里一排按钮，选中的那个是白色的「滑块」 */
+.control {
+  display: inline-flex;
+  flex: none;
+  height: var(--control-medium-size);
+  margin: 0;
+  padding: 0;
+  border-radius: var(--borderRadius-medium);
+  background: var(--controlTrack-bgColor-rest);
+  list-style: none;
+}
+
+.control[data-size='small'] {
+  height: var(--control-small-size);
+}
+
+.control[data-block] {
+  display: flex;
+  width: 100%;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex: 1;
+}
+
+.item + .item::before {
+  content: '';
+  position: absolute;
+  top: var(--base-size-8);
+  bottom: var(--base-size-8);
+  left: 0;
+  width: var(--borderWidth-thin);
+  background: var(--borderColor-default);
+}
+
+.item:has([aria-current='true'])::before,
+.item:has([aria-current='true']) + .item::before {
+  display: none;
+}
+
+.button {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--base-size-6);
+  padding: var(--base-size-4);
+  border: 0;
+  background: none;
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  white-space: nowrap;
+}
+
+.control[data-size='small'] .button {
+  font-size: var(--text-body-size-small);
+}
+
+.button > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--base-size-6);
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--base-size-12);
+  border: var(--borderWidth-thin) solid transparent;
+  border-radius: var(--borderRadius-medium);
+  transition: background-color var(--motion-transition-hover);
+}
+
+.control[data-size='small'] .button > span {
+  padding: 0 var(--base-size-8);
+}
+
+.button:not([aria-current='true']) {
+  padding: var(--base-size-4);
+}
+
+@media (hover: hover) {
+  .button:not([aria-current='true']):hover > span {
+    background: var(--controlTrack-bgColor-hover);
+  }
+}
+
+.button:not([aria-current='true']):active > span {
+  background: var(--controlTrack-bgColor-active);
+}
+
+.button[aria-current='true'] {
+  padding: 0;
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.button[aria-current='true'] > span {
+  border-color: var(--controlKnob-borderColor-rest);
+  background: var(--controlKnob-bgColor-rest);
+}
+
+.button:focus-visible {
+  outline: none;
+}
+
+.button:focus-visible > span {
+  outline: var(--focus-outline);
+  outline-offset: calc(-1 * var(--borderWidth-thick));
+}
+
+.visual {
+  display: flex;
+  color: var(--fgColor-muted);
+}

@@ -1,173 +1,154 @@
+/* 外部 app 清单：标题和添加按钮一行，下面是 Primer Box 列表；编辑时就地展开成表单 */
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
+  margin-top: var(--base-size-32);
+  font-size: var(--text-body-size-medium);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--base-size-12);
 }
 
-.header h2 {
+.header h3 {
   margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-title-size-small);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-.add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
+  margin: var(--base-size-4) 0 var(--base-size-12);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .list {
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
   list-style: none;
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-separator);
+.list li + li {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--base-size-12);
   width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
+  padding: var(--base-size-12) var(--base-size-16);
+  color: var(--fgColor-default);
   text-align: left;
+  transition: background-color var(--motion-transition-hover);
+}
+
+.row:disabled {
+  color: var(--fgColor-disabled);
+  cursor: not-allowed;
+}
+
+@media (hover: hover) {
+  .row:hover:not(:disabled) {
+    background: var(--bgColor-muted);
+  }
+}
+
+/* 图标放在带边框的方块里，和 Primer 的仓库头像一样 */
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--base-size-32);
+  height: var(--base-size-32);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .name {
-  flex: none;
-  color: var(--color-text);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .url {
-  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--base-size-16);
+  padding: var(--base-size-16);
+  background: var(--bgColor-muted);
 }
 
-.editor label,
+/* Primer FormControl：标签 14px 半粗体，在控件上方 */
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--base-size-4);
 }
 
-.editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
-}
-
-.editor input:focus {
-  border-color: var(--color-text-tertiary);
+.fieldLabel {
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .icons {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--base-size-4);
 }
 
 .icons button {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  width: var(--control-medium-size);
+  height: var(--control-medium-size);
+  border: var(--borderWidth-thin) solid var(--button-default-borderColor-rest);
+  border-radius: var(--borderRadius-medium);
+  background: var(--button-default-bgColor-rest);
+  color: var(--fgColor-muted);
+  transition: var(--motion-transition-hover);
+  transition-property: background-color, border-color, color;
+}
+
+@media (hover: hover) {
+  .icons button:hover {
+    background: var(--button-default-bgColor-hover);
+    color: var(--fgColor-default);
+  }
 }
 
 .icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-color: var(--borderColor-accent-emphasis);
+  background: var(--bgColor-accent-muted);
+  color: var(--fgColor-accent);
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
 }
 
 .spacer {
   flex: 1;
-}
-
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-}
-
-.primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.secondary {
-  background: var(--color-fill);
-}
-
-.danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
-  }
 }

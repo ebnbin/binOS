@@ -1,5 +1,7 @@
+/* GitHub markdown-body 的排版：标题半粗体，h1、h2 下面一条分隔线；块之间 16px */
 .markdown {
-  line-height: var(--line-height-relaxed);
+  font-size: var(--text-body-size-medium);
+  line-height: var(--base-text-lineHeight-normal);
   overflow-wrap: anywhere;
 }
 
@@ -11,101 +13,121 @@
   margin-bottom: 0;
 }
 
-.markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 var(--space-4);
+.markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr, dl, details) {
+  margin: 0 0 var(--base-size-16);
 }
 
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: var(--space-6) 0 var(--space-3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-snug);
-  letter-spacing: var(--letter-spacing-tight);
+  margin: var(--base-size-24) 0 var(--base-size-16);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--base-text-lineHeight-tight);
+}
+
+.markdown :is(h1, h2) {
+  padding-bottom: 0.3em;
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
 .markdown h1 {
-  font-size: 1.4em;
+  font-size: 2em;
 }
 
 .markdown h2 {
-  font-size: 1.22em;
+  font-size: 1.5em;
 }
 
 .markdown h3 {
-  font-size: 1.08em;
+  font-size: 1.25em;
 }
 
-.markdown :is(h4, h5, h6) {
+.markdown h4 {
   font-size: 1em;
 }
 
+.markdown h5 {
+  font-size: 0.875em;
+}
+
+.markdown h6 {
+  color: var(--fgColor-muted);
+  font-size: 0.85em;
+}
+
 .markdown strong {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .markdown a {
-  color: inherit;
+  color: var(--fgColor-accent);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .markdown a:hover {
-    text-decoration-color: currentColor;
-  }
+  text-underline-offset: 0.2rem;
 }
 
 .markdown :is(ul, ol) {
-  padding-left: 1.5em;
+  padding-left: 2em;
 }
 
-.markdown li + li,
-.markdown li > :is(ul, ol) {
-  margin-top: var(--space-1);
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown :is(ul, ol) ul {
+  list-style: circle;
+}
+
+.markdown li + li {
+  margin-top: 0.25em;
 }
 
 .markdown li > :is(ul, ol) {
+  margin-top: 0.25em;
   margin-bottom: 0;
 }
 
-.markdown li::marker {
-  color: var(--color-text-tertiary);
+.markdown li > p {
+  margin: var(--base-size-16) 0 0;
 }
 
-.markdown li > p {
-  margin: 0;
+.markdown li > p:first-child {
+  margin-top: 0;
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 var(--space-1-5) 0 0;
-  vertical-align: -1px;
-  accent-color: var(--color-primary);
+  appearance: auto;
+  margin: 0 0.2em 0.25em -1.4em;
+  vertical-align: middle;
+  accent-color: var(--control-checked-bgColor-rest);
 }
 
-.markdown :global(.contains-task-list) {
-  padding-left: 0.4em;
+.markdown :global(.task-list-item) {
   list-style: none;
 }
 
 .markdown blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
-  color: var(--color-text-secondary);
+  padding: 0 1em;
+  border-left: 0.25em solid var(--borderColor-default);
+  color: var(--fgColor-muted);
 }
 
 .markdown hr {
-  height: 1px;
+  height: 0.25em;
+  margin: var(--base-size-24) 0;
+  padding: 0;
   border: 0;
-  background: var(--color-separator);
+  background: var(--borderColor-default);
 }
 
 .markdown code {
-  padding: 1px var(--space-1-5);
-  border-radius: var(--radius-xs);
-  background: var(--color-fill);
-  font-family: var(--font-mono);
-  font-size: 0.86em;
+  padding: 0.2em 0.4em;
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-neutral-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: 85%;
+  white-space: break-spaces;
 }
 
 .markdown .codeBlock code {
@@ -113,66 +135,69 @@
   border-radius: 0;
   background: none;
   font-size: inherit;
+  white-space: inherit;
 }
 
 .markdown :global(.katex-display) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--base-size-16);
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 .tableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
 }
 
 .markdown table {
-  width: 100%;
+  border-spacing: 0;
   border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: var(--line-height-normal);
+  font-variant-numeric: tabular-nums;
 }
 
 .markdown :is(th, td) {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--base-size-6) 13px;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown th {
-  background: var(--color-surface-sunken);
-  font-weight: var(--font-weight-semibold);
-  white-space: nowrap;
+  font-weight: var(--base-text-weight-semibold);
 }
 
-.markdown tr + tr td,
-.markdown thead + tbody td {
-  border-top: 1px solid var(--color-separator);
+.markdown tr {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+  background: var(--bgColor-default);
+}
+
+.markdown tbody tr:nth-child(2n) {
+  background: var(--bgColor-muted);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: var(--space-1-5) 0;
+  max-width: 100%;
+  margin: var(--base-size-4) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  background: var(--bgColor-default);
 }
 
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-0-5) var(--space-3);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text-tertiary);
-  font-size: 0.9em;
+  gap: var(--base-size-4);
+  padding: 0 var(--base-size-8);
+  border: var(--borderWidth-thin) dashed var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  line-height: var(--base-size-24);
 }

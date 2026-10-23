@@ -1,42 +1,10 @@
 .banner {
-  margin: 0 var(--space-3) var(--space-3);
+  margin: 0 var(--base-size-8) var(--base-size-8);
 }
 
-.row {
-  display: flex;
+/* 侧栏里空间小：Banner 用 12px 字，按钮不换行 */
+.banner .alert {
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  text-align: left;
-  cursor: pointer;
-}
-
-.row > svg {
-  flex: none;
-  color: var(--color-accent);
-}
-
-.banner[data-tone='bad'] .row {
-  background: var(--color-danger-subtle);
-}
-
-.banner[data-tone='bad'] .row > svg {
-  color: var(--color-danger);
-}
-
-.row > span:first-of-type {
-  flex: 1;
-  min-width: 0;
-}
-
-.action {
-  flex: none;
-  font-weight: var(--font-weight-medium);
+  padding: var(--base-size-8) var(--base-size-8) var(--base-size-8) var(--base-size-12);
+  font-size: var(--text-body-size-small);
 }

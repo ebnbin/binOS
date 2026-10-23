@@ -1,7 +1,5 @@
 :root {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-normal);
+  font: var(--text-body-shorthand-medium);
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
 }
@@ -21,15 +19,33 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: var(--color-chrome);
+  background: var(--shell-bgColor);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--color-chrome);
-  color: var(--color-text);
+  background: var(--shell-bgColor);
+  color: var(--fgColor-default);
+}
+
+a {
+  color: var(--fgColor-link);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  a:hover {
+    text-decoration: underline;
+  }
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--fontStack-monospace);
 }
 
 button,
@@ -57,10 +73,10 @@ button:disabled {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: calc(-1 * var(--focus-outline-width));
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  background: var(--selection-bgColor);
 }

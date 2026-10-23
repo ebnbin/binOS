@@ -1,7 +1,7 @@
 import type { Entry } from '@binos/server/services/kita/types'
 import { diffLines } from 'diff'
-import { AppWindow, Bot, FilePen, FilePlus, FileText, Globe, Image, ListTodo, PackageSearch, Search, Sparkles, SquareTerminal, Wrench } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { BrowserIcon, CopilotIcon, FileAddedIcon, FileIcon, GlobeIcon, ImageIcon, PackageIcon, PencilIcon, SearchIcon, SparkleFillIcon, TasklistIcon, TerminalIcon, ToolsIcon } from '@primer/octicons-react'
+import type { Icon } from '@primer/octicons-react'
 
 export type ToolCall = Extract<Entry, { type: 'tool_call' }>
 export type ToolResult = Extract<Entry, { type: 'tool_result' }>
@@ -26,7 +26,7 @@ export function callDuration({ call, result, live }: CallState, now: number): nu
 export type ToolCategory = 'command' | 'read' | 'edit' | 'search' | 'web' | 'browser' | 'subagent' | 'other'
 
 // 一次调用显示成：图标、动作、对象（命令、路径、搜索词……）
-type ToolLabel = { icon: LucideIcon; verb: string; category: ToolCategory; detail?: string }
+type ToolLabel = { icon: Icon; verb: string; category: ToolCategory; detail?: string }
 
 // 浏览器的工具，没列出的直接用工具名
 const browserVerbs: Record<string, string> = {
@@ -51,35 +51,35 @@ const firstText = (input: unknown) => Object.values((input ?? {}) as Record<stri
 export function toolLabel({ name, tool, input }: ToolCall): ToolLabel {
   switch (tool.kind) {
     case 'command':
-      return { icon: SquareTerminal, verb: '运行', category: 'command', detail: tool.command }
+      return { icon: TerminalIcon, verb: '运行', category: 'command', detail: tool.command }
     case 'read':
-      return { icon: FileText, verb: '查看', category: 'read', detail: tool.path }
+      return { icon: FileIcon, verb: '查看', category: 'read', detail: tool.path }
     case 'edit':
       return tool.change?.type === 'write'
-        ? { icon: FilePlus, verb: '写入', category: 'edit', detail: tool.path }
-        : { icon: FilePen, verb: '修改', category: 'edit', detail: tool.path }
+        ? { icon: FileAddedIcon, verb: '写入', category: 'edit', detail: tool.path }
+        : { icon: PencilIcon, verb: '修改', category: 'edit', detail: tool.path }
     case 'search':
-      return { icon: Search, verb: tool.target === 'files' ? '查找文件' : '搜索', category: 'search', detail: tool.pattern }
+      return { icon: SearchIcon, verb: tool.target === 'files' ? '查找文件' : '搜索', category: 'search', detail: tool.pattern }
     case 'web_search':
-      return { icon: Globe, verb: '搜索网页', category: 'search', detail: tool.query }
+      return { icon: GlobeIcon, verb: '搜索网页', category: 'search', detail: tool.query }
     case 'web_fetch':
-      return { icon: Globe, verb: '打开网页', category: 'web', detail: tool.url }
+      return { icon: GlobeIcon, verb: '打开网页', category: 'web', detail: tool.url }
     case 'image_view':
-      return { icon: Image, verb: '查看图片', category: 'read', detail: tool.path }
+      return { icon: ImageIcon, verb: '查看图片', category: 'read', detail: tool.path }
     case 'browser':
-      return { icon: AppWindow, verb: browserVerbs[tool.action] ?? `浏览器 ${tool.action}`, category: 'browser', detail: tool.target }
+      return { icon: BrowserIcon, verb: browserVerbs[tool.action] ?? `浏览器 ${tool.action}`, category: 'browser', detail: tool.target }
     case 'mcp':
-      return { icon: Wrench, verb: `${tool.server} ${tool.tool}`, category: 'other', detail: firstText(input) }
+      return { icon: ToolsIcon, verb: `${tool.server} ${tool.tool}`, category: 'other', detail: firstText(input) }
     case 'subagent':
-      return { icon: Bot, verb: '子 agent', category: 'subagent', detail: tool.description }
+      return { icon: CopilotIcon, verb: '子 agent', category: 'subagent', detail: tool.description }
     case 'tool_search':
-      return { icon: PackageSearch, verb: '加载工具', category: 'other', detail: tool.query }
+      return { icon: PackageIcon, verb: '加载工具', category: 'other', detail: tool.query }
     case 'skill':
-      return { icon: Sparkles, verb: '使用技能', category: 'other', detail: tool.name }
+      return { icon: SparkleFillIcon, verb: '使用技能', category: 'other', detail: tool.name }
     case 'todo':
-      return { icon: ListTodo, verb: '更新待办', category: 'other' }
+      return { icon: TasklistIcon, verb: '更新待办', category: 'other' }
     case 'other':
-      return { icon: Wrench, verb: name.replace(/^mcp__/, '').replaceAll('__', ' '), category: 'other', detail: firstText(input) }
+      return { icon: ToolsIcon, verb: name.replace(/^mcp__/, '').replaceAll('__', ' '), category: 'other', detail: firstText(input) }
   }
 }
 

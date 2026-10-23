@@ -1,46 +1,50 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 1px 0;
+  min-height: var(--control-small-size);
+  padding: 0 var(--base-size-4) 0 0;
   border: 0;
+  border-radius: var(--borderRadius-medium);
   background: none;
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body-size-small);
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--motion-transition-hover);
+}
+
+@media (hover: hover) {
+  .row:hover:not(:disabled) {
+    background: var(--control-transparent-bgColor-hover);
+  }
+}
+
+.row:active:not(:disabled) {
+  background: var(--control-transparent-bgColor-active);
 }
 
 .row:disabled {
   cursor: default;
 }
 
-/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
-.dot {
-  width: 6px;
-  height: 6px;
-  margin: 0 var(--space-1) 0 1px;
+/* 图标一栏 24px 宽，和展开内容的竖线对齐 */
+.icon {
+  display: flex;
   flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-text-tertiary) 70%, transparent);
+  justify-content: center;
+  width: var(--base-size-24);
+  color: var(--fgColor-muted);
 }
 
-[data-status='error'] > .row .dot {
-  background: var(--color-danger);
+[data-status='running'] > .row .icon {
+  color: var(--fgColor-accent);
 }
 
-[data-status='running'] > .row .dot {
-  background: var(--color-accent);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.3;
-  }
+[data-status='error'] > .row .icon {
+  color: var(--fgColor-danger);
 }
 
 .label {
@@ -49,13 +53,13 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text);
-  font-weight: var(--font-weight-medium);
+  color: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 [data-quiet] > .row .label {
-  color: var(--color-text-tertiary);
-  font-weight: var(--font-weight-regular);
+  color: var(--fgColor-muted);
+  font-weight: var(--base-text-weight-normal);
 }
 
 .detail {
@@ -64,29 +68,36 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
 }
 
 .meta {
   display: flex;
-  gap: var(--space-1-5);
+  gap: var(--base-size-8);
   flex: none;
   margin-left: auto;
-  font-size: var(--font-size-xs);
+  font-size: var(--text-body-size-small);
   font-variant-numeric: tabular-nums;
 }
 
 .chevron {
   flex: none;
+  color: var(--fgColor-muted);
   opacity: 0;
   transition:
-    opacity var(--duration-fast),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--motion-transition-hover),
+    transform var(--motion-transition-stateChange);
 }
 
 @media (hover: hover) {
   .row:hover .chevron {
+    opacity: 1;
+  }
+}
+
+@media (hover: none) {
+  .chevron {
     opacity: 1;
   }
 }
@@ -96,32 +107,38 @@
   transform: rotate(90deg);
 }
 
-/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
+/* Timeline 的竖线：从图标中间往下，收起时的几行输出和展开的内容都挂在它右边 */
 .preview,
 .body {
-  margin: 0 0 var(--space-1) 5px;
-  padding-left: 13px;
-  border-left: 1px solid var(--color-separator);
+  margin: 0 0 var(--base-size-4) calc(var(--base-size-12) - var(--borderWidth-thick) / 2);
+  padding-left: calc(var(--base-size-20) - var(--borderWidth-thick) / 2);
+  border-left: var(--borderWidth-thick) solid var(--borderColor-muted);
 }
 
 .preview {
   overflow: hidden;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  color: var(--fgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
+  line-height: var(--base-text-lineHeight-normal);
   white-space: pre;
   text-overflow: ellipsis;
 }
 
 [data-status='error'] > .preview {
-  color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-tertiary));
+  color: var(--fgColor-danger);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  gap: var(--base-size-8);
+  padding-top: var(--base-size-4);
+  padding-bottom: var(--base-size-8);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
 }

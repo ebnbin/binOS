@@ -1,0 +1,71 @@
+/* Primer Label：胶囊形，1px 边框，12px 中粗字 */
+.label {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--base-size-4);
+  height: var(--base-size-20);
+  padding: 0 var(--base-size-6);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.label[data-size='large'] {
+  height: var(--base-size-24);
+  padding: 0 var(--base-size-8);
+}
+
+.label[data-variant='accent'] { border-color: var(--borderColor-accent-emphasis); color: var(--fgColor-accent); }
+.label[data-variant='success'] { border-color: var(--borderColor-success-emphasis); color: var(--fgColor-success); }
+.label[data-variant='attention'] { border-color: var(--borderColor-attention-emphasis); color: var(--fgColor-attention); }
+.label[data-variant='severe'] { border-color: var(--borderColor-severe-emphasis); color: var(--fgColor-severe); }
+.label[data-variant='danger'] { border-color: var(--borderColor-danger-emphasis); color: var(--fgColor-danger); }
+.label[data-variant='done'] { border-color: var(--borderColor-done-emphasis); color: var(--fgColor-done); }
+
+/* CounterLabel：数字计数 */
+.counter {
+  display: inline-block;
+  flex: none;
+  min-width: var(--base-size-20);
+  padding: 0 var(--base-size-6);
+  border-radius: var(--borderRadius-full);
+  background: var(--counter-bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-medium);
+  line-height: var(--base-size-20);
+  text-align: center;
+}
+
+.counter[data-variant='emphasis'] {
+  background: var(--counter-bgColor-emphasis);
+  color: var(--fgColor-onEmphasis);
+}
+
+/* StateLabel：PR 和 issue 的状态，实心底 */
+.state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--base-size-4);
+  height: var(--base-size-24);
+  padding: 0 var(--base-size-8);
+  border-radius: var(--borderRadius-full);
+  background: var(--bgColor-neutral-emphasis);
+  color: var(--fgColor-onEmphasis);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.state[data-status='open'] { background: var(--bgColor-open-emphasis); }
+.state[data-status='merged'] { background: var(--bgColor-done-emphasis); }
+.state[data-status='closed'] { background: var(--bgColor-closed-emphasis); }
+.state[data-status='draft'] { background: var(--bgColor-draft-emphasis); }

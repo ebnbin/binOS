@@ -1,15 +1,17 @@
 .spinner {
   display: block;
-  width: 12px;
-  height: 12px;
-  border: 1.75px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
-  border-top-color: var(--color-accent);
-  border-radius: var(--radius-full);
-  animation: spin 0.8s linear infinite;
+  flex: none;
+  animation: rotate var(--base-duration-1000) linear infinite;
 }
 
-@keyframes spin {
+@keyframes rotate {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: calc(var(--base-duration-1000) * 2);
   }
 }

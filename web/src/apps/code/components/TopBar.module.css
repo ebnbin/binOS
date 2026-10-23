@@ -1,16 +1,19 @@
+/* Primer PageHeader 式的顶栏：48px，下边一条分隔线，标题是带下三角的 invisible 按钮 */
 .bar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
   flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  height: var(--base-size-48);
+  padding: 0 var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-default);
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--base-size-8);
   flex: 1;
   min-width: 0;
 }
@@ -19,184 +22,100 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .titleWrap {
-  position: relative;
   display: flex;
   min-width: 0;
 }
 
-.titleButton {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+.bar .titleButton {
   min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--color-hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
-}
-
-.titleChevron {
-  flex: none;
-  color: var(--color-text-tertiary);
+  max-width: 100%;
+  margin-left: calc(-1 * var(--control-medium-paddingInline-condensed));
+  padding: 0 var(--control-medium-paddingInline-condensed);
+  color: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .rename {
-  align-self: center;
   max-width: 420px;
-  min-height: var(--size-control-md);
 }
 
 .id {
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-medium);
   font-variant-numeric: tabular-nums;
 }
 
 .prs {
-  position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
-  margin-left: auto;
-}
-
-.finished {
-  display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-.prMenu {
-  display: flex;
-  flex-direction: column;
-  width: 360px;
-  max-height: min(320px, var(--radix-popover-content-available-height));
-  overflow-y: auto;
-  padding: var(--space-1);
-  box-shadow: var(--shadow-md);
-}
-
-.prMenu a {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-}
-
-@media (hover: hover) {
-  .prMenu a:hover {
-    background: var(--color-hover);
-  }
-}
-
-.prNumber {
-  flex: none;
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
-}
-
-.prTitle {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.prState {
-  flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-.prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
-}
-
-.prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
+  gap: var(--base-size-8);
+  margin-left: auto;
 }
 
 .pr {
   display: inline-flex;
   align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
+  gap: var(--base-size-4);
   font-variant-numeric: tabular-nums;
 }
 
-.pr a {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
+.prLink,
+.prLink:hover {
+  display: flex;
   text-decoration: none;
 }
 
-.pr[data-state='open'] a:first-child {
-  color: var(--color-success);
+.prLink:focus-visible {
+  border-radius: var(--borderRadius-full);
+  outline-offset: var(--base-size-2);
 }
 
-.pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
+.preview {
+  font-size: var(--text-body-size-small);
 }
 
-.pr .preview {
-  border-left: 1px solid var(--color-separator);
+.prMenu {
+  width: var(--overlay-width-small);
+  max-height: min(var(--overlay-height-small), var(--radix-popover-content-available-height));
 }
 
-/* 提高优先级，盖过 IconButton 自身的 display */
+.prItem,
+.prItem:hover {
+  text-decoration: none;
+}
+
+.prItem[data-state='open'] .prIcon {
+  color: var(--fgColor-open);
+}
+
+.prItem[data-state='merged'] .prIcon {
+  color: var(--fgColor-done);
+}
+
+.prItem[data-state='closed'] .prIcon {
+  color: var(--fgColor-closed);
+}
+
+/* 提高优先级，盖过按钮自身的 display */
 .bar .singleColumnOnly {
   display: none;
 }
 
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
+    padding: 0 var(--base-size-8);
   }
 
   .bar:has(.heading:last-child)::after {
     content: '';
-    width: var(--size-control-lg);
+    width: var(--control-medium-size);
     flex: none;
   }
 
@@ -205,7 +124,7 @@
   }
 
   .bar .singleColumnOnly {
-    display: grid;
+    display: inline-flex;
   }
 
   .bar span.singleColumnOnly {

@@ -2,48 +2,30 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--space-3);
-  color: var(--color-text);
+  gap: var(--base-size-8);
+  color: var(--fgColor-default);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
+  margin: calc(-1 * var(--base-size-4)) calc(-1 * var(--base-size-4)) 0 0;
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--base-text-lineHeight-normal);
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-0-5);
-}
-
-.actions button {
-  display: grid;
-  place-items: center;
-  min-width: var(--size-control-sm);
-  height: var(--size-control-md);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--color-bg-subtle);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+  gap: var(--base-size-2);
 }
 
 .month {
@@ -56,36 +38,36 @@
 }
 
 .month th {
-  height: 28px;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  height: var(--base-size-24);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-normal);
 }
 
 .month td {
   padding: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body-size-small);
 }
 
 .month td:nth-child(n + 6) {
-  color: var(--color-text-secondary);
+  color: var(--fgColor-muted);
 }
 
 .month td[data-outside='true'] {
-  color: var(--color-text-tertiary);
-  opacity: var(--opacity-disabled);
+  color: var(--fgColor-disabled);
 }
 
 .month td span {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  width: var(--base-size-28);
+  height: var(--base-size-28);
+  border-radius: var(--borderRadius-full);
 }
 
+/* 今天：强调色实心圆，和 Primer 日期选择器的选中日一致 */
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-semibold);
+  background: var(--bgColor-accent-emphasis);
+  color: var(--fgColor-onEmphasis);
+  font-weight: var(--base-text-weight-semibold);
 }

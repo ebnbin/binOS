@@ -1,10 +1,23 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
 import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
+import { AlertFillIcon, ArchiveIcon, PencilIcon, PinIcon, PinSlashIcon, UndoIcon } from '@primer/octicons-react'
+import type { Icon } from '@primer/octicons-react'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import list from '../../../ui/ActionList.module.css'
+import overlay from '../../../ui/Overlay.module.css'
+import { TextInput } from '../../../ui/TextInput.tsx'
 import { editSession } from '../api.ts'
 import styles from './SessionMenu.module.css'
+
+function ItemContent({ icon: Leading, children }: { icon: Icon; children: string }) {
+  return (
+    <>
+      <span className={list.visual}><Leading size={16} /></span>
+      <span className={list.label}>{children}</span>
+    </>
+  )
+}
 
 export function SessionActions({
   session,
@@ -46,16 +59,17 @@ export function SessionActions({
       <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
       <Dropdown.Portal>
         <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
+          className={`${overlay.overlay} ${list.list}`}
+          align="end"
+          sideOffset={4}
+          collisionPadding={8}
           aria-label="会话操作"
           onCloseAutoFocus={(event) => {
             if (renaming.current) event.preventDefault()
           }}
         >
           <Dropdown.Item
-            className={styles.menuItem}
+            className={list.item}
             disabled={saving}
             onSelect={() => {
               renaming.current = true
@@ -63,33 +77,31 @@ export function SessionActions({
               onRename()
             }}
           >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
+            <ItemContent icon={PencilIcon}>重命名</ItemContent>
           </Dropdown.Item>
           <Dropdown.Item
-            className={styles.menuItem}
+            className={list.item}
             disabled={saving}
             onSelect={(event) => {
               event.preventDefault()
               void edit({ pinned: !session.pinned })
             }}
           >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
+            <ItemContent icon={session.pinned ? PinSlashIcon : PinIcon}>{session.pinned ? '取消置顶' : '置顶'}</ItemContent>
           </Dropdown.Item>
           <Dropdown.Item
-            className={styles.menuItem}
+            className={list.item}
             disabled={saving}
             onSelect={(event) => {
               event.preventDefault()
               void edit({ archived: !session.archived })
             }}
           >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
+            <ItemContent icon={session.archived ? UndoIcon : ArchiveIcon}>{session.archived ? '取消归档' : '归档'}</ItemContent>
           </Dropdown.Item>
           {error && (
-            <p className={styles.error} role="alert">
+            <p className={`${styles.error} ${styles.menuError}`} role="alert">
+              <AlertFillIcon size={12} />
               {error}
             </p>
           )}
@@ -127,7 +139,8 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <TextInput
+        block
         className={styles.rename}
         value={value}
         autoFocus
@@ -152,6 +165,7 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
       />
       {error && (
         <span className={styles.error} role="alert">
+          <AlertFillIcon size={12} />
           {error}
         </span>
       )}

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { ExternalLink, X } from 'lucide-react'
+import { LinkExternalIcon, XIcon } from '@primer/octicons-react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
 import type { BarPlacement } from './bar-placement.ts'
@@ -92,7 +92,7 @@ export function TaskBar({
                   const app = findApplication(apps, member.window.applicationId)
                   return app && (
                     <span key={member.id} className={styles.member} data-focused={!!group && !home && member.id === focused}>
-                      <app.icon size={group ? 18 : 21} strokeWidth={1.75} />
+                      <app.icon size={group ? 16 : 20} />
                     </span>
                   )
                 })}
@@ -116,11 +116,11 @@ export function TaskBar({
                 title="在新标签页打开"
                 onClick={() => window.open(focusedUrl, '_blank', 'noopener,noreferrer')}
               >
-                <ExternalLink size={21} strokeWidth={1.75} />
+                <LinkExternalIcon size={20} />
               </button>
             )}
             <button type="button" className={styles.item} aria-label="关闭当前窗口" title="关闭当前窗口" onClick={onClose}>
-              <X size={21} strokeWidth={1.75} />
+              <XIcon size={20} />
             </button>
           </>
         )}

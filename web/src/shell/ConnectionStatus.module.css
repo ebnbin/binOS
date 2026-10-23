@@ -1,32 +1,36 @@
+/* 浮在屏幕顶部的 Primer 浮层，带一个小号主按钮 */
 .status {
   position: fixed;
-  top: calc(var(--space-16) + env(safe-area-inset-top));
+  top: calc(var(--base-size-64) + env(safe-area-inset-top));
   left: 50%;
-  z-index: 5;
+  z-index: var(--zIndex-popover);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-8) var(--base-size-8) var(--base-size-12);
+  border-radius: var(--borderRadius-large);
+  background: var(--overlay-bgColor);
+  box-shadow: var(--shadow-floating-small);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, calc(-1 * var(--space-1-5)));
+  transform: translate(-50%, calc(-1 * var(--base-size-8)));
   transition:
-    opacity var(--duration-normal),
-    visibility var(--duration-normal),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--motion-transition-exit),
+    visibility var(--motion-transition-exit),
+    transform var(--motion-transition-exit);
 }
 
 .status[data-visible='true'] {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
+  transition:
+    opacity var(--motion-transition-enter),
+    visibility var(--motion-transition-enter),
+    transform var(--motion-transition-enter);
   /* 上线时后端重启会断开一两秒，短暂的断开不提示 */
   transition-delay: 1.5s;
 }
@@ -35,12 +39,7 @@
   transition-delay: 0s;
 }
 
-.reload {
-  margin: calc(-1 * var(--space-0-5)) calc(-1 * var(--space-2)) calc(-1 * var(--space-0-5)) var(--space-0-5);
-  padding: var(--space-0-5) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+.icon {
+  display: flex;
+  color: var(--fgColor-accent);
 }

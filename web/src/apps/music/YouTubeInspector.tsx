@@ -1,8 +1,9 @@
+import { VideoIcon } from '@primer/octicons-react'
 import { useSyncExternalStore } from 'react'
 import { youtubePreview } from './youtube.ts'
-import styles from './music.module.css'
+import { Button } from '../../ui/Button.tsx'
 
 export function YouTubeInspector() {
   const visible = useSyncExternalStore(youtubePreview.subscribe, youtubePreview.getSnapshot)
-  return <button type="button" className={styles.textButton} onClick={() => youtubePreview.setVisible(!visible)}>{visible ? '关闭视频预览' : '视频预览'}</button>
+  return <Button size="small" variant="invisible" leadingVisual={VideoIcon} onClick={() => youtubePreview.setVisible(!visible)}>{visible ? '关闭视频预览' : '视频预览'}</Button>
 }

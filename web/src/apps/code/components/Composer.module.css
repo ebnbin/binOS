@@ -1,49 +1,62 @@
+/* GitHub Copilot 式的输入框：12px 圆角的边框盒子，文本框本身没有边框，下面一排小号按钮 */
 .dock {
   flex: none;
-  padding: 0 var(--space-8) var(--space-5);
+  padding: 0 var(--base-size-32) var(--base-size-16);
 }
 
 .card {
   position: relative;
-  max-width: 724px;
+  display: flex;
+  flex-direction: column;
+  max-width: 736px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-large);
+  background: var(--bgColor-default);
+  box-shadow: var(--shadow-resting-small);
   cursor: text;
-  transition: border-color var(--duration-fast);
+  transition: border-color var(--motion-transition-hover);
 }
 
 .card:focus-within {
-  border-color: color-mix(in srgb, var(--color-text-tertiary) 55%, transparent);
+  border-color: var(--borderColor-accent-emphasis);
+  outline: var(--focus-outline-width) solid var(--focus-outlineColor);
+  outline-offset: calc(-1 * var(--borderWidth-thin));
 }
 
 .card.dragging {
-  border-color: var(--color-text-secondary);
   border-style: dashed;
+  border-color: var(--borderColor-accent-emphasis);
+  background: var(--bgColor-accent-muted);
 }
 
 .attachments {
-  padding: var(--space-1) 0 var(--space-3);
+  padding: var(--base-size-12) var(--base-size-12) 0;
 }
 
 .input {
   display: block;
   width: 100%;
-  min-height: 52px;
+  min-height: var(--base-size-64);
   max-height: 200px;
   field-sizing: content;
-  padding: var(--space-0-5) 0 0;
+  padding: var(--base-size-12) var(--base-size-12) var(--base-size-4);
   border: 0;
   outline: none;
   background: none;
+  color: var(--fgColor-default);
+  font-size: var(--text-input-size);
+  line-height: var(--base-text-lineHeight-normal);
   resize: none;
 }
 
+/* 盒子已经显示焦点，文本框自己不再画焦点框 */
+.input:focus-visible {
+  outline: none;
+}
+
 .input::placeholder {
-  color: var(--color-text-tertiary);
+  color: var(--control-fgColor-placeholder);
 }
 
 .input:read-only {
@@ -53,95 +66,63 @@
 .bar {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: var(--space-0-5);
-  margin-top: var(--space-1-5);
+  gap: var(--base-size-4);
+  padding: var(--base-size-4) var(--base-size-8) var(--base-size-8);
 }
 
-.attach {
+.bar .model {
+  min-width: 0;
+  max-width: 220px;
+  color: var(--fgColor-muted);
+}
+
+.bar .settings {
+  color: var(--fgColor-muted);
+}
+
+.actions {
+  display: flex;
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  margin-left: calc(-1 * var(--space-2));
-}
-
-.action {
-  display: grid;
-  margin-left: auto;
-  place-items: center;
-  width: var(--size-control-md);
-  height: var(--size-control-md);
-  flex: none;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  transition: 
-    opacity var(--duration-fast),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.action:active:not(:disabled) {
-  transform: scale(0.92);
-}
-
-.action:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.interrupt {
-  display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  height: var(--size-control-sm);
+  gap: var(--base-size-8);
   margin-left: auto;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
 }
 
-@media (hover: hover) {
-  .interrupt:hover {
-    background: var(--color-hover);
-  }
+.busy {
+  display: grid;
+  place-items: center;
+  width: var(--control-small-size);
+  height: var(--control-small-size);
+  color: var(--fgColor-muted);
 }
 
-.interrupt + .interrupt {
-  margin-left: 0;
-}
-
-.interrupt + .action {
-  margin-left: var(--space-2);
-}
-
-/* 排队的消息：输入框里面最上面，一条一行 */
+/* 排队的消息：盒子最上面，一条一个带边框的小行 */
 .queue {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) var(--space-2) calc(-1 * var(--space-2));
-  padding: 0 0 var(--space-1-5);
-  border-bottom: 1px solid var(--color-separator);
+  gap: var(--base-size-4);
+  margin: 0;
+  padding: var(--base-size-8) var(--base-size-8) 0;
   list-style: none;
 }
 
 .queue li {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  min-height: var(--size-control-sm);
-  padding-left: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  gap: var(--base-size-8);
+  min-height: var(--control-medium-size);
+  padding: 0 var(--base-size-2) 0 var(--base-size-8);
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-small);
 }
 
 .queueIcon {
+  display: flex;
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-attention);
 }
 
 .queueText {
@@ -156,141 +137,45 @@
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-2);
+  color: var(--fgColor-muted);
 }
 
-.queueButton {
+.modelMenu {
+  width: var(--overlay-width-small);
+  max-width: calc(100vw - 2 * var(--base-size-8));
+  max-height: min(var(--overlay-height-large), var(--radix-select-content-available-height));
+  overflow: hidden;
+}
+
+/* Radix 的 viewport 高度受限时会压扁弹性子项 */
+.modelMenu [role="option"] {
   flex: none;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
 }
 
-.busy {
-  background: var(--color-fill);
+/* 高亮的选项已经有底色，Radix 把焦点放在选项上时不再画焦点框 */
+.modelMenu [role="option"]:focus-visible {
+  outline: none;
 }
 
-.stopIcon {
-  width: 11px;
-  height: 11px;
-  border-radius: var(--radius-xs);
-  background: currentColor;
+.indicator {
+  display: flex;
+}
+
+.settingsMenu {
+  min-width: var(--overlay-width-xsmall);
+}
+
+.settingsMenu [aria-pressed='true'] {
+  font-weight: var(--base-text-weight-semibold);
 }
 
 @container agent (width < 600px) {
   .dock {
-    padding: 0 var(--space-3) var(--space-3);
-  }
-
-  .card {
-    padding: var(--space-3) var(--space-3) var(--space-2) var(--space-4);
+    padding: 0 var(--base-size-8) var(--base-size-8);
   }
 }
 
-.model {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  min-width: 0;
-  height: var(--size-control-xl);
-  padding: 0 var(--space-1-5);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-
-.model span {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.model svg { flex: none; }
-.model:disabled, .settings:disabled { opacity: var(--opacity-disabled); }
-
-.settings {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-
-.actions {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-1-5);
-  margin-left: auto;
-}
-
-.modelMenu {
-  z-index: var(--z-overlay);
-  width: 320px;
-  max-width: calc(100vw - 2 * var(--space-3));
-  max-height: min(420px, var(--radix-select-content-available-height));
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-}
-
-.modelList { padding: var(--space-1-5); }
-.modelOption {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-3);
-  border-radius: var(--radius-item);
-  font-size: var(--font-size-sm);
-  outline: none;
-  cursor: pointer;
-}
-.modelOption small { color: var(--color-text-tertiary); font-size: var(--font-size-2xs); }
-.modelOption[data-highlighted] { background: var(--color-hover); }
-.modelOption[data-disabled] { opacity: var(--opacity-disabled); cursor: default; }
-.selected { position: absolute; right: var(--space-3); top: 18px; }
-.settingsMenu { width: 200px; padding: var(--space-1-5); }
-.settingsTitle { display: block; margin: var(--space-1-5) var(--space-3); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-.settingsMenu [role='group'] { display: flex; flex-direction: column; gap: var(--space-0-5); }
-.settingsMenu button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: var(--size-control-lg);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-.settingsMenu button[aria-pressed='true'] { color: var(--color-text); background: var(--color-hover); }
-@media (hover: hover) {
-  .settingsMenu button:hover:not(:disabled), .model:hover:not(:disabled), .settings:hover:not(:disabled) { background: var(--color-hover); }
-}
-@media (pointer: coarse) {
-  .attach, .settings, .model, .action { min-height: var(--size-touch-target); }
-  .attach, .action { width: var(--size-touch-target); }
-  .settings { min-width: var(--size-touch-target); }
-  .settingsMenu button { min-height: var(--size-touch-target); }
-}
 @container agent (width < 400px) {
   .bar:has(.interrupt) { flex-wrap: wrap; }
   .bar:has(.interrupt) .actions { width: 100%; justify-content: flex-end; }
@@ -299,13 +184,12 @@
 @media (pointer: coarse) and (width < 600px) {
   :global([data-radix-popper-content-wrapper]):has(.modelMenu) {
     position: fixed !important;
-    inset: auto var(--space-3) var(--space-3) !important;
+    inset: auto var(--base-size-8) var(--base-size-8) !important;
     transform: none !important;
   }
+
   .modelMenu {
-    width: calc(100vw - 2 * var(--space-3));
+    width: calc(100vw - 2 * var(--base-size-8));
     max-height: 60dvh;
-    border-radius: var(--radius-overlay);
   }
-  .modelList { max-height: 60dvh; }
 }

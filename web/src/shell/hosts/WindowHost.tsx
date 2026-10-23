@@ -1,6 +1,9 @@
 import { Suspense, useMemo } from 'react'
 import { findApplication, useApplications, windowView } from '../../apps/index.ts'
 import type { WindowContext } from '../../apps/types.ts'
+import { AlertIcon, QuestionIcon } from '@primer/octicons-react'
+import { Blankslate } from '../../ui/Blankslate.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { ErrorBoundary } from '../../ui/ErrorBoundary.tsx'
 import styles from './WindowHost.module.css'
 import { createWindowContext } from '../controller/navigation.ts'
@@ -14,16 +17,13 @@ export function WindowHost({ window: win, onTitle, onOpen }: { window: WindowIns
 
   const App = windowView(findApplication(apps, win.applicationId), win.viewId)?.component
   if (!App) {
-    return <div className={styles.message}>找不到 app「{win.applicationId}」</div>
+    return <div className={styles.message}><Blankslate icon={QuestionIcon} heading={`找不到 app「${win.applicationId}」`} /></div>
   }
   return (
     <ErrorBoundary
       fallback={(retry) => (
         <div className={styles.message}>
-          <p>这个 app 出错了</p>
-          <button type="button" onClick={retry}>
-            重新打开
-          </button>
+          <Blankslate icon={AlertIcon} heading="这个 app 出错了" actions={<Button onClick={retry}>重新打开</Button>} />
         </div>
       )}
     >

@@ -1,6 +1,8 @@
 import { agents, agentIds } from '@binos/server/services/kita/types'
 import type { Limits, AgentId } from '@binos/server/services/kita/types'
+import { buttonProps } from '../../../ui/button-props.ts'
 import { Popover } from '../../../ui/Popover.tsx'
+import overlay from '../../../ui/Overlay.module.css'
 import { formatSpan, summary, useMinuteNow } from '../../../services/kita/quota.ts'
 import { useAgentStatus } from '../../../services/kita/status.ts'
 import { QuotaRing } from '../../../services/kita/QuotaRing.tsx'
@@ -25,7 +27,7 @@ export function Quota() {
         label="订阅额度"
         className={styles.details}
         trigger={
-          <button type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
+          <button type="button" {...buttonProps({ variant: 'invisible', size: 'small' }, styles.summary)} title="订阅额度" aria-label="订阅额度">
             {reported.map(([agent, limits]) => {
               const { used, runsOut, limited } = summary(limits, now)
               return (
@@ -44,8 +46,11 @@ export function Quota() {
           </button>
         }
       >
+        <div className={overlay.header}>
+          <h2 className={overlay.title}>订阅额度</h2>
+        </div>
         {reported.map(([agent, limits]) => (
-          <section key={agent}>
+          <section key={agent} className={styles.section}>
             <h3>{agents[agent].name}</h3>
             <QuotaWindows limits={limits} now={now} />
           </section>

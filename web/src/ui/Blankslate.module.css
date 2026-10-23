@@ -1,0 +1,47 @@
+/* Primer Blankslate：空状态。图标、标题、说明和操作居中排列 */
+.blankslate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--base-size-4);
+  padding: var(--base-size-32);
+  text-align: center;
+}
+
+.blankslate[data-size='narrow'] {
+  padding: var(--base-size-16);
+}
+
+.visual {
+  display: flex;
+  margin-bottom: var(--base-size-8);
+  color: var(--fgColor-muted);
+}
+
+.heading {
+  margin: 0;
+  color: var(--fgColor-default);
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--text-title-lineHeight-medium);
+}
+
+.blankslate[data-size='narrow'] .heading {
+  font-size: var(--text-title-size-small);
+}
+
+.description {
+  margin: 0;
+  max-width: var(--overlay-width-medium);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-medium);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--base-size-8);
+  margin-top: var(--base-size-16);
+}

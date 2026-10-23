@@ -1,4 +1,4 @@
-import { Check, Copy, Plus, RefreshCw, Terminal as TerminalIcon, X } from 'lucide-react'
+import { AlertIcon, CheckIcon, CopyIcon, PlusIcon, SyncIcon, TerminalIcon, TrashIcon } from '@primer/octicons-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
@@ -7,6 +7,11 @@ import type { WindowContext } from '../types.ts'
 import { openTerminal, terminalRequest } from './transport.ts'
 import type { TerminalTransport } from './transport.ts'
 import '@xterm/xterm/css/xterm.css'
+import { Alert } from '../../ui/Alert.tsx'
+import { Blankslate } from '../../ui/Blankslate.tsx'
+import { Button } from '../../ui/Button.tsx'
+import { Spinner } from '../../ui/Spinner.tsx'
+import underline from '../../ui/UnderlineNav.module.css'
 import styles from './TerminalApp.module.css'
 
 type Sessions = { available: boolean; sessions: TerminalSession[] }
@@ -64,13 +69,15 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
   return (
     <div className={styles.app}>
       <header className={styles.toolbar}>
-        <strong>
-          <TerminalIcon size={17} />
+        <h1>
+          <TerminalIcon size={16} />
           宿主 Mac
-        </strong>
+        </h1>
         <div className={styles.actions}>
           {session && (
-            <button
+            <Button
+              size="small"
+              leadingVisual={copied ? CheckIcon : CopyIcon}
               title="复制 Mac Terminal 连接命令"
               onClick={() =>
                 void navigator.clipboard
@@ -79,26 +86,20 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
                   .catch(() => setError('无法访问剪贴板，请复制下方连接命令'))
               }
             >
-              {copied ? <Check size={15} /> : <Copy size={15} />}
-              <span>{copied ? '已复制' : '在 Mac 中连接'}</span>
-            </button>
+              <span className={styles.collapsible}>{copied ? '已复制' : '在 Mac 中连接'}</span>
+            </Button>
           )}
-          <button disabled={busy || !snapshot?.available} onClick={() => void create()}>
-            <Plus size={16} />
+          <Button size="small" leadingVisual={PlusIcon} disabled={busy || !snapshot?.available} onClick={() => void create()}>
             新建终端
-          </button>
+          </Button>
         </div>
       </header>
-      {error && (
-        <div className={styles.error} role="alert">
-          {error}
-        </div>
-      )}
+      {error && <Alert className={styles.error}>{error}</Alert>}
       {!!snapshot?.sessions.length && (
-        <nav className={styles.tabs} aria-label="终端会话">
+        <nav className={`${underline.nav} ${styles.tabs}`} aria-label="终端会话">
           {snapshot.sessions.map((item, index) => (
-            <button key={item.id} aria-current={item.id === id ? 'page' : undefined} onClick={() => navigate(`/${item.id}`)} title={item.cwd}>
-              <TerminalIcon size={14} />
+            <button key={item.id} type="button" className={underline.tab} aria-current={item.id === id ? 'page' : undefined} onClick={() => navigate(`/${item.id}`)} title={item.cwd}>
+              <span className={underline.icon}><TerminalIcon size={16} /></span>
               终端 {index + 1}
             </button>
           ))}
@@ -109,10 +110,9 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
           <TerminalPane key={session.id} id={session.id} onExit={load} />
           <footer className={styles.footer}>
             <span title={session.cwd}>{session.cwd}</span>
-            <button onClick={() => setConfirmId(confirm ? '' : id)}>
-              <X size={14} />
+            <Button size="small" variant="danger" leadingVisual={TrashIcon} aria-expanded={confirm} onClick={() => setConfirmId(confirm ? '' : id)}>
               结束会话
-            </button>
+            </Button>
           </footer>
           <details className={styles.connection}>
             <summary>Mac Terminal 连接命令</summary>
@@ -121,32 +121,30 @@ export function TerminalApp({ ctx }: { ctx: WindowContext }) {
           </details>
           {confirm && (
             <div className={styles.confirm} role="alert">
-              <span>结束这个终端及其中正在运行的程序？</span>
-              <button onClick={() => setConfirmId('')}>取消</button>
-              <button disabled={busy} onClick={() => void end()}>
-                结束会话
-              </button>
+              <span className={styles.confirmIcon}><AlertIcon size={16} /></span>
+              <span className={styles.confirmText}>结束这个终端及其中正在运行的程序？</span>
+              <div className={styles.confirmActions}>
+                <Button size="small" onClick={() => setConfirmId('')}>取消</Button>
+                <Button size="small" variant="danger" disabled={busy} onClick={() => void end()}>
+                  结束会话
+                </Button>
+              </div>
             </div>
           )}
         </>
       ) : (
         <div className={styles.empty}>
-          <TerminalIcon size={36} strokeWidth={1.3} />
-          <h2>{!snapshot ? '正在连接宿主 Mac…' : !snapshot.available ? '需要安装 tmux' : id ? '这个终端已结束' : 'Mac 的命令行，在 binOS 中使用'}</h2>
-          {snapshot &&
-            (snapshot.available ? (
-              <>
-                <p>在宿主 Mac 上运行命令。关闭窗口或断线后，会话仍会继续。</p>
-                <button disabled={busy} onClick={() => void create()}>
-                  <Plus size={16} />
-                  新建终端
-                </button>
-              </>
-            ) : (
-              <p>
-                请在 Mac Terminal 中运行 <code>brew install tmux</code>，然后重启 binOS 后端。
-              </p>
-            ))}
+          <Blankslate
+            icon={snapshot ? TerminalIcon : undefined}
+            visual={snapshot ? undefined : <Spinner size="medium" />}
+            heading={!snapshot ? '正在连接宿主 Mac…' : !snapshot.available ? '需要安装 tmux' : id ? '这个终端已结束' : 'Mac 的命令行，在 binOS 中使用'}
+            description={snapshot && (snapshot.available ? '在宿主 Mac 上运行命令。关闭窗口或断线后，会话仍会继续。' : <>请在 Mac Terminal 中运行 <code>brew install tmux</code>，然后重启 binOS 后端。</>)}
+            actions={snapshot?.available && (
+              <Button variant="primary" leadingVisual={PlusIcon} disabled={busy} onClick={() => void create()}>
+                新建终端
+              </Button>
+            )}
+          />
         </div>
       )}
     </div>
@@ -161,14 +159,25 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
   const sendInput = useRef<(data: string) => void>(() => {})
   useEffect(() => {
     const element = host.current!
-    const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-    const text = token('--color-terminal-text')
+    // 终端外层固定为 Primer 暗色主题，配色直接取它的 ANSI token
+    const style = getComputedStyle(element)
+    const token = (name: string) => style.getPropertyValue(name).trim()
+    const ansi = (name: string) => ({ [name]: token(`--ansi-${name}`), [`bright${name[0].toUpperCase()}${name.slice(1)}`]: token(`--ansi-${name}Bright`) })
+    const text = token('--fgColor-default')
     const terminal = new Terminal({
       cursorBlink: true,
-      fontFamily: token('--font-mono'),
-      fontSize: 14,
+      fontFamily: token('--fontStack-monospace'),
+      fontSize: 13,
+      lineHeight: 1.25,
       scrollback: 10000,
-      theme: { background: token('--color-terminal-bg'), foreground: text, cursor: text, selectionBackground: token('--color-terminal-selection') },
+      theme: {
+        background: token('--bgColor-default'),
+        foreground: text,
+        cursor: token('--fgColor-accent'),
+        cursorAccent: token('--bgColor-default'),
+        selectionBackground: token('--selection-bgColor'),
+        ...['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white'].reduce((colors, name) => ({ ...colors, ...ansi(name) }), {}),
+      },
       allowProposedApi: false,
     })
     const fit = new FitAddon()
@@ -271,15 +280,14 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
     }
   }, [id, onExit, attempt])
   return (
-    <div className={styles.pane}>
+    <div className={styles.pane} data-color-mode="dark" data-dark-theme="dark">
       <div className={styles.status}>
-        <span data-connected={state === '已连接'} />
+        <span className={styles.dot} data-connected={state === '已连接'} data-ended={ended} />
         {state}
         {ended && (
-          <button onClick={() => setAttempt((value) => value + 1)}>
-            <RefreshCw size={13} />
+          <Button size="small" leadingVisual={SyncIcon} className={styles.reconnect} onClick={() => setAttempt((value) => value + 1)}>
             重新连接
-          </button>
+          </Button>
         )}
       </div>
       <div className={styles.terminal} ref={host} />
@@ -294,9 +302,9 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
           ['←', '\x1b[D'],
           ['→', '\x1b[C'],
         ].map(([label, data]) => (
-          <button key={label} onPointerDown={(event) => event.preventDefault()} onClick={() => sendInput.current(data)}>
-            {label}
-          </button>
+          <Button key={label} size="small" onPointerDown={(event) => event.preventDefault()} onClick={() => sendInput.current(data)}>
+            <kbd>{label}</kbd>
+          </Button>
         ))}
       </div>
     </div>

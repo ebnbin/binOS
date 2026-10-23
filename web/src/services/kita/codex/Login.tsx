@@ -1,5 +1,8 @@
-import { ExternalLink } from 'lucide-react'
+import { CheckCircleIcon, LinkExternalIcon } from '@primer/octicons-react'
 import { useEffect, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { CopyButton } from '../../../ui/CopyButton.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
 import styles from '../Login.module.css'
@@ -58,52 +61,63 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
 
   return (
     <div className={styles.flow}>
-      <div className={styles.title}>重新登录 Codex</div>
+      <h3 className={styles.title}>重新登录 Codex</h3>
       {step.name === 'starting' && (
-        <p className={styles.waiting}>
-          <Spinner /> 正在拿登录码
-        </p>
+        <div className={styles.body}>
+          <p className={styles.waiting}>
+            <Spinner /> 正在拿登录码
+          </p>
+        </div>
       )}
       {step.name === 'waiting' && (
-        <div className={styles.steps}>
-          <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
-            1. 打开登录页面，用 ChatGPT 账号登录
-            <ExternalLink size={14} strokeWidth={1.75} />
-          </a>
-          <div className={styles.codeLabel}>
-            2. 输入这个一次性的码（15 分钟内有效）
-            <span className={styles.deviceCode}>{step.code}</span>
+        <>
+          <div className={styles.body}>
+            <ol className={styles.steps}>
+              <li className={styles.step}>
+                <div className={styles.stepContent}>
+                  <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
+                    打开登录页面，用 ChatGPT 账号登录
+                    <LinkExternalIcon size={16} />
+                  </a>
+                </div>
+              </li>
+              <li className={styles.step}>
+                <div className={styles.stepContent}>
+                  <span className={styles.stepTitle}>输入这个一次性的码（15 分钟内有效）</span>
+                  <span className={styles.deviceCode}>
+                    {step.code}
+                    <CopyButton text={step.code} label="复制登录码" />
+                  </span>
+                </div>
+              </li>
+            </ol>
+            <p className={styles.waiting}>
+              <Spinner /> 等你授权，授权后这里会自动更新
+            </p>
           </div>
-          <p className={styles.waiting}>
-            <Spinner /> 等你授权，授权后这里会自动更新
-          </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              取消
-            </button>
+            <Button onClick={onClose}>取消</Button>
           </div>
-        </div>
+        </>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>登录好了，下一轮回答起用新的登录</p>
+          <div className={styles.body}>
+            <p className={styles.done}><CheckCircleIcon size={16} />登录好了，下一轮回答起用新的登录</p>
+          </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
-              好
-            </button>
+            <Button variant="primary" onClick={onClose}>好</Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <div className={styles.body}>
+            <Alert>{step.error}</Alert>
+          </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              关上
-            </button>
-            <button type="button" className={styles.primary} onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
-              重新开始
-            </button>
+            <Button onClick={onClose}>关上</Button>
+            <Button variant="primary" onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>重新开始</Button>
           </div>
         </>
       )}

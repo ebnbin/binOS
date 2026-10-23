@@ -1,7 +1,8 @@
 import * as Primitive from '@radix-ui/react-popover'
 import type { ReactElement, ReactNode } from 'react'
-import styles from './Popover.module.css'
+import styles from './Overlay.module.css'
 
+// 锚定在按钮上的 Primer Overlay
 export function Popover({
   trigger,
   label,
@@ -29,9 +30,9 @@ export function Popover({
           aria-label={label}
           side={side}
           align={align}
-          sideOffset={8}
-          collisionPadding={12}
-          className={`${styles.content} ${className ?? ''}`}
+          sideOffset={4}
+          collisionPadding={8}
+          className={`${styles.overlay} ${className ?? ''}`}
         >
           {children}
         </Primitive.Content>

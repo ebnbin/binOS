@@ -1,9 +1,14 @@
-import { ArrowLeft, ArrowRight, Keyboard, RotateCw, X } from 'lucide-react'
+import { ArrowLeftIcon, ArrowRightIcon, InfoIcon, SyncIcon, TypographyIcon, XIcon } from '@primer/octicons-react'
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import type { BrowserState, ClientMessage, ServerMessage } from '@binos/server/apps/browser/protocol'
+import { Alert } from '../../ui/Alert.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
+import { Spinner } from '../../ui/Spinner.tsx'
+import { TextInput } from '../../ui/TextInput.tsx'
 import type { WindowContext } from '../types.ts'
+import { addressIcon } from './address-icon.ts'
 import { addressRoute, browserAddress, routeAddress } from './address.ts'
 import styles from './BrowserApp.module.css'
 
@@ -255,20 +260,20 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
   return <div className={styles.remote}>
     <div className={styles.toolbar}>
       <div className={styles.navigation}>
-        <IconButton icon={ArrowLeft} label="后退" disabled={closed || !state.canBack} onClick={() => send({ type: 'back' })} />
-        <IconButton icon={ArrowRight} label="前进" disabled={closed || !state.canForward} onClick={() => send({ type: 'forward' })} />
-        <IconButton icon={RotateCw} label="刷新网页" disabled={closed} onClick={() => send({ type: 'reload' })} />
-        <IconButton icon={Keyboard} label="输入文字" disabled={closed} onClick={() => input.current?.focus({ preventScroll: true })} />
-        <IconButton icon={X} label="关闭远程标签页" disabled={closed || !session.current} onClick={() => send({ type: 'close' })} />
+        <IconButton icon={ArrowLeftIcon} label="后退" disabled={closed || !state.canBack} onClick={() => send({ type: 'back' })} />
+        <IconButton icon={ArrowRightIcon} label="前进" disabled={closed || !state.canForward} onClick={() => send({ type: 'forward' })} />
+        <IconButton icon={SyncIcon} label="刷新网页" disabled={closed} onClick={() => send({ type: 'reload' })} />
+        <IconButton icon={TypographyIcon} label="输入文字" disabled={closed} onClick={() => input.current?.focus({ preventScroll: true })} />
+        <IconButton icon={XIcon} label="关闭远程标签页" disabled={closed || !session.current} onClick={() => send({ type: 'close' })} />
       </div>
       <form className={styles.address} onSubmit={(event) => { event.preventDefault(); visit() }}>
-        <input aria-label="网址" value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder="输入网址" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-        <button type="submit" disabled={closed || !!status && status !== '正在加载页面…'}>前往</button>
+        <TextInput block leadingVisual={addressIcon(address)} aria-label="网址" value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder="输入网址" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+        <Button type="submit" disabled={closed || !!status && status !== '正在加载页面…'}>前往</Button>
       </form>
-      <button type="button" onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
+      <Button variant={closed ? 'primary' : 'default'} onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</Button>
     </div>
-    <div className={styles.notice}>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</div>
-    {error && <p className={styles.error} role="alert">{error}</p>}
+    <div className={styles.notice}><InfoIcon size={16} /><span>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</span></div>
+    {error && <Alert className={styles.error}>{error}</Alert>}
     <div ref={viewport} className={styles.remoteViewport}>
       <img ref={image} className={styles.remoteImage} style={closed ? { visibility: 'hidden' } : undefined} alt="远程浏览器页面" draggable={false}
         onPointerDown={(event) => pointer(event, 'down')}
@@ -276,7 +281,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
         onPointerUp={(event) => pointer(event, 'up')}
         onPointerCancel={(event) => pointer(event, 'up')}
         onContextMenu={(event) => event.preventDefault()} />
-      {status && <div className={styles.remoteStatus} role="status">{status}</div>}
+      {status && <div className={styles.remoteStatus} role="status"><span>{status.startsWith('正在') && <Spinner />}{status}</span></div>}
       <textarea ref={input} className={styles.remoteInput} aria-label="远程网页输入" autoCapitalize="none" autoCorrect="off" spellCheck={false}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing || event.key === 'Process' || event.key === 'Unidentified' || event.key === 'Dead') return

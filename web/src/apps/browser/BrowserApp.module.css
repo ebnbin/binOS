@@ -4,136 +4,124 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background: var(--bgColor-default);
 }
+
+/* 模式切换在最上面一条，下面是浏览器工具栏 */
+.modeBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: var(--base-size-8) var(--base-size-12);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+  background: var(--bgColor-muted);
+}
+
+.modeContent,
+.remote {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .toolbar {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-12);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-default);
 }
+
 .navigation {
   display: flex;
+  gap: var(--base-size-2);
 }
+
 .address {
   display: flex;
-  align-items: center;
   flex: 1;
+  align-items: center;
+  gap: var(--base-size-8);
   min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
 }
-.address input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  font-size: var(--font-size-xl);
-}
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
-}
+
 .external {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
+  flex: none;
 }
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
-}
+
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-12);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
+
+.notice svg {
+  flex: none;
+  margin-top: var(--base-size-2);
+}
+
 .error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  flex: none;
+  margin: var(--base-size-8) var(--base-size-12);
 }
+
+/* 网页自己决定配色，底色和网页默认一致 */
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  background: var(--document-bgColor);
   color-scheme: normal;
 }
+
 .home {
-  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex: 1;
   align-items: center;
   justify-content: center;
   overflow: auto;
-  padding: var(--space-8) var(--space-6);
-  text-align: center;
-  color: var(--color-text-secondary);
 }
-.home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
+
+.lead,
+.hint {
+  display: block;
 }
-.home p {
-  max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+
+.hint {
+  margin-top: var(--base-size-8);
+  font-size: var(--text-body-size-small);
 }
+
 @container browser (width < 440px) {
   .address {
     order: 1;
     flex-basis: 100%;
   }
+
   .external {
     margin-left: auto;
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
-.modeContent, .remote {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--bgColor-inset);
 }
+
 .remoteImage {
   display: block;
   width: 100%;
@@ -142,19 +130,32 @@
   user-select: none;
   object-fit: contain;
 }
+
+/* 状态浮在画面中间，和 Primer Tooltip 一样的深色小条 */
 .remoteStatus {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   pointer-events: none;
 }
+
+.remoteStatus span {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-12);
+  border-radius: var(--borderRadius-medium);
+  background: var(--overlay-bgColor);
+  box-shadow: var(--shadow-floating-small);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+}
+
 .remoteInput {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   padding: 0;

@@ -1,9 +1,11 @@
 .added {
-  color: var(--color-success);
-  font-family: var(--font-mono);
+  color: var(--fgColor-success);
+  font-family: var(--fontStack-monospace);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .removed {
-  color: var(--color-danger);
-  font-family: var(--font-mono);
+  color: var(--fgColor-danger);
+  font-family: var(--fontStack-monospace);
+  font-weight: var(--base-text-weight-semibold);
 }

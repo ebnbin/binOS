@@ -1,0 +1,62 @@
+/* Primer Overlay：浮层底色、12px 圆角和 floating small 阴影（阴影里带了 1px 描边） */
+.overlay {
+  z-index: var(--zIndex-dropdown);
+  min-width: var(--overlay-width-xsmall);
+  max-width: min(var(--overlay-width-medium), var(--radix-popper-available-width));
+  max-height: var(--radix-popper-available-height);
+  overflow: auto;
+  border-radius: var(--borderRadius-large);
+  background: var(--overlay-bgColor);
+  box-shadow: var(--shadow-floating-small);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  animation: enter var(--motion-duration-short) var(--motion-easing-enter);
+}
+
+.overlay:focus-visible {
+  outline: none;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--base-size-4)));
+  }
+}
+
+.overlay[data-side='top'] {
+  animation-name: enterFromBelow;
+}
+
+@keyframes enterFromBelow {
+  from {
+    opacity: 0;
+    transform: translateY(var(--base-size-4));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
+
+/* 有标题的浮层：标题栏、正文和底部按钮，和 Dialog 的分区一致 */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-8) var(--base-size-8) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+.title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.body {
+  padding: var(--base-size-16);
+}
