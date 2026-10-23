@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "binOS Browser",
+  "version": "1.0.0",
+  "description": "Connect your existing Chrome profile to the binOS built-in browser.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApgTUw35d5ddTM1UGE2lf5jF/CfcKKdICGIu//1SHil8XkVKn7K5Fud16bK5UMNuSHotmDRpkqC0KWbCHZzyw8xz1YfPp4bq+WdiD1DUNvW6MZMgjDuOW2RDvt5SbPMUSAZzBHezv0uSJV9Yuh1sqqwOo8VJx3U85Dl2vPp3RIe5G637wmbBUGhnxt1semc+Ea4RX46S/k/Sy6e1XmFqUGyqDrRqf+bueC1c4poyGprWTMlesmSRzaHrkE1802FGn2LQoH6SnvS9S+I0avRMONbA99o01MdyD3xcWhRacbzYBr767DJFlOf260uq5M1UF0vJzNlcVE+fvuJD4J+yZCwIDAQAB",
+  "permissions": [
+    "debugger",
+    "tabs",
+    "nativeMessaging",
+    "alarms"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  }
+}

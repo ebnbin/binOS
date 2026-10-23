@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { chromium } from 'playwright-core'
 import type { Browser, BrowserContext } from 'playwright-core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { activePortEndpoint, chromeContext, disconnectChrome } from './connection.js'
+import { chromeContext, disconnectChrome } from './connection.js'
 
 vi.mock('node:fs/promises', () => ({ readFile: vi.fn<typeof readFile>() }))
 vi.mock('playwright-core', () => ({ chromium: { connectOverCDP: vi.fn<typeof chromium.connectOverCDP>() } }))
@@ -53,27 +53,14 @@ describe('personal Chrome connection', () => {
 
   it('gives actionable instructions and retries after a refused connection', async () => {
     vi.mocked(chromium.connectOverCDP).mockRejectedValueOnce(new Error('ECONNREFUSED'))
-    await expect(chromeContext()).rejects.toThrow('chrome://inspect/#remote-debugging')
+    await expect(chromeContext()).rejects.toThrow('binOS Browser')
     expect(await chromeContext()).toBe(context)
   })
 
-  it('discovers the current endpoint from Chrome instead of assuming a fixed port', async () => {
+  it('uses the authenticated native extension relay instead of Chrome remote debugging', async () => {
     vi.stubEnv('BINOS_BROWSER_CDP_ENDPOINT', undefined)
-    vi.mocked(readFile).mockResolvedValue('9415\n/devtools/browser/current-session\n')
+    vi.mocked(readFile).mockResolvedValue(JSON.stringify({ port: 9415, token: 'a'.repeat(64) }))
     await chromeContext()
-    expect(chromium.connectOverCDP).toHaveBeenCalledWith('ws://127.0.0.1:9415/devtools/browser/current-session', expect.any(Object))
-  })
-})
-
-describe('Chrome active port file', () => {
-  it('accepts LF and CRLF endpoint files', () => {
-    expect(activePortEndpoint('9222\n/devtools/browser/abc-123\n')).toBe('ws://127.0.0.1:9222/devtools/browser/abc-123')
-    expect(activePortEndpoint('9300\r\n/devtools/browser/session\r\n')).toBe('ws://127.0.0.1:9300/devtools/browser/session')
-  })
-
-  it('rejects malformed ports and paths', () => {
-    for (const value of ['', '0\n/devtools/browser/a', '65536\n/devtools/browser/a', 'abc\n/devtools/browser/a', '9222\nhttps://example.com', '9222\n/devtools/browser/a?query', '9222']) {
-      expect(() => activePortEndpoint(value)).toThrow('Chrome 远程调试地址无效')
-    }
+    expect(chromium.connectOverCDP).toHaveBeenCalledWith('ws://127.0.0.1:9415/?token=' + 'a'.repeat(64), { noDefaults: true, timeout: 2000 })
   })
 })
