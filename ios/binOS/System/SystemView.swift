@@ -88,22 +88,12 @@ struct SystemView: View {
                     Text(freshness(snapshot))
                 }
                 Section("运行状况") {
-                    Gauge(value: (snapshot.cpu.percent ?? 0) / 100) {
-                        Label("CPU", systemImage: "cpu")
-                    } currentValueLabel: {
-                        Text(snapshot.cpu.percent.map { "\(Int($0))%" } ?? "采样中")
-                    }
-                    .gaugeStyle(.linearCapacity)
+                    MeterRow(title: "CPU", icon: "cpu", value: (snapshot.cpu.percent ?? 0) / 100, text: snapshot.cpu.percent.map { "\(Int($0))%" } ?? "采样中")
                     let memory = snapshot.memory
                     if let cached = memory.cached {
                         let used = max(0, memory.total - memory.free - cached)
-                        Gauge(value: used / max(memory.total, 1)) {
-                            Label("内存", systemImage: "memorychip")
-                        } currentValueLabel: {
-                            Text("\(Format.bytes(used)) / \(Format.bytes(memory.total))")
-                        }
-                        .gaugeStyle(.linearCapacity)
-                        .tint(memory.pressure == "critical" ? .red : memory.pressure == "warning" ? .orange : .accentColor)
+                        MeterRow(title: "内存", icon: "memorychip", value: used / max(memory.total, 1), text: "\(Format.bytes(used)) / \(Format.bytes(memory.total))")
+                            .tint(memory.pressure == "critical" ? .red : memory.pressure == "warning" ? .orange : .accentColor)
                     }
                     LabeledContent("内存压力", value: ["normal": "正常", "warning": "偏高", "critical": "很高"][memory.pressure] ?? "未知")
                     LabeledContent("网络") {
@@ -180,5 +170,23 @@ struct SystemView: View {
         let total = Int(seconds)
         let days = total / 86400, hours = total % 86400 / 3600, minutes = total % 3600 / 60
         return days > 0 ? "\(days) 天 \(hours) 小时" : hours > 0 ? "\(hours) 小时 \(minutes) 分" : "\(minutes) 分"
+    }
+}
+
+private struct MeterRow: View {
+    let title: String
+    let icon: String
+    let value: Double
+    let text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            LabeledContent {
+                Text(text).monospacedDigit()
+            } label: {
+                Label(title, systemImage: icon)
+            }
+            ProgressView(value: min(max(value, 0), 1))
+        }
     }
 }

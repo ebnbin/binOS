@@ -104,6 +104,21 @@ struct PlayerState: Codable, Hashable {
     let `repeat`: RepeatMode
     let controls: Controls
     let error: String?
+
+    private enum Keys: String, CodingKey { case track, status, positionMs, durationMs, volume, `repeat`, controls, error }
+
+    // 没在放歌时 track 要写成 null，不能省略
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: Keys.self)
+        try c.encode(track, forKey: .track)
+        try c.encode(status, forKey: .status)
+        try c.encode(positionMs, forKey: .positionMs)
+        try c.encode(durationMs, forKey: .durationMs)
+        try c.encode(volume, forKey: .volume)
+        try c.encode(`repeat`, forKey: .repeat)
+        try c.encode(controls, forKey: .controls)
+        try c.encodeIfPresent(error, forKey: .error)
+    }
 }
 
 struct PlayerSnapshot: Decodable, Hashable, Identifiable {

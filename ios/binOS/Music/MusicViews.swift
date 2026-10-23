@@ -198,7 +198,7 @@ private struct TrackRow: View {
             if playing {
                 Image(systemName: "waveform").symbolEffect(.variableColor.iterative, isActive: MusicPlayer.shared.status == .playing).foregroundStyle(.tint)
             } else if let ms = track.durationMs {
-                Text(Duration.seconds(ms / 1000).formatted(.time(pattern: .minuteSecond))).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                Text(playTime(ms / 1000)).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
             }
         }
         .contentShape(.rect)
@@ -310,9 +310,9 @@ struct NowPlayingView: View {
                         }
                     }
                     HStack {
-                        Text(Duration.seconds(scrubbing ?? player.position).formatted(.time(pattern: .minuteSecond)))
+                        Text(playTime(scrubbing ?? player.position))
                         Spacer()
-                        Text(Duration.seconds(player.duration).formatted(.time(pattern: .minuteSecond)))
+                        Text(playTime(player.duration))
                     }
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
@@ -419,4 +419,10 @@ private struct RemotePlayerRow: View {
         case .error: "出错"
         }
     }
+}
+
+// 播放时间：3:05，超过一小时是 1:01:00
+func playTime(_ seconds: Double) -> String {
+    let duration = Duration.seconds(max(seconds, 0))
+    return seconds >= 3600 ? duration.formatted(.time(pattern: .hourMinuteSecond)) : duration.formatted(.time(pattern: .minuteSecond))
 }

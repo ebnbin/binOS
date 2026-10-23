@@ -94,15 +94,6 @@ struct ConnectionBanner: View {
                 .buttonStyle(.plain)
                 .glassEffect()
                 .transition(.move(edge: .top).combined(with: .opacity))
-            } else if hub.updated {
-                Label("binOS 已上线新版本", systemImage: "sparkles")
-                    .font(.footnote)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .glassEffect()
-                    .task {
-                        try? await Task.sleep(for: .seconds(4))
-                    }
             }
         }
         .animation(.snappy, value: hub.connected)

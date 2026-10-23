@@ -49,7 +49,9 @@ struct CalendarView: View {
     }
 
     private func load() async {
-        if access == nil { access = (try? await store.requestFullAccessToEvents()) ?? false }
+        if access == nil {
+            access = EKEventStore.authorizationStatus(for: .event) == .fullAccess ? true : ((try? await store.requestFullAccessToEvents()) ?? false)
+        }
         guard access == true else { return }
         let start = Calendar.current.startOfDay(for: date)
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!

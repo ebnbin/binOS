@@ -75,6 +75,8 @@ struct ConversationView: View {
             next.start()
             stream = next
         }
+        // 推入文件改动等页面时会消失，回来后从已收到的条数接着订阅
+        .onAppear { stream?.start() }
         .onDisappear { stream?.stop() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { stream?.reconnectIfStale() }

@@ -341,6 +341,8 @@ final class TerminalConnection: NSObject, TerminalViewDelegate {
 
     nonisolated func send(source: TerminalView, data: ArraySlice<UInt8>) {
         let text = String(decoding: data, as: UTF8.self)
+        // 窗口像素尺寸的查询回复晚到时会被 tmux 当成键盘输入，不转发
+        if text.wholeMatch(of: /\e\[\d+;\d+;\d+t/) != nil { return }
         Task { @MainActor in self.send(text) }
     }
 

@@ -54,6 +54,12 @@ final class MusicPlayer {
         observe()
         setupRemoteCommands()
         connect()
+        Task {
+            while true {
+                try? await Task.sleep(for: .seconds(1))
+                await reportIfNeeded()
+            }
+        }
         Task { await refreshQueue() }
     }
 
@@ -160,6 +166,8 @@ final class MusicPlayer {
             }
             let asset = AVURLAsset(url: url, options: options)
             let item = AVPlayerItem(asset: asset)
+            // 一首歌常常有一小时，默认会缓冲很多才开始放
+            item.preferredForwardBufferDuration = 8
             player.replaceCurrentItem(with: item)
             activateSession()
             player.play()
@@ -252,7 +260,7 @@ final class MusicPlayer {
                     music.updateNowPlaying()
                 } else if item.status == .readyToPlay {
                     let seconds = item.duration.seconds
-                    if seconds.isFinite, seconds > 0 { music.duration = seconds }
+                    if seconds.isFinite, seconds > 0, music.current?.durationMs == nil { music.duration = seconds }
                     music.updateNowPlaying()
                 }
             }
@@ -347,12 +355,6 @@ final class MusicPlayer {
         )
         connection = stream
         stream.start()
-        Task { [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(1))
-                await self?.reportIfNeeded()
-            }
-        }
     }
 
     private struct PlayerMessage: Decodable {

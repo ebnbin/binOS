@@ -88,10 +88,10 @@
 				};
 			};
 			buildConfigurationList = 0A2586B13088D1020064DB67 /* Build configuration list for PBXProject "binOS" */;
-			developmentRegion = en;
+			developmentRegion = "zh-Hans";
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
+				"zh-Hans",
 				Base,
 			);
 			mainGroup = 0A2586AD3088D1020064DB67;

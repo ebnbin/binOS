@@ -6,7 +6,7 @@ enum MoreRoute: Hashable {
 }
 
 // 整个 app 的导航状态，深链接 binos://… 也走这里：
-// binos://code/<id>、binos://code/new、binos://terminal/<会话 id>、binos://music/now、binos://files?path=…、binos://more/<页面>
+// binos://code/<id>、binos://code/new、binos://terminal/<会话 id>、binos://music/now、binos://files?path=…、binos://more/<页面>、binos://more/browser?url=…
 @Observable
 final class AppRouter {
     static let shared = AppRouter()
@@ -17,6 +17,8 @@ final class AppRouter {
     var files: String?
     var nowPlaying = false
     var more: [MoreRoute] = []
+    // 浏览器要打开的网址，打开后清空
+    var browser: URL?
 
     private init() {}
 
@@ -51,6 +53,7 @@ final class AppRouter {
             tab = .more
             let routes: [String: MoreRoute] = ["system": .system, "accounts": .accounts, "browser": .browser, "calendar": .calendar, "builds": .builds, "devices": .devices, "settings": .settings]
             more = parts.first.flatMap { routes[$0] }.map { [$0] } ?? []
+            browser = query.first { $0.name == "url" }?.value.flatMap(BrowserAddress.parse)
         default:
             break
         }

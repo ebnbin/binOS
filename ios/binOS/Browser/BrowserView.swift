@@ -30,7 +30,7 @@ struct BrowserView: View {
 
 enum BrowserAddress {
     // 没写协议时补上 https，本机地址补 http
-    static func parse(_ input: String) -> URL? {
+    nonisolated static func parse(_ input: String) -> URL? {
         let text = input.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty, !text.contains(" ") else { return nil }
         if text.contains("://") { return URL(string: text).flatMap { ["http", "https"].contains($0.scheme) ? $0 : nil } }
@@ -97,6 +97,12 @@ private struct LocalBrowserView: View {
             .padding(.vertical, 10)
         }
         .onChange(of: page.url) { _, url in address = url?.absoluteString ?? address }
+        .onChange(of: AppRouter.shared.browser, initial: true) { _, url in
+            if let url {
+                AppRouter.shared.browser = nil
+                page.load(URLRequest(url: url))
+            }
+        }
     }
 }
 
@@ -185,7 +191,11 @@ private struct RemoteBrowserView: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 10)
         }
-        .onAppear { connection.connect() }
+        .onAppear {
+            connection.pending = AppRouter.shared.browser
+            AppRouter.shared.browser = nil
+            connection.connect()
+        }
         .onDisappear { connection.disconnect() }
         .onChange(of: connection.state.url) { _, url in address = url }
     }
@@ -212,6 +222,8 @@ final class RemoteBrowserConnection {
     @ObservationIgnored private var size = CGSize.zero
     @ObservationIgnored private var ready = false
     @ObservationIgnored private var closed = false
+    // 连上后要打开的网址
+    @ObservationIgnored var pending: URL?
 
     func connect() {
         generation += 1
@@ -268,6 +280,10 @@ final class RemoteBrowserConnection {
             ready = true
             status = "已连接"
             resize(size)
+            if let pending {
+                self.pending = nil
+                send(["type": "navigate", "url": pending.absoluteString])
+            }
         case "state":
             if let data = try? JSONSerialization.data(withJSONObject: object["state"] ?? [:]), let decoded = try? JSONDecoder.api.decode(State.self, from: data) {
                 state = decoded

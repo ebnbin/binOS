@@ -16,9 +16,7 @@ final class EventHub {
     private(set) var connected = false
     // 连接过但已经断开了：刚启动还没连上时不算
     private(set) var everConnected = false
-    // 打开期间服务端上线了新版本
     private(set) var serverVersion: String?
-    private(set) var updated = false
 
     private(set) var sessions = 0
     private(set) var projects = 0
@@ -26,8 +24,6 @@ final class EventHub {
     private(set) var agent = 0
     private(set) var music = 0
     private(set) var devices = 0
-    // 某个 session 有变化的最近一次，用于对话页刷新排队的消息
-    private(set) var changedSession: Int?
 
     private var stream: EventStream?
 
@@ -51,7 +47,6 @@ final class EventHub {
     // 换了服务器或者重新登录后
     func restart() {
         serverVersion = nil
-        updated = false
         everConnected = false
         start()
     }
@@ -67,25 +62,20 @@ final class EventHub {
         agent += 1
         music += 1
         devices += 1
-        Task { await checkVersion() }
+        Task { await readVersion() }
     }
 
     private struct Health: Decodable { let version: String }
 
-    private func checkVersion() async {
+    private func readVersion() async {
         guard let health: Health = try? await API.shared.get("/api/health") else { return }
-        if let serverVersion, serverVersion != health.version {
-            updated = true
-        }
         serverVersion = health.version
     }
 
     private func received(_ message: SSEMessage) {
         guard let event = try? JSONDecoder.api.decode(ChangeEvent.self, from: Data(message.data.utf8)) else { return }
         switch event.type {
-        case "session":
-            sessions += 1
-            changedSession = event.id
+        case "session": sessions += 1
         case "project": projects += 1
         case "apps": apps += 1
         case "agent": agent += 1
