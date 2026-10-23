@@ -14,12 +14,12 @@
 
 .thumb {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: var(--space-9);
+  height: var(--space-9);
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--radius-3);
+  box-shadow: 0 0 0 1px var(--gray-a5);
+  background: var(--gray-a2);
 }
 
 .thumb img {
@@ -33,35 +33,26 @@
   align-items: center;
   gap: var(--space-2);
   max-width: 220px;
-  height: 64px;
+  height: var(--space-9);
   padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  border-radius: var(--radius-3);
+  box-shadow: 0 0 0 1px var(--gray-a5);
+  background: var(--color-panel-solid);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
-.card svg {
+.fileIcon {
   flex: none;
+  color: var(--gray-a11);
 }
 
 .name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-text);
-}
-
-.link {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .link:hover .card {
-    background: var(--color-hover);
-  }
+  color: var(--gray-12);
 }
 
 .pending {
@@ -70,23 +61,9 @@
 
 .remove {
   position: absolute;
-  top: calc(-1 * var(--space-1-5));
-  right: calc(-1 * var(--space-1-5));
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-/* 触屏上按钮太小不好点，扩大可点区域 */
-.remove::after {
-  content: '';
-  position: absolute;
-  inset: calc(-1 * var(--space-2));
+  top: calc(-1 * var(--space-2));
+  right: calc(-1 * var(--space-2));
+  box-shadow: 0 0 0 2px var(--color-panel-solid);
 }
 
 @container agent (width < 600px) {

@@ -1,10 +1,8 @@
-import * as Primitive from '@radix-ui/react-select'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
-import styles from './Select.module.css'
+import { Select as Base } from '@radix-ui/themes'
 
 type Option = { value: string; label: string; disabled?: boolean }
 
-export function Select({ value, options, onValueChange, label, title, disabled, className }: {
+export function Select({ value, options, onValueChange, label, title, disabled, className, size = '2', variant = 'surface' }: {
   value: string
   options: Option[]
   onValueChange: (value: string) => void
@@ -12,29 +10,21 @@ export function Select({ value, options, onValueChange, label, title, disabled, 
   title?: string
   disabled?: boolean
   className?: string
+  size?: '1' | '2' | '3'
+  variant?: 'surface' | 'soft' | 'ghost'
 }) {
   // Radix 的空字符串用于清除选择；加前缀让业务里的默认选项也能被选中。
   const encode = (value: string) => `option:${value}`
   return (
-    <Primitive.Root value={encode(value)} onValueChange={(next) => onValueChange(next.slice(7))} disabled={disabled}>
-      <Primitive.Trigger aria-label={label} title={title} className={`${styles.trigger} ${className ?? ''}`}>
-        <span className={styles.value}><Primitive.Value /></span>
-        <Primitive.Icon className={styles.icon}><ChevronDown size={13} /></Primitive.Icon>
-      </Primitive.Trigger>
-      <Primitive.Portal>
-        <Primitive.Content className={styles.content} position="popper" sideOffset={6} collisionPadding={8}>
-          <Primitive.ScrollUpButton className={styles.scroll}><ChevronUp size={14} /></Primitive.ScrollUpButton>
-          <Primitive.Viewport className={styles.viewport}>
-            {options.map((option) => (
-              <Primitive.Item key={option.value} value={encode(option.value)} disabled={option.disabled} className={styles.item}>
-                <Primitive.ItemText>{option.label}</Primitive.ItemText>
-                <Primitive.ItemIndicator className={styles.indicator}><Check size={14} /></Primitive.ItemIndicator>
-              </Primitive.Item>
-            ))}
-          </Primitive.Viewport>
-          <Primitive.ScrollDownButton className={styles.scroll}><ChevronDown size={14} /></Primitive.ScrollDownButton>
-        </Primitive.Content>
-      </Primitive.Portal>
-    </Primitive.Root>
+    <Base.Root value={encode(value)} onValueChange={(next) => onValueChange(next.slice(7))} disabled={disabled} size={size}>
+      <Base.Trigger aria-label={label} title={title} variant={variant} color="gray" className={className} />
+      <Base.Content position="popper" sideOffset={4} collisionPadding={8}>
+        {options.map((option) => (
+          <Base.Item key={option.value} value={encode(option.value)} disabled={option.disabled}>
+            {option.label}
+          </Base.Item>
+        ))}
+      </Base.Content>
+    </Base.Root>
   )
 }

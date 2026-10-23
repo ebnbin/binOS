@@ -1,4 +1,4 @@
-/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
+/* 最长的窗口（最外圈）是琥珀色，其余是绿色，快满了是红色；轨道是 --gray-a4 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-success);
+  --window: var(--green-9);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--amber-9);
 }
 
 .ring g {
@@ -19,36 +19,30 @@
 }
 
 .ring [data-full] {
-  color: var(--color-danger);
+  color: var(--red-9);
+}
+
+.track {
+  stroke: var(--gray-a4);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
-}
-
-.limited {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  font-size: var(--font-size-xs);
 }
 
 .windowLine > :last-child {
@@ -58,51 +52,27 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  gap: var(--space-2);
 }
 
 .swatch {
-  width: 7px;
-  height: 7px;
+  width: var(--space-2);
+  height: var(--space-2);
   border-radius: 50%;
   background: var(--window);
 }
 
-.muted {
-  color: var(--color-text-tertiary);
-}
-
-.danger {
-  color: var(--color-danger);
-}
-
+/* 进度条上的匀速线 */
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
 }
 
-.bar span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: var(--window);
-}
-
-.bar[data-full] span {
-  background: var(--color-danger);
-}
-
-/* 匀速线 */
 .bar i {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
+  top: calc(-1 * var(--space-1));
+  bottom: calc(-1 * var(--space-1));
   width: 2px;
   margin-left: -1px;
-  border-radius: var(--radius-full);
-  background: var(--color-text-secondary);
+  border-radius: var(--radius-thumb);
+  background: var(--gray-12);
 }

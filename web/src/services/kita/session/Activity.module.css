@@ -1,46 +1,55 @@
+/* 一行是 Radix ghost 按钮的样子：左右有内边距、用负 margin 抵消，图标和上下文字对齐；悬停是 --gray-a3 底 */
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 1px 0;
+  box-sizing: border-box;
+  width: calc(100% + var(--space-2) * 2);
+  min-height: var(--size-1);
+  margin: 0 calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
   border: 0;
+  border-radius: var(--radius-2);
   background: none;
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-sm);
+  color: var(--gray-a11);
+  font-family: inherit;
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-button);
+}
+
+@media (hover: hover) {
+  .row:not(:disabled):hover {
+    background: var(--gray-a3);
+  }
+}
+
+.row:not(:disabled):active {
+  background: var(--gray-a4);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -1px;
 }
 
 .row:disabled {
   cursor: default;
 }
 
-/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
-.dot {
-  width: 6px;
-  height: 6px;
-  margin: 0 var(--space-1) 0 1px;
+.icon {
+  display: grid;
   flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-text-tertiary) 70%, transparent);
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  color: var(--gray-a11);
 }
 
-[data-status='error'] > .row .dot {
-  background: var(--color-danger);
-}
-
-[data-status='running'] > .row .dot {
-  background: var(--color-accent);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.3;
-  }
+[data-status='error'] > .row .icon {
+  color: var(--red-a11);
 }
 
 .label {
@@ -49,12 +58,12 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text);
+  color: var(--gray-12);
   font-weight: var(--font-weight-medium);
 }
 
 [data-quiet] > .row .label {
-  color: var(--color-text-tertiary);
+  color: var(--gray-a11);
   font-weight: var(--font-weight-regular);
 }
 
@@ -64,25 +73,26 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-1) * var(--code-font-size-adjust));
+  letter-spacing: var(--code-letter-spacing);
 }
 
 .meta {
   display: flex;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   flex: none;
   margin-left: auto;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
   font-variant-numeric: tabular-nums;
 }
 
 .chevron {
   flex: none;
   opacity: 0;
-  transition:
-    opacity var(--duration-fast),
-    transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-2) var(--ease-out);
 }
 
 @media (hover: hover) {
@@ -96,26 +106,33 @@
   transform: rotate(90deg);
 }
 
-/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+/* 收起时下面的几行输出和展开的内容，缩进到动作的位置，左边一条竖线从图标下面引出 */
 .preview,
 .body {
-  margin: 0 0 var(--space-1) 5px;
-  padding-left: 13px;
-  border-left: 1px solid var(--color-separator);
+  margin: 0 0 var(--space-1) 7px;
+  padding-left: calc(8px + var(--space-2));
+  border-left: 1px solid var(--gray-a6);
 }
 
 .preview {
   overflow: hidden;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  color: var(--gray-a10);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-1) * var(--code-font-size-adjust));
+  line-height: var(--line-height-1);
+  letter-spacing: var(--code-letter-spacing);
   white-space: pre;
   text-overflow: ellipsis;
 }
 
 [data-status='error'] > .preview {
-  color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-tertiary));
+  color: var(--red-a11);
 }
 
 .body {

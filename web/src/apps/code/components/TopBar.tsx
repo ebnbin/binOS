@@ -1,10 +1,11 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { Badge, Button, Text } from '@radix-ui/themes'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
+import { ChevronDownIcon, ChevronLeftIcon, GitMergeIcon, GitPullRequestClosedIcon, GitPullRequestIcon, Pencil2Icon } from '../../../ui/icons.ts'
 
 // 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题，上下文的用量在输入框里。session：列表里这个 session 的概况，还没读到时没有。
 // 点空白处回到对话顶部，和 iOS 点状态栏一样
@@ -26,19 +27,29 @@ export function TopBar({
   const prs = session?.prs ?? []
   return (
     <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
-      <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
+      <IconButton icon={ChevronLeftIcon} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
       <div className={styles.heading} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
         {sessionId === null ? (
-          <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
+          <Text size="2" weight="medium" className={`${styles.title} ${styles.singleColumnOnly}`}>
+            新对话
+          </Text>
         ) : (
           <>
-            {session ? <SessionTitle key={session.id} session={session} /> : <span className={styles.title}>{title}</span>}
-            <span className={styles.id}>#{sessionId}</span>
+            {session ? (
+              <SessionTitle key={session.id} session={session} />
+            ) : (
+              <Text size="2" weight="medium" className={styles.title}>
+                {title}
+              </Text>
+            )}
+            <Text size="1" color="gray" className={styles.id}>
+              #{sessionId}
+            </Text>
             {prs.length > 0 && <PrList prs={prs} />}
           </>
         )}
       </div>
-      {sessionId !== null && <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
+      {sessionId !== null && <IconButton icon={Pencil2Icon} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
     </header>
   )
 }
@@ -51,14 +62,12 @@ function SessionTitle({ session }: { session: SessionSummary }) {
     return <RenameInput session={session} className={styles.rename} onDone={() => setRenaming(false)} />
   }
   return (
-    <span className={styles.titleWrap}>
-      <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-        <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
-          <span className={styles.title}>{session.title || '（无内容）'}</span>
-          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
-        </button>
-      </SessionActions>
-    </span>
+    <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
+      <Button type="button" size="2" variant="ghost" color="gray" highContrast className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
+        <span className={styles.title}>{session.title || '（无内容）'}</span>
+        <ChevronDownIcon className={styles.titleChevron} />
+      </Button>
+    </SessionActions>
   )
 }
 
@@ -74,19 +83,26 @@ function PrList({ prs }: { prs: PullRequest[] }) {
       {finished.length > 0 && (
         <Popover
           label="对话的 PR"
+          size="1"
           className={styles.prMenu}
           trigger={
-            <button type="button" className={styles.finished} aria-label="查看对话的 PR">
-              <GitMerge size={13} strokeWidth={2} />
-              {finished.length}
-            </button>
+            <Badge asChild size="1" variant="soft" color="gray" className={styles.badge}>
+              <button type="button" aria-label="查看对话的 PR">
+                <GitMergeIcon width={12} height={12} />
+                {finished.length}
+              </button>
+            </Badge>
           }
         >
           {[...prs].reverse().map((pr) => (
-            <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
+            <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" className={styles.prItem}>
               <span className={styles.prNumber}>#{pr.number}</span>
               <span className={styles.prTitle}>{pr.title ?? pr.url}</span>
-              <span className={styles.prState}>{pr.state && prStates[pr.state]}</span>
+              {pr.state && (
+                <Badge size="1" variant="soft" color={prColors[pr.state]}>
+                  {prStates[pr.state]}
+                </Badge>
+              )}
             </a>
           ))}
         </Popover>
@@ -95,21 +111,27 @@ function PrList({ prs }: { prs: PullRequest[] }) {
   )
 }
 
-const prIcons = { open: GitPullRequest, merged: GitMerge, closed: GitPullRequestClosed }
+const prIcons = { open: GitPullRequestIcon, merged: GitMergeIcon, closed: GitPullRequestClosedIcon }
 const prStates = { open: '开着', merged: '已合并', closed: '已关闭' }
+// GitHub 的配色：开着绿、合并紫、关闭红
+const prColors = { open: 'green', merged: 'violet', closed: 'red' } as const
 
 // 这个 session 开的 PR：点编号去 GitHub，开着的有预览时另有预览链接
 function PrLink({ pr }: { pr: PullRequest }) {
   const Icon = prIcons[pr.state ?? 'open']
   return (
-    <span className={styles.pr} data-state={pr.state}>
-      <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
-        <Icon size={13} strokeWidth={2} />#{pr.number}
-      </a>
-      {pr.preview && (
-        <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>
-          预览
+    <span className={styles.pr}>
+      <Badge asChild size="1" variant="soft" color={prColors[pr.state ?? 'open']} className={styles.badge}>
+        <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
+          <Icon width={12} height={12} />#{pr.number}
         </a>
+      </Badge>
+      {pr.preview && (
+        <Badge asChild size="1" variant="soft" color="gray" className={styles.badge}>
+          <a href={pr.preview} target="_blank" rel="noreferrer">
+            预览
+          </a>
+        </Badge>
       )}
     </span>
   )

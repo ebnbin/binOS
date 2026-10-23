@@ -1,0 +1,147 @@
+/* 近乎全屏的 Radix Dialog（size 1），内边距自己控制：顶上一栏工具，下面是预览区和可选的信息侧栏 */
+.dialog {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--space-6) - max(var(--space-6), 6vh));
+  padding: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--size-4);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.icon {
+  flex: none;
+  color: var(--gray-a11);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+}
+
+.body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.preview {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: auto;
+  background: var(--color-background);
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.media {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+audio.media {
+  max-width: 560px;
+  margin: var(--space-5);
+}
+
+.document {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--document-background);
+}
+
+.prose {
+  align-self: stretch;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-7);
+}
+
+/* 代码填满预览区，不受代码块默认的最大高度限制 */
+.code {
+  align-self: stretch;
+  width: 100%;
+  padding: var(--space-4);
+}
+
+.code pre {
+  max-height: none;
+}
+
+.status {
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.statusIcon {
+  color: var(--gray-a9);
+}
+
+/* 文件信息：右侧 --gray-2 的侧栏 */
+.info {
+  flex: none;
+  width: 280px;
+  padding: var(--space-5);
+  overflow: auto;
+  border-left: 1px solid var(--gray-a6);
+  background: var(--gray-2);
+}
+
+.value {
+  flex-direction: column;
+  overflow-wrap: anywhere;
+}
+
+/* 手机上全屏，去掉 Dialog 外围的留白和圆角；信息侧栏浮在预览上面 */
+@media (max-width: 640px) {
+  :global(.rt-BaseDialogScrollPadding):has(> .dialog) {
+    padding: 0;
+  }
+
+  .dialog {
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .toolbar {
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .downloadLabel {
+    display: none;
+  }
+
+  .info {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(280px, 80%);
+    box-shadow: var(--shadow-5);
+  }
+
+  .prose {
+    padding: var(--space-4);
+  }
+}

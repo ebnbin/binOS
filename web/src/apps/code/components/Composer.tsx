@@ -1,7 +1,5 @@
-import * as Select from '@radix-ui/react-select'
-import { Popover } from '../../../ui/Popover.tsx'
-import { ArrowUp, Check, ChevronDown, Clock, Settings2, ListPlus, Paperclip, X, Zap } from 'lucide-react'
-import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { Button, DropdownMenu, IconButton, Select, Text } from '@radix-ui/themes'
+import { Fragment, useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
@@ -12,8 +10,8 @@ import type { Choice, SendMode } from './Conversation.tsx'
 import { sendQueued, withdrawQueued } from '../api.ts'
 import { effortName, useAgentCatalogs } from '../../../services/kita/models.ts'
 import styles from './Composer.module.css'
-import { IconButton } from '../../../ui/IconButton.tsx'
-import { Spinner } from '../../../ui/Spinner.tsx'
+import { IconButton as GhostIconButton } from '../../../ui/IconButton.tsx'
+import { ArrowUpIcon, ClockIcon, Cross2Icon, LightningBoltIcon, ListPlusIcon, MixerHorizontalIcon, PaperclipIcon } from '../../../ui/icons.ts'
 
 // 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
 const enterSends = !window.matchMedia('(pointer: coarse)').matches
@@ -58,7 +56,6 @@ export function Composer({
   const [sending, setSending] = useState(false)
   const sendingRef = useRef(false)
   const [dragging, setDragging] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hasContent = input.trim() !== '' || pending.length > 0
@@ -71,10 +68,15 @@ export function Composer({
   const efforts = models.find((model) => model.id === (choice.model ?? defaultModel?.id))?.efforts ?? catalog?.efforts ?? []
   const selectedModel = models.find((model) => model.id === choice.model) ?? (!choice.model ? defaultModel : undefined)
   const modelValue = `${choice.agent}:${choice.model ?? defaultModel?.id ?? ''}`
-  const modelOptions = choosable.flatMap((item) => item.models.map((model) => ({
-    value: `${item.agent}:${model.id}`, agent: item.agent, model,
-    disabled: agentFixed && item.agent !== choice.agent,
-  })))
+  const modelGroups = choosable.map((item) => ({
+    agent: item.agent,
+    options: item.models.map((model) => ({
+      value: `${item.agent}:${model.id}`, agent: item.agent, model,
+      disabled: agentFixed && item.agent !== choice.agent,
+    })),
+  }))
+  const modelOptions = modelGroups.flatMap((group) => group.options)
+  const effortValues = ['', ...new Set([...efforts, ...(choice.effort ? [choice.effort] : [])])]
   const canSend = !sending && hasContent
 
   function addFiles(files: File[]) {
@@ -220,24 +222,19 @@ export function Composer({
           <ul className={styles.queue} aria-label="排队的消息">
             {queue.map((item) => (
               <li key={item.id}>
-                <Clock size={13} strokeWidth={1.75} className={styles.queueIcon} aria-label="排队中" />
+                <ClockIcon className={styles.queueIcon} aria-label="排队中" />
                 <span className={styles.queueText}>{item.text.trim() || item.attachments?.[0]?.name}</span>
                 {item.attachments?.length ? (
                   <span className={styles.queueFiles}>
-                    <Paperclip size={12} strokeWidth={1.75} />
+                    <PaperclipIcon width={12} height={12} />
                     {item.attachments.length}
                   </span>
                 ) : null}
                 {/* 被停止或出错后留下的，可以现在就发 */}
                 {!running && (
-                  <IconButton
-                    icon={ArrowUp}
-                    label="现在发送"
-                    className={styles.queueButton}
-                    onClick={() => void sendQueued(sessionId, item.id)}
-                  />
+                  <GhostIconButton icon={ArrowUpIcon} label="现在发送" size="1" className={styles.queueButton} onClick={() => void sendQueued(sessionId, item.id)} />
                 )}
-                <IconButton icon={X} label="撤回到输入框" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
+                <GhostIconButton icon={Cross2Icon} label="撤回到输入框" size="1" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
               </li>
             ))}
           </ul>
@@ -273,107 +270,126 @@ export function Composer({
               event.target.value = ''
             }}
           />
-          <IconButton
-            icon={Paperclip}
+          <GhostIconButton
+            icon={PaperclipIcon}
             label={enterSends ? '添加附件（也可以粘贴或拖进来）' : '添加附件'}
-            className={styles.attach}
+            className={styles.tool}
             disabled={sending}
             onClick={() => fileInputRef.current?.click()}
           />
-          <Select.Root value={modelValue} disabled={running} onValueChange={(value) => {
+          <Select.Root size="2" value={modelValue} disabled={running} onValueChange={(value) => {
             const option = modelOptions.find((item) => item.value === value)
             if (!option) return
             onChoice({ agent: option.agent, model: option.model.isDefault ? undefined : option.model.id,
               ...(option.agent === choice.agent && choice.effort && option.model.efforts.includes(choice.effort) && { effort: choice.effort }) })
           }}>
-            <Select.Trigger className={styles.model} aria-label="模型" title={running ? '回答结束后可切换模型' : '选择模型'}>
-              <span>{selectedModel?.name ?? choice.model ?? agents[choice.agent].name}</span>
-              <ChevronDown size={13} />
+            <Select.Trigger variant="ghost" color="gray" className={`${styles.tool} ${styles.model}`} aria-label="模型" title={running ? '回答结束后可切换模型' : '选择模型'}>
+              {selectedModel?.name ?? choice.model ?? agents[choice.agent].name}
             </Select.Trigger>
-            <Select.Portal>
-              <Select.Content className={styles.modelMenu} position="popper" side="top" sideOffset={8} collisionPadding={12}>
-                <Select.Viewport className={styles.modelList}>
-                  {modelOptions.map((option) => (
-                    <Select.Item key={option.value} value={option.value} disabled={option.disabled} className={styles.modelOption}>
-                      <Select.ItemText>{option.model.name}</Select.ItemText>
-                      <small>{agents[option.agent].name}{option.model.isDefault ? ' · 默认' : ''}</small>
-                      <Select.ItemIndicator className={styles.selected}><Check size={16} /></Select.ItemIndicator>
-                    </Select.Item>
-                  ))}
-                  {!modelOptions.some((option) => option.value === modelValue) && (
-                    <Select.Item value={modelValue} className={styles.modelOption}>
-                      <Select.ItemText>{choice.model ?? '模型信息暂不可用'}</Select.ItemText>
-                    </Select.Item>
-                  )}
-                </Select.Viewport>
-              </Select.Content>
-            </Select.Portal>
-          </Select.Root>
-          <Popover open={settingsOpen} onOpenChange={setSettingsOpen} label="思考程度" side="top" align="start" className={styles.settingsMenu} trigger={
-            <button type="button" className={styles.settings} disabled={running} aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`} title="思考程度">
-              <Settings2 size={18} />
-              {choice.effort && <span>{effortName(choice.effort)}</span>}
-            </button>
-          }>
-            <span className={styles.settingsTitle}>思考程度</span>
-            <div role="group" aria-label="思考程度">
-              {['', ...new Set([...efforts, ...(choice.effort ? [choice.effort] : [])])].map((effort) => (
-                <button key={effort} type="button" disabled={running} aria-pressed={(choice.effort ?? '') === effort}
-                  onClick={() => {
-                    onChoice({ ...choice, effort: effort || undefined })
-                    setSettingsOpen(false)
-                  }}>
-                  {effort ? effortName(effort) : '默认'}
-                  {(choice.effort ?? '') === effort && <Check size={16} aria-hidden="true" />}
-                </button>
+            <Select.Content position="popper" side="top" sideOffset={8} collisionPadding={12} className={styles.modelMenu}>
+              {modelGroups.map((group, index) => (
+                <Fragment key={group.agent}>
+                  {index > 0 && <Select.Separator />}
+                  <Select.Group>
+                    <Select.Label>{agents[group.agent].name}</Select.Label>
+                    {group.options.map((option) => (
+                      <Select.Item key={option.value} value={option.value} disabled={option.disabled}>
+                        {option.model.name}
+                        {option.model.isDefault && <Text color="gray" className={styles.defaultMark}>默认</Text>}
+                      </Select.Item>
+                    ))}
+                  </Select.Group>
+                </Fragment>
               ))}
-            </div>
-          </Popover>
+              {!modelOptions.some((option) => option.value === modelValue) && (
+                <Select.Item value={modelValue}>{choice.model ?? '模型信息暂不可用'}</Select.Item>
+              )}
+            </Select.Content>
+          </Select.Root>
+          <DropdownMenu.Root modal={false}>
+            <DropdownMenu.Trigger disabled={running}>
+              <Button
+                type="button"
+                size="2"
+                variant="ghost"
+                color="gray"
+                className={styles.tool}
+                aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`}
+                title="思考程度"
+              >
+                <MixerHorizontalIcon />
+                {choice.effort && effortName(choice.effort)}
+              </Button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content size="2" side="top" align="start" collisionPadding={12}>
+              <DropdownMenu.Label>思考程度</DropdownMenu.Label>
+              <DropdownMenu.RadioGroup
+                aria-label="思考程度"
+                value={choice.effort ?? ''}
+                onValueChange={(effort) => onChoice({ ...choice, effort: effort || undefined })}
+              >
+                {effortValues.map((effort) => (
+                  <DropdownMenu.RadioItem key={effort} value={effort} disabled={running}>
+                    {effort ? effortName(effort) : '默认'}
+                  </DropdownMenu.RadioItem>
+                ))}
+              </DropdownMenu.RadioGroup>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
           <div className={styles.actions}>
             {session && <Usage session={session} />}
             {sending ? (
-              <span className={`${styles.action} ${styles.busy}`}>
-                <Spinner />
-              </span>
+              <IconButton type="button" size="2" radius="full" loading className={styles.action} aria-label="发送中">
+                <ArrowUpIcon />
+              </IconButton>
             ) : running && !hasContent ? (
-              <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
+              <IconButton type="button" size="2" radius="full" variant="solid" color="gray" highContrast className={styles.action} onClick={onStop} aria-label="停止" title="停止">
                 <span className={styles.stopIcon} />
-              </button>
+              </IconButton>
             ) : (
               <>
                 {running && (
                   <>
-                    <button
+                    <Button
                       type="button"
-                      className={styles.interrupt}
+                      size="2"
+                      variant="soft"
+                      color="gray"
+                      className={styles.tool}
                       onClick={() => void send('interrupt')}
                       aria-label="打断并发送"
                       title="打断正在做的事，马上处理这句话"
                     >
-                      <Zap size={14} strokeWidth={2} />
+                      <LightningBoltIcon />
                       打断
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
-                      className={styles.interrupt}
+                      size="2"
+                      variant="soft"
+                      color="gray"
+                      className={styles.tool}
                       onClick={() => void send('queue')}
                       aria-label="排队"
                       title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
                     >
-                      <ListPlus size={14} strokeWidth={2} />
+                      <ListPlusIcon />
                       排队
-                    </button>
+                    </Button>
                   </>
                 )}
-                <button
+                <IconButton
                   type="submit"
+                  size="2"
+                  radius="full"
+                  variant="solid"
                   className={styles.action}
                   disabled={!canSend}
                   aria-label={running ? '插话' : '发送'}
                   title={running ? '插话：agent 在下一步看到' : '发送'}
                 >
-                  <ArrowUp size={17} strokeWidth={2.2} />
-                </button>
+                  <ArrowUpIcon />
+                </IconButton>
               </>
             )}
           </div>

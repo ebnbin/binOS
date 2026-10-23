@@ -1,3 +1,4 @@
+import { Code, Text } from '@radix-ui/themes'
 import { useEffect, useState } from 'react'
 import { useConnected } from '../../events.ts'
 import type { WidgetContext } from '../types.ts'
@@ -37,18 +38,24 @@ export function SystemWidget({ size, open }: WidgetContext) {
       title="打开宿主监控"
     >
       <span className={styles.time}>{time.format(now)}</span>
-      <span className={styles.date}>{date.format(now)}</span>
+      <Text size="2" color="gray">
+        {date.format(now)}
+      </Text>
       {snapshot && size !== '2x2' && (
-        <span className={styles.metrics}>
+        <Text size="1" color="gray" mt="3" className={styles.numeric}>
           CPU {snapshot.cpu.percent?.toFixed(0) ?? '…'}% · 内存压力{' '}
           {snapshot.memory.pressure === 'normal' ? '正常' : snapshot.memory.pressure === 'unknown' ? '未知' : '偏高'}
-        </span>
+        </Text>
       )}
-      <span className={styles.status}>
+      <Text size="1" className={styles.status}>
         <span className={styles.dot} data-connected={!!fresh && connected} />
         {!fresh ? '状态待更新' : '已连接'}
-        {version && <span className={styles.version}>{version.slice(0, 7)}</span>}
-      </span>
+        {version && (
+          <Code size="1" variant="ghost" color="gray">
+            {version.slice(0, 7)}
+          </Code>
+        )}
+      </Text>
     </button>
   )
 }

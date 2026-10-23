@@ -1,6 +1,8 @@
-import { Disc3, GripHorizontal, Minus, Music2, Square } from 'lucide-react'
+import { IconButton as Base, Progress, Text } from '@radix-ui/themes'
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { DiscIcon, DragHandleDots2Icon, MinusIcon, MusicIcon, StopIcon } from '../../ui/icons.ts'
 import { useElementSize } from '../../ui/useElementSize.ts'
 import { Transport } from './Controls.tsx'
 import { floatingBounds, floatingOffset, moveFloating, restorePosition } from './floatingPosition.ts'
@@ -23,10 +25,10 @@ export function MusicStatusButton({ collapsed, onToggle }: { collapsed: boolean;
   const track = state.queue[state.index]
   if (!track || state.status === 'idle') return null
   return (
-    <button type="button" className={styles.statusButton} aria-label={collapsed ? '显示音乐播放器' : '收起音乐播放器'} aria-expanded={!collapsed} title={`${track.title} · ${labels[state.status]}`} onClick={onToggle}>
-      <Music2 size={21} strokeWidth={1.75} />
+    <Base type="button" size="3" variant={collapsed ? 'ghost' : 'soft'} color="gray" className={styles.statusButton} aria-label={collapsed ? '显示音乐播放器' : '收起音乐播放器'} aria-expanded={!collapsed} title={`${track.title} · ${labels[state.status]}`} onClick={onToggle}>
+      <MusicIcon width={18} height={18} />
       {(state.status === 'playing' || state.status === 'loading') && <span className={styles.playingDot} />}
-    </button>
+    </Base>
   )
 }
 
@@ -73,17 +75,17 @@ function PlayerPanel({ screen, onCollapse, onOpen, locked }: { screen: Dimension
             update(next)
             savePosition(next)
           }}
-        ><GripHorizontal size={15} /><span>{labels[state.status]}</span></button>
-        <button type="button" className={styles.iconButton} aria-label="停止播放" title="停止播放" onClick={() => music.stop()}><Square size={13} /></button>
-        <button type="button" className={styles.iconButton} aria-label="收起音乐播放器" title="收起，音乐继续播放" onClick={onCollapse}><Minus size={16} /></button>
+        ><DragHandleDots2Icon /><Text size="1">{labels[state.status]}</Text></button>
+        <IconButton icon={StopIcon} label="停止播放" className={styles.iconButton} onClick={() => music.stop()} />
+        <IconButton icon={MinusIcon} label="收起音乐播放器" title="收起，音乐继续播放" className={styles.iconButton} onClick={onCollapse} />
       </header>
       <button type="button" className={styles.info} aria-label="打开音乐 App" onClick={onOpen}>
-        <span className={styles.artwork}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={28} strokeWidth={1.5} />}</span>
-        <span className={styles.text}><strong>{track.title}</strong><span>{track.artists.join(' / ') || '未知艺人'}</span></span>
+        <span className={styles.artwork}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <DiscIcon width={24} height={24} />}</span>
+        <span className={styles.text}><span className={styles.title}>{track.title}</span><span className={styles.artists}>{track.artists.join(' / ') || '未知艺人'}</span></span>
       </button>
-      {state.error && <p className={styles.error} role="alert">{state.error}</p>}
+      {state.error && <Text as="p" size="1" color="red" className={styles.error} role="alert">{state.error}</Text>}
       <div className={styles.transport}><Transport compact /></div>
-      <div className={styles.progress} aria-hidden="true"><span style={{ width: `${state.durationMs ? Math.min(100, state.positionMs / state.durationMs * 100) : 0}%` }} /></div>
+      <Progress size="1" radius="none" className={styles.progress} aria-hidden="true" value={state.durationMs ? Math.min(100, state.positionMs / state.durationMs * 100) : 0} />
     </section>
   )
 }

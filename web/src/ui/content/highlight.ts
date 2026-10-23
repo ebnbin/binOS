@@ -5,12 +5,13 @@ import type { HighlighterCore, ThemedToken } from 'shiki/core'
 const maxLength = 100_000
 
 // 高亮器和各语言的语法都在第一次用到时才加载
+const theme = 'radix'
 let highlighter: Promise<HighlighterCore> | undefined
 
 function getHighlighter() {
-  highlighter ??= Promise.all([import('shiki/core'), import('shiki/engine/javascript')]).then(([{ createHighlighterCore }, { createJavaScriptRegexEngine }]) =>
+  highlighter ??= Promise.all([import('shiki/core'), import('shiki/engine/javascript')]).then(([{ createHighlighterCore, createCssVariablesTheme }, { createJavaScriptRegexEngine }]) =>
     createHighlighterCore({
-      themes: [import('shiki/themes/github-light.mjs'), import('shiki/themes/github-dark.mjs')],
+      themes: [createCssVariablesTheme({ name: theme, variablePrefix: '--shiki-' })],
       langs: [],
       engine: createJavaScriptRegexEngine(),
     }),
@@ -18,7 +19,7 @@ function getHighlighter() {
   return highlighter
 }
 
-// 浅色、深色两套颜色都在 token 的 htmlStyle 里（--shiki-light、--shiki-dark），由 CSS 按系统外观选用。不认识的语言返回 undefined
+// token 的颜色是 CSS 变量（--shiki-token-keyword 等），在 CodeBlock.module.css 里取 Radix 的色阶，亮暗跟随主题。不认识的语言返回 undefined
 async function highlight(code: string, lang: string): Promise<ThemedToken[][] | undefined> {
   const { bundledLanguages } = await import('shiki/langs')
   const loader = bundledLanguages[lang as keyof typeof bundledLanguages]
@@ -29,7 +30,7 @@ async function highlight(code: string, lang: string): Promise<ThemedToken[][] | 
   if (!instance.getLoadedLanguages().includes(lang)) {
     await instance.loadLanguage(loader)
   }
-  return instance.codeToTokens(code, { lang, themes: { light: 'github-light', dark: 'github-dark' }, defaultColor: false }).tokens
+  return instance.codeToTokens(code, { lang, theme }).tokens
 }
 
 // 高亮好之前（以及代码变了、新的还没高亮好时）返回 undefined，先显示原样的代码

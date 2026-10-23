@@ -1,11 +1,3 @@
-:root {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-normal);
-  -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
-}
-
 *,
 *::before,
 *::after {
@@ -21,21 +13,22 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: var(--color-chrome);
+  background: var(--chrome-background);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--color-chrome);
-  color: var(--color-text);
+  background: var(--chrome-background);
 }
 
 button,
 input,
 textarea {
   font: inherit;
+  letter-spacing: inherit;
   color: inherit;
 }
 
@@ -44,23 +37,28 @@ textarea {
   appearance: none;
 }
 
+/* Radix Themes 的按钮用默认光标，链接才用手形 */
 button {
   appearance: none;
   padding: 0;
   border: 0;
   background: none;
-  cursor: pointer;
+  cursor: var(--cursor-button);
 }
 
 button:disabled {
-  cursor: default;
+  cursor: var(--cursor-disabled);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--focus-8);
   outline-offset: 2px;
 }
 
-::selection {
-  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+/* 输入框字号小于 16px 时 iOS 会在聚焦时放大页面 */
+@media (pointer: coarse) {
+  input,
+  textarea {
+    font-size: max(var(--font-size-3), 1em);
+  }
 }

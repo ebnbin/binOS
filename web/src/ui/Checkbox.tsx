@@ -1,14 +1,12 @@
-import * as Primitive from '@radix-ui/react-checkbox'
-import { Check } from 'lucide-react'
-import styles from './Checkbox.module.css'
+import { Checkbox as Base, Flex, Text } from '@radix-ui/themes'
 
 export function Checkbox({ checked, onCheckedChange, label }: { checked: boolean; onCheckedChange: (checked: boolean) => void; label: string }) {
   return (
-    <label className={styles.label}>
-      <Primitive.Root className={styles.control} checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)}>
-        <Primitive.Indicator className={styles.indicator}><Check size={12} strokeWidth={3} /></Primitive.Indicator>
-      </Primitive.Root>
-      {label}
-    </label>
+    <Text as="label" size="2">
+      <Flex as="span" align="center" gap="2">
+        <Base checked={checked} onCheckedChange={(value) => onCheckedChange(value === true)} />
+        {label}
+      </Flex>
+    </Text>
   )
 }

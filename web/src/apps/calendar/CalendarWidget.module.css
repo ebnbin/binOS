@@ -2,48 +2,22 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--space-3);
-  color: var(--color-text);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
+  color: var(--gray-12);
 }
 
-.header h2 {
+.title {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-0-5);
+/* 三个 ghost 按钮挨在一起，去掉 Radix ghost 的负外边距，悬停底色不互相压住 */
+.calendar header button {
+  margin: 0;
 }
 
-.actions button {
-  display: grid;
-  place-items: center;
-  min-width: var(--size-control-sm);
-  height: var(--size-control-md);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--color-bg-subtle);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+.today {
+  padding: 0 var(--space-2);
 }
 
 .month {
@@ -56,36 +30,36 @@
 }
 
 .month th {
-  height: 28px;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  height: var(--size-1);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
+  font-weight: var(--font-weight-regular);
+  color: var(--gray-a11);
 }
 
 .month td {
   padding: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
-.month td:nth-child(n + 6) {
-  color: var(--color-text-secondary);
-}
-
+.month td:nth-child(n + 6),
 .month td[data-outside='true'] {
-  color: var(--color-text-tertiary);
-  opacity: var(--opacity-disabled);
+  color: var(--gray-a10);
 }
 
 .month td span {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: calc(var(--space-6) - var(--space-1));
+  height: calc(var(--space-6) - var(--space-1));
   border-radius: 50%;
 }
 
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-semibold);
+  background: var(--accent-9);
+  color: var(--accent-contrast);
+  font-weight: var(--font-weight-medium);
 }

@@ -1,3 +1,4 @@
+/* 终端、输出和 diff 都是 --gray-a2 底、--gray-a5 边的卡片，等宽字号同 Radix 的 Code size 1 */
 .output,
 .terminal,
 .diffLines {
@@ -5,47 +6,44 @@
   margin: 0;
   padding: var(--space-3);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-4);
+  background: var(--gray-a2);
+  color: var(--gray-12);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-1) * var(--code-font-size-adjust));
+  line-height: var(--line-height-1);
+  letter-spacing: var(--code-letter-spacing);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-.output[data-error='true'] {
-  color: var(--color-danger);
+.output[data-error='true'],
+.terminalOutput[data-error='true'] {
+  color: var(--red-a11);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
   user-select: none;
 }
 
-.terminal {
-  color: var(--color-text);
-}
-
 .terminalOutput {
-  color: var(--color-text-secondary);
-}
-
-.terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--gray-a11);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--gray-a11);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
 }
 
 .diffLines {
@@ -55,34 +53,44 @@
 
 .diffLine {
   display: block;
+  width: max-content;
+  min-width: 100%;
   padding: 0 var(--space-3) 0 0;
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: var(--green-a3);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: var(--red-a3);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
 }
 
 .diffSign {
   display: inline-block;
-  width: 26px;
+  width: var(--space-5);
   text-align: center;
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
   user-select: none;
 }
 
+[data-change='added'] > .diffSign {
+  color: var(--green-a11);
+}
+
+[data-change='removed'] > .diffSign {
+  color: var(--red-a11);
+}
+
+/* 搜到的网页：Radix 列表项的样子，悬停 --gray-a3 */
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
-  margin: 0;
+  margin: 0 calc(-1 * var(--space-2));
   padding: 0;
   list-style: none;
 }
@@ -91,17 +99,25 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  color: inherit;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
+  cursor: var(--cursor-link);
 }
 
 @media (hover: hover) {
   .links a:hover {
-    background: var(--color-hover);
+    background: var(--gray-a3);
   }
+}
+
+.links a:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -1px;
 }
 
 .linkTitle {
@@ -113,8 +129,10 @@
 
 .linkHost {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--gray-a11);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
 }
 
 .image {
@@ -126,6 +144,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-4);
+  box-shadow: 0 0 0 1px var(--gray-a5);
 }

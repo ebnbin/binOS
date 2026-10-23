@@ -27,17 +27,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  gap: var(--space-3);
 }
 
 .missing p {
   margin: 0;
-}
-
-.missing button {
-  color: var(--color-text);
-  text-decoration: underline;
 }
 
 @container agent (width < 960px) {
@@ -69,9 +63,11 @@
 @container agent (width < 960px) {
   .toolBar {
     display: flex;
+    flex: none;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-3);
+    height: 48px;
+    padding: 0 var(--space-3);
+    box-shadow: inset 0 -1px 0 var(--gray-a6);
   }
 }

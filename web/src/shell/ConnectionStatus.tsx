@@ -1,3 +1,4 @@
+import { Button, Text } from '@radix-ui/themes'
 import { useConnected, useUpdated } from '../events.ts'
 import styles from './ConnectionStatus.module.css'
 import { Spinner } from '../ui/Spinner.tsx'
@@ -9,17 +10,11 @@ export function ConnectionStatus() {
   const visible = updated || !connected
   return (
     <div className={styles.status} data-visible={visible} data-urgent={updated} role="status" aria-hidden={!visible}>
-      {updated ? (
-        'binOS 已更新'
-      ) : (
-        <>
-          <Spinner />
-          连接已断开，正在重连…
-        </>
-      )}
-      <button type="button" className={styles.reload} onClick={() => window.location.reload()}>
+      {!updated && <Spinner />}
+      <Text size="2">{updated ? 'binOS 已更新' : '连接已断开，正在重连…'}</Text>
+      <Button size="1" variant={updated ? 'solid' : 'soft'} color={updated ? undefined : 'gray'} onClick={() => window.location.reload()}>
         刷新
-      </button>
+      </Button>
     </div>
   )
 }

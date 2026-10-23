@@ -3,12 +3,14 @@
   margin: 0;
   padding: var(--space-3);
   overflow: auto;
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-4);
+  background: var(--gray-a2);
+  color: var(--gray-a11);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-1) * var(--code-font-size-adjust));
+  line-height: var(--line-height-1);
+  letter-spacing: var(--code-letter-spacing);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: var(--color-text-secondary);
 }

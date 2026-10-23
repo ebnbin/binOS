@@ -1,99 +1,75 @@
 .bar {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
   flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  align-items: center;
+  gap: var(--space-3);
+  height: 48px;
+  padding: 0 var(--space-4);
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
   flex: 1;
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .title {
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
 }
 
-.titleWrap {
-  position: relative;
-  display: flex;
+.heading .titleButton {
+  flex-shrink: 1;
   min-width: 0;
+  max-width: 100%;
 }
 
-.titleButton {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--color-hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
+.titleButton[data-state='open'] {
+  background: var(--gray-a3);
 }
 
 .titleChevron {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--gray-a11);
 }
 
 .rename {
-  align-self: center;
   max-width: 420px;
-  min-height: var(--size-control-md);
 }
 
 .id {
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
   font-variant-numeric: tabular-nums;
 }
 
 .prs {
-  position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  align-items: center;
+  gap: var(--space-2);
   margin-left: auto;
 }
 
-.finished {
+.pr {
   display: inline-flex;
-  align-items: center;
   gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
+}
+
+/* 可以点的徽章：悬停时底色深一级 */
+.badge {
   font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .badge:hover {
+    background: var(--accent-a4);
+  }
 }
 
 .prMenu {
@@ -103,29 +79,32 @@
   max-height: min(320px, var(--radix-popover-content-available-height));
   overflow-y: auto;
   padding: var(--space-1);
-  box-shadow: var(--shadow-md);
 }
 
-.prMenu a {
+/* 菜单式的列表项：size 2 菜单的高度和圆角 */
+.prItem {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
+  min-height: var(--size-2);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
 @media (hover: hover) {
-  .prMenu a:hover {
-    background: var(--color-hover);
+  .prItem:hover {
+    background: var(--gray-a3);
   }
 }
 
 .prNumber {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--gray-a11);
   font-variant-numeric: tabular-nums;
 }
 
@@ -137,66 +116,21 @@
   text-overflow: ellipsis;
 }
 
-.prState {
-  flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-.prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
-}
-
-.prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
-}
-
-.pr {
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.pr a {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-}
-
-.pr[data-state='open'] a:first-child {
-  color: var(--color-success);
-}
-
-.pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
-}
-
-.pr .preview {
-  border-left: 1px solid var(--color-separator);
-}
-
-/* 提高优先级，盖过 IconButton 自身的 display */
+/* 提高优先级，盖过按钮自身的 display */
 .bar .singleColumnOnly {
   display: none;
 }
 
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
+    padding: 0 var(--space-3);
+    box-shadow: inset 0 -1px 0 var(--gray-a6);
   }
 
+  /* 只有返回按钮时，右边补一个和它占位一样宽的空位，标题才居中；ghost 按钮用负 margin 抵掉内边距，占位就是图标的宽度 */
   .bar:has(.heading:last-child)::after {
     content: '';
-    width: var(--size-control-lg);
+    width: 15px;
     flex: none;
   }
 
@@ -205,10 +139,6 @@
   }
 
   .bar .singleColumnOnly {
-    display: grid;
-  }
-
-  .bar span.singleColumnOnly {
-    display: inline;
+    display: inline-flex;
   }
 }

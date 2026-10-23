@@ -1,9 +1,12 @@
+.added,
+.removed {
+  font-family: var(--code-font-family);
+}
+
 .added {
-  color: var(--color-success);
-  font-family: var(--font-mono);
+  color: var(--green-a11);
 }
 
 .removed {
-  color: var(--color-danger);
-  font-family: var(--font-mono);
+  color: var(--red-a11);
 }

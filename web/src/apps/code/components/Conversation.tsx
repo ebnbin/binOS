@@ -2,13 +2,14 @@ import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { ArrowDown, Folder } from 'lucide-react'
+import { Heading, IconButton } from '@radix-ui/themes'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
 import { useKitaSession } from '../../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../../ui/Alert.tsx'
 import { BrandMark } from '../../../ui/BrandMark.tsx'
+import { ArrowDownIcon, FolderIcon } from '../../../ui/icons.ts'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { Composer } from './Composer.tsx'
 import styles from './Conversation.module.css'
@@ -142,11 +143,13 @@ export function Conversation({
             {sessionId === null ? (
               <div className={styles.empty}>
                 <BrandMark size={36} />
-                <h1>开始新对话</h1>
+                <Heading as="h1" size="6">开始新对话</Heading>
                 <div className={styles.projectChoice}>
-                  <Folder size={16} aria-hidden="true" />
+                  <FolderIcon aria-hidden="true" />
                   <Select
                     label="对话所属项目"
+                    variant="ghost"
+                    className={styles.projectSelect}
                     value={project}
                     onValueChange={onProject}
                     options={projects?.map((item) => ({ value: item.id, label: item.name })) ?? []}
@@ -160,9 +163,9 @@ export function Conversation({
           </div>
         </div>
         {awayFromBottom && (
-          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
-          </button>
+          <IconButton type="button" size="2" variant="surface" color="gray" radius="full" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
+            <ArrowDownIcon />
+          </IconButton>
         )}
       </div>
       <Composer

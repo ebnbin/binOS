@@ -1,19 +1,28 @@
+/* 一张 Radix surface 卡片：头部一行，下面是 Radix 列表项样子的文件行 */
 .card {
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  border-radius: var(--radius-4);
+  background: var(--color-panel-solid);
+  box-shadow: 0 0 0 1px var(--gray-a5);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
+  min-height: var(--size-2);
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--gray-a5);
+  color: var(--gray-12);
   font-weight: var(--font-weight-medium);
+}
+
+.icon {
+  flex: none;
+  color: var(--gray-a11);
 }
 
 .files {
@@ -25,33 +34,48 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   width: 100%;
-  min-height: var(--size-control-sm);
+  min-height: var(--size-2);
   padding: 0 var(--space-2);
   border: 0;
-  border-radius: var(--radius-item);
+  border-radius: var(--radius-2);
   background: none;
-  color: var(--color-text);
+  color: var(--gray-12);
   font: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-button);
 }
 
 @media (hover: hover) {
   .row:hover {
-    background: var(--color-hover);
+    background: var(--gray-a3);
   }
+}
+
+.row:active {
+  background: var(--gray-a4);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--focus-8);
+  outline-offset: -1px;
 }
 
 .chevron {
   flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  color: var(--gray-a11);
+  transition: transform var(--duration-2) var(--ease-out);
 }
 
 [data-open] > .row .chevron {
   transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
 }
 
 .name {
@@ -60,8 +84,6 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
 }
 
 .dir {
@@ -70,41 +92,35 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.kind {
-  flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
 }
 
 .counts {
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-1) * var(--code-font-size-adjust));
+  font-weight: var(--font-weight-regular);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  color: var(--color-success);
+  color: var(--green-a11);
 }
 
 .removed {
-  color: var(--color-danger);
+  color: var(--red-a11);
 }
 
+/* 展开的修改缩进到文件名的位置 */
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  padding: var(--space-1) var(--space-1) var(--space-2) calc(var(--space-2) * 2 + 15px);
 }

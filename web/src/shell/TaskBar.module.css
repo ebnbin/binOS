@@ -1,4 +1,4 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
+/* 深色主题，和屏幕四周的外框连在一起。按钮是 size 3 的灰色 ghost 按钮：悬停 gray-a3，按下 gray-a4，当前 gray-a5 */
 .bar {
   display: flex;
   align-items: center;
@@ -6,12 +6,12 @@
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-1-5) 0;
+  padding: var(--space-1) 0;
 }
 
 .bar[data-placement='left'],
 .bar[data-placement='right'] {
-  padding: 0 var(--space-1-5);
+  padding: 0 var(--space-1);
 }
 
 .bar[data-placement='left'] {
@@ -40,10 +40,7 @@
 }
 
 .bar[data-placement='left'] .apps,
-.bar[data-placement='right'] .apps {
-  flex-direction: column;
-}
-
+.bar[data-placement='right'] .apps,
 .bar[data-placement='left'] .dock,
 .bar[data-placement='right'] .dock {
   flex-direction: column;
@@ -54,103 +51,101 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  border-radius: var(--radius-lg);
-  color: var(--color-on-chrome-secondary);
-  transition: background-color var(--duration-fast), color var(--duration-fast);
+  width: var(--size-3);
+  height: var(--size-3);
+  border-radius: var(--radius-3);
+  color: var(--gray-a11);
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: var(--color-chrome-hover);
-    color: var(--color-on-chrome);
+    background: var(--gray-a3);
+    color: var(--gray-12);
   }
 }
 
-.item[aria-pressed='true'] {
-  background: var(--color-chrome-selected);
-  color: var(--color-on-chrome);
+.item:active {
+  background: var(--gray-a4);
 }
 
-/* 正在显示的 app 旁边有个点 */
+.item[aria-pressed='true'] {
+  background: var(--gray-a5);
+  color: var(--gray-12);
+}
+
+/* 正在显示的 app 下面有个点，竖排时在靠屏幕的一侧 */
 .item[data-visible='true']::after {
   content: '';
   position: absolute;
-  bottom: 3px;
-  width: 4px;
-  height: 4px;
+  bottom: var(--space-1);
+  width: var(--space-1);
+  height: var(--space-1);
   border-radius: 50%;
-  background: var(--color-on-chrome-secondary);
+  background: var(--gray-a11);
 }
 
 .bar[data-placement='left'] .item[data-visible='true']::after,
 .bar[data-placement='right'] .item[data-visible='true']::after {
-  top: 18px;
+  top: calc(50% - var(--space-1) / 2);
   bottom: auto;
 }
 
 .bar[data-placement='left'] .item[data-visible='true']::after {
-  right: 2px;
+  right: 1px;
 }
 
 .bar[data-placement='right'] .item[data-visible='true']::after {
-  left: 2px;
+  left: 1px;
 }
 
 .separator {
-  flex: none;
-  width: 1px;
-  height: 22px;
-  margin: 0 var(--space-1-5);
-  background: var(--color-chrome-border);
+  margin: 0 var(--space-1);
 }
 
 .bar[data-placement='left'] .separator,
 .bar[data-placement='right'] .separator {
-  width: 22px;
-  height: 1px;
-  margin: var(--space-1-5) 0;
+  margin: var(--space-1) 0;
 }
 
 .glyph {
   display: flex;
-  gap: var(--space-0-5);
-  width: 22px;
-  height: 16px;
+  gap: 2px;
+  width: 20px;
+  height: 15px;
 }
 
 .glyph[data-portrait='true'] {
   flex-direction: column;
-  width: 16px;
-  height: 20px;
+  width: 15px;
+  height: 18px;
 }
 
 .glyph i {
-  border-radius: calc(var(--radius-xs) / 2);
+  border-radius: var(--radius-1);
   background: currentColor;
-  opacity: 0.85;
 }
 
 .glyph i[data-active='false'] {
-  opacity: 0.3;
+  opacity: 0.35;
 }
 
 .glyph i[data-active='true'] {
-  opacity: 1;
-  background: var(--color-on-chrome);
+  background: var(--accent-9);
 }
 
+/* 分屏的一组：两个图标放在一个描边的按钮里 */
 .item[data-group='true'] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1-5);
-  width: 58px;
-  box-shadow: inset 0 0 0 1px var(--color-chrome-border);
+  gap: var(--space-2);
+  width: calc(var(--size-3) + var(--space-5));
+  box-shadow: inset 0 0 0 1px var(--gray-a6);
 }
 
-.item[data-group='true']::after { display: none; }
+.item[data-group='true']::after {
+  display: none;
+}
 
 .member {
   position: relative;
@@ -159,13 +154,17 @@
   height: 100%;
 }
 
+.member[data-focused='true'] {
+  color: var(--gray-12);
+}
+
 .member[data-focused='true']::after {
   content: '';
   position: absolute;
-  bottom: 3px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
+  bottom: var(--space-1);
+  left: calc(50% - var(--space-1) / 2);
+  width: var(--space-1);
+  height: var(--space-1);
   border-radius: 50%;
-  background: var(--color-on-chrome);
+  background: var(--accent-9);
 }

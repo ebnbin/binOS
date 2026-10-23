@@ -1,5 +1,7 @@
-import { ExternalLink } from 'lucide-react'
+import { Button, Callout, Card, Code, Flex, Heading, Link, Text } from '@radix-ui/themes'
 import { useEffect, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { CheckIcon, ExternalLinkIcon } from '../../../ui/icons.ts'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
 import styles from '../Login.module.css'
@@ -57,56 +59,77 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
   }, [attempt])
 
   return (
-    <div className={styles.flow}>
-      <div className={styles.title}>重新登录 Codex</div>
-      {step.name === 'starting' && (
-        <p className={styles.waiting}>
-          <Spinner /> 正在拿登录码
-        </p>
-      )}
-      {step.name === 'waiting' && (
-        <div className={styles.steps}>
-          <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
-            1. 打开登录页面，用 ChatGPT 账号登录
-            <ExternalLink size={14} strokeWidth={1.75} />
-          </a>
-          <div className={styles.codeLabel}>
-            2. 输入这个一次性的码（15 分钟内有效）
-            <span className={styles.deviceCode}>{step.code}</span>
-          </div>
-          <p className={styles.waiting}>
-            <Spinner /> 等你授权，授权后这里会自动更新
-          </p>
-          <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              取消
-            </button>
-          </div>
-        </div>
-      )}
-      {step.name === 'done' && (
-        <>
-          <p className={styles.done}>登录好了，下一轮回答起用新的登录</p>
-          <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
-              好
-            </button>
-          </div>
-        </>
-      )}
-      {step.name === 'failed' && (
-        <>
-          <p className={styles.error}>{step.error}</p>
-          <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              关上
-            </button>
-            <button type="button" className={styles.primary} onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
-              重新开始
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    <Card size="2" className={styles.flow}>
+      <Flex direction="column" gap="3">
+        <Heading as="h3" size="3">
+          重新登录 Codex
+        </Heading>
+        {step.name === 'starting' && (
+          <Flex align="center" gap="2">
+            <Spinner />
+            <Text size="2" color="gray">
+              正在拿登录码
+            </Text>
+          </Flex>
+        )}
+        {step.name === 'waiting' && (
+          <>
+            <Text size="2">
+              1.{' '}
+              <Link href={step.url} target="_blank" rel="noreferrer" underline="always">
+                打开登录页面
+                <ExternalLinkIcon className={styles.linkIcon} />
+              </Link>
+              ，用 ChatGPT 账号登录
+            </Text>
+            <Flex direction="column" align="start" gap="2">
+              <Text size="2">2. 输入这个一次性的码（15 分钟内有效）</Text>
+              <Code size="6" variant="soft" weight="bold" className={styles.deviceCode}>
+                {step.code}
+              </Code>
+            </Flex>
+            <Flex align="center" gap="2">
+              <Spinner />
+              <Text size="2" color="gray">
+                等你授权，授权后这里会自动更新
+              </Text>
+            </Flex>
+            <Flex justify="end" gap="2">
+              <Button type="button" variant="soft" color="gray" onClick={onClose}>
+                取消
+              </Button>
+            </Flex>
+          </>
+        )}
+        {step.name === 'done' && (
+          <>
+            <Callout.Root color="green" size="1">
+              <Callout.Icon>
+                <CheckIcon />
+              </Callout.Icon>
+              <Callout.Text>登录好了，下一轮回答起用新的登录</Callout.Text>
+            </Callout.Root>
+            <Flex justify="end" gap="2">
+              <Button type="button" onClick={onClose}>
+                好
+              </Button>
+            </Flex>
+          </>
+        )}
+        {step.name === 'failed' && (
+          <>
+            <Alert>{step.error}</Alert>
+            <Flex justify="end" gap="2">
+              <Button type="button" variant="soft" color="gray" onClick={onClose}>
+                关上
+              </Button>
+              <Button type="button" onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
+                重新开始
+              </Button>
+            </Flex>
+          </>
+        )}
+      </Flex>
+    </Card>
   )
 }

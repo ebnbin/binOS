@@ -1,0 +1,110 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: 100%;
+  overflow: auto;
+  padding: var(--space-5);
+  background: var(--color-background);
+}
+
+/* 页面本身滚动，内容按自身高度排，不被压缩 */
+.page > * {
+  flex-shrink: 0;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 160px;
+}
+
+.filter {
+  align-self: flex-start;
+}
+
+.build {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.error {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.artifact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  overflow-wrap: anywhere;
+}
+
+.artifact > svg {
+  flex: none;
+}
+
+.empty {
+  padding: var(--space-7) 0;
+  text-align: center;
+}
+
+/* 日志盖在整个页面上 */
+.log {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.logHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--gray-a6);
+}
+
+.logTitle {
+  flex: 1;
+  min-width: 0;
+}
+
+.logText {
+  flex: 1;
+  margin: 0;
+  padding: var(--space-4);
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--code-font-family);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  color: var(--gray-12);
+}

@@ -4,73 +4,57 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background: var(--color-background);
 }
+.modeBar {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--gray-2);
+  border-bottom: 1px solid var(--gray-a6);
+}
+.modeContent,
+.remote {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 工具栏：ghost 图标按钮自带负外边距，间距按图标本身算 */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-2) var(--space-4);
+  min-height: var(--size-4);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--gray-a6);
 }
 .navigation {
   display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 .address {
-  display: flex;
-  align-items: center;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-}
-.address input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  font-size: var(--font-size-xl);
-}
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-.external {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
-}
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
 }
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--gray-a6);
 }
 .error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  padding: var(--space-3) var(--space-3) 0;
 }
+
+/* 网页内容区和网页自己的默认底色一致 */
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  background: var(--document-background);
   color-scheme: normal;
 }
 .home {
@@ -79,21 +63,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   overflow: auto;
   padding: var(--space-8) var(--space-6);
   text-align: center;
-  color: var(--color-text-secondary);
-}
-.home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
 }
 .home p {
-  max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+  max-width: 400px;
+  margin: 0;
+}
+.homeIcon {
+  margin-bottom: var(--space-2);
+  color: var(--gray-a9);
 }
 @container browser (width < 440px) {
   .address {
@@ -105,34 +86,12 @@
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
-.modeContent, .remote {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--document-background);
 }
 .remoteImage {
   display: block;
@@ -145,10 +104,7 @@
 .remoteStatus {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  background: color-mix(in srgb, var(--color-background) 85%, transparent);
   pointer-events: none;
 }
 .remoteInput {

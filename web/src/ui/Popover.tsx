@@ -1,6 +1,5 @@
-import * as Primitive from '@radix-ui/react-popover'
+import { Popover as Base } from '@radix-ui/themes'
 import type { ReactElement, ReactNode } from 'react'
-import styles from './Popover.module.css'
 
 export function Popover({
   trigger,
@@ -11,6 +10,7 @@ export function Popover({
   className,
   side = 'bottom',
   align = 'end',
+  size = '2',
 }: {
   trigger: ReactElement
   label: string
@@ -20,22 +20,14 @@ export function Popover({
   className?: string
   side?: 'top' | 'bottom'
   align?: 'start' | 'end'
+  size?: '1' | '2' | '3' | '4'
 }) {
   return (
-    <Primitive.Root open={open} onOpenChange={onOpenChange}>
-      <Primitive.Trigger asChild>{trigger}</Primitive.Trigger>
-      <Primitive.Portal>
-        <Primitive.Content
-          aria-label={label}
-          side={side}
-          align={align}
-          sideOffset={8}
-          collisionPadding={12}
-          className={`${styles.content} ${className ?? ''}`}
-        >
-          {children}
-        </Primitive.Content>
-      </Primitive.Portal>
-    </Primitive.Root>
+    <Base.Root open={open} onOpenChange={onOpenChange}>
+      <Base.Trigger>{trigger}</Base.Trigger>
+      <Base.Content aria-label={label} side={side} align={align} sideOffset={8} collisionPadding={12} size={size} className={className}>
+        {children}
+      </Base.Content>
+    </Base.Root>
   )
 }

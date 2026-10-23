@@ -1,3 +1,4 @@
+import { Spinner } from '@radix-ui/themes'
 import { useEffect, useRef, useState } from 'react'
 import styles from './HtmlFrame.module.css'
 
@@ -50,7 +51,10 @@ export function HtmlFrame({ url, title }: { url: string; title: string }) {
       {failed ? (
         <span className={styles.status}>无法内嵌预览，请打开预览窗口或下载</span>
       ) : html === undefined ? (
-        <span className={styles.status}>加载中…</span>
+        <span className={styles.status}>
+          <Spinner size="1" />
+          加载中…
+        </span>
       ) : (
         <iframe ref={frame} className={styles.content} style={{ height }} title={title} sandbox={sandbox} srcDoc={html} />
       )}

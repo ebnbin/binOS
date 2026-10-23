@@ -1,73 +1,52 @@
-.section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-}
-
-.header h2 {
-  margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-}
-
-.hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-.add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
 .list {
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--space-2) * -1);
   padding: 0;
   list-style: none;
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-separator);
-}
-
+/* 列表项：悬停 --gray-a3，按下 --gray-a4 */
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
-  text-align: left;
+  height: var(--size-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-2);
+  color: var(--gray-a11);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
+  text-align: start;
+}
+
+.row > svg {
+  flex: none;
+}
+
+@media (hover: hover) {
+  .row:hover:not(:disabled) {
+    background: var(--gray-a3);
+  }
+}
+
+.row:active:not(:disabled) {
+  background: var(--gray-a4);
+}
+
+.row:disabled {
+  color: var(--gray-a8);
 }
 
 .name {
   flex: none;
-  color: var(--color-text);
+  color: var(--gray-12);
+}
+
+.row:disabled .name {
+  color: inherit;
 }
 
 .url {
@@ -75,99 +54,40 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
+}
+
+.row:disabled .url {
+  color: inherit;
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--space-4);
+  margin: var(--space-1) 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-3);
+  background: var(--gray-a2);
+  box-shadow: inset 0 0 0 1px var(--gray-a5);
 }
 
-.editor label,
 .field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
 }
 
-.editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
-}
-
-.editor input:focus {
-  border-color: var(--color-text-tertiary);
-}
-
+/* 图标选择：ghost 按钮按网格排，不要 ghost 的负外边距 */
 .icons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--size-2));
   gap: var(--space-1);
 }
 
-.icons button {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
-}
-
-.icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.spacer {
-  flex: 1;
-}
-
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-}
-
-.primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.secondary {
-  background: var(--color-fill);
-}
-
-.danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
-  }
+.icons > button {
+  margin: 0;
 }

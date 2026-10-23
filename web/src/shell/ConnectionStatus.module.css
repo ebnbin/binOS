@@ -1,46 +1,36 @@
+/* 浮在屏幕上方的提示，形态同 Radix 的弹层：panel 底、shadow-5、radius-4，进出场按弹层的 160/100ms */
 .status {
   position: fixed;
-  top: calc(var(--space-16) + env(safe-area-inset-top));
+  top: calc(var(--space-9) + env(safe-area-inset-top));
   left: 50%;
   z-index: 5;
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--radius-4);
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-5);
+  color: var(--gray-12);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, calc(-1 * var(--space-1-5)));
+  transform: translate(-50%, calc(-1 * var(--space-2)));
   transition:
-    opacity var(--duration-normal),
-    visibility var(--duration-normal),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--duration-1) var(--ease-out),
+    visibility var(--duration-1),
+    transform var(--duration-1) var(--ease-out);
 }
 
 .status[data-visible='true'] {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
+  transition-duration: var(--duration-2);
   /* 上线时后端重启会断开一两秒，短暂的断开不提示 */
   transition-delay: 1.5s;
 }
 
 .status[data-urgent='true'] {
   transition-delay: 0s;
-}
-
-.reload {
-  margin: calc(-1 * var(--space-0-5)) calc(-1 * var(--space-2)) calc(-1 * var(--space-0-5)) var(--space-0-5);
-  padding: var(--space-0-5) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
 }

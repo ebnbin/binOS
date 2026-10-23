@@ -1,17 +1,16 @@
 import type { Attachment } from '@binos/server/services/kita/types'
-import { FileText, X } from 'lucide-react'
+import { IconButton } from '@radix-ui/themes'
 import { useState } from 'react'
+import { Cross2Icon, FileTextIcon } from '../../../ui/icons.ts'
 import { FileBlock } from '../../preview/index.ts'
 import { threadPreviewFile } from '../files.ts'
 import styles from './Attachments.module.css'
 
 // 附件的两种样子：浏览器能显示的图片是方形缩略图，其他文件是带文件名的卡片
-
-
 function FileCard({ name }: { name: string }) {
   return (
     <span className={styles.card}>
-      <FileText size={18} strokeWidth={1.75} />
+      <FileTextIcon width={18} height={18} className={styles.fileIcon} />
       <span className={styles.name}>{name}</span>
     </span>
   )
@@ -49,9 +48,19 @@ export function PendingAttachments({ files, onRemove }: { files: PendingFile[]; 
         <div key={key} className={styles.pending} title={file.name}>
           <PendingItem file={file} preview={preview} />
           {onRemove && (
-            <button type="button" className={styles.remove} onClick={() => onRemove(key)} aria-label={`移除 ${file.name}`}>
-              <X size={11} strokeWidth={2.5} />
-            </button>
+            <IconButton
+              type="button"
+              size="1"
+              variant="solid"
+              color="gray"
+              highContrast
+              radius="full"
+              className={styles.remove}
+              onClick={() => onRemove(key)}
+              aria-label={`移除 ${file.name}`}
+            >
+              <Cross2Icon width={12} height={12} />
+            </IconButton>
           )}
         </div>
       ))}

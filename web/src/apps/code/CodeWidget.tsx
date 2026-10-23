@@ -1,6 +1,8 @@
-import { SquarePen } from 'lucide-react'
+import { Text } from '@radix-ui/themes'
 import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Pencil2Icon } from '../../ui/icons.ts'
 import { formatTime } from '../../ui/time.ts'
 import { useSessions } from './useSessions.ts'
 
@@ -13,28 +15,26 @@ export function CodeWidget({ size, open }: WidgetContext) {
   return (
     <div className={styles.widget}>
       <header className={styles.header}>
-        <span className={styles.name}>Code</span>
-        {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
-          type="button"
+        <Text size="2" weight="medium">Code</Text>
+        {running > 0 && <Text size="1" className={styles.running}>{running} 个进行中</Text>}
+        <IconButton
+          icon={Pencil2Icon}
+          label="新对话"
+          size="1"
           className={styles.new}
-          aria-label="新对话"
-          title="新对话"
           onClick={(event) => {
             event.stopPropagation()
             open('/new')
           }}
-        >
-          <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        />
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>
-          <span className={styles.count}>{sessions?.length ?? '…'}</span>
-          <span className={styles.muted}>个对话</span>
+          <Text size="7" weight="bold" className={styles.count}>{sessions?.length ?? '…'}</Text>
+          <Text size="2" color="gray">个对话</Text>
         </div>
       ) : sessions?.length === 0 ? (
-        <p className={styles.empty}>还没有对话</p>
+        <Text as="p" size="2" color="gray" className={styles.empty}>还没有对话</Text>
       ) : (
         <ul className={styles.list}>
           {shown.map((session) => (

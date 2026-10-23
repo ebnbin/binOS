@@ -1,16 +1,21 @@
-/* 一轮：用户的话和这一轮的回答。轮与轮之间间距大，轮里面紧凑 */
+/* 一轮：用户的话和这一轮的回答。轮与轮之间间距大，轮里面紧凑。消息正文是 Radix 的 Text size 3 */
 .turn {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  color: var(--gray-12);
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
 }
 
+/* 用户的消息：靠右的 --gray-a3 气泡，下面一行时间和复制，悬停时出现 */
 .user {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   align-self: flex-end;
-  max-width: 100%;
+  max-width: 85%;
   min-width: 0;
   gap: var(--space-1);
 }
@@ -18,10 +23,9 @@
 .userText {
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-4);
+  background: var(--gray-a3);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -33,14 +37,16 @@
 .userMeta {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--size-control-xs);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--space-2);
+  min-height: var(--size-1);
+  padding-right: var(--space-1);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast);
 }
 
 .user:hover .userMeta,
@@ -56,7 +62,7 @@
   }
 }
 
-/* 收起的几步：一行「已工作 …」，后面一条细线，像一节的标题 */
+/* 收起的几步：一行「已工作 …」，后面一条分隔线，像一节的标题 */
 .worked {
   display: flex;
   flex-direction: column;
@@ -65,25 +71,27 @@
 .workedRow {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   width: 100%;
-  min-height: var(--size-control-sm);
+  min-height: var(--size-2);
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-sm);
+  color: var(--gray-a11);
+  font-family: inherit;
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-button);
 }
 
 .workedRow::after {
   content: '';
   flex: 1;
   height: 1px;
-  margin-left: var(--space-1-5);
-  background: var(--color-separator);
+  margin-left: var(--space-1);
+  background: var(--gray-a6);
 }
 
 .workedRow > span {
@@ -95,13 +103,19 @@
 
 @media (hover: hover) {
   .workedRow:hover {
-    color: var(--color-text-secondary);
+    color: var(--gray-12);
   }
+}
+
+.workedRow:focus-visible {
+  border-radius: var(--radius-2);
+  outline: 2px solid var(--focus-8);
+  outline-offset: 2px;
 }
 
 .workedChevron {
   flex: none;
-  transition: transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-2) var(--ease-out);
 }
 
 .worked[data-open] .workedChevron {
@@ -109,23 +123,7 @@
 }
 
 .errors {
-  color: var(--color-danger);
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--color-separator);
+  color: var(--red-a11);
 }
 
 .steps {
@@ -134,29 +132,55 @@
   padding-top: var(--space-1);
 }
 
+/* 打断、停止、压缩上下文：两边是分隔线的一行小字 */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-a6);
+}
+
 .time {
   align-self: center;
   margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
   font-variant-numeric: tabular-nums;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--space-2);
+  min-height: var(--size-1);
+  color: var(--gray-a10);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
   font-variant-numeric: tabular-nums;
 }
 
+/* 进行中的状态：文字上扫过一道亮光 */
 .status {
   width: fit-content;
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--color-text-tertiary) 35%, var(--color-text) 50%, var(--color-text-tertiary) 65%) 0 0 / 300% 100%;
+  background: linear-gradient(90deg, var(--gray-a10) 35%, var(--gray-12) 50%, var(--gray-a10) 65%) 0 0 / 300% 100%;
   background-clip: text;
   color: transparent;
   animation: shimmer 2.2s linear infinite;
@@ -174,5 +198,10 @@
 @media (prefers-reduced-motion: reduce) {
   .status {
     animation: none;
+    color: var(--gray-a11);
+  }
+
+  .workedChevron {
+    transition: none;
   }
 }

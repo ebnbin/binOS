@@ -1,6 +1,17 @@
+/* 正文按 Radix 的 Text size 排版；块与块之间的间距跟着字号走 */
 .markdown {
-  line-height: var(--line-height-relaxed);
+  --markdown-gap: var(--space-4);
   overflow-wrap: anywhere;
+  font-size: var(--font-size-3);
+  line-height: var(--line-height-3);
+  letter-spacing: var(--letter-spacing-3);
+}
+
+.markdown[data-size='2'] {
+  --markdown-gap: var(--space-3);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
 .markdown > :first-child {
@@ -11,49 +22,16 @@
   margin-bottom: 0;
 }
 
-.markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 var(--space-4);
+.markdown :where(p, ul, ol, .blockquote, .codeBlock, .table, .separator) {
+  margin: 0 0 var(--markdown-gap);
 }
 
-.markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: var(--space-6) 0 var(--space-3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-snug);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-.markdown h1 {
-  font-size: 1.4em;
-}
-
-.markdown h2 {
-  font-size: 1.22em;
-}
-
-.markdown h3 {
-  font-size: 1.08em;
-}
-
-.markdown :is(h4, h5, h6) {
-  font-size: 1em;
+.heading {
+  margin: calc(var(--markdown-gap) * 1.5) 0 var(--space-2);
 }
 
 .markdown strong {
-  font-weight: var(--font-weight-semibold);
-}
-
-.markdown a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .markdown a:hover {
-    text-decoration-color: currentColor;
-  }
+  font-weight: var(--font-weight-bold);
 }
 
 .markdown :is(ul, ol) {
@@ -70,7 +48,7 @@
 }
 
 .markdown li::marker {
-  color: var(--color-text-tertiary);
+  color: var(--gray-a10);
 }
 
 .markdown li > p {
@@ -78,9 +56,9 @@
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 var(--space-1-5) 0 0;
+  margin: 0 var(--space-2) 0 0;
   vertical-align: -1px;
-  accent-color: var(--color-primary);
+  accent-color: var(--accent-9);
 }
 
 .markdown :global(.contains-task-list) {
@@ -88,91 +66,50 @@
   list-style: none;
 }
 
-.markdown blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
-  color: var(--color-text-secondary);
+/* 引用块里的段落之间照常留间距，最后一段不留 */
+.blockquote > :last-child {
+  margin-bottom: 0;
 }
 
-.markdown hr {
-  height: 1px;
-  border: 0;
-  background: var(--color-separator);
-}
-
-.markdown code {
-  padding: 1px var(--space-1-5);
-  border-radius: var(--radius-xs);
-  background: var(--color-fill);
-  font-family: var(--font-mono);
-  font-size: 0.86em;
-}
-
-.markdown .codeBlock code {
-  padding: 0;
-  border-radius: 0;
-  background: none;
+.codeBlock code {
   font-size: inherit;
 }
 
 .markdown :global(.katex-display) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--markdown-gap);
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-.tableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-}
-
-.markdown table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: var(--line-height-normal);
-}
-
-.markdown :is(th, td) {
-  padding: var(--space-2) var(--space-3);
-  text-align: left;
-  vertical-align: top;
-}
-
-.markdown th {
-  background: var(--color-surface-sunken);
-  font-weight: var(--font-weight-semibold);
+.headerCell {
+  font-weight: var(--font-weight-medium);
   white-space: nowrap;
-}
-
-.markdown tr + tr td,
-.markdown thead + tbody td {
-  border-top: 1px solid var(--color-separator);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: var(--space-1-5) 0;
+  margin: var(--space-2) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--radius-4);
+  box-shadow: 0 0 0 1px var(--gray-a5);
+  background: var(--gray-a2);
 }
 
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-0-5) var(--space-3);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text-tertiary);
-  font-size: 0.9em;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px dashed var(--gray-a7);
+  border-radius: var(--radius-2);
+  color: var(--gray-a11);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }

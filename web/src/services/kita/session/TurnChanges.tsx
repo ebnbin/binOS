@@ -1,5 +1,6 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
+import { Badge } from '@radix-ui/themes'
 import { useState } from 'react'
+import { ChevronRightIcon, FileDiffIcon } from '../../../ui/icons.ts'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
 import styles from './TurnChanges.module.css'
@@ -19,7 +20,7 @@ export function TurnChanges({ thread, files }: { thread: string; files: FileChan
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <FileDiff size={14} strokeWidth={1.75} />
+        <FileDiffIcon className={styles.icon} />
         <span>改动了 {files.length} 个文件</span>
         <Counts added={added} removed={removed} />
       </div>
@@ -37,10 +38,14 @@ function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   return (
     <li data-open={open || undefined}>
       <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
-        <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
+        <ChevronRightIcon className={styles.chevron} />
         <span className={styles.name}>{file.path.split('/').at(-1)}</span>
         <span className={styles.dir}>{directory(file.path)}</span>
-        {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
+        {file.op && (
+          <Badge size="1" variant="soft" color={file.op === 'add' ? 'green' : 'red'}>
+            {opText[file.op]}
+          </Badge>
+        )}
         <Counts added={file.added} removed={file.removed} />
       </button>
       {open && (

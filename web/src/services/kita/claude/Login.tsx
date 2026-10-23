@@ -1,5 +1,7 @@
-import { ExternalLink } from 'lucide-react'
+import { Button, Callout, Card, Flex, Heading, Link, Text, TextField } from '@radix-ui/themes'
 import { useEffect, useRef, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { CheckIcon, ExternalLinkIcon } from '../../../ui/icons.ts'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
@@ -60,69 +62,90 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
   }
 
   return (
-    <div className={styles.flow}>
-      <div className={styles.title}>{titles[kind]}</div>
-      {step.name === 'starting' && (
-        <p className={styles.waiting}>
-          <Spinner /> 正在拿授权链接
-        </p>
-      )}
-      {(step.name === 'code' || step.name === 'finishing') && (
-        <form
-          className={styles.steps}
-          onSubmit={(event) => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
-            1. 打开授权页面，用 Claude 账号授权
-            <ExternalLink size={14} strokeWidth={1.75} />
-          </a>
-          <label className={styles.codeLabel}>
-            2. 把授权后页面上显示的代码贴到这里
-            <input
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              placeholder="授权代码"
-              autoComplete="off"
-              spellCheck={false}
-              disabled={step.name === 'finishing'}
-            />
-          </label>
-          <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              取消
-            </button>
-            <button type="submit" className={styles.primary} disabled={!code.trim() || step.name === 'finishing'}>
-              {step.name === 'finishing' ? <Spinner /> : '完成'}
-            </button>
-          </div>
-        </form>
-      )}
-      {step.name === 'done' && (
-        <>
-          <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
-          <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
-              好
-            </button>
-          </div>
-        </>
-      )}
-      {step.name === 'failed' && (
-        <>
-          <p className={styles.error}>{step.error}</p>
-          <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              关上
-            </button>
-            <button type="button" className={styles.primary} onClick={restart}>
-              重新开始
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+    <Card size="2" className={styles.flow}>
+      <Flex direction="column" gap="3">
+        <Heading as="h3" size="3">
+          {titles[kind]}
+        </Heading>
+        {step.name === 'starting' && (
+          <Flex align="center" gap="2">
+            <Spinner />
+            <Text size="2" color="gray">
+              正在拿授权链接
+            </Text>
+          </Flex>
+        )}
+        {(step.name === 'code' || step.name === 'finishing') && (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
+            <Flex direction="column" gap="3">
+              <Text size="2">
+                1.{' '}
+                <Link href={step.url} target="_blank" rel="noreferrer" underline="always">
+                  打开授权页面
+                  <ExternalLinkIcon className={styles.linkIcon} />
+                </Link>
+                ，用 Claude 账号授权
+              </Text>
+              <Flex asChild direction="column" gap="2">
+                <label>
+                  <Text size="2">2. 把授权后页面上显示的代码贴到这里</Text>
+                  <TextField.Root
+                    size="2"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                    placeholder="授权代码"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={step.name === 'finishing'}
+                    className={styles.code}
+                  />
+                </label>
+              </Flex>
+              <Flex justify="end" gap="2">
+                <Button type="button" variant="soft" color="gray" onClick={onClose}>
+                  取消
+                </Button>
+                <Button type="submit" disabled={!code.trim()} loading={step.name === 'finishing'}>
+                  完成
+                </Button>
+              </Flex>
+            </Flex>
+          </form>
+        )}
+        {step.name === 'done' && (
+          <>
+            <Callout.Root color="green" size="1">
+              <Callout.Icon>
+                <CheckIcon />
+              </Callout.Icon>
+              <Callout.Text>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</Callout.Text>
+            </Callout.Root>
+            <Flex justify="end" gap="2">
+              <Button type="button" onClick={onClose}>
+                好
+              </Button>
+            </Flex>
+          </>
+        )}
+        {step.name === 'failed' && (
+          <>
+            <Alert>{step.error}</Alert>
+            <Flex justify="end" gap="2">
+              <Button type="button" variant="soft" color="gray" onClick={onClose}>
+                关上
+              </Button>
+              <Button type="button" onClick={restart}>
+                重新开始
+              </Button>
+            </Flex>
+          </>
+        )}
+      </Flex>
+    </Card>
   )
 }
