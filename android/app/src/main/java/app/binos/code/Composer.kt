@@ -275,22 +275,26 @@ fun Composer(model: ConversationModel, session: SessionSummary?, running: Boolea
     }
 }
 
-// 上下文占了多少的圆环，快满时变色
+// 上下文占了多少：小圆环加百分比，快满时变色
 @Composable
 private fun UsageRing(session: SessionSummary, onClick: () -> Unit) {
-    val ratio = session.context?.let { (it.tokens.toDouble() / it.window).coerceAtMost(1.0) } ?: 0.0
-    IconButton(onClick = onClick) {
+    val ratio = session.context?.let { (it.tokens.toDouble() / it.window).coerceAtMost(1.0) }
+    val color = when {
+        ratio == null -> MaterialTheme.colorScheme.onSurfaceVariant
+        ratio >= 0.9 -> MaterialTheme.colorScheme.error
+        ratio >= 0.7 -> androidx.compose.ui.graphics.Color(0xFFE6A23C)
+        else -> MaterialTheme.colorScheme.primary
+    }
+    TextButton(onClick = onClick) {
         CircularProgressIndicator(
-            progress = { ratio.toFloat() },
-            modifier = Modifier.size(20.dp),
+            progress = { (ratio ?: 0.0).toFloat() },
+            modifier = Modifier.size(16.dp),
             strokeWidth = 3.dp,
-            color = when {
-                ratio >= 0.9 -> MaterialTheme.colorScheme.error
-                ratio >= 0.7 -> androidx.compose.ui.graphics.Color(0xFFE6A23C)
-                else -> MaterialTheme.colorScheme.primary
-            },
+            color = color,
             trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            gapSize = 0.dp,
         )
+        Text(" " + (ratio?.let { formatPercent(it) } ?: "用量"), color = color, style = MaterialTheme.typography.labelLarge)
     }
 }
 

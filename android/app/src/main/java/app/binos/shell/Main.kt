@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,6 +56,8 @@ import app.binos.code.CodeHomeScreen
 import app.binos.code.ConversationScreen
 import app.binos.files.FilePreviewScreen
 import app.binos.files.FilesScreen
+import app.binos.files.fileUrl
+import app.binos.debugOpen
 import app.binos.more.BrowserScreen
 import app.binos.more.BuildLogScreen
 import app.binos.more.BuildsScreen
@@ -95,6 +98,13 @@ fun MainScreen() {
     val adaptive = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
     // 连上播放服务，其他页面也能看到迷你播放条
     LaunchedEffect(Unit) { MusicPlayer.connect() }
+    LaunchedEffect(Unit) {
+        debugOpen?.let { path ->
+            debugOpen = null
+            val name = path.substringAfterLast('/')
+            nav.navigate(if ('.' in name) FilePreviewRoute(fileUrl(path), name) else FolderRoute(path))
+        }
+    }
     CompositionLocalProvider(LocalNav provides nav) {
         NavigationSuiteScaffold(
             layoutType = if (topLevel) adaptive else NavigationSuiteType.None,
@@ -118,7 +128,13 @@ fun MainScreen() {
         ) {
             Column {
                 ConnectionBanner()
-                NavHost(nav, startDestination = CodeRoute, modifier = Modifier.weight(1f)) {
+                // 提示条已经让开了状态栏，下面的页面不用再留
+                val connected by app.events.connected.collectAsStateWithLifecycle()
+                NavHost(
+                    nav,
+                    startDestination = CodeRoute,
+                    modifier = Modifier.weight(1f).then(if (connected) Modifier else Modifier.consumeWindowInsets(WindowInsets.statusBars)),
+                ) {
                     composable<CodeRoute> { CodeHomeScreen() }
                     composable<SessionRoute> { ConversationScreen(it.toRoute<SessionRoute>().id, null, it.toRoute<SessionRoute>().item.takeIf { item -> item >= 0 }) }
                     composable<NewSessionRoute> { ConversationScreen(null, it.toRoute<NewSessionRoute>().project.ifEmpty { null }, null) }
