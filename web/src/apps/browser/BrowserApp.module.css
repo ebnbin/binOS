@@ -4,136 +4,124 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
 }
+
+.modeBar {
+  display: flex;
+  padding: var(--spacing-100) var(--spacing-200) 0;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--spacing-100);
+  padding: var(--spacing-100) var(--spacing-200);
 }
+
 .navigation {
   display: flex;
+  gap: var(--spacing-50);
 }
+
+/* 地址栏是 Spectrum 的 field group：左边是地球图标，右边是 quiet 的「前往」 */
 .address {
-  display: flex;
-  align-items: center;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
+  padding-inline-end: var(--spacing-50);
 }
-.address input {
-  width: 100%;
-  min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  font-size: var(--font-size-xl);
+
+.go {
+  flex: none;
 }
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
-}
-.external {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
-}
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
-}
+
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  padding: 0 var(--spacing-300) var(--spacing-100);
+  border-bottom: var(--border-width-100) solid var(--divider-color);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
+
 .error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  margin: var(--spacing-100) var(--spacing-200);
 }
+
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  background: var(--document-background-color);
   color-scheme: normal;
 }
+
+/* 空状态按 illustrated message 排：图形、标题和说明居中 */
 .home {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1;
+  gap: var(--spacing-75);
+  padding: var(--spacing-500) var(--spacing-400);
   overflow: auto;
-  padding: var(--space-8) var(--space-6);
+  border-top: var(--border-width-100) solid var(--divider-color);
+  color: var(--body-color);
   text-align: center;
-  color: var(--color-text-secondary);
 }
+
+.illustration {
+  width: var(--spacing-700);
+  height: var(--spacing-700);
+  margin-bottom: var(--spacing-100);
+}
+
 .home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-400);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
+
 .home p {
   max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+  margin: 0;
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
 }
+
 @container browser (width < 440px) {
   .address {
     order: 1;
     flex-basis: 100%;
   }
+
   .external {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
-.modeContent, .remote {
+.modeContent,
+.remote {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--background-layer-1-color);
 }
+
 .remoteImage {
   display: block;
   width: 100%;
@@ -142,19 +130,24 @@
   user-select: none;
   object-fit: contain;
 }
+
 .remoteStatus {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-200);
+  background: color-mix(in srgb, var(--background-base-color) 85%, transparent);
+  color: var(--neutral-subdued-content-color-default);
   pointer-events: none;
 }
+
 .remoteInput {
   position: absolute;
-  left: 0;
   top: 0;
+  left: 0;
   width: 1px;
   height: 1px;
   padding: 0;

@@ -1,0 +1,155 @@
+/* Spectrum 2 的列表行。
+   sideNavItem：侧边导航，没有行底色，当前项文字加粗、左侧有 2px 高 18 的指示条，悬停时指示条是 gray-400。
+   row：list view / tree view 的行，悬停是 7% 的 gray-900 混色，选中是 10%，圆角 4（quiet 列表 8）。 */
+.sideNavItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--component-height-100);
+  padding: 7px var(--spacing-75) 7px var(--spacing-200);
+  border: 0;
+  border-radius: var(--corner-radius-small);
+  background: none;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-100);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+  transition-property: color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.sideNavItem::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: var(--spacing-75);
+  width: var(--border-width-200);
+  height: 18px;
+  border-radius: var(--corner-radius-full);
+  background: transparent;
+  translate: 0 -50%;
+}
+
+@media (hover: hover) {
+  .sideNavItem:hover {
+    color: var(--neutral-content-color-default);
+  }
+
+  .sideNavItem:hover::before {
+    background: var(--gray-400);
+  }
+}
+
+.sideNavItem:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+  border-radius: var(--corner-radius-medium);
+}
+
+.sideNavItem:active {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
+}
+
+.sideNavItem[aria-current='page'],
+.sideNavItem[aria-selected='true'],
+.sideNavItem[data-current='true'] {
+  color: var(--neutral-content-color-default);
+  font-weight: var(--emphasized-font-weight);
+}
+
+.sideNavItem[aria-current='page']::before,
+.sideNavItem[aria-selected='true']::before,
+.sideNavItem[data-current='true']::before {
+  background: var(--neutral-background-color-default);
+}
+
+/* 侧边导航的分组名：12px medium，gray-600 */
+.sideNavHeader {
+  margin: var(--spacing-400) 0 var(--spacing-100);
+  padding-inline-start: var(--spacing-85);
+  color: var(--gray-600);
+  font-size: var(--font-size-75);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-100);
+}
+
+.row {
+  --row-bg: transparent;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  box-sizing: border-box;
+  min-height: var(--component-height-200);
+  padding: var(--spacing-100) var(--spacing-200);
+  border: 0;
+  border-radius: var(--corner-radius-medium);
+  background: var(--row-bg);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  text-align: start;
+  text-decoration: none;
+  transition-property: color, background-color;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+@media (hover: hover) {
+  .row:hover {
+    --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 7%);
+    color: var(--neutral-content-color-default);
+  }
+}
+
+.row:active {
+  --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 10%);
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+}
+
+.row[aria-current='page'],
+.row[aria-selected='true'],
+.row[data-selected='true'] {
+  --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 7%);
+  color: var(--neutral-content-color-default);
+}
+
+@media (hover: hover) {
+  .row[aria-current='page']:hover,
+  .row[aria-selected='true']:hover,
+  .row[data-selected='true']:hover {
+    --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 10%);
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+.rowDescription {
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-100);
+}
+
+/* 带边框的 list view 容器：base 底色，1px gray-300 边框，圆角 8，行之间 1px 分隔线 */
+.listView {
+  overflow: hidden;
+  border: var(--border-width-100) solid var(--border-color);
+  border-radius: var(--corner-radius-medium);
+  background: var(--background-base-color);
+}
+
+.listView > * + * {
+  border-top: var(--border-width-100) solid var(--border-color);
+}
+
+.listView .row {
+  border-radius: 0;
+}

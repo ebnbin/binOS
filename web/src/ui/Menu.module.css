@@ -1,0 +1,120 @@
+/* Spectrum 2 的菜单和列表框（Picker 弹出的列表、下拉菜单、会话操作）。
+   菜单是 popover 加 8px 内边距；菜单项最小高度 32，圆角 8，两边各 12，字重 medium；
+   键盘或指针所在的项是 gray-200 底，选中的项不加底色，用 accent 色的勾标出 */
+.menu {
+  composes: content from './Popover.module.css';
+  display: flex;
+  flex-direction: column;
+  min-width: calc(var(--component-height-100) * 4);
+  max-width: min(320px, var(--radix-dropdown-menu-content-available-width, 100vw));
+  max-height: var(--radix-dropdown-menu-content-available-height, var(--radix-popover-content-available-height));
+  padding: var(--spacing-100) 0;
+  font-size: var(--font-size-100);
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  box-sizing: border-box;
+  min-height: var(--component-height-100);
+  margin: 0 var(--spacing-100);
+  padding: 7px var(--spacing-200);
+  border-radius: var(--corner-radius-item);
+  outline: none;
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  font-weight: var(--button-font-weight);
+  line-height: var(--line-height-100);
+  text-decoration: none;
+  cursor: default;
+  user-select: none;
+  overflow-wrap: anywhere;
+  transition: transform var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+.item[data-highlighted],
+.item:focus-visible {
+  background: var(--gray-200);
+  color: var(--neutral-content-color-hover);
+}
+
+@media (hover: hover) {
+  a.item:hover,
+  button.item:hover:not(:disabled) {
+    background: var(--gray-200);
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+.item:active:not([data-disabled], :disabled) {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
+}
+
+.item[data-disabled],
+.item:disabled {
+  color: var(--disabled-content-color);
+}
+
+.item > svg {
+  color: inherit;
+}
+
+/* 单选时勾在最前面；这一格总是留着，未选中的项文字也对齐 */
+.checkmark {
+  display: flex;
+  flex: none;
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  margin-inline-end: var(--spacing-50);
+  color: var(--accent-content-color-default);
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+}
+
+.description {
+  display: block;
+  margin-top: var(--spacing-25);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  font-weight: var(--font-weight-regular);
+}
+
+.item[data-highlighted] .description {
+  color: var(--neutral-content-color-default);
+}
+
+/* 菜单项右侧的值和快捷键 */
+.value {
+  flex: none;
+  margin-inline-start: var(--spacing-100);
+  color: var(--gray-600);
+  font-weight: var(--font-weight-regular);
+}
+
+.sectionHeader {
+  margin: 0 var(--spacing-200);
+  padding: 7px 0;
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-100);
+}
+
+.separator {
+  flex: none;
+  height: var(--border-width-200);
+  margin: 5px var(--spacing-200);
+  border-radius: var(--corner-radius-full);
+  background: var(--divider-color);
+}
+
+.message {
+  margin: var(--spacing-75) var(--spacing-200);
+  color: var(--negative-content-color-default);
+  font-size: var(--font-size-75);
+}

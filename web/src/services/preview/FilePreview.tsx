@@ -1,6 +1,11 @@
-import { Download, File, Info, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
+import action from '../../ui/ActionButton.module.css'
+import { ActionButton } from '../../ui/ActionButton.tsx'
+import { CloseButton } from '../../ui/CloseButton.tsx'
+import { Download, File, InfoCircle } from '../../ui/icons.tsx'
+import { ProgressCircle } from '../../ui/ProgressCircle.tsx'
+import segmented from '../../ui/SegmentedControl.module.css'
 import { CodeBlock } from '../../ui/content/CodeBlock.tsx'
 import { Markdown } from '../../ui/content/Markdown.tsx'
 import { languageOf } from '../../ui/content/highlight.ts'
@@ -40,8 +45,8 @@ function Preview({ item, type, source }: { item: PreviewFile; type: string; sour
   if (type === 'video') return <video className={styles.media} controls src={url} onError={() => setError('此视频无法在浏览器中播放，请下载查看')} />
   if (type === 'audio') return <audio className={styles.media} controls src={url} onError={() => setError('此音频无法在浏览器中播放，请下载查看')} />
   if (type === 'pdf') return <iframe className={styles.document} title={item.name} src={url} />
-  if (type === 'binary') return <div className={styles.status}><File size={48} strokeWidth={1} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
-  if (text === undefined) return <div className={styles.status}>加载中…</div>
+  if (type === 'binary') return <div className={styles.status}><File className={styles.statusIcon} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
+  if (text === undefined) return <div className={styles.status}><ProgressCircle size="M" label="加载中" /></div>
   if (type === 'html' && !source) return <iframe className={styles.document} title={item.name} sandbox="allow-scripts" srcDoc={text} />
   if (type === 'markdown' && !source) return <div className={styles.prose}><Markdown text={text} /></div>
   return <div className={styles.code}><CodeBlock code={text} lang={languageOf(item.name)} startLine={1} label={item.name} /></div>
@@ -69,11 +74,16 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
     <ModalHost className={styles.dialog} onClose={close} label={item.name}>
       <div className={styles.window}>
         <header className={styles.toolbar}>
-          <File size={18} /><strong className={styles.title}>{item.name}</strong>
-          {['markdown', 'html'].includes(type) && <button type="button" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
-          <a href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
-          <button type="button" onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info size={17} /></button>
-          <button type="button" onClick={close} aria-label="关闭预览" autoFocus><X size={19} /></button>
+          <File className={styles.fileIcon} /><h2 className={styles.heading}>{item.name}</h2>
+          {['markdown', 'html'].includes(type) && (
+            <div className={segmented.control} role="group" aria-label="显示方式">
+              <button type="button" className={segmented.item} aria-pressed={!source} onClick={() => setSource(false)}>预览</button>
+              <button type="button" className={segmented.item} aria-pressed={source} onClick={() => setSource(true)}>源码</button>
+            </div>
+          )}
+          <a className={`${action.button} ${styles.download}`} data-quiet href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download size="M" /><span className={action.label}>下载</span></a>
+          <ActionButton quiet icon={InfoCircle} label="文件信息" selected={info} onClick={() => setInfo(!info)} />
+          <CloseButton label="关闭预览" onClick={close} autoFocus />
         </header>
         <div className={styles.body}>
           <main className={styles.preview}><Preview item={item} type={type} source={source} /></main>

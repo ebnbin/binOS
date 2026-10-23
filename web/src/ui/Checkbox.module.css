@@ -1,28 +1,57 @@
 .label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-100);
+  width: fit-content;
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  transition: color var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
 .label .control {
+  --border: var(--gray-800);
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 17px;
-  height: 17px;
+  box-sizing: border-box;
+  width: var(--checkbox-control-size);
+  height: var(--checkbox-control-size);
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
+  border: var(--border-width-200) solid var(--border);
+  border-radius: var(--corner-radius-small);
+  background: var(--background-base-color);
+  color: var(--gray-25);
+  cursor: pointer;
+  transition-property: background-color, border-color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+@media (hover: hover) {
+  .label:hover {
+    color: var(--neutral-content-color-hover);
+  }
+
+  .label:hover .control {
+    --border: var(--gray-900);
+  }
 }
 
 .label .control[data-state='checked'] {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-color: transparent;
+  background: var(--neutral-background-color-default);
+}
+
+@media (hover: hover) {
+  .label:hover .control[data-state='checked'] {
+    background: var(--neutral-background-color-hover);
+  }
+}
+
+.label .control:active {
+  transform: perspective(var(--checkbox-control-size)) translate3d(0, 0, -1px);
 }
 
 .indicator {

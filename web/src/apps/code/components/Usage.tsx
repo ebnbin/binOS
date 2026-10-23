@@ -2,6 +2,7 @@ import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
 import { Popover } from '../../../ui/Popover.tsx'
+import { ProgressBar } from '../../../ui/ProgressBar.tsx'
 import { codeUsage } from '../api.ts'
 import { formatTokens } from '../../../ui/format.ts'
 import { formatQuota } from '../format.ts'
@@ -28,7 +29,7 @@ export function Usage({ session }: { session: SessionSummary }) {
   }, [open])
   const { context, tokens, quota } = session
   const ratio = context ? Math.min(context.tokens / context.window, 1) : 0
-  const level = ratio >= 0.9 ? 'danger' : ratio >= 0.7 ? 'warning' : undefined
+  const level = ratio >= 0.9 ? 'negative' : ratio >= 0.7 ? 'notice' : undefined
   const total = tokens && tokens.input + tokens.output + tokens.cacheRead + tokens.cacheWrite
   const circumference = 2 * Math.PI * 8
   return (
@@ -47,14 +48,14 @@ export function Usage({ session }: { session: SessionSummary }) {
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
-          <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
-            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
+          <svg viewBox="0 0 20 20" aria-hidden>
+            <circle className={styles.track} cx="10" cy="10" r="8" fill="none" strokeWidth="2.5" />
             <circle
+              className={styles.fill}
               cx="10"
               cy="10"
               r="8"
               fill="none"
-              stroke="currentColor"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -64,20 +65,18 @@ export function Usage({ session }: { session: SessionSummary }) {
         </button>
       }
     >
-      <div className={styles.line}>
-        <span className={styles.label}>上下文</span>
-        {context ? (
-          <span>
-            {formatTokens(context.tokens)} / {formatTokens(context.window)}
-            <span className={styles.muted}> · {Math.round(ratio * 100)}%</span>
-          </span>
-        ) : (
+      {context ? (
+        <ProgressBar
+          className={styles.meter}
+          variant={level ?? 'informative'}
+          value={ratio * 100}
+          label="上下文"
+          valueLabel={`${formatTokens(context.tokens)} / ${formatTokens(context.window)} · ${Math.round(ratio * 100)}%`}
+        />
+      ) : (
+        <div className={styles.line}>
+          <span className={styles.label}>上下文</span>
           <span className={styles.muted}>答完第一轮后显示</span>
-        )}
-      </div>
-      {context && (
-        <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
         </div>
       )}
       <div className={styles.line}>

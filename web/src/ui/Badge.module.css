@@ -1,0 +1,90 @@
+.badge {
+  --height: var(--component-height-75);
+  --bold: var(--neutral-subdued-background-color-default);
+  --subtle: var(--neutral-subtle-background-color-default);
+  --visual: var(--neutral-visual-color);
+  --on-bold: var(--white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-75);
+  flex: none;
+  box-sizing: border-box;
+  min-width: var(--height);
+  min-height: var(--height);
+  padding: 0 calc(var(--height) * 3 / 8);
+  border: var(--border-width-200) solid transparent;
+  border-radius: var(--corner-radius-medium-size-small);
+  background: var(--subtle);
+  color: var(--gray-1000);
+  font-size: var(--font-size-75);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-100);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge[data-size='M'] {
+  --height: var(--component-height-100);
+  border-radius: var(--corner-radius-medium);
+  font-size: var(--font-size-100);
+}
+
+.badge > svg {
+  margin-inline-start: -2px;
+}
+
+.badge:has(> svg):not(:has(.label)) {
+  padding: 0;
+}
+
+.badge:has(> svg):not(:has(.label)) > svg {
+  margin: 0;
+}
+
+.badge[data-variant='accent'],
+.badge[data-variant='informative'] {
+  --bold: var(--accent-background-color-default);
+  --subtle: var(--accent-subtle-background-color-default);
+  --visual: var(--accent-visual-color);
+}
+
+.badge[data-variant='positive'] {
+  --bold: var(--positive-background-color-default);
+  --subtle: var(--positive-subtle-background-color-default);
+  --visual: var(--positive-visual-color);
+}
+
+.badge[data-variant='notice'] {
+  --bold: var(--notice-background-color-default);
+  --subtle: var(--notice-subtle-background-color-default);
+  --visual: var(--notice-visual-color);
+  --on-bold: var(--black);
+}
+
+.badge[data-variant='negative'] {
+  --bold: var(--negative-background-color-default);
+  --subtle: var(--negative-subtle-background-color-default);
+  --visual: var(--negative-visual-color);
+}
+
+.badge[data-variant='purple'] {
+  --bold: var(--purple-900);
+  --subtle: var(--purple-subtle-background-color-default);
+  --visual: var(--purple-visual-color);
+}
+
+.badge[data-fill='bold'] {
+  background: var(--bold);
+  color: var(--on-bold);
+}
+
+.badge[data-fill='outline'] {
+  border-color: var(--visual);
+  background: var(--background-layer-2-color);
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,4 +1,5 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
+/* 控制栏在外框的深色底上，按钮是 Spectrum 的 quiet action button（static white）：
+   悬停是 11% 的白，当前的 app 是 toggle button 的选中态，85% 的白底、黑色图标 */
 .bar {
   display: flex;
   align-items: center;
@@ -6,12 +7,12 @@
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-1-5) 0;
+  padding: var(--spacing-85) 0;
 }
 
 .bar[data-placement='left'],
 .bar[data-placement='right'] {
-  padding: 0 var(--space-1-5);
+  padding: 0 var(--spacing-85);
 }
 
 .bar[data-placement='left'] {
@@ -21,7 +22,7 @@
 .dock {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacing-75);
   min-width: 0;
   min-height: 0;
   max-width: 100%;
@@ -31,7 +32,7 @@
 /* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
 .apps {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--spacing-75);
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -54,39 +55,57 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  border-radius: var(--radius-lg);
-  color: var(--color-on-chrome-secondary);
-  transition: background-color var(--duration-fast), color var(--duration-fast);
+  width: var(--component-height-200);
+  height: var(--component-height-200);
+  border-radius: var(--corner-radius-medium-size-large);
+  color: var(--frame-content-color);
+  transition-property: background-color, color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.item:focus-visible {
+  outline-color: var(--white);
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: var(--color-chrome-hover);
-    color: var(--color-on-chrome);
+    background: var(--frame-hover-color);
+    color: var(--frame-content-color-strong);
   }
 }
 
-.item[aria-pressed='true'] {
-  background: var(--color-chrome-selected);
-  color: var(--color-on-chrome);
+.item:active {
+  background: var(--frame-hover-color);
+  transform: perspective(var(--component-height-200)) translate3d(0, 0, -2px);
 }
 
-/* 正在显示的 app 旁边有个点 */
-.item[data-visible='true']::after {
+.item[aria-pressed='true'] {
+  background: var(--transparent-white-800);
+  color: var(--black);
+}
+
+@media (hover: hover) {
+  .item[aria-pressed='true']:hover {
+    background: var(--transparent-white-900);
+    color: var(--black);
+  }
+}
+
+/* 正在显示、但没有聚焦的 app 下面有个点 */
+.item[data-visible='true']:not([aria-pressed='true'])::after {
   content: '';
   position: absolute;
   bottom: 3px;
   width: 4px;
   height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome-secondary);
+  border-radius: var(--corner-radius-full);
+  background: var(--frame-content-color);
 }
 
 .bar[data-placement='left'] .item[data-visible='true']::after,
 .bar[data-placement='right'] .item[data-visible='true']::after {
-  top: 18px;
+  top: calc(50% - 2px);
   bottom: auto;
 }
 
@@ -98,74 +117,73 @@
   left: 2px;
 }
 
+/* 分隔线：Spectrum 的 S 号 divider，static white */
 .separator {
   flex: none;
-  width: 1px;
-  height: 22px;
-  margin: 0 var(--space-1-5);
-  background: var(--color-chrome-border);
+  width: var(--border-width-100);
+  height: var(--icon-size-l);
+  margin: 0 var(--spacing-85);
+  border-radius: var(--corner-radius-full);
+  background: var(--frame-border-color);
 }
 
 .bar[data-placement='left'] .separator,
 .bar[data-placement='right'] .separator {
-  width: 22px;
-  height: 1px;
-  margin: var(--space-1-5) 0;
+  width: var(--icon-size-l);
+  height: var(--border-width-100);
+  margin: var(--spacing-85) 0;
 }
 
 .glyph {
   display: flex;
-  gap: var(--space-0-5);
-  width: 22px;
-  height: 16px;
+  gap: var(--spacing-50);
+  width: 20px;
+  height: 15px;
 }
 
 .glyph[data-portrait='true'] {
   flex-direction: column;
-  width: 16px;
+  width: 15px;
   height: 20px;
 }
 
 .glyph i {
-  border-radius: calc(var(--radius-xs) / 2);
-  background: currentColor;
-  opacity: 0.85;
-}
-
-.glyph i[data-active='false'] {
-  opacity: 0.3;
+  border: 1.5px solid currentColor;
+  border-radius: var(--corner-radius-small-size-small);
 }
 
 .glyph i[data-active='true'] {
-  opacity: 1;
-  background: var(--color-on-chrome);
+  background: currentColor;
 }
 
+/* 分屏的一组：两个图标放在一个按钮里，外面一圈 static white 的描边 */
 .item[data-group='true'] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1-5);
-  width: 58px;
-  box-shadow: inset 0 0 0 1px var(--color-chrome-border);
+  gap: var(--spacing-85);
+  width: auto;
+  padding: 0 var(--spacing-200);
+  box-shadow: inset 0 0 0 var(--border-width-100) var(--frame-border-color);
 }
 
-.item[data-group='true']::after { display: none; }
+.item[data-group='true'][aria-pressed='true'] {
+  box-shadow: none;
+}
+
+.item[data-group='true']::after {
+  display: none;
+}
 
 .member {
   position: relative;
   display: grid;
   place-items: center;
   height: 100%;
+  opacity: 0.6;
 }
 
-.member[data-focused='true']::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome);
+.member[data-focused='true'],
+.item:not([aria-pressed='true']) .member {
+  opacity: 1;
 }

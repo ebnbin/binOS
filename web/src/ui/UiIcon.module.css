@@ -1,0 +1,19 @@
+.icon {
+  flex: none;
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+  fill: currentColor;
+  transition: rotate var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+.icon[data-direction='down'] {
+  rotate: 90deg;
+}
+
+.icon[data-direction='up'] {
+  rotate: -90deg;
+}
+
+.icon[data-direction='left'] {
+  rotate: 180deg;
+}

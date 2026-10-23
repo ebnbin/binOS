@@ -1,0 +1,65 @@
+/* Spectrum 2 tabs：没有底线，标签之间隔 32（compact 24），高度 48（compact 32）；
+   未选中是 gray-700，选中是 gray-800，下面是 2px 的 gray-800 指示条 */
+.list {
+  display: flex;
+  gap: var(--spacing-500);
+  min-width: 0;
+}
+
+.list[data-density='compact'] {
+  gap: var(--spacing-400);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  flex: none;
+  height: var(--component-height-300);
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-radius-small);
+  background: none;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-100);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+.list[data-density='compact'] .tab {
+  height: var(--component-height-100);
+}
+
+@media (hover: hover) {
+  .tab:hover:not(:disabled) {
+    color: var(--neutral-content-color-default);
+  }
+}
+
+.tab[aria-selected='true'],
+.tab[data-state='active'],
+.tab[aria-current='page'] {
+  color: var(--neutral-content-color-default);
+}
+
+.tab[aria-selected='true']::after,
+.tab[data-state='active']::after,
+.tab[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: var(--border-width-200);
+  border-radius: var(--corner-radius-full);
+  background: var(--neutral-background-color-default);
+}
+
+.tab:disabled {
+  color: var(--disabled-content-color);
+  cursor: default;
+}

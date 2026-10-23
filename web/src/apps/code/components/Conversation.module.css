@@ -13,84 +13,94 @@
   overscroll-behavior: contain;
 }
 
+/* 回到底部：浮在内容上的圆形按钮，elevated 底色和阴影 */
 .toBottom {
   position: absolute;
-  bottom: var(--space-3);
+  bottom: var(--spacing-200);
   left: 50%;
   display: grid;
   place-items: center;
-  width: var(--size-control-md);
-  height: var(--size-control-md);
+  width: var(--component-height-100);
+  height: var(--component-height-100);
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-md);
+  border: 0;
+  border-radius: var(--corner-radius-full);
+  outline: var(--border-width-100) solid var(--popover-border-color);
+  background: var(--background-elevated-color);
+  color: var(--neutral-content-color-default);
+  box-shadow: var(--drop-shadow-elevated);
   cursor: pointer;
-  transform: translateX(-50%);
-  animation: appear var(--duration-normal) var(--ease-standard) both;
+  translate: -50% 0;
+  transition-property: color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+  animation: appear var(--animation-duration-200) var(--animation-ease-out) both;
+}
+
+.toBottom:focus-visible {
+  outline: var(--focus-indicator-thickness) solid var(--focus-indicator-color);
+  outline-offset: var(--focus-indicator-gap);
 }
 
 @media (hover: hover) {
   .toBottom:hover {
-    color: var(--color-text);
+    color: var(--neutral-content-color-hover);
   }
+}
+
+.toBottom:active {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--spacing-500);
   min-height: 100%;
   max-width: 780px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-8) var(--space-10);
+  padding: var(--spacing-200) var(--spacing-500) var(--spacing-600);
 }
 
+/* 新对话的空状态，和 Spectrum 2 的 illustrated message 一致：图形、标题，下面是选择项目的 picker */
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: var(--space-4);
-  padding-bottom: var(--space-16);
+  gap: var(--spacing-200);
+  padding-bottom: var(--spacing-800);
   text-align: center;
-  animation: rise 0.5s var(--ease-standard) both;
+  animation: rise var(--animation-duration-1000) var(--animation-ease-out) both;
 }
 
 .empty h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-.empty p {
-  margin: calc(-1 * var(--space-2)) 0 0;
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
+  color: var(--title-color);
+  font-size: var(--font-size-400);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(var(--spacing-100));
   }
 }
 
 @keyframes appear {
   from {
     opacity: 0;
-    transform: translate(-50%, 6px);
+    translate: -50% var(--spacing-75);
   }
 }
 
 @container agent (width < 600px) {
   .column {
-    gap: var(--space-6);
-    padding: var(--space-5) var(--space-5) var(--space-8);
+    gap: var(--spacing-400);
+    padding: var(--spacing-350) var(--spacing-350) var(--spacing-500);
   }
 }
 
@@ -105,17 +115,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-md);
+  gap: var(--spacing-85);
+  margin-top: var(--spacing-100);
+  color: var(--detail-color);
 }
 
-.projectChoice button {
+.projectChoice > button {
   max-width: 240px;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
 }

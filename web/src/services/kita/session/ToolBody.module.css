@@ -1,87 +1,93 @@
+/* 输出、终端和 diff 和代码块一样：gray-75 的面，圆角 large，字号比周围的文字小一号 */
 .output,
 .terminal,
 .diffLines {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--spacing-200) var(--spacing-300);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border-radius: var(--corner-radius-large);
+  background: var(--gray-75);
+  color: var(--code-color);
+  font-family: var(--font-family-code);
+  font-size: 0.875em;
+  line-height: var(--line-height-200);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .output[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--negative-content-color-default);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
   user-select: none;
 }
 
-.terminal {
-  color: var(--color-text);
-}
-
 .terminalOutput {
-  color: var(--color-text-secondary);
+  color: var(--neutral-subdued-content-color-default);
 }
 
 .terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--negative-content-color-default);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacing-85);
 }
 
 .diffLines {
-  padding: var(--space-3) 0;
+  padding: var(--spacing-200) 0;
   white-space: pre;
 }
 
 .diffLine {
   display: block;
-  padding: 0 var(--space-3) 0 0;
+  padding: 0 var(--spacing-300) 0 0;
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: var(--positive-subtle-background-color-default);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: var(--negative-subtle-background-color-default);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
 }
 
 .diffSign {
   display: inline-block;
-  width: 26px;
+  width: var(--spacing-400);
+  color: var(--detail-color);
   text-align: center;
-  color: var(--color-text-tertiary);
   user-select: none;
 }
 
+[data-change='added'] > .diffSign {
+  color: var(--positive-visual-color);
+}
+
+[data-change='removed'] > .diffSign {
+  color: var(--negative-visual-color);
+}
+
+/* 搜到的网页：quiet list view 的行，标题在前，域名是 subdued */
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -90,18 +96,25 @@
 .links a {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  color: inherit;
+  gap: var(--spacing-100);
+  margin-inline: calc(-1 * var(--spacing-100));
+  padding: var(--spacing-85) var(--spacing-100);
+  border-radius: var(--corner-radius-medium);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  transition: background-color var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
 @media (hover: hover) {
   .links a:hover {
-    background: var(--color-hover);
+    background: color-mix(in srgb, var(--background-base-color), var(--gray-900) 7%);
   }
+}
+
+.links a:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
 }
 
 .linkTitle {
@@ -113,8 +126,8 @@
 
 .linkHost {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
 }
 
 .image {
@@ -126,6 +139,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
+  border: var(--border-width-100) solid var(--divider-color);
+  border-radius: var(--corner-radius-large);
 }

@@ -1,0 +1,59 @@
+/* Spectrum 2 card：primary 是 elevated 底色加 emphasized 阴影，悬停时阴影变成 elevated；
+   secondary 是 layer-1 底色；tertiary 没有底色，用 2px gray-100 描边。圆角 10，内边距 16 */
+.card {
+  box-sizing: border-box;
+  padding: var(--spacing-300);
+  border-radius: var(--corner-radius-card);
+  background: var(--background-elevated-color);
+  color: var(--body-color);
+  box-shadow: var(--drop-shadow-emphasized);
+  transition-property: background-color, box-shadow, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.interactive {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .interactive:hover {
+    box-shadow: var(--drop-shadow-elevated);
+  }
+}
+
+.interactive:active {
+  transform: perspective(400px) translate3d(0, 0, -2px);
+}
+
+.secondary {
+  composes: card;
+  background: var(--background-layer-1-color);
+}
+
+.tertiary {
+  composes: card;
+  background: transparent;
+  box-shadow: 0 0 0 var(--border-width-200) var(--gray-100);
+}
+
+@media (hover: hover) {
+  .tertiary.interactive:hover {
+    box-shadow: 0 0 0 var(--border-width-200) var(--gray-200);
+  }
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.cardDescription {
+  margin: 0;
+  color: var(--body-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-body);
+}

@@ -1,173 +1,102 @@
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
+  margin-bottom: var(--spacing-500);
+  font-size: var(--font-size-100);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--spacing-200);
 }
 
-.header h2 {
-  margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+.title {
+  composes: title from '../../ui/Typography.module.css';
 }
 
 .hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  margin: var(--spacing-75) 0 var(--spacing-200);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
 
-.add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
+/* 清单是带边框的 list view，编辑中的那一项就地展开成表单 */
 .list {
+  composes: listView from '../../ui/List.module.css';
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-separator);
+.row {
+  composes: row from '../../ui/List.module.css';
+  gap: var(--spacing-200);
+  width: 100%;
+  cursor: pointer;
 }
 
-.row {
+.row:disabled {
+  color: var(--disabled-content-color);
+  cursor: default;
+}
+
+.row:disabled:hover {
+  --row-bg: transparent;
+}
+
+.text {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
-  text-align: left;
+  flex-direction: column;
+  gap: var(--spacing-25);
+  min-width: 0;
 }
 
 .name {
-  flex: none;
-  color: var(--color-text);
+  color: var(--neutral-content-color-default);
+}
+
+.row:disabled .name,
+.row:disabled .url {
+  color: inherit;
 }
 
 .url {
-  min-width: 0;
+  composes: rowDescription from '../../ui/List.module.css';
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--spacing-300);
+  padding: var(--spacing-300);
+  background: var(--background-layer-1-color);
 }
 
-.editor label,
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  min-width: 0;
 }
 
-.editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
-}
-
-.editor input:focus {
-  border-color: var(--color-text-tertiary);
-}
-
+/* 图标选择：一组 quiet 的 toggle button，选中的是深色底 */
 .icons {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
-}
-
-.icons button {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
-}
-
-.icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  gap: var(--spacing-75);
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-200);
+  padding-top: var(--spacing-100);
 }
 
 .spacer {
   flex: 1;
-}
-
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-}
-
-.primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.secondary {
-  background: var(--color-fill);
-}
-
-.danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
-  }
 }

@@ -1,4 +1,5 @@
 import type { Limits } from '@binos/server/services/kita/types'
+import { InlineAlert } from '../../ui/InlineAlert.tsx'
 import { blockingWindow, formatReset, formatSpan, windowsOf, windowState } from './quota.ts'
 import styles from './Quota.module.css'
 
@@ -9,11 +10,11 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
   return (
     <div className={styles.windows}>
       {limits.limited && (
-        <p className={styles.limited}>
+        <InlineAlert fillStyle="subtleFill">
           {blocking
             ? `已被限流：${blocking.name}额度用满了，${formatReset(blocking.window.resetsAt, now).replace('重置', '恢复')}`
             : '已被限流'}
-        </p>
+        </InlineAlert>
       )}
       {windowsOf(limits).map(({ key, longest, name, window, length }) => {
         const { used, left, expected, pace, runsOut } = windowState(window, length, now)

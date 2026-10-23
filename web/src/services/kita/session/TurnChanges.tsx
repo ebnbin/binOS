@@ -1,5 +1,7 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
 import { useState } from 'react'
+import { Badge } from '../../../ui/Badge.tsx'
+import { Compare } from '../../../ui/icons.tsx'
+import { UiIcon } from '../../../ui/UiIcon.tsx'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
 import styles from './TurnChanges.module.css'
@@ -19,8 +21,8 @@ export function TurnChanges({ thread, files }: { thread: string; files: FileChan
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <FileDiff size={14} strokeWidth={1.75} />
-        <span>改动了 {files.length} 个文件</span>
+        <Compare size="S" />
+        <span className={styles.title}>改动了 {files.length} 个文件</span>
         <Counts added={added} removed={removed} />
       </div>
       <ul className={styles.files}>
@@ -35,12 +37,16 @@ export function TurnChanges({ thread, files }: { thread: string; files: FileChan
 function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   const [open, setOpen] = useState(false)
   return (
-    <li data-open={open || undefined}>
+    <li>
       <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
-        <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
+        <UiIcon glyph="chevron" direction={open ? 'down' : undefined} className={styles.chevron} />
         <span className={styles.name}>{file.path.split('/').at(-1)}</span>
         <span className={styles.dir}>{directory(file.path)}</span>
-        {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
+        {file.op && (
+          <Badge variant={file.op === 'add' ? 'positive' : 'negative'} size="S">
+            {opText[file.op]}
+          </Badge>
+        )}
         <Counts added={file.added} removed={file.removed} />
       </button>
       {open && (

@@ -1,7 +1,8 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
-import { ArrowUpRight, MessageSquare, Search, UserRound } from 'lucide-react'
 import type { searchContent } from '../api.ts'
-import { Spinner } from '../../../ui/Spinner.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { Chat, ChevronRight, Search, User } from '../../../ui/icons.tsx'
+import { ProgressCircle } from '../../../ui/ProgressCircle.tsx'
 import styles from './SearchResults.module.css'
 
 type Results = Awaited<ReturnType<typeof searchContent>>
@@ -27,25 +28,25 @@ export function SearchResults({
   if (failed)
     return (
       <div className={styles.state} role="alert">
-        <span>搜索失败</span>
+        <span className={styles.stateTitle}>搜索失败</span>
         <p>未能加载结果，请重试。</p>
-        <button type="button" onClick={onRetry}>
+        <Button variant="secondary" size="S" onClick={onRetry}>
           重新搜索
-        </button>
+        </Button>
       </div>
     )
   if (!data)
     return (
       <div className={styles.loading} role="status">
-        <Spinner />
+        <ProgressCircle label="正在搜索" />
         正在搜索…
       </div>
     )
   if (!data.results.length)
     return (
       <div className={styles.state} role="status">
-        <Search size={24} strokeWidth={1.5} />
-        <span>没有找到相关内容</span>
+        <Search className={styles.stateIcon} />
+        <span className={styles.stateTitle}>没有找到相关内容</span>
         <p>试试更短的关键词，或换个说法。</p>
       </div>
     )
@@ -80,17 +81,17 @@ export function SearchResults({
               </span>
               <span className={styles.count}>
                 {matches.length} 处匹配
-                <ArrowUpRight size={13} />
+                <ChevronRight size="XS" />
               </span>
             </button>
             {matches
               .filter((match) => match.kind !== 'title')
               .map((match) => {
-                const Icon = match.kind === 'input' ? UserRound : MessageSquare
+                const Icon = match.kind === 'input' ? User : Chat
                 return (
                   <button type="button" className={styles.match} key={match.item} onClick={() => onNavigate(`/${id}?item=${match.item}`)}>
                     <span className={styles.kind}>
-                      <Icon size={12} />
+                      <Icon size="XS" />
                       {match.kind === 'input' ? '你' : '回复'}
                     </span>
                     <span className={styles.snippet}>

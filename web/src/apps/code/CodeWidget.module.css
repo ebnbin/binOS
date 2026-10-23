@@ -8,50 +8,45 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-100);
   flex: none;
 }
 
 .name {
-  font-weight: var(--font-weight-semibold);
-}
-
-.running {
-  color: var(--color-accent);
-  font-size: var(--font-size-xs);
+  color: var(--title-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
 
 .new {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1-5)) calc(-1 * var(--space-1)) auto;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  margin: calc(-1 * var(--spacing-75)) calc(-1 * var(--spacing-75)) calc(-1 * var(--spacing-75)) auto;
 }
 
 .summary {
   display: flex;
   align-items: baseline;
-  gap: var(--space-1);
+  gap: var(--spacing-75);
   margin-top: auto;
 }
 
 .count {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
+  color: var(--heading-color);
+  font-size: var(--font-size-800);
+  font-weight: var(--heading-font-weight);
+  line-height: var(--line-height-100);
+  font-variant-numeric: tabular-nums;
 }
 
 .muted {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
 }
 
+/* 最近的对话：quiet list view 的行，悬停是 gray-900 的 7% 混色 */
 .list {
   min-height: 0;
-  margin: var(--space-1-5) calc(-1 * var(--space-2)) 0;
+  margin: var(--spacing-100) calc(-1 * var(--spacing-100)) 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
@@ -60,31 +55,47 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-100);
+  box-sizing: border-box;
   width: 100%;
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  text-align: left;
-  font-size: var(--font-size-sm);
+  min-height: var(--component-height-100);
+  padding: var(--spacing-75) var(--spacing-100);
+  border: 0;
+  border-radius: var(--corner-radius-medium);
+  background: transparent;
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
 @media (hover: hover) {
-  .new:hover,
   .row:hover {
-    background: var(--color-hover);
+    background: color-mix(in srgb, var(--background-elevated-color), var(--gray-900) 7%);
   }
 }
 
+.row:active {
+  background: color-mix(in srgb, var(--background-elevated-color), var(--gray-900) 10%);
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+}
+
+/* 和 S 尺寸 status light 的圆点一致：进行中是 informative，其余是 neutral */
 .dot {
   flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-border);
+  width: calc(var(--component-height-100) / 4);
+  height: calc(var(--component-height-100) / 4);
+  border-radius: var(--corner-radius-full);
+  background: var(--gray-500);
 }
 
 .dot[data-running='true'] {
-  background: var(--color-accent);
+  background: var(--informative-visual-color);
 }
 
 .title {
@@ -97,14 +108,14 @@
 
 .time {
   flex: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
   font-variant-numeric: tabular-nums;
 }
 
 .empty {
   margin: auto 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
   text-align: center;
 }

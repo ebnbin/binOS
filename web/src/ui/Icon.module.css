@@ -1,0 +1,32 @@
+/* Spectrum 2 的 workflow 图标：独立使用 20，控件里按 T 恤尺码和文字行高对齐，颜色跟随文字 */
+.icon {
+  --iconPrimary: currentColor;
+  flex: none;
+  width: var(--icon-size);
+  height: var(--icon-size);
+}
+
+.icon[data-size='XS'] {
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
+}
+
+.icon[data-size='S'] {
+  width: var(--icon-size-s);
+  height: var(--icon-size-s);
+}
+
+.icon[data-size='M'] {
+  width: var(--icon-size-m);
+  height: var(--icon-size-m);
+}
+
+.icon[data-size='L'] {
+  width: var(--icon-size-l);
+  height: var(--icon-size-l);
+}
+
+.icon[data-size='XL'] {
+  width: var(--icon-size-xl);
+  height: var(--icon-size-xl);
+}

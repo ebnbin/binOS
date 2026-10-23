@@ -13,6 +13,8 @@ let connected = true
 let updated = false
 let version: string | undefined
 let started = false
+// 已经连上：之后才订阅的错过了这次的 null，订阅时补一次
+let open = false
 
 const notifyConnection = () => connectionListeners.forEach((listener) => listener())
 
@@ -36,6 +38,7 @@ function start() {
   started = true
   connectEventSource(eventsUrl, {
     onOpen: () => {
+      open = true
       void checkVersion()
       listeners.forEach((listener) => listener(null))
     },
@@ -44,6 +47,7 @@ function start() {
       listeners.forEach((listener) => listener(event))
     },
     onConnectedChange: (value) => {
+      open &&= value
       connected = value
       notifyConnection()
     },
@@ -53,6 +57,9 @@ function start() {
 export function onChange(listener: Listener): () => void {
   listeners.add(listener)
   start()
+  if (open) {
+    queueMicrotask(() => listeners.has(listener) && listener(null))
+  }
   return () => listeners.delete(listener)
 }
 

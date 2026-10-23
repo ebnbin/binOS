@@ -1,4 +1,3 @@
-import { ArrowUpRight, Check, Disc3, ListMusic, Music2, Plus, Search, Settings2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { CatalogPage, Lyrics, ProviderInfo } from '@binos/server/apps/music/types'
 import type { WindowContext } from '../types.ts'
@@ -10,6 +9,16 @@ import { catalog, readLyrics } from './api.ts'
 import { useProviders, refreshProviders } from './providers.ts'
 import { ProviderSettings } from './ProviderSettings.tsx'
 import { PlaybackInspector } from './PlaybackInspector.tsx'
+import { ActionButton } from '../../ui/ActionButton.tsx'
+import { Button } from '../../ui/Button.tsx'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Add, Checkmark, Close, MusicNote, OpenIn, Search, Settings } from '../../ui/icons.tsx'
+import { InlineAlert } from '../../ui/InlineAlert.tsx'
+import { ProgressCircle } from '../../ui/ProgressCircle.tsx'
+import { Select } from '../../ui/Select.tsx'
+import { UiIcon } from '../../ui/UiIcon.tsx'
+import field from '../../ui/Field.module.css'
+import tabs from '../../ui/Tabs.module.css'
 import styles from './music.module.css'
 
 const inputOperation = (provider: ProviderInfo, query: string): 'search' | 'resolve' | 'playlist' => provider.input.references.find(rule => new RegExp(rule.pattern, 'i').test(query))?.capability ?? 'search'
@@ -80,7 +89,15 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
     readLyrics(lyricProvider, lyricId, controller.signal).then(value => { if (!controller.signal.aborted) setLyrics({ key: lyricKey, value }) }).catch(() => {})
     return () => controller.abort()
   }, [lyricProvider, lyricId, lyricKey, currentProvider?.capabilities.lyrics.state])
-  if (!provider) return <div className={styles.empty}><p>{providersError ?? '正在读取音乐来源…'}</p>{providersError && <button type="button" onClick={() => void refreshProviders()}>重试</button>}</div>
+  if (!provider) return (
+    <div className={styles.app}>
+      <div className={styles.empty}>
+        {providersError ? <MusicNote className={styles.emptyIcon} /> : <ProgressCircle size="M" label="正在读取音乐来源" />}
+        <p>{providersError ?? '正在读取音乐来源…'}</p>
+        {providersError && <Button variant="secondary" onClick={() => void refreshProviders()}>重试</Button>}
+      </div>
+    </div>
+  )
   const operation = inputOperation(provider, query.trim())
   const resolving = operation !== 'search'
   const queryCapability = provider.capabilities[operation]
@@ -88,47 +105,58 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <span className={styles.brand}><Music2 size={19} />音乐</span>
-        {musicProviders.length > 1 ? <select aria-label="音乐来源" value={provider.id} onChange={(event) => { request.current?.abort(); setBusy(false); setResults(undefined); setMessage(''); setProviderId(event.target.value) }}>{musicProviders.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select> : <span className={styles.source}>{provider.name}</span>}
-        {provider.configuration.fields.length > 0 && <button type="button" className={styles.iconButton} aria-label="音乐设置" title="音乐设置" aria-expanded={settings} onClick={() => setSettings(!settings)}><Settings2 size={18} /></button>}
+        <span className={styles.brand}>音乐</span>
+        {musicProviders.length > 1
+          ? <Select label="音乐来源" value={provider.id} options={musicProviders.map((source) => ({ value: source.id, label: source.name }))} onValueChange={(value) => { request.current?.abort(); setBusy(false); setResults(undefined); setMessage(''); setProviderId(value) }} className={styles.sourcePicker} />
+          : <span className={styles.source}>{provider.name}</span>}
+        {provider.configuration.fields.length > 0 && <IconButton icon={Settings} label="音乐设置" aria-expanded={settings} onClick={() => setSettings(!settings)} />}
       </header>
       {settings && <ProviderSettings key={provider.id} provider={provider} />}
       <p className={styles.providerDescription}>{provider.description}</p>
-      {providersError && <p className={styles.notice}>{providersError}</p>}
+      {providersError && <InlineAlert variant="negative" fillStyle="subtleFill" className={styles.alert}>{providersError}</InlineAlert>}
       <form className={styles.search} onSubmit={(event) => { event.preventDefault(); void search() }}>
-        <Search size={17} />
-        <input aria-label="搜索音乐或粘贴链接" placeholder="歌名、歌手或音乐链接" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={500} />
-        <button className={styles.primary} disabled={!query.trim() || queryCapability.state !== 'available'}>查找</button>
+        <div className={`${field.group} ${field.search} ${styles.searchField}`}>
+          <Search size="M" className={field.prefix} />
+          <input className={field.groupInput} aria-label="搜索音乐或粘贴链接" placeholder="歌名、歌手或音乐链接" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={500} />
+          {query && <button type="button" className={field.clear} aria-label="清除" onClick={() => setQuery('')}><UiIcon glyph="cross" /></button>}
+        </div>
+        <Button type="submit" variant="secondary" disabled={!query.trim() || queryCapability.state !== 'available'}>查找</Button>
       </form>
       {queryCapability.state === 'configuration-required' && <p className={styles.providerDescription}>{queryCapability.reason}</p>}
       {queryCapability.state === 'unsupported' && <p className={styles.providerDescription}>此来源不支持{resolving ? '链接导入' : '搜索'}。</p>}
       <section className={styles.nowPlaying} aria-label="正在播放">
-        <span className={styles.artwork}>{track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={48} strokeWidth={1} />}</span>
+        <span className={styles.artwork}>{track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <MusicNote />}</span>
         <div className={styles.trackInfo}>
           <span className={styles.eyebrow}>{state.status === 'playing' ? '正在播放' : state.status === 'loading' ? '正在连接…' : state.status === 'error' ? '播放遇到问题' : track ? '随时继续' : '你的音乐，随时播放'}</span>
-          <h1>{track?.title ?? '从喜欢的一首开始'}</h1>
+          <h1 className={styles.trackTitle}>{track?.title ?? '从喜欢的一首开始'}</h1>
           <p>{track ? track.artists.join(' / ') || '未知艺人' : '搜索喜欢的音乐，或粘贴单曲和歌单链接。'}</p>
-          {track && <a href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开 <ArrowUpRight size={12} /></a>}
+          {track && <a href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开<OpenIn size="S" /></a>}
         </div>
       </section>
-      {state.error && <div role="alert" className={styles.error}>{state.error}</div>}
+      {state.error && <InlineAlert variant="negative" fillStyle="subtleFill" className={styles.alert}>{state.error}</InlineAlert>}
       <PlayerControls />
-      {track && currentProvider?.capabilities.recommendations.state === 'available' && <button type="button" className={styles.textButton} disabled={busy} onClick={() => void related()}>发现相似歌曲</button>}
-      {currentLyrics?.text && <details className={styles.lyrics}><summary>歌词</summary><p>{currentLyrics.text}</p>{currentLyrics.attribution && <small>{currentLyrics.attribution}</small>}</details>}
+      {(track && currentProvider?.capabilities.recommendations.state === 'available' || currentLyrics?.text) && (
+        <div className={styles.extras}>
+          {track && currentProvider?.capabilities.recommendations.state === 'available' && <ActionButton size="S" disabled={busy} onClick={() => void related()}>发现相似歌曲</ActionButton>}
+          {currentLyrics?.text && <details className={styles.lyrics}><summary><UiIcon glyph="chevron" className={styles.chevron} />歌词</summary><p>{currentLyrics.text}</p>{currentLyrics.attribution && <small>{currentLyrics.attribution}</small>}</details>}
+        </div>
+      )}
       <div className={styles.tabs}>
-        <button type="button" data-active={tab === 'queue'} onClick={() => setTab('queue')}><ListMusic size={16} />队列 <span>{state.queue.length}</span></button>
-        <button type="button" data-active={tab === 'results'} onClick={() => setTab('results')}>查找结果{results && <span>{results.tracks.length}</span>}</button>
+        <div role="tablist" aria-label="曲目" className={tabs.list} data-density="compact">
+          <button type="button" role="tab" aria-selected={tab === 'queue'} className={tabs.tab} onClick={() => setTab('queue')}>队列<span className={styles.count}>{state.queue.length}</span></button>
+          <button type="button" role="tab" aria-selected={tab === 'results'} className={tabs.tab} onClick={() => setTab('results')}>查找结果{results && <span className={styles.count}>{results.tracks.length}</span>}</button>
+        </div>
         <div className={styles.tabActions}>
-          {tab === 'queue' && state.queue.length > 0 && <button type="button" onClick={() => music.clear()}>清空</button>}
-          {tab === 'results' && shown.length > 0 && <button type="button" onClick={() => { music.add(shown); setTab('queue') }}>全部加入</button>}
+          {tab === 'queue' && state.queue.length > 0 && <ActionButton size="S" quiet onClick={() => music.clear()}>清空</ActionButton>}
+          {tab === 'results' && shown.length > 0 && <ActionButton size="S" quiet icon={Add} onClick={() => { music.add(shown); setTab('queue') }}>全部加入</ActionButton>}
         </div>
       </div>
       <div className={styles.content}>
-        {message && <p className={styles.notice} role="status">{message}</p>}
-        {shown.length === 0 ? <div className={styles.empty}><Disc3 size={32} strokeWidth={1.2} /><p>{busy ? '正在查找音乐…' : tab === 'queue' ? '播放队列还是空的' : results ? '没有找到内容，试试其他关键词或链接' : '搜索歌名，或粘贴音乐链接'}</p></div> : <ul className={styles.list}>
+        {message && <InlineAlert variant="neutral" fillStyle="subtleFill" className={styles.notice}>{message}</InlineAlert>}
+        {shown.length === 0 ? <div className={styles.empty}>{busy ? <ProgressCircle size="M" label="正在查找音乐" /> : <MusicNote className={styles.emptyIcon} />}<p>{busy ? '正在查找音乐…' : tab === 'queue' ? '播放队列还是空的' : results ? '没有找到内容，试试其他关键词或链接' : '搜索歌名，或粘贴音乐链接'}</p></div> : <ul className={styles.list}>
           {shown.map((item, index) => <TrackRow key={`${trackKey(item)}:${index}`} track={item} active={!!track && trackKey(item) === trackKey(track)} queued={queued.has(trackKey(item))} queue={tab === 'queue'} playable={musicProviders.find(source => source.id === item.ref.provider)?.capabilities.playback.state === 'available'} onPlay={() => tab === 'queue' ? void music.select(index) : music.add([item], true)} onAction={() => tab === 'queue' ? music.remove(index) : music.add([item])} />)}
         </ul>}
-        {tab === 'results' && results?.nextPage && <button type="button" className={styles.loadMore} disabled={busy} onClick={() => void search(true)}>{busy ? '加载中…' : '加载更多'}</button>}
+        {tab === 'results' && results?.nextPage && <Button variant="secondary" className={styles.loadMore} disabled={busy} onClick={() => void search(true)}>{busy ? '加载中…' : '加载更多'}</Button>}
       </div>
       <footer className={styles.footer}><span>{state.queue.length >= 500 ? '队列已满（500 首）' : queueStatus}</span><PlaybackInspector engine={state.embedEngine} /></footer>
     </div>
@@ -137,12 +165,16 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
 
 function TrackRow({ track, active, queued, queue, playable, onPlay, onAction }: { track: Track; active: boolean; queued: boolean; queue: boolean; playable: boolean; onPlay(): void; onAction(): void }) {
   return (
-    <li className={styles.row} data-active={active}>
+    <li className={styles.row} data-selected={active}>
       <button type="button" className={styles.rowTrack} disabled={!playable} onClick={onPlay} title={`播放 ${track.title}`}>
-        <span className={styles.thumb}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Music2 size={18} />}</span>
-        <span className={styles.rowInfo}><strong>{track.title}</strong><span>{track.artists.join(' / ') || '未知艺人'}</span></span>
+        <span className={styles.thumb}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <MusicNote size="S" />}</span>
+        <span className={styles.rowInfo}><span className={styles.rowTitle}>{track.title}</span><span className={styles.rowDescription}>{track.artists.join(' / ') || '未知艺人'}</span></span>
       </button>
-      <button type="button" className={styles.iconButton} aria-label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`} title={queue ? '移除' : queued ? '已在队列中' : '加入队列'} disabled={!queue && queued} onClick={onAction}>{queue ? <X size={16} /> : queued ? <Check size={16} /> : <Plus size={17} />}</button>
+      <IconButton
+        size="S" icon={queue ? Close : queued ? Checkmark : Add}
+        label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`} title={queue ? '移除' : queued ? '已在队列中' : '加入队列'}
+        disabled={!queue && queued} onClick={onAction}
+      />
     </li>
   )
 }

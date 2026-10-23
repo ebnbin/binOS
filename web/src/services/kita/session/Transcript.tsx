@@ -1,9 +1,11 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
-import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { Alert } from '../../../ui/Alert.tsx'
+import { Badge } from '../../../ui/Badge.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
+import { InlineAlert } from '../../../ui/InlineAlert.tsx'
+import { ProgressCircle } from '../../../ui/ProgressCircle.tsx'
+import { UiIcon } from '../../../ui/UiIcon.tsx'
 import { formatDuration, formatTokens, useNow } from '../../../ui/format.ts'
 import { formatClock, formatDivider, formatFull, sameDay } from '../../../ui/time.ts'
 import { modelName } from '../views.ts'
@@ -280,13 +282,18 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   )
   const open = userOpen ?? (context.live !== null && last)
   return (
-    <div className={styles.worked} data-open={open || undefined}>
+    <div className={styles.worked}>
       <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
-        <span>
+        <UiIcon glyph="chevron" direction={open ? 'down' : undefined} className={styles.workedChevron} />
+        {running && <ProgressCircle />}
+        <span className={styles.workedText}>
           {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
-          {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
         </span>
-        <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
+        {errors > 0 && (
+          <Badge variant="negative" size="S">
+            {errors} 个出错
+          </Badge>
+        )}
       </button>
       {open && <div className={styles.steps}>{list}</div>}
     </div>
@@ -320,7 +327,7 @@ function TurnEnd({ thread, agent, item, reply, edits }: { thread: string; agent:
   return (
     <>
       {changes}
-      {outcome === 'error' && <Alert>{error ?? 'agent 出错了'}</Alert>}
+      {outcome === 'error' && <InlineAlert>{error ?? 'agent 出错了'}</InlineAlert>}
       <div className={styles.stats}>
         <span
           title={[`${formatFull(new Date(item.time))} 答完`, context && `上下文 ${context.tokens.toLocaleString()} / ${context.window.toLocaleString()} token`]
@@ -380,8 +387,11 @@ export function Transcript({ thread, items, live }: { thread: string; items: Ent
           {live?.text.trim() && <Markdown thread={thread} text={live.text} files={live.files} />}
           {live && (
             <div className={styles.status}>
-              {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
-              {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+              <ProgressCircle />
+              <span>
+                {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
+                {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+              </span>
             </div>
           )}
         </>

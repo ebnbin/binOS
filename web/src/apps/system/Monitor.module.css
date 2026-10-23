@@ -1,328 +1,360 @@
+/* 宽窗口左边是 layer-1 的侧边导航，窄窗口里导航变成顶部的 tabs */
 .app {
+  container: system / inline-size;
+  height: 100%;
+}
+
+.layout {
+  display: flex;
   height: 100%;
   min-height: 0;
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+}
+
+.nav {
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
-  font-size: var(--font-size-md);
+  gap: var(--spacing-85);
+  flex: none;
+  box-sizing: border-box;
+  width: min(var(--side-navigation-width), 30%);
+  min-width: 160px;
+  padding: var(--spacing-300) var(--spacing-200);
+  overflow-y: auto;
+  background: var(--background-layer-1-color);
 }
-.top {
+
+.navTitle {
+  composes: headingS from '../../ui/Typography.module.css';
+  margin-bottom: var(--spacing-200);
+  padding-inline-start: var(--spacing-200);
+}
+
+.navItem {
+  composes: sideNavItem from '../../ui/List.module.css';
+}
+
+.main {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  gap: var(--space-3);
-}
-.top > div {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-}
-.top strong {
-  font-size: var(--font-size-xl);
-}
-.freshness {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-success);
-  font-size: var(--font-size-xs);
-}
-.freshness::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  border-radius: 50%;
-}
-.freshness[data-stale='true'] {
-  color: var(--color-danger);
-}
-.freshness small {
-  color: var(--color-text-tertiary);
-}
-.sections {
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-.sections button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  flex-direction: column;
   flex: 1;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  text-align: left;
-  color: var(--color-text-secondary);
+  min-width: 0;
 }
-.sections button[aria-current='page'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  border-color: var(--color-primary);
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-200);
+  flex: none;
+  min-height: var(--component-height-300);
+  padding: 0 var(--spacing-200) 0 var(--spacing-400);
+  border-bottom: var(--border-width-100) solid var(--divider-color);
 }
-.sections small {
-  display: block;
-  opacity: 0.65;
-  font-size: var(--font-size-2xs);
-  margin-top: var(--space-0-5);
+
+.sampled {
+  overflow: hidden;
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
+
+.refresh {
+  margin-inline-start: auto;
+}
+
+.spinning svg {
+  animation: spin var(--animation-duration-2000) linear infinite;
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
 .body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
-.content {
-  padding: var(--space-6);
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-200);
   max-width: 1100px;
   margin: 0 auto;
+  padding: var(--spacing-400) var(--spacing-400) 0;
 }
+
+.inlineAlert {
+  margin-bottom: var(--spacing-400);
+}
+
+.content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-400);
+}
+
 .hero {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--spacing-400);
 }
-.hero h1 {
-  font-size: var(--font-size-2xl);
-  margin: 0 0 var(--space-1-5);
+
+.heroTitle {
+  composes: heading from '../../ui/Typography.module.css';
   overflow-wrap: anywhere;
 }
+
 .hero p {
-  color: var(--color-text-tertiary);
-  margin: 0;
-  font-size: var(--font-size-sm);
+  margin: var(--spacing-75) 0 0;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
 }
+
+/* 监控卡片：Spectrum 的 primary card，标题是 title，主要数值用 heading 的字重 */
 .cards {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
+  gap: var(--spacing-300);
+  margin-bottom: var(--spacing-300);
 }
-.card,
-.section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
+
+.card {
+  composes: card from '../../ui/Card.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-200);
   min-width: 0;
 }
-.card h2,
-.section h2 {
+
+.cardTitle {
+  composes: titleS from '../../ui/Typography.module.css';
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  margin: 0 0 var(--space-5);
-  color: var(--color-text-secondary);
+  gap: var(--spacing-85);
+  color: var(--neutral-subdued-content-color-default);
 }
-.card > strong {
+
+.stat {
   display: block;
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-medium);
-  margin-bottom: var(--space-3);
+  color: var(--heading-color);
+  font-size: var(--font-size-700);
+  font-weight: var(--heading-font-weight);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-100);
+  overflow-wrap: anywhere;
 }
-.card > strong small {
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
+
+.stat small {
+  color: var(--detail-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--detail-font-weight);
 }
-.card p,
-.volume p {
-  margin: var(--space-3) 0 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-200);
+  color: var(--neutral-subdued-content-color-default);
 }
-.card progress,
-.volume progress {
-  width: 100%;
-  height: 8px;
-  display: block;
-  border: 0;
-  border-radius: var(--radius-full);
-  appearance: none;
-  background: var(--color-fill);
-  accent-color: var(--color-success);
+
+.help {
+  margin: 0;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
-.card progress::-webkit-progress-bar,
-.volume progress::-webkit-progress-bar {
-  background: var(--color-fill);
-  border-radius: var(--radius-full);
-}
-.card progress::-webkit-progress-value,
-.volume progress::-webkit-progress-value {
-  background: var(--color-success);
-  border-radius: var(--radius-full);
-}
-.card progress::-moz-progress-bar,
-.volume progress::-moz-progress-bar {
-  background: var(--color-success);
-  border-radius: var(--radius-full);
-}
+
 .speeds {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-5);
+  gap: var(--spacing-200) var(--spacing-500);
 }
+
 .speeds > span {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-50);
 }
-.speeds strong {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
+
+.speeds > span > small {
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-weight: var(--detail-font-weight);
 }
-.speeds small {
-  font-size: var(--font-size-2xs);
-}
-.section {
-  margin-bottom: var(--space-5);
-}
-.volume {
-  padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--color-separator);
-}
-.volume:last-child {
-  border: 0;
-  padding-bottom: 0;
-}
-.volume header {
+
+.volumes {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  flex-direction: column;
+  gap: var(--spacing-300);
 }
-.volume header strong {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+
+.volumes .help {
+  margin-top: var(--spacing-75);
 }
-.volume header span {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
+
 .note {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-relaxed);
+  margin: var(--spacing-300) 0 0;
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
-.bad {
-  color: var(--color-danger);
-}
-.warning {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
-  padding: var(--space-3) var(--space-5);
-  overflow-wrap: anywhere;
-}
-.empty {
-  text-align: center;
-  padding: var(--space-16) var(--space-5);
-  color: var(--color-text-tertiary);
-}
-.actions button {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-}
-.app button:disabled {
-  opacity: var(--opacity-disabled);
-}
+
+/* 键值列表：带边框的 list view，左边是 subdued 的名称，右边是值 */
 .rows {
-  margin: 0;
+  composes: listView from '../../ui/List.module.css';
+  margin: 0 0 var(--spacing-500);
 }
+
 .rows > div {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-5);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+  gap: var(--spacing-300);
+  box-sizing: border-box;
+  min-height: var(--component-height-200);
+  padding: var(--spacing-100) var(--spacing-300);
+  line-height: var(--line-height-100);
 }
-.rows > div:last-child {
-  border: 0;
-}
+
 .rows dt {
-  color: var(--color-text-secondary);
+  color: var(--neutral-subdued-content-color-default);
 }
+
 .rows dd {
   margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: end;
 }
+
+.code {
+  font-family: var(--font-family-code);
+}
+
+.section {
+  margin-bottom: var(--spacing-500);
+}
+
+.sectionTitle {
+  composes: title from '../../ui/Typography.module.css';
+  margin-bottom: var(--spacing-200);
+}
+
+.links {
+  composes: listView from '../../ui/List.module.css';
+}
+
 .settingLink {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
+  composes: row from '../../ui/List.module.css';
   width: 100%;
-  text-align: left;
+  color: var(--neutral-content-color-default);
+  cursor: pointer;
 }
-.settingLink span {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+
+.linkText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-25);
+  flex: 1;
+  min-width: 0;
 }
-.spin {
-  animation: spin 1s linear infinite;
+
+.linkHint {
+  composes: rowDescription from '../../ui/List.module.css';
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-200);
+  margin: 0;
+  padding: var(--spacing-1000) var(--spacing-350);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+}
+
+@container system (width < 600px) {
+  .layout {
+    flex-direction: column;
   }
-}
-@media (max-width: 550px) {
-  .top {
-    padding: var(--space-3) var(--space-4);
+
+  .nav {
+    flex-direction: row;
+    gap: var(--spacing-400);
+    width: auto;
+    min-width: 0;
+    padding: 0 var(--spacing-300);
+    overflow: auto hidden;
+    border-bottom: var(--border-width-100) solid var(--divider-color);
+    background: var(--background-base-color);
   }
-  .top > div {
-    gap: var(--space-3);
-  }
-  .freshness small {
+
+  .navTitle {
     display: none;
   }
-  .sections {
-    padding: var(--space-3) var(--space-3);
-    gap: var(--space-1-5);
+
+  /* 窄窗口里是 Spectrum 的 tabs：字重不变，选中项下面是 2px 的指示条，悬停时没有指示条 */
+  .nav .navItem {
+    flex: none;
+    width: auto;
+    min-height: var(--component-height-300);
+    padding: 0;
+    white-space: nowrap;
   }
-  .sections button {
-    padding: var(--space-3) var(--space-2);
-    gap: var(--space-2);
+
+  .nav .navItem[aria-current] {
+    font-weight: var(--font-weight-regular);
   }
-  .sections small {
-    font-size: var(--font-size-2xs);
+
+  .nav .navItem::before {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--border-width-200);
+    translate: none;
   }
+
+  .nav .navItem:not([aria-current='page']):hover::before {
+    background: transparent;
+  }
+
+  .toolbar {
+    padding-inline-start: var(--spacing-300);
+  }
+
+  .alerts {
+    padding: var(--spacing-300) var(--spacing-300) 0;
+  }
+
   .content {
-    padding: var(--space-5) var(--space-3);
+    padding: var(--spacing-300);
   }
+
   .cards {
-    gap: var(--space-3);
+    gap: var(--spacing-200);
   }
-  .card,
-  .section {
-    padding: var(--space-4);
-  }
-  .card > strong {
-    font-size: var(--font-size-2xl);
-  }
-  .hero h1 {
-    font-size: var(--font-size-2xl);
-  }
-  .speeds {
-    gap: var(--space-3);
-  }
-  .speeds strong {
-    font-size: var(--font-size-xl);
+
+  .stat {
+    font-size: var(--font-size-500);
   }
 }
-@media (max-width: 380px) {
+
+@container system (width < 440px) {
   .cards {
     grid-template-columns: 1fr;
   }

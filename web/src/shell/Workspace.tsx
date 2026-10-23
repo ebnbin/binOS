@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApplications } from '../apps/index.ts'
+import { Button } from '../ui/Button.tsx'
 import { WindowHost } from './hosts/WindowHost.tsx'
 import type { OpenWindow } from './state/types.ts'
 import { allowedLayouts, minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
@@ -79,17 +80,17 @@ export function Workspace({
               else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
             }
           }}>
-            <p>选择第二个 app</p>
-            <small>选择后完成分屏，也可以取消</small>
+            <h2 className={styles.pickerTitle}>选择第二个 app</h2>
+            <p className={styles.pickerHint}>选择后完成分屏，也可以取消</p>
             <div className={styles.choices}>
               {apps.filter((app) => app.mainWindow && !unavailableApps.includes(app.id) && !windows.some((item) => item.window.applicationId === app.id && panes.includes(item.id))).map((app) => (
                 <button key={app.id} type="button" className={desktopStyles.icon} title={app.name} onClick={() => onPick(app.id, slot)}>
-                  <span className={desktopStyles.glyph}><app.icon strokeWidth={1.75} /></span>
+                  <span className={desktopStyles.glyph}><app.icon /></span>
                   <span className={desktopStyles.label}>{app.name}</span>
                 </button>
               ))}
             </div>
-            <button type="button" onClick={onCancel}>取消分屏</button>
+            <Button variant="secondary" fillStyle="outline" onClick={onCancel}>取消分屏</Button>
           </div>
           {preview(slot)}
         </section>

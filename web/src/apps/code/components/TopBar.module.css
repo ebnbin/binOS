@@ -1,16 +1,17 @@
+/* 对话区的顶栏：标题是 quiet 的按钮，点开会话操作；PR 是 S 尺寸的 action button */
 .bar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-100);
   flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  height: var(--component-height-400);
+  padding: 0 var(--spacing-400);
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--spacing-100);
   flex: 1;
   min-width: 0;
 }
@@ -19,8 +20,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  color: var(--title-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-100);
 }
 
 .titleWrap {
@@ -32,44 +35,51 @@
 .titleButton {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacing-85);
+  box-sizing: border-box;
   min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
+  height: var(--component-height-100);
+  margin: 0 calc(-1 * var(--spacing-200));
+  padding: 0 var(--spacing-200);
   border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
+  border-radius: var(--corner-radius-medium);
+  background: transparent;
+  color: var(--neutral-content-color-default);
   font: inherit;
   cursor: pointer;
-  transition: background-color var(--duration-fast);
+  transition-property: background-color, color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
 }
 
 @media (hover: hover) {
   .titleButton:hover {
-    background: var(--color-hover);
+    background: var(--gray-background-color-hover);
   }
 }
 
-.titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
+.titleButton[aria-expanded='true'],
+.titleButton:focus-visible {
+  background: var(--gray-background-color-hover);
+}
+
+.titleButton:active {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
 }
 
 .titleChevron {
   flex: none;
-  color: var(--color-text-tertiary);
 }
 
 .rename {
-  align-self: center;
   max-width: 420px;
-  min-height: var(--size-control-md);
 }
 
 .id {
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,23 +87,84 @@
   position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--spacing-100);
   margin-left: auto;
 }
 
-.finished {
+/* 和 S 尺寸的 action button 一致：高 24，圆角 7，gray-100 底 */
+.chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
+  gap: 5px;
+  box-sizing: border-box;
+  height: var(--component-height-75);
+  padding: 0 9px;
   border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
+  border-radius: var(--corner-radius-medium-size-small);
+  background: var(--gray-background-color-default);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-75);
+  font-weight: var(--button-font-weight);
+  line-height: var(--line-height-100);
+  text-decoration: none;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition-property: background-color, color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.chip > svg {
+  margin-inline-start: -2px;
+}
+
+@media (hover: hover) {
+  .chip:hover {
+    background: var(--gray-background-color-hover);
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+.chip[data-state='open'],
+.chip:focus-visible {
+  background: var(--gray-background-color-hover);
+}
+
+.chip:active {
+  transform: perspective(var(--component-height-75)) translate3d(0, 0, -2px);
+}
+
+/* PR 和它的预览是一组紧凑的按钮，中间的圆角去掉 */
+.pr {
+  display: inline-flex;
+  gap: var(--spacing-50);
+}
+
+.pr .chip:first-child:not(:last-child) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.pr .chip:last-child:not(:first-child) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+}
+
+.prIcon {
+  color: var(--neutral-subdued-content-color-default);
+}
+
+.pr[data-state='open'] .prIcon {
+  color: var(--positive-visual-color);
+}
+
+.pr[data-state='merged'] .prIcon {
+  color: var(--purple-visual-color);
+}
+
+.pr[data-state='closed'] .prIcon {
+  color: var(--negative-visual-color);
 }
 
 .prMenu {
@@ -102,84 +173,20 @@
   width: 360px;
   max-height: min(320px, var(--radix-popover-content-available-height));
   overflow-y: auto;
-  padding: var(--space-1);
-  box-shadow: var(--shadow-md);
-}
-
-.prMenu a {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-}
-
-@media (hover: hover) {
-  .prMenu a:hover {
-    background: var(--color-hover);
-  }
+  padding: var(--spacing-100) 0;
 }
 
 .prNumber {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
+  font-weight: var(--font-weight-regular);
   font-variant-numeric: tabular-nums;
 }
 
 .prTitle {
-  flex: 1;
-  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.prState {
-  flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-.prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
-}
-
-.prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
-}
-
-.pr {
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.pr a {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-}
-
-.pr[data-state='open'] a:first-child {
-  color: var(--color-success);
-}
-
-.pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
-}
-
-.pr .preview {
-  border-left: 1px solid var(--color-separator);
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
@@ -189,14 +196,14 @@
 
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
+    height: var(--component-height-300);
+    padding: 0 var(--spacing-100);
+    border-bottom: var(--border-width-100) solid var(--divider-color);
   }
 
   .bar:has(.heading:last-child)::after {
     content: '';
-    width: var(--size-control-lg);
+    width: var(--component-height-100);
     flex: none;
   }
 
@@ -205,7 +212,7 @@
   }
 
   .bar .singleColumnOnly {
-    display: grid;
+    display: inline-flex;
   }
 
   .bar span.singleColumnOnly {

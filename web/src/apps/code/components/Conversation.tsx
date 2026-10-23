@@ -2,13 +2,13 @@ import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { ArrowDown, Folder } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
 import { useKitaSession } from '../../../services/kita/session/useKitaSession.ts'
-import { Alert } from '../../../ui/Alert.tsx'
+import { InlineAlert } from '../../../ui/InlineAlert.tsx'
 import { BrandMark } from '../../../ui/BrandMark.tsx'
+import { ChevronDown, Folder } from '../../../ui/icons.tsx'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { Composer } from './Composer.tsx'
 import styles from './Conversation.module.css'
@@ -141,10 +141,10 @@ export function Conversation({
           <div className={styles.column}>
             {sessionId === null ? (
               <div className={styles.empty}>
-                <BrandMark size={36} />
+                <BrandMark size={48} />
                 <h1>开始新对话</h1>
                 <div className={styles.projectChoice}>
-                  <Folder size={16} aria-hidden="true" />
+                  <Folder size="M" />
                   <Select
                     label="对话所属项目"
                     value={project}
@@ -156,12 +156,12 @@ export function Conversation({
             ) : (
               thread && <Transcript thread={thread} items={items} live={live} />
             )}
-            {notice && <Alert>{notice}</Alert>}
+            {notice && <InlineAlert>{notice}</InlineAlert>}
           </div>
         </div>
         {awayFromBottom && (
           <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
+            <ChevronDown size="M" />
           </button>
         )}
       </div>

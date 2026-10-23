@@ -2,6 +2,9 @@ import { useState } from 'react'
 import type { ProviderInfo } from '@binos/server/apps/music/types'
 import { configureProvider } from './api.ts'
 import { refreshProviders } from './providers.ts'
+import { Button } from '../../ui/Button.tsx'
+import field from '../../ui/Field.module.css'
+import type from '../../ui/Typography.module.css'
 import styles from './music.module.css'
 
 export function ProviderSettings({ provider }: { provider: ProviderInfo }) {
@@ -17,17 +20,17 @@ export function ProviderSettings({ provider }: { provider: ProviderInfo }) {
     finally { setSaving(false) }
   }
   return <section className={styles.settings} aria-label="音乐来源设置">
-    <strong>{provider.name}</strong><p>{provider.description}</p>
-    {provider.configuration.fields.map(field => <form key={field.id} onSubmit={event => { event.preventDefault(); void save({ [field.id]: values[field.id]?.trim() ?? '' }) }}>
-      <label htmlFor={`music-config-${field.id}`}>{field.label}{field.configured ? ' · 已配置' : ''}</label>
-      <p>{field.description}</p>
+    <h2 className={type.titleS}>{provider.name}</h2><p className={styles.settingsDescription}>{provider.description}</p>
+    {provider.configuration.fields.map(item => <form key={item.id} className={styles.settingsField} onSubmit={event => { event.preventDefault(); void save({ [item.id]: values[item.id]?.trim() ?? '' }) }}>
+      <label htmlFor={`music-config-${item.id}`} className={field.label}>{item.label}{item.configured ? ' · 已配置' : ''}</label>
       <div className={styles.keyForm}>
-        <input id={`music-config-${field.id}`} type={field.secret ? 'password' : 'text'} autoComplete="off" value={values[field.id] ?? ''} placeholder={field.configured ? '输入新值以替换' : field.label} onChange={event => setValues({ ...values, [field.id]: event.target.value })} />
-        <button className={styles.primary} disabled={saving || !values[field.id]?.trim()}>保存</button>
-        {field.configured && <button type="button" disabled={saving} onClick={() => void save({ [field.id]: '' })}>移除</button>}
+        <input id={`music-config-${item.id}`} className={field.textField} type={item.secret ? 'password' : 'text'} autoComplete="off" value={values[item.id] ?? ''} placeholder={item.configured ? '输入新值以替换' : item.label} onChange={event => setValues({ ...values, [item.id]: event.target.value })} />
+        <Button type="submit" variant="accent" disabled={saving || !values[item.id]?.trim()}>保存</Button>
+        {item.configured && <Button variant="secondary" disabled={saving} onClick={() => void save({ [item.id]: '' })}>移除</Button>}
       </div>
-      <div className={styles.settingsLinks}>{field.links?.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}</div>
+      <p className={field.helpText}>{item.description}</p>
+      {item.links && item.links.length > 0 && <div className={styles.settingsLinks}>{item.links.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className={type.link}>{link.label}</a>)}</div>}
     </form>)}
-    {message && <p role="status">{message}</p>}
+    {message && <p role="status" className={styles.settingsMessage}>{message}</p>}
   </section>
 }

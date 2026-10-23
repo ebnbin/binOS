@@ -1,0 +1,137 @@
+/* Spectrum 2 的文字角色，用 composes 引用。heading 是页面和区域标题，title 是卡片、对话框等组件的标题，
+   body 是成段的正文，detail 是小号的说明和分组名，code 是代码 */
+.heading {
+  margin: 0;
+  color: var(--heading-color);
+  font-size: var(--font-size-500);
+  font-weight: var(--heading-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.headingS {
+  composes: heading;
+  font-size: var(--font-size-300);
+}
+
+.headingL {
+  composes: heading;
+  font-size: var(--font-size-700);
+}
+
+.title {
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.titleS {
+  composes: title;
+  font-size: var(--font-size-100);
+}
+
+.titleL {
+  composes: title;
+  font-size: var(--font-size-300);
+}
+
+.body {
+  color: var(--body-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--body-font-weight);
+  line-height: var(--line-height-body);
+}
+
+.bodyS {
+  composes: body;
+  font-size: var(--font-size-100);
+}
+
+.bodyXS {
+  composes: body;
+  font-size: var(--font-size-75);
+}
+
+.detail {
+  color: var(--detail-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--detail-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.detailS {
+  composes: detail;
+  font-size: var(--font-size-75);
+}
+
+.code {
+  color: var(--code-color);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-code);
+}
+
+/* 界面里次要的说明文字：neutral-subdued */
+.subdued {
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
+}
+
+/* 链接：accent 色，下划线 1px */
+.link {
+  border-radius: var(--corner-radius-small);
+  color: var(--accent-content-color-default);
+  text-decoration: underline 1px;
+  text-underline-offset: 1px;
+  cursor: pointer;
+  transition: color var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+@media (hover: hover) {
+  .link:hover {
+    color: var(--accent-content-color-hover);
+  }
+}
+
+/* secondary 链接：跟随文字颜色 */
+.linkSecondary {
+  composes: link;
+  color: var(--neutral-content-color-default);
+}
+
+@media (hover: hover) {
+  .linkSecondary:hover {
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+/* divider：实心的条，S 1px、M 2px，gray-200 */
+.divider {
+  flex: none;
+  align-self: stretch;
+  height: var(--border-width-200);
+  margin: 0;
+  border: 0;
+  border-radius: var(--corner-radius-full);
+  background: var(--divider-color);
+}
+
+.dividerS {
+  composes: divider;
+  height: var(--border-width-100);
+}
+
+.dividerVertical {
+  composes: divider;
+  width: var(--border-width-100);
+  height: auto;
+}
+
+/* 键盘按键 */
+.keyboard {
+  color: var(--gray-600);
+  font-family: inherit;
+  font-size: var(--font-size-100);
+}

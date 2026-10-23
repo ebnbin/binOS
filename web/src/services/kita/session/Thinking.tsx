@@ -1,4 +1,5 @@
 import { formatDuration } from '../../../ui/format.ts'
+import { Lightbulb } from '../../../ui/icons.tsx'
 import { Activity } from './Activity.tsx'
 import styles from './Thinking.module.css'
 import { Markdown } from './Markdown.tsx'
@@ -7,6 +8,7 @@ import { Markdown } from './Markdown.tsx'
 export function Thinking({ thread, text, durationMs, live }: { thread: string; text: string; durationMs?: number; live?: boolean }) {
   return (
     <Activity
+      icon={Lightbulb}
       label={live ? '正在思考' : durationMs !== undefined ? `思考了 ${formatDuration(durationMs)}` : '思考'}
       quiet
       defaultOpen={live}

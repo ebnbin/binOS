@@ -1,22 +1,24 @@
+/* 和 Spectrum 2 的 illustrated message 一样：居中的标题、说明和按钮 */
 .message {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
+  gap: var(--spacing-300);
   height: 100%;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-md);
+  padding: var(--spacing-400);
+  color: var(--body-color);
+  font-size: var(--font-size-100);
+  text-align: center;
 }
 
 .message p {
   margin: 0;
 }
 
-.message button {
-  padding: var(--space-1) var(--space-4);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--font-size-sm);
+.title {
+  color: var(--title-color);
+  font-size: var(--font-size-400);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }

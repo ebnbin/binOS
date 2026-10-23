@@ -1,6 +1,5 @@
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
-import { ChevronLeft, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { agentAccounts } from '../../services/kita/api.ts'
@@ -8,8 +7,12 @@ import { useMinuteNow } from '../../services/kita/quota.ts'
 import { QuotaWindows } from '../../services/kita/QuotaWindows.tsx'
 import { useAgentStatus } from '../../services/kita/status.ts'
 import { agentView } from '../../services/kita/views.ts'
+import { Button } from '../../ui/Button.tsx'
+import { ChevronLeft, Refresh } from '../../ui/icons.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
-import { Spinner } from '../../ui/Spinner.tsx'
+import { InlineAlert } from '../../ui/InlineAlert.tsx'
+import { ProgressCircle } from '../../ui/ProgressCircle.tsx'
+import { StatusLight } from '../../ui/StatusLight.tsx'
 import { formatMoment } from '../../ui/time.ts'
 import styles from './AgentAccounts.module.css'
 
@@ -39,15 +42,15 @@ export function AgentAccounts({ back }: { back: () => void }) {
     <div className={styles.page}>
       <header className={styles.bar}>
         <IconButton icon={ChevronLeft} label="返回" onClick={back} />
-        <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <h2 className={styles.title}>Agent</h2>
+        <IconButton icon={Refresh} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
       </header>
       {accounts === undefined ? (
         <div className={styles.loading}>
-          <Spinner />
+          <ProgressCircle size="M" />
         </div>
       ) : accounts === null ? (
-        <p className={styles.failed}>没能读取 agent 的信息</p>
+        <InlineAlert className={styles.failed}>没能读取 agent 的信息</InlineAlert>
       ) : (
         accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
       )}
@@ -62,10 +65,10 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
   return (
     <section className={styles.section}>
       <header className={styles.header}>
-        <h2>{agents[account.agent].name}</h2>
-        <span className={styles.status} data-ok={account.loggedIn}>
+        <h3 className={styles.name}>{agents[account.agent].name}</h3>
+        <StatusLight variant={account.version === undefined ? 'neutral' : account.loggedIn ? 'positive' : 'negative'}>
           {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
-        </span>
+        </StatusLight>
         {account.version && <span className={styles.version}>{account.version}</span>}
       </header>
       <dl className={styles.list}>
@@ -110,7 +113,11 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
           <Value value={row.value} note={row.note} expired={row.expired} />
         </Row>
       ))}
-      {attention && <p className={styles.attention} data-tone={attention.tone}>{attention.text}</p>}
+      {attention && (
+        <InlineAlert variant={attention.tone === 'bad' ? 'negative' : 'informative'} fillStyle="subtleFill" className={styles.attention}>
+          {attention.text}
+        </InlineAlert>
+      )}
       {fix !== undefined ? (
         <div className={styles.login}>
           <view.Login fix={fix} onClose={() => setFix(undefined)} />
@@ -119,9 +126,9 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
         actions.length > 0 && (
           <div className={styles.loginActions}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <Button key={action.fix} variant="secondary" onClick={() => setFix(action.fix)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )

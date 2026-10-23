@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-top: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-top: var(--border-width-100) solid var(--border-color);
+  background: var(--background-layer-1-color);
 }
 
 /* 网页大多默认白底黑字，不跟随 binOS 的深色模式 */
@@ -11,13 +11,16 @@
   display: block;
   width: 100%;
   border: 0;
-  background: var(--color-document);
+  background: var(--document-background-color);
 }
 
 .status {
-  display: block;
-  padding: var(--space-6) var(--space-3);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-100);
+  padding: var(--spacing-400) var(--spacing-200);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
   text-align: center;
 }
