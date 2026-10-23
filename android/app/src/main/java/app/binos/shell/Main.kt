@@ -33,6 +33,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -64,6 +65,7 @@ import app.binos.more.MoreScreen
 import app.binos.more.SettingsScreen
 import app.binos.more.WebAppScreen
 import app.binos.music.MiniPlayer
+import app.binos.music.MusicPlayer
 import app.binos.music.MusicScreen
 import app.binos.system.AccountsScreen
 import app.binos.system.SystemScreen
@@ -91,6 +93,8 @@ fun MainScreen() {
     val destination = entry?.destination
     val topLevel = topLevels.any { level -> destination?.hasRoute(level.type) == true }
     val adaptive = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+    // 连上播放服务，其他页面也能看到迷你播放条
+    LaunchedEffect(Unit) { MusicPlayer.connect() }
     CompositionLocalProvider(LocalNav provides nav) {
         NavigationSuiteScaffold(
             layoutType = if (topLevel) adaptive else NavigationSuiteType.None,
@@ -123,7 +127,7 @@ fun MainScreen() {
                     composable<MusicRoute> { MusicScreen() }
                     composable<FilesRoute> { FilesScreen(null) }
                     composable<FolderRoute> { FilesScreen(it.toRoute<FolderRoute>().path) }
-                    composable<FilePreviewRoute> { it.toRoute<FilePreviewRoute>().let { route -> FilePreviewScreen(route.path, route.name) } }
+                    composable<FilePreviewRoute> { it.toRoute<FilePreviewRoute>().let { route -> FilePreviewScreen(route.url, route.name) } }
                     composable<MoreRoute> { MoreScreen() }
                     composable<SystemRoute> { SystemScreen() }
                     composable<AccountsRoute> { AccountsScreen() }

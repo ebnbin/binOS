@@ -73,6 +73,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import app.binos.app
+import app.binos.shell.FilePreviewRoute
 import app.binos.shell.LocalNav
 import app.binos.shell.NewSessionRoute
 import app.binos.shell.SessionRoute
@@ -274,7 +275,7 @@ fun ConversationScreen(sessionId: Int?, project: String?, targetItem: Int?) {
                 missing -> Text("这个对话不存在", Modifier.align(Alignment.Center), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 sessionId == null -> NewConversation(model, projects)
                 thread == null || !state.loaded && state.items.isEmpty() -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                else -> TranscriptList(model, thread, targetItem) { url, name -> if (isImage(name)) viewing = url to name else download(context, url, name) }
+                else -> TranscriptList(model, thread, targetItem) { url, name -> if (isImage(name)) viewing = url to name else nav.navigate(FilePreviewRoute(url, name)) }
             }
         }
     }

@@ -126,7 +126,6 @@ object MusicPlayer {
         val items = tracks.map { it.toMediaItem() }
         if (current == null || position < 0) {
             player.setMediaItems(items, player.currentMediaItemIndex.coerceIn(0, maxOf(items.size - 1, 0)), 0)
-            if (items.isNotEmpty()) player.prepare()
             return
         }
         val index = player.currentMediaItemIndex

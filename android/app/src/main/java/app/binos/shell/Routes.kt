@@ -18,7 +18,8 @@ import kotlinx.serialization.Serializable
 
 // 文件：目录和预览
 @Serializable data class FolderRoute(val path: String)
-@Serializable data class FilePreviewRoute(val path: String, val name: String)
+// url 是 binOS 上的文件地址（文件 app 的下载地址、会话里的文件快照）
+@Serializable data class FilePreviewRoute(val url: String, val name: String)
 
 // 更多
 @Serializable data object SystemRoute
