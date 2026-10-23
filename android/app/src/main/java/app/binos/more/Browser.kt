@@ -39,6 +39,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,7 +52,12 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
@@ -114,7 +120,7 @@ class RemoteBrowser {
         val request = Request.Builder().url(app.api.url(path)).header("Origin", app.server.origin).build()
         socket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, text: String) {
-                val message = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return
+                        val message = runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull() ?: return
                 if (message["type"]?.jsonPrimitive?.content == "frame") receiveFrame(webSocket, message) else main.post { if (webSocket == socket) receive(message) }
             }
 
@@ -215,7 +221,7 @@ class RemoteBrowser {
 
     fun open(target: String) {
         if (target.isBlank()) return
-        if (ready && url.isNotEmpty()) navigate(target) else pendingUrl = target
+        if (ready) navigate(target) else pendingUrl = target
     }
 
     fun navigate(target: String) {
@@ -285,6 +291,12 @@ fun BrowserScreen(url: String) {
     var typing by remember { mutableStateOf(false) }
     val keyboard = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
+    // 远程页面跳转后，地址栏跟着显示它现在的网址
+    LaunchedEffect(browser.url) { if (mode == 0 && browser.url.isNotEmpty()) address = browser.url }
+    fun go() {
+        if (mode == 0) browser.open(address) else embedded = address.let { if (it.startsWith("http")) it else "https://$it" }
+        keyboard?.hide()
+    }
     Scaffold(topBar = { BackBar(if (mode == 0) browser.title.ifEmpty { "浏览器" } else "浏览器") }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).imePadding()) {
             PrimaryTabRow(selectedTabIndex = mode) {
@@ -303,12 +315,9 @@ fun BrowserScreen(url: String) {
                     singleLine = true,
                     shape = CircleShape,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
-                    keyboardActions = KeyboardActions(onGo = {
-                        if (mode == 0) browser.open(address) else embedded = address.let { if (it.startsWith("http")) it else "https://$it" }
-                        keyboard?.hide()
-                    }),
+                    keyboardActions = KeyboardActions(onGo = { go() }),
                     colors = TextFieldDefaults.colors(focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).onEnter { go() },
                 )
                 if (mode == 0) {
                     IconButton(onClick = { browser.command("reload") }) { Icon(Icons.Outlined.Refresh, "刷新") }
@@ -364,6 +373,14 @@ fun BrowserScreen(url: String) {
             }
         }
     }
+}
+
+// 实体键盘（以及 adb）的回车也提交
+fun Modifier.onEnter(action: () -> Unit) = onPreviewKeyEvent { event ->
+    if (event.type == KeyEventType.KeyUp && event.key == Key.Enter) {
+        action()
+        true
+    } else false
 }
 
 // 画面按比例缩放、顶部对齐：把屏幕上的点换算成页面坐标

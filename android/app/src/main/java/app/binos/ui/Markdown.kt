@@ -272,8 +272,8 @@ private fun MarkdownBlock(block: MdBlock, resolve: (String) -> String?, style: T
             modifier = Modifier.padding(top = 4.dp),
         )
         is MdBlock.Paragraph -> Text(inlineMarkdown(block.text, colors, resolve), style = style)
-        is MdBlock.Code -> CodeBlock(block.code, block.lang)
-        is MdBlock.Math -> CodeBlock(block.tex, "tex")
+        is MdBlock.Code -> CodeBlock(block.code, lang = block.lang)
+        is MdBlock.Math -> CodeBlock(block.tex, lang = "tex")
         is MdBlock.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
             Box(Modifier.width(3.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp)))
             Spacer(Modifier.width(10.dp))
@@ -337,7 +337,7 @@ private fun MarkdownTable(table: MdBlock.Table, colors: MarkdownColors, resolve:
 
 // 代码块：横向滚动，等宽字体，按语言做简单的高亮；startLine 不为 null 时显示行号
 @Composable
-fun CodeBlock(code: String, lang: String = "", modifier: Modifier = Modifier, startLine: Int? = null, maxHeight: Int? = null) {
+fun CodeBlock(code: String, modifier: Modifier = Modifier, lang: String = "", startLine: Int? = null, maxHeight: Int? = null) {
     val highlightColors = highlightColors()
     val text = remember(code, lang, highlightColors) { highlight(code, lang, highlightColors) }
     val scroll = Modifier.horizontalScroll(rememberScrollState())

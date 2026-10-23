@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.graphics.createBitmap
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -167,7 +168,7 @@ private fun TextPreview(url: String, name: String, kind: String) {
             val chunks = remember(content) { content.lines().chunked(200).map { it.joinToString("\n") } }
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(8.dp)) {
                 items(chunks.size) { index ->
-                    CodeBlock(chunks[index], languageOf(name), startLine = index * 200 + 1)
+                    CodeBlock(chunks[index], lang = languageOf(name), startLine = index * 200 + 1)
                 }
                 if (truncated) item { Text("只显示了前 1 MB", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
@@ -195,7 +196,7 @@ private fun PdfPreview(url: String) {
                     (0 until minOf(renderer.pageCount, 50)).map { index ->
                         renderer.openPage(index).use { page ->
                             val width = 1200
-                            val bitmap = Bitmap.createBitmap(width, width * page.height / page.width, Bitmap.Config.ARGB_8888)
+                            val bitmap = createBitmap(width, width * page.height / page.width)
                             bitmap.eraseColor(android.graphics.Color.WHITE)
                             page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                             bitmap

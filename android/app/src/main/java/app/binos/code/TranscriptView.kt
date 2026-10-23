@@ -357,13 +357,13 @@ private fun ToolBody(call: Entry.ToolCall, result: Entry.ToolResult?, context: T
             is ToolDetail.Command -> TerminalOutput(tool.command, result)
             is ToolDetail.Read -> result?.output?.let { FileContent(tool.path, it) }
             is ToolDetail.Edit -> when (val change = tool.change) {
-                is FileChange.Write -> CodeBlock(change.content.removeSuffix("\n"), languageOf(tool.path), startLine = 1, maxHeight = 420)
+                is FileChange.Write -> CodeBlock(change.content.removeSuffix("\n"), lang = languageOf(tool.path), startLine = 1, maxHeight = 420)
                 is FileChange.Replace -> {
                     if (change.all) Text("替换全部出现的地方", style = MaterialTheme.typography.bodySmall)
                     DiffView(remember(change) { diffLines(change.before, change.after) })
                 }
                 is FileChange.Diff -> when (change.op) {
-                    "add" -> CodeBlock(change.diff.removeSuffix("\n"), languageOf(tool.path), startLine = 1, maxHeight = 420)
+                    "add" -> CodeBlock(change.diff.removeSuffix("\n"), lang = languageOf(tool.path), startLine = 1, maxHeight = 420)
                     "delete" -> Text("删除了这个文件", style = MaterialTheme.typography.bodySmall)
                     else -> DiffView(remember(change) { patchLines(change.diff) })
                 }
@@ -398,7 +398,7 @@ private fun Raw(call: Entry.ToolCall, result: Entry.ToolResult?) {
     val text = remember(call) {
         input?.let { prettyJson.encodeToString(JsonElement.serializer(), it) } ?: prettyJson.encodeToString(ToolDetail.serializer(), call.tool)
     }
-    CodeBlock(text, "json", maxHeight = 320)
+    CodeBlock(text, lang = "json", maxHeight = 320)
     Output(result)
 }
 
@@ -455,7 +455,7 @@ private fun FileContent(path: String, output: String) {
         val lines = output.split('\n').map { pattern.matchEntire(it) }
         if (lines.any { it == null }) null else lines.first()!!.groupValues[1].toInt() to lines.joinToString("\n") { it!!.groupValues[2] }
     }
-    if (parsed == null) CodeBlock(output, maxHeight = 420) else CodeBlock(parsed.second, languageOf(path), startLine = parsed.first, maxHeight = 420)
+    if (parsed == null) CodeBlock(output, maxHeight = 420) else CodeBlock(parsed.second, lang = languageOf(path), startLine = parsed.first, maxHeight = 420)
 }
 
 @Composable
@@ -633,10 +633,10 @@ private fun TurnChanges(files: List<ChangedFile>) {
                         file.calls.forEach { state ->
                             val tool = state.call.tool as ToolDetail.Edit
                             when (val change = tool.change) {
-                                is FileChange.Write -> CodeBlock(change.content.removeSuffix("\n"), languageOf(tool.path), startLine = 1, maxHeight = 360)
+                                is FileChange.Write -> CodeBlock(change.content.removeSuffix("\n"), lang = languageOf(tool.path), startLine = 1, maxHeight = 360)
                                 is FileChange.Replace -> DiffView(remember(change) { diffLines(change.before, change.after) })
                                 is FileChange.Diff -> if (change.op == "update") DiffView(remember(change) { patchLines(change.diff) })
-                                else if (change.op == "add") CodeBlock(change.diff.removeSuffix("\n"), languageOf(tool.path), startLine = 1, maxHeight = 360)
+                                else if (change.op == "add") CodeBlock(change.diff.removeSuffix("\n"), lang = languageOf(tool.path), startLine = 1, maxHeight = 360)
                                 null -> Unit
                             }
                         }

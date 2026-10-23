@@ -10,11 +10,14 @@ import app.binos.shell.ConnectScreen
 import app.binos.shell.LoginScreen
 import app.binos.shell.MainScreen
 import app.binos.ui.theme.BinOSTheme
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // 调试版可以用 adb 直接指定要连的测试实例：am start -n app.binos/.MainActivity --es server http://10.0.2.2:端口
+        if (BuildConfig.DEBUG) intent.getStringExtra("server")?.toHttpUrlOrNull()?.let { app.server.connect(it); app.events.restart() }
         setContent {
             BinOSTheme {
                 val url by app.server.url.collectAsStateWithLifecycle()
