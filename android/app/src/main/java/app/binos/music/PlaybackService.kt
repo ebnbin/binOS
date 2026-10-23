@@ -116,6 +116,7 @@ object MusicPlayer {
         repeat = player.repeatMode
         duration = player.duration.takeIf { it != C.TIME_UNSET } ?: 0L
         if (player.isPlaying) error = null
+        RemotePlayer.update()
     }
 
     // 共享队列有变化时同步播放列表：正在播放的那首保持不动，前后的换成新的

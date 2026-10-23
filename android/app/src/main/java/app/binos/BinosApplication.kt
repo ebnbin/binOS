@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import app.binos.music.RemotePlayer
 import app.binos.net.Api
 import app.binos.net.Events
 import app.binos.net.Server
@@ -31,9 +32,13 @@ class BinosApplication : Application(), SingletonImageLoader.Factory {
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 if (server.url.value != null) events.start()
+                RemotePlayer.update()
             }
 
-            override fun onStop(owner: LifecycleOwner) = events.stop()
+            override fun onStop(owner: LifecycleOwner) {
+                events.stop()
+                RemotePlayer.update()
+            }
         })
     }
 

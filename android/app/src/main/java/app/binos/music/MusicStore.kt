@@ -95,6 +95,10 @@ object MusicStore {
         }
     }
 
+    suspend fun reload() {
+        runCatching { app.api.get<QueueSnapshot>("$base/queue") }.onSuccess { _queue.value = it.tracks }
+    }
+
     private fun mutate(operation: JsonElement) {
         app.scope.launch {
             runCatching {
