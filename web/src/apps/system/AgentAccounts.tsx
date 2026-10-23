@@ -1,6 +1,7 @@
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
-import { ChevronLeft, RefreshCw } from 'lucide-react'
+import { ArrowClockwiseRegular } from '@fluentui/react-icons/headless/svg/arrow-clockwise'
+import { ArrowLeftRegular } from '@fluentui/react-icons/headless/svg/arrow-left'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { agentAccounts } from '../../services/kita/api.ts'
@@ -8,6 +9,9 @@ import { useMinuteNow } from '../../services/kita/quota.ts'
 import { QuotaWindows } from '../../services/kita/QuotaWindows.tsx'
 import { useAgentStatus } from '../../services/kita/status.ts'
 import { agentView } from '../../services/kita/views.ts'
+import { Alert } from '../../ui/Alert.tsx'
+import { Badge } from '../../ui/Badge.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { formatMoment } from '../../ui/time.ts'
@@ -38,13 +42,13 @@ export function AgentAccounts({ back }: { back: () => void }) {
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <IconButton icon={ChevronLeft} label="返回" onClick={back} />
+        <IconButton icon={<ArrowLeftRegular />} label="返回" onClick={back} />
         <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <IconButton icon={<ArrowClockwiseRegular />} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
       </header>
       {accounts === undefined ? (
         <div className={styles.loading}>
-          <Spinner />
+          <Spinner size="small" />
         </div>
       ) : accounts === null ? (
         <p className={styles.failed}>没能读取 agent 的信息</p>
@@ -63,9 +67,9 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
     <section className={styles.section}>
       <header className={styles.header}>
         <h2>{agents[account.agent].name}</h2>
-        <span className={styles.status} data-ok={account.loggedIn}>
+        <Badge appearance="tint" color={account.loggedIn ? 'success' : 'danger'}>
           {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
-        </span>
+        </Badge>
         {account.version && <span className={styles.version}>{account.version}</span>}
       </header>
       <dl className={styles.list}>
@@ -110,7 +114,11 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
           <Value value={row.value} note={row.note} expired={row.expired} />
         </Row>
       ))}
-      {attention && <p className={styles.attention} data-tone={attention.tone}>{attention.text}</p>}
+      {attention && (
+        <Alert intent={attention.tone === 'bad' ? 'error' : 'warning'} className={styles.attention}>
+          {attention.text}
+        </Alert>
+      )}
       {fix !== undefined ? (
         <div className={styles.login}>
           <view.Login fix={fix} onClose={() => setFix(undefined)} />
@@ -119,9 +127,9 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
         actions.length > 0 && (
           <div className={styles.loginActions}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <Button key={action.fix} onClick={() => setFix(action.fix)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )

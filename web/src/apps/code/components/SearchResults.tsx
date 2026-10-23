@@ -1,6 +1,10 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
-import { ArrowUpRight, MessageSquare, Search, UserRound } from 'lucide-react'
+import { ArrowUpRightRegular } from '@fluentui/react-icons/headless/svg/arrow-up-right'
+import { ChatRegular } from '@fluentui/react-icons/headless/svg/chat'
+import { PersonRegular } from '@fluentui/react-icons/headless/svg/person'
+import { SearchRegular } from '@fluentui/react-icons/headless/svg/search'
 import type { searchContent } from '../api.ts'
+import { Button } from '../../../ui/Button.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import styles from './SearchResults.module.css'
 
@@ -29,9 +33,9 @@ export function SearchResults({
       <div className={styles.state} role="alert">
         <span>搜索失败</span>
         <p>未能加载结果，请重试。</p>
-        <button type="button" onClick={onRetry}>
+        <Button onClick={onRetry}>
           重新搜索
-        </button>
+        </Button>
       </div>
     )
   if (!data)
@@ -44,7 +48,7 @@ export function SearchResults({
   if (!data.results.length)
     return (
       <div className={styles.state} role="status">
-        <Search size={24} strokeWidth={1.5} />
+        <SearchRegular />
         <span>没有找到相关内容</span>
         <p>试试更短的关键词，或换个说法。</p>
       </div>
@@ -80,17 +84,17 @@ export function SearchResults({
               </span>
               <span className={styles.count}>
                 {matches.length} 处匹配
-                <ArrowUpRight size={13} />
+                <ArrowUpRightRegular />
               </span>
             </button>
             {matches
               .filter((match) => match.kind !== 'title')
               .map((match) => {
-                const Icon = match.kind === 'input' ? UserRound : MessageSquare
+                const Icon = match.kind === 'input' ? PersonRegular : ChatRegular
                 return (
                   <button type="button" className={styles.match} key={match.item} onClick={() => onNavigate(`/${id}?item=${match.item}`)}>
                     <span className={styles.kind}>
-                      <Icon size={12} />
+                      <Icon />
                       {match.kind === 'input' ? '你' : '回复'}
                     </span>
                     <span className={styles.snippet}>

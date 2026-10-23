@@ -1,120 +1,77 @@
+/* 就地登录：Windows 11 的卡片，标题 Body 1 Strong，步骤之间间隔 12 */
 .flow {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  font-size: var(--font-size-sm);
+  gap: var(--spacingVerticalM);
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   text-align: left;
 }
 
 .title {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
   margin: 0;
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--spacingVerticalM);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  color: var(--color-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  gap: var(--spacingHorizontalXS);
+  width: fit-content;
+}
+
+.linkIcon {
+  flex: none;
+  font-size: var(--sizeIconSmall);
+}
+
+.codeInput {
+  width: 100%;
+  font-family: var(--fontFamilyMonospace);
 }
 
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
-  color: var(--color-text-secondary);
-}
-
-.codeLabel input {
-  height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-}
-
-.codeLabel input:focus {
-  border-color: var(--color-text-secondary);
+  gap: var(--spacingVerticalXS);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
 }
 
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  min-width: 64px;
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--color-border);
-  background: none;
-  color: var(--color-text-secondary);
-}
-
-.done {
-  margin: 0;
-  color: var(--color-success);
-}
-
-.error {
-  margin: 0;
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
-}
-
+/* 一次性的码：等宽、Subtitle 1 的字号，放在浅灰底的块里，方便抄 */
 .deviceCode {
   align-self: flex-start;
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-wide);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase500);
+  line-height: var(--lineHeightBase500);
+  font-weight: var(--fontWeightSemibold);
+  letter-spacing: 0.1em;
   user-select: all;
 }

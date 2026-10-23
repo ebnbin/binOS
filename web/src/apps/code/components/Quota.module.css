@@ -2,48 +2,68 @@
   margin-left: auto;
 }
 
+/* 额度摘要是一个 subtle 按钮 */
 .summary {
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1-5);
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalS) 0 var(--spacingHorizontalSNudge);
   border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground3);
   font: inherit;
-  font-size: var(--font-size-2xs);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
+  }
+}
+
+.summary:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+.summary[data-state='open'] {
+  background: var(--colorSubtleBackgroundSelected);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacingHorizontalXS);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--color-danger);
+  color: var(--colorStatusDangerForeground1);
 }
 
+/* 弹层：Fluent 的 PopoverSurface，内边距 16 */
 .details {
-  width: 340px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  box-shadow: var(--shadow-md);
+  gap: var(--spacingVerticalL);
+  width: 340px;
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
 }
 
 .details h3 {
-  margin: 0 0 var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacingVerticalS);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .details section + section {
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-separator);
+  padding-top: var(--spacingVerticalL);
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
 }

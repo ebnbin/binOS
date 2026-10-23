@@ -1,4 +1,4 @@
 .text {
-  font-size: var(--font-size-md);
-  color: var(--color-text-secondary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase300);
 }

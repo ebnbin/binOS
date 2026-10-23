@@ -13,90 +13,75 @@
   overscroll-behavior: contain;
 }
 
-.toBottom {
+/* 回到底部：圆形的按钮浮在对话上，shadow8 */
+.viewport .toBottom {
   position: absolute;
-  bottom: var(--space-3);
+  bottom: var(--spacingVerticalM);
   left: 50%;
-  display: grid;
-  place-items: center;
-  width: var(--size-control-md);
-  height: var(--size-control-md);
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
+  box-shadow: var(--shadow8);
   transform: translateX(-50%);
-  animation: appear var(--duration-normal) var(--ease-standard) both;
-}
-
-@media (hover: hover) {
-  .toBottom:hover {
-    color: var(--color-text);
-  }
+  animation: appear var(--durationSlower) var(--curveDecelerateMid) both;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--spacingVerticalXXXL);
   min-height: 100%;
   max-width: 780px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-8) var(--space-10);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalXXXL) var(--spacingVerticalXXXL);
 }
 
+/* 新对话：居中的品牌标志、标题（Title 3）和项目选择 */
 .empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: var(--space-4);
-  padding-bottom: var(--space-16);
+  gap: var(--spacingVerticalL);
+  padding-bottom: calc(2 * var(--spacingVerticalXXXL));
   text-align: center;
-  animation: rise 0.5s var(--ease-standard) both;
+  animation: rise var(--durationSlower) var(--curveDecelerateMid) both;
 }
 
 .empty h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
+  font-size: var(--fontSizeBase600);
+  line-height: var(--lineHeightBase600);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .empty p {
-  margin: calc(-1 * var(--space-2)) 0 0;
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
+  margin: calc(-1 * var(--spacingVerticalS)) 0 0;
+  color: var(--colorNeutralForeground3);
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(var(--spacingVerticalMNudge));
   }
 }
 
 @keyframes appear {
   from {
     opacity: 0;
-    transform: translate(-50%, 6px);
+    transform: translate(-50%, var(--spacingVerticalMNudge));
   }
 }
 
 @container agent (width < 600px) {
   .column {
-    gap: var(--space-6);
-    padding: var(--space-5) var(--space-5) var(--space-8);
+    gap: var(--spacingVerticalXXL);
+    padding: var(--spacingVerticalXL) var(--spacingHorizontalL) var(--spacingVerticalXXXL);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .empty,
-  .toBottom {
+  .viewport .toBottom {
     animation: none;
   }
 }
@@ -105,17 +90,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-md);
+  gap: var(--spacingHorizontalXS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconMedium);
 }
 
-.projectChoice button {
+.projectChoice > button {
   max-width: 240px;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
 }

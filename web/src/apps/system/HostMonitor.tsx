@@ -1,5 +1,11 @@
 import type { MonitorStatus } from '@binos/server/apps/system/types'
-import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from 'lucide-react'
+import { DeveloperBoardRegular } from '@fluentui/react-icons/headless/svg/developer-board'
+import { HardDriveRegular } from '@fluentui/react-icons/headless/svg/hard-drive'
+import { NetworkCheckRegular } from '@fluentui/react-icons/headless/svg/network-check'
+import { PlugConnectedRegular } from '@fluentui/react-icons/headless/svg/plug-connected'
+import { RamRegular } from '@fluentui/react-icons/headless/svg/ram'
+import { Alert } from '../../ui/Alert.tsx'
+import { ProgressBar } from '../../ui/ProgressBar.tsx'
 import { bytes } from './format.ts'
 import styles from './Monitor.module.css'
 
@@ -18,27 +24,27 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           {s.host.chip} · {s.host.cores} 核 · {s.host.os}
         </p>
       </header>
-      {s.unavailable.length > 0 && <p className={styles.warning}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</p>}
+      {s.unavailable.length > 0 && <Alert intent="warning" className={styles.contentAlert}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</Alert>}
       <div className={styles.cards}>
         <section className={styles.card}>
           <h2>
-            <Cpu size={18} />
+            <DeveloperBoardRegular className={styles.cardIcon} />
             CPU
           </h2>
           <strong>{cpu === null ? '采样中' : `${cpu.toFixed(0)}%`}</strong>
-          <progress aria-label="CPU 使用率" max={100} value={cpu || 0} />
+          <ProgressBar thickness="large" label="CPU 使用率" value={(cpu || 0) / 100} />
           <p>当前总使用率</p>
         </section>
         <section className={styles.card}>
           <h2>
-            <MemoryStick size={18} />
+            <RamRegular className={styles.cardIcon} />
             内存
           </h2>
           <strong>
             {bytes(usedMemory)}
             <small> / {bytes(s.memory.total)}</small>
           </strong>
-          {usedMemory !== null && <progress aria-label="内存使用量" max={s.memory.total} value={usedMemory} />}
+          {usedMemory !== null && <ProgressBar thickness="large" label="内存使用量" value={s.memory.total ? usedMemory / s.memory.total : 0} />}
           <p>
             内存压力：
             <span className={s.memory.pressure === 'warning' || s.memory.pressure === 'critical' ? styles.bad : ''}>{pressureNames[s.memory.pressure]}</span>
@@ -47,7 +53,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         </section>
         <section className={styles.card}>
           <h2>
-            <Network size={18} />
+            <NetworkCheckRegular className={styles.cardIcon} />
             网络速度
           </h2>
           <div className={styles.speeds}>
@@ -64,7 +70,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         </section>
         <section className={styles.card}>
           <h2>
-            <PlugZap size={18} />
+            <PlugConnectedRegular className={styles.cardIcon} />
             供电与运行时间
           </h2>
           <strong>
@@ -78,7 +84,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
       </div>
       <section className={styles.section}>
         <h2>
-          <HardDrive size={18} />
+          <HardDriveRegular className={styles.cardIcon} />
           存储
         </h2>
         {s.volumes.length ? (
@@ -93,7 +99,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
                     {bytes(volume.available)} 可用 / 共 {bytes(volume.total)}
                   </span>
                 </header>
-                <progress aria-label={`${name}使用量`} max={volume.total || 1} value={Math.max(0, volume.total - volume.available)} />
+                <ProgressBar thickness="large" label={`${name}使用量`} value={Math.max(0, volume.total - volume.available) / (volume.total || 1)} />
                 <p>已使用 {bytes(Math.max(0, volume.total - volume.available))}</p>
               </article>
             )

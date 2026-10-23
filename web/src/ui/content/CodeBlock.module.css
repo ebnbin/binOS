@@ -1,45 +1,47 @@
+/* Windows 11 的卡片：卡片底色、卡片描边、圆角 4px；顶栏是语言名（Caption 1）和复制按钮 */
 .block {
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--size-control-md);
-  padding: 0 var(--space-1-5) 0 var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  height: var(--sizeControlMedium);
+  padding: 0 var(--spacingHorizontalXS) 0 var(--spacingHorizontalM);
+  border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .pre {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3) 0;
+  padding: var(--spacingVerticalM) 0;
   overflow: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
-  color: var(--color-text);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase300);
 }
 
 .line {
   display: block;
-  padding: 0 var(--space-4);
+  padding: 0 var(--spacingHorizontalL);
   white-space: pre;
 }
 
 .gutter {
   display: inline-block;
   min-width: 2.5em;
-  margin-right: var(--space-4);
+  margin-right: var(--spacingHorizontalL);
+  color: var(--colorNeutralForeground4);
   text-align: right;
-  color: var(--color-text-tertiary);
   user-select: none;
 }
 

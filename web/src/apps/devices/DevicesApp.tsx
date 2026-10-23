@@ -1,13 +1,25 @@
-import { RefreshCw, Smartphone, Camera, Trash2, ExternalLink } from 'lucide-react'
+import { ArrowClockwiseRegular } from '@fluentui/react-icons/headless/svg/arrow-clockwise'
+import { CameraRegular } from '@fluentui/react-icons/headless/svg/camera'
+import { DeleteRegular } from '@fluentui/react-icons/headless/svg/delete'
+import { PhoneRegular } from '@fluentui/react-icons/headless/svg/phone'
+import { SearchRegular } from '@fluentui/react-icons/headless/svg/search'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DevicesSnapshot } from '@binos/server/apps/devices/api'
 import type { Device, Platform } from '@binos/server/apps/devices/types'
 import type { WindowContext } from '../types.ts'
 import { onChange } from '../../events.ts'
+import { Alert } from '../../ui/Alert.tsx'
+import { Badge } from '../../ui/Badge.tsx'
+import type { BadgeColor } from '../../ui/Badge.tsx'
+import { Button } from '../../ui/Button.tsx'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Input } from '../../ui/Input.tsx'
+import { Select } from '../../ui/Select.tsx'
 import { acquireDevices, cancelDevices, captureDevice, controlDevice, discoverDevices, readDevices, releaseDevices } from './api.ts'
 import styles from './DevicesApp.module.css'
 
 const labels = { creating: '初始化中', checking: '检查中', free: '闲置', reserved: '整组预留', leased: '使用中', cleaning: '清理中', destroying: '回收中', broken: '故障隔离' }
+const statusColors: Partial<Record<Device['status'], BadgeColor>> = { free: 'success', leased: 'brand', reserved: 'brand', broken: 'danger', destroying: 'warning' }
 const ownerName = (owner: string) => owner === 'manual' ? '手动使用' : owner
 const moment = (time: number) => new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 export function DevicesApp({ ctx }: { ctx: WindowContext }) {
@@ -59,10 +71,10 @@ export function DevicesApp({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <header className={styles.header}>
         <div><h1>Devices <span>设备</span></h1><p>开发测试设备与会话调度</p></div>
-        <button className={styles.icon} aria-label="刷新设备" disabled={busy} onClick={() => void act(load)}><RefreshCw size={18} /></button>
+        <IconButton icon={<ArrowClockwiseRegular />} label="刷新设备" disabled={busy} onClick={() => void act(load)} />
       </header>
-      {data?.mode === 'mock' && <p className={styles.notice}>模拟设备预览 · 所有操作与正式设备隔离</p>}
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {data?.mode === 'mock' && <Alert intent="info" className={styles.notice}>模拟设备预览 · 所有操作与正式设备隔离</Alert>}
+      {error && <Alert className={styles.notice}>{error}</Alert>}
       {!data ? <p className={styles.empty}>{error ? '设备服务暂时不可用' : '正在连接设备管理服务…'}</p> : <>
         <section className={styles.summary}>
           <div><strong>{data.devices.filter((device) => device.status === 'free').length}</strong><span>闲置设备</span></div>
@@ -71,11 +83,10 @@ export function DevicesApp({ ctx }: { ctx: WindowContext }) {
         </section>
         <p className={styles.hint}>设备池 {data.devices.length} / {data.capacity} · 按需创建 · 闲置一小时后销毁 · 双端全部就绪后交付</p>
         <form className={styles.acquire} onSubmit={(event) => { event.preventDefault(); void act(() => acquireDevices(platform === 'both' ? ['android', 'ios'] : [platform as Platform], reason)) }}>
-          <select aria-label="申请平台" value={platform} onChange={(event) => setPlatform(event.target.value)} disabled={busy || Boolean(own) || waiting}>
-            <option value="both">Android + iOS</option><option value="android">Android</option><option value="ios">iOS</option>
-          </select>
-          <input aria-label="使用用途" value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="使用用途" disabled={busy || Boolean(own) || waiting} />
-          {own ? <button type="button" disabled={busy} onClick={() => void act(() => releaseDevices(own.id))}>归还我的设备</button> : waiting ? <button type="button" disabled={busy} onClick={() => void act(() => cancelDevices(manualRequest!.id))}>取消申请</button> : <button type="submit" disabled={busy}>申请设备</button>}
+          <Select label="申请平台" value={platform} onValueChange={setPlatform} disabled={busy || Boolean(own) || waiting} className={styles.platform}
+            options={[{ value: 'both', label: 'Android + iOS' }, { value: 'android', label: 'Android' }, { value: 'ios', label: 'iOS' }]} />
+          <Input className={styles.reason} aria-label="使用用途" value={reason} maxLength={500} onChange={(event) => setReason(event.target.value)} placeholder="使用用途" disabled={busy || Boolean(own) || waiting} />
+          {own ? <Button disabled={busy} onClick={() => void act(() => releaseDevices(own.id))}>归还我的设备</Button> : waiting ? <Button disabled={busy} onClick={() => void act(() => cancelDevices(manualRequest!.id))}>取消申请</Button> : <Button type="submit" appearance="primary" disabled={busy}>申请设备</Button>}
         </form>
         {own && <p className={styles.hint}>手动租约空闲 15 分钟后回收。查看截图不会延长占用。</p>}
         {data.devices.length === 0 && <p className={styles.empty}>设备池为空，申请时会自动创建专属设备。</p>}
@@ -87,7 +98,7 @@ export function DevicesApp({ ctx }: { ctx: WindowContext }) {
           {data.queue.length ? <ol className={styles.queue}>{data.queue.map((item) => <li key={item.owner}><strong>{data.owners[item.owner]?.title || ownerName(item.owner)}</strong><span>{item.platforms.join(' + ')} · {item.phase === 'preparing' ? '正在准备整组设备' : item.phase === 'failed' ? item.error : '等待容量'} · {item.reason || '未填写用途'}</span></li>)}</ol> : <p className={styles.hint}>没有等待中的申请</p>}
         </section>
         <section className={styles.section}>
-          <div className={styles.sectionTitle}><h2>已有模拟器</h2><button disabled={busy} onClick={() => void act(async () => { const result = await discoverDevices(); setData(result) })}><ExternalLink size={14} />只读发现</button></div>
+          <div className={styles.sectionTitle}><h2>已有模拟器</h2><Button size="small" icon={<SearchRegular />} disabled={busy} onClick={() => void act(async () => { const result = await discoverDevices(); setData(result) })}>只读发现</Button></div>
           <p className={styles.hint}>这些设备不参与分配，也不会被清理或接管。</p>
           {data.observed.map((item) => <div className={styles.observed} key={`${item.platform}-${item.target}`}><span>{item.name}</span><span>{item.platform} · {item.state}</span></div>)}
           {data.discoveryErrors.map((text) => <p className={styles.error} key={text}>{text}</p>)}
@@ -108,18 +119,18 @@ function DeviceCard({ device, data, ctx, busy, act }: { device: Device; data: De
   const session = lease && data.owners[lease.owner]
   return (
     <article className={styles.card}>
-      <div className={styles.cardTitle}><Smartphone size={22} /><div><h2>{device.platform === 'ios' ? 'iOS' : 'Android'} · {device.id.slice(-8)}</h2><p>{device.system?.replace('com.apple.CoreSimulator.SimRuntime.', '').replaceAll('-', '.') ?? (device.platform === 'ios' ? 'iOS' : 'Android')}</p></div><span className={styles.badge} data-status={device.status}>{labels[device.status]}</span></div>
-      {capture ? <img className={styles.screenshot} src={`data:${capture.mime};base64,${capture.image}`} alt={`${device.name} 屏幕截图`} /> : <div className={styles.placeholder}><Smartphone size={44} strokeWidth={1} /><span>按需查看设备画面</span></div>}
+      <div className={styles.cardTitle}><PhoneRegular className={styles.cardIcon} /><div><h2>{device.platform === 'ios' ? 'iOS' : 'Android'} · {device.id.slice(-8)}</h2><p>{device.system?.replace('com.apple.CoreSimulator.SimRuntime.', '').replaceAll('-', '.') ?? (device.platform === 'ios' ? 'iOS' : 'Android')}</p></div><Badge appearance="tint" color={statusColors[device.status] ?? 'informative'}>{labels[device.status]}</Badge></div>
+      {capture ? <img className={styles.screenshot} src={`data:${capture.mime};base64,${capture.image}`} alt={`${device.name} 屏幕截图`} /> : <div className={styles.placeholder}><PhoneRegular className={styles.placeholderIcon} /><span>按需查看设备画面</span></div>}
       {capture && <p className={styles.hint}>截图于 {moment(capture.at)} · 非实时画面</p>}
-      <dl className={styles.details}><div><dt>设备</dt><dd>{device.id}</dd></div><div><dt>占用</dt><dd>{session && ctx.openApplication ? <button onClick={() => ctx.openApplication?.('code', `/${session.session}`)}>{session.title || `会话 ${session.session}`}</button> : lease ? ownerName(lease.owner) : '无'}</dd></div>{lease && <><div><dt>用途</dt><dd>{lease.reason || '未填写'}</dd></div><div><dt>开始</dt><dd>{moment(lease.createdAt)}</dd></div></>}</dl>
+      <dl className={styles.details}><div><dt>设备</dt><dd>{device.id}</dd></div><div><dt>占用</dt><dd>{session && ctx.openApplication ? <button type="button" className={styles.link} onClick={() => ctx.openApplication?.('code', `/${session.session}`)}>{session.title || `会话 ${session.session}`}</button> : lease ? ownerName(lease.owner) : '无'}</dd></div>{lease && <><div><dt>用途</dt><dd>{lease.reason || '未填写'}</dd></div><div><dt>开始</dt><dd>{moment(lease.createdAt)}</dd></div></>}</dl>
       {device.error && <p className={styles.error}>{device.error}</p>}
       <div className={styles.actions}>
-        <button disabled={busy || !['free', 'reserved', 'leased'].includes(device.status) || Boolean(device.error)} onClick={() => void act(async () => setCapture(await captureDevice(device.id)))}><Camera size={15} />截图</button>
-        {device.status !== 'destroying' && <button disabled={busy} onClick={() => {
+        <Button size="small" icon={<CameraRegular />} disabled={busy || !['free', 'reserved', 'leased'].includes(device.status) || Boolean(device.error)} onClick={() => void act(async () => setCapture(await captureDevice(device.id)))}>截图</Button>
+        {device.status !== 'destroying' && <Button size="small" icon={<DeleteRegular />} disabled={busy} onClick={() => {
           if (!confirmDestroy) { setConfirmDestroy(true); return }
           void act(() => controlDevice(device.id, 'destroy'))
-        }}><Trash2 size={15} />{confirmDestroy ? lease ? '确认中断租约并销毁' : '确认销毁设备' : lease ? '强制回收' : '销毁设备'}</button>}
-        {confirmDestroy && <button disabled={busy} onClick={() => setConfirmDestroy(false)}>取消</button>}
+        }}>{confirmDestroy ? lease ? '确认中断租约并销毁' : '确认销毁设备' : lease ? '强制回收' : '销毁设备'}</Button>}
+        {confirmDestroy && <Button size="small" disabled={busy} onClick={() => setConfirmDestroy(false)}>取消</Button>}
       </div>
     </article>
   )

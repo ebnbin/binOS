@@ -2,6 +2,7 @@ import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
 import { useEffect, useState } from 'react'
 import { Popover } from '../../../ui/Popover.tsx'
+import { ProgressBar } from '../../../ui/ProgressBar.tsx'
 import { codeUsage } from '../api.ts'
 import { formatTokens } from '../../../ui/format.ts'
 import { formatQuota } from '../format.ts'
@@ -76,9 +77,7 @@ export function Usage({ session }: { session: SessionSummary }) {
         )}
       </div>
       {context && (
-        <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
-        </div>
+        <ProgressBar className={styles.bar} value={ratio} thickness="large" intent={level === 'danger' ? 'error' : level ?? 'brand'} label="上下文占用" />
       )}
       <div className={styles.line}>
         <span className={styles.label}>本会话</span>

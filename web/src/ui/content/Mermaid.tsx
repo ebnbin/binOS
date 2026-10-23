@@ -14,8 +14,26 @@ export function Mermaid({ code }: { code: string }) {
     const timer = window.setTimeout(async () => {
       try {
         const { default: mermaid } = await import('mermaid')
-        const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: dark ? 'dark' : 'neutral' })
+        // 用 Fluent 的 token 配色：节点是浅品牌色，线是可辨识的中性描边
+        const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+        mermaid.initialize({
+          startOnLoad: false,
+          securityLevel: 'strict',
+          theme: 'base',
+          themeVariables: {
+            darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches,
+            fontFamily: token('--fontFamilyBase'),
+            fontSize: token('--fontSizeBase300'),
+            background: token('--colorNeutralBackground1'),
+            primaryColor: token('--colorBrandBackground2'),
+            primaryBorderColor: token('--colorBrandStroke1'),
+            primaryTextColor: token('--colorNeutralForeground1'),
+            secondaryColor: token('--colorNeutralBackground3'),
+            tertiaryColor: token('--colorNeutralBackground1'),
+            lineColor: token('--colorNeutralStrokeAccessible'),
+            textColor: token('--colorNeutralForeground1'),
+          },
+        })
         if (!(await mermaid.parse(code, { suppressErrors: true }))) {
           return
         }

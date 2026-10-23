@@ -1,5 +1,6 @@
+/* 长文：Body 1 的字号，行距放宽；标题按 Fluent 的字体阶梯；链接是 Fluent 的 Link */
 .markdown {
-  line-height: var(--line-height-relaxed);
+  line-height: var(--lineHeightProse);
   overflow-wrap: anywhere;
 }
 
@@ -12,48 +13,54 @@
 }
 
 .markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--spacingVerticalM);
 }
 
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: var(--space-6) 0 var(--space-3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-snug);
-  letter-spacing: var(--letter-spacing-tight);
+  margin: var(--spacingVerticalXXL) 0 var(--spacingVerticalS);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .markdown h1 {
-  font-size: 1.4em;
+  font-size: var(--fontSizeBase600);
+  line-height: var(--lineHeightBase600);
 }
 
 .markdown h2 {
-  font-size: 1.22em;
+  font-size: var(--fontSizeBase500);
+  line-height: var(--lineHeightBase500);
 }
 
 .markdown h3 {
-  font-size: 1.08em;
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
 }
 
 .markdown :is(h4, h5, h6) {
-  font-size: 1em;
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
 
 .markdown strong {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--fontWeightSemibold);
 }
 
+/* 正文里的链接是 inline Link，一直带下划线 */
 .markdown a {
-  color: inherit;
+  color: var(--colorBrandForegroundLink);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color var(--duration-fast);
+  text-decoration-thickness: var(--strokeWidthThin);
+  text-underline-offset: 0.2em;
 }
 
 @media (hover: hover) {
   .markdown a:hover {
-    text-decoration-color: currentColor;
+    color: var(--colorBrandForegroundLinkHover);
   }
+}
+
+.markdown a:active {
+  color: var(--colorBrandForegroundLinkPressed);
 }
 
 .markdown :is(ul, ol) {
@@ -62,7 +69,7 @@
 
 .markdown li + li,
 .markdown li > :is(ul, ol) {
-  margin-top: var(--space-1);
+  margin-top: var(--spacingVerticalXS);
 }
 
 .markdown li > :is(ul, ol) {
@@ -70,7 +77,7 @@
 }
 
 .markdown li::marker {
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
 }
 
 .markdown li > p {
@@ -78,9 +85,9 @@
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 var(--space-1-5) 0 0;
+  margin: 0 var(--spacingHorizontalSNudge) 0 0;
   vertical-align: -1px;
-  accent-color: var(--color-primary);
+  accent-color: var(--colorCompoundBrandBackground);
 }
 
 .markdown :global(.contains-task-list) {
@@ -89,90 +96,98 @@
 }
 
 .markdown blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
-  color: var(--color-text-secondary);
+  padding-left: var(--spacingHorizontalM);
+  border-left: var(--strokeWidthThicker) solid var(--colorNeutralStroke1);
+  color: var(--colorNeutralForeground3);
 }
 
 .markdown hr {
-  height: 1px;
+  height: var(--strokeWidthThin);
   border: 0;
-  background: var(--color-separator);
+  background: var(--colorNeutralStroke2);
 }
 
 .markdown code {
-  padding: 1px var(--space-1-5);
-  border-radius: var(--radius-xs);
-  background: var(--color-fill);
-  font-family: var(--font-mono);
-  font-size: 0.86em;
+  padding: 0 var(--spacingHorizontalXS);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  font-family: var(--fontFamilyMonospace);
+  font-size: 0.9em;
 }
 
 .markdown .codeBlock code {
   padding: 0;
+  border: 0;
   border-radius: 0;
   background: none;
   font-size: inherit;
 }
 
 .markdown :global(.katex-display) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--spacingVerticalM);
   overflow-x: auto;
   overflow-y: hidden;
 }
 
+/* 表格：Fluent 的 Table，表头 Body 1 Strong，行之间是 Stroke2 的分隔线 */
 .tableWrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
 }
 
 .markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: var(--line-height-normal);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
 
 .markdown :is(th, td) {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown th {
-  background: var(--color-surface-sunken);
-  font-weight: var(--font-weight-semibold);
+  border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  font-weight: var(--fontWeightSemibold);
   white-space: nowrap;
 }
 
-.markdown tr + tr td,
-.markdown thead + tbody td {
-  border-top: 1px solid var(--color-separator);
+.markdown tr + tr td {
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: var(--space-1-5) 0;
+  margin: var(--spacingVerticalSNudge) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
 }
 
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-0-5) var(--space-3);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text-tertiary);
-  font-size: 0.9em;
+  gap: var(--spacingHorizontalXS);
+  padding: 0 var(--spacingHorizontalS);
+  border: var(--strokeWidthThin) dashed var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase300);
+}
+
+.missingImage svg {
+  font-size: var(--sizeIconSmall);
 }

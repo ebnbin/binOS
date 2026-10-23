@@ -1,6 +1,15 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from 'lucide-react'
+import { ArrowClockwiseRegular } from '@fluentui/react-icons/headless/svg/arrow-clockwise'
+import { ArrowLeftRegular } from '@fluentui/react-icons/headless/svg/arrow-left'
+import { ArrowRightRegular } from '@fluentui/react-icons/headless/svg/arrow-right'
+import { GlobeRegular } from '@fluentui/react-icons/headless/svg/globe'
+import { HomeRegular } from '@fluentui/react-icons/headless/svg/home'
+import { OpenRegular } from '@fluentui/react-icons/headless/svg/open'
 import { useEffect, useRef, useState } from 'react'
+import { Alert } from '../../ui/Alert.tsx'
+import { Button } from '../../ui/Button.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
+import { Input } from '../../ui/Input.tsx'
+import { TabList } from '../../ui/TabList.tsx'
 import type { WindowContext } from '../types.ts'
 import { addressRoute, browserAddress, isLoopback, routeAddress } from './address.ts'
 import { RemoteBrowser } from './RemoteBrowser.tsx'
@@ -50,10 +59,10 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <div className={styles.toolbar}>
         <div className={styles.navigation}>
-          <IconButton icon={ArrowLeft} label="上一个输入的网址" disabled={history.index === 0} onClick={() => move(-1)} />
-          <IconButton icon={ArrowRight} label="下一个输入的网址" disabled={history.index === history.entries.length - 1} onClick={() => move(1)} />
-          <IconButton icon={RotateCw} label="重新打开输入的网址" disabled={!url} onClick={() => setRevision((value) => value + 1)} />
-          <IconButton icon={House} label="浏览器首页" onClick={() => visit('')} />
+          <IconButton icon={<ArrowLeftRegular />} label="上一个输入的网址" disabled={history.index === 0} onClick={() => move(-1)} />
+          <IconButton icon={<ArrowRightRegular />} label="下一个输入的网址" disabled={history.index === history.entries.length - 1} onClick={() => move(1)} />
+          <IconButton icon={<ArrowClockwiseRegular />} label="重新打开输入的网址" disabled={!url} onClick={() => setRevision((value) => value + 1)} />
+          <IconButton icon={<HomeRegular />} label="浏览器首页" onClick={() => visit('')} />
         </div>
         <form className={styles.address} onSubmit={(event) => {
           event.preventDefault()
@@ -65,7 +74,10 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
             setError(reason instanceof Error ? reason.message : '网址格式不正确')
           }
         }}>
-          <input
+          <Input
+            className={styles.addressInput}
+            appearance="filled-lighter"
+            contentBefore={<GlobeRegular />}
             aria-label="网址"
             placeholder="输入网址"
             value={address}
@@ -77,14 +89,14 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
             autoCorrect="off"
             spellCheck={false}
           />
-          <button type="submit">前往</button>
+          <Button className={styles.go} type="submit" appearance="subtle">前往</Button>
         </form>
-        {url && <a className={styles.external} href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址" title="在新标签页打开输入的网址"><ArrowUpRight size={19} /></a>}
+        {url && <a className={styles.external} href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址" title="在新标签页打开输入的网址"><OpenRegular /></a>}
       </div>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {error && <Alert className={styles.error}>{error}</Alert>}
       {insecure ? (
         <div className={styles.home}>
-          <Globe size={44} strokeWidth={1.25} />
+          <GlobeRegular className={styles.homeIcon} />
           <h1>无法嵌入 HTTP 网页</h1>
           <p>浏览器会拦截 HTTPS 页面中嵌入的 HTTP 网页。请切换到远程模式，或在新标签页打开。</p>
         </div>
@@ -105,7 +117,7 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
         </>
       ) : (
         <div className={styles.home}>
-          <Globe size={44} strokeWidth={1.25} />
+          <GlobeRegular className={styles.homeIcon} />
           <h1>浏览器</h1>
           <p>在上方输入网址，直接在 binOS 中浏览网页。</p>
           <p>省略协议时使用 HTTPS，本机地址使用 HTTP。嵌入模式只能加载 HTTPS 和本机网址，部分网站也不允许嵌入，可切换到远程模式或在新标签页打开。</p>
@@ -119,10 +131,14 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
   const [remote, setRemote] = useState(false)
   const remoteSession = useRef<string | undefined>(undefined)
   return <div className={styles.app}>
-    <div className={styles.modeBar} role="group" aria-label="浏览模式">
-      <button type="button" aria-pressed={!remote} onClick={() => setRemote(false)}>嵌入模式</button>
-      <button type="button" aria-pressed={remote} onClick={() => setRemote(true)}>远程模式</button>
-    </div>
+    <TabList
+      className={styles.modeBar}
+      label="浏览模式"
+      size="small"
+      value={remote ? 'remote' : 'embed'}
+      onValueChange={(value) => setRemote(value === 'remote')}
+      tabs={[{ value: 'embed', label: '嵌入模式' }, { value: 'remote', label: '远程模式' }]}
+    />
     <div className={styles.modeContent}>
       {remote ? <RemoteBrowser ctx={ctx} session={remoteSession} /> : <IframeBrowser ctx={ctx} />}
     </div>

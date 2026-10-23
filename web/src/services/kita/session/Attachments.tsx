@@ -1,5 +1,6 @@
 import type { Attachment } from '@binos/server/services/kita/types'
-import { FileText, X } from 'lucide-react'
+import { DismissRegular } from '@fluentui/react-icons/headless/svg/dismiss'
+import { DocumentTextRegular } from '@fluentui/react-icons/headless/svg/document-text'
 import { useState } from 'react'
 import { FileBlock } from '../../preview/index.ts'
 import { threadPreviewFile } from '../files.ts'
@@ -11,7 +12,7 @@ import styles from './Attachments.module.css'
 function FileCard({ name }: { name: string }) {
   return (
     <span className={styles.card}>
-      <FileText size={18} strokeWidth={1.75} />
+      <DocumentTextRegular className={styles.cardIcon} />
       <span className={styles.name}>{name}</span>
     </span>
   )
@@ -50,7 +51,7 @@ export function PendingAttachments({ files, onRemove }: { files: PendingFile[]; 
           <PendingItem file={file} preview={preview} />
           {onRemove && (
             <button type="button" className={styles.remove} onClick={() => onRemove(key)} aria-label={`移除 ${file.name}`}>
-              <X size={11} strokeWidth={2.5} />
+              <DismissRegular />
             </button>
           )}
         </div>

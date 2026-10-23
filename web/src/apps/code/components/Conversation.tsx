@@ -2,13 +2,15 @@ import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { ArrowDown, Folder } from 'lucide-react'
+import { ArrowDownRegular } from '@fluentui/react-icons/headless/svg/arrow-down'
+import { FolderRegular } from '@fluentui/react-icons/headless/svg/folder'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
 import { useKitaSession } from '../../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../../ui/Alert.tsx'
 import { BrandMark } from '../../../ui/BrandMark.tsx'
+import { IconButton } from '../../../ui/IconButton.tsx'
 import { markRead, maxUploadBytes, sendMessage, stopSession, uploadFile } from '../api.ts'
 import { Composer } from './Composer.tsx'
 import styles from './Conversation.module.css'
@@ -141,11 +143,12 @@ export function Conversation({
           <div className={styles.column}>
             {sessionId === null ? (
               <div className={styles.empty}>
-                <BrandMark size={36} />
+                <BrandMark size={48} />
                 <h1>开始新对话</h1>
                 <div className={styles.projectChoice}>
-                  <Folder size={16} aria-hidden="true" />
+                  <FolderRegular aria-hidden="true" />
                   <Select
+                    appearance="subtle"
                     label="对话所属项目"
                     value={project}
                     onValueChange={onProject}
@@ -160,9 +163,7 @@ export function Conversation({
           </div>
         </div>
         {awayFromBottom && (
-          <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
-          </button>
+          <IconButton appearance="secondary" shape="circular" className={styles.toBottom} onClick={scrollToBottom} label="回到底部" icon={<ArrowDownRegular />} />
         )}
       </div>
       <Composer

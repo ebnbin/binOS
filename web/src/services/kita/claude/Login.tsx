@@ -1,5 +1,9 @@
-import { ExternalLink } from 'lucide-react'
+import { OpenRegular } from '@fluentui/react-icons/headless/svg/open'
 import { useEffect, useRef, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { Field } from '../../../ui/Field.tsx'
+import { Input } from '../../../ui/Input.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
@@ -77,11 +81,11 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
         >
           <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
             1. 打开授权页面，用 Claude 账号授权
-            <ExternalLink size={14} strokeWidth={1.75} />
+            <OpenRegular className={styles.linkIcon} />
           </a>
-          <label className={styles.codeLabel}>
-            2. 把授权后页面上显示的代码贴到这里
-            <input
+          <Field label="2. 把授权后页面上显示的代码贴到这里">
+            <Input
+              className={styles.codeInput}
               value={code}
               onChange={(event) => setCode(event.target.value)}
               placeholder="授权代码"
@@ -89,37 +93,37 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
               spellCheck={false}
               disabled={step.name === 'finishing'}
             />
-          </label>
+          </Field>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button onClick={onClose}>
               取消
-            </button>
-            <button type="submit" className={styles.primary} disabled={!code.trim() || step.name === 'finishing'}>
+            </Button>
+            <Button type="submit" appearance="primary" disabled={!code.trim() || step.name === 'finishing'}>
               {step.name === 'finishing' ? <Spinner /> : '完成'}
-            </button>
+            </Button>
           </div>
         </form>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
+          <Alert intent="success">{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</Alert>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button appearance="primary" onClick={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <Alert>{step.error}</Alert>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button onClick={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={restart}>
+            </Button>
+            <Button appearance="primary" onClick={restart}>
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}

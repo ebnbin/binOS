@@ -1,6 +1,12 @@
-import { Download, File, Info, X } from 'lucide-react'
+import { ArrowDownloadRegular } from '@fluentui/react-icons/headless/svg/arrow-download'
+import { DismissRegular } from '@fluentui/react-icons/headless/svg/dismiss'
+import { DocumentRegular } from '@fluentui/react-icons/headless/svg/document'
+import { InfoFilled, InfoRegular } from '@fluentui/react-icons/headless/svg/info'
 import { useEffect, useState } from 'react'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
+import { Button } from '../../ui/Button.tsx'
+import buttonStyles from '../../ui/Button.module.css'
+import { IconButton } from '../../ui/IconButton.tsx'
 import { CodeBlock } from '../../ui/content/CodeBlock.tsx'
 import { Markdown } from '../../ui/content/Markdown.tsx'
 import { languageOf } from '../../ui/content/highlight.ts'
@@ -40,7 +46,7 @@ function Preview({ item, type, source }: { item: PreviewFile; type: string; sour
   if (type === 'video') return <video className={styles.media} controls src={url} onError={() => setError('此视频无法在浏览器中播放，请下载查看')} />
   if (type === 'audio') return <audio className={styles.media} controls src={url} onError={() => setError('此音频无法在浏览器中播放，请下载查看')} />
   if (type === 'pdf') return <iframe className={styles.document} title={item.name} src={url} />
-  if (type === 'binary') return <div className={styles.status}><File size={48} strokeWidth={1} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
+  if (type === 'binary') return <div className={styles.status}><DocumentRegular className={styles.statusIcon} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
   if (text === undefined) return <div className={styles.status}>加载中…</div>
   if (type === 'html' && !source) return <iframe className={styles.document} title={item.name} sandbox="allow-scripts" srcDoc={text} />
   if (type === 'markdown' && !source) return <div className={styles.prose}><Markdown text={text} /></div>
@@ -69,11 +75,11 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
     <ModalHost className={styles.dialog} onClose={close} label={item.name}>
       <div className={styles.window}>
         <header className={styles.toolbar}>
-          <File size={18} /><strong className={styles.title}>{item.name}</strong>
-          {['markdown', 'html'].includes(type) && <button type="button" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
-          <a href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
-          <button type="button" onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info size={17} /></button>
-          <button type="button" onClick={close} aria-label="关闭预览" autoFocus><X size={19} /></button>
+          <DocumentRegular className={styles.fileIcon} /><strong className={styles.title}>{item.name}</strong>
+          {['markdown', 'html'].includes(type) && <Button appearance="subtle" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</Button>}
+          <a className={buttonStyles.button} data-appearance="subtle" data-size="medium" href={item.downloadUrl ?? item.url} download={item.name} title="下载"><span className={buttonStyles.icon}><ArrowDownloadRegular /></span><span className={styles.downloadLabel}>下载</span></a>
+          <IconButton icon={info ? <InfoFilled /> : <InfoRegular />} label="文件信息" onClick={() => setInfo(!info)} aria-pressed={info} />
+          <IconButton icon={<DismissRegular />} label="关闭预览" className={styles.close} onClick={close} autoFocus />
         </header>
         <div className={styles.body}>
           <main className={styles.preview}><Preview item={item} type={type} source={source} /></main>

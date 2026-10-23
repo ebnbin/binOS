@@ -1,4 +1,5 @@
-import { SquarePen } from 'lucide-react'
+import { ComposeRegular } from '@fluentui/react-icons/headless/svg/compose'
+import { IconButton } from '../../ui/IconButton.tsx'
 import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
 import { formatTime } from '../../ui/time.ts'
@@ -15,18 +16,16 @@ export function CodeWidget({ size, open }: WidgetContext) {
       <header className={styles.header}>
         <span className={styles.name}>Code</span>
         {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
-          type="button"
+        <IconButton
+          size="small"
           className={styles.new}
-          aria-label="新对话"
-          title="新对话"
+          label="新对话"
+          icon={<ComposeRegular />}
           onClick={(event) => {
             event.stopPropagation()
             open('/new')
           }}
-        >
-          <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        />
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>

@@ -1,5 +1,10 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { ArrowLeftRegular } from '@fluentui/react-icons/headless/svg/arrow-left'
+import { BranchRequestRegular } from '@fluentui/react-icons/headless/svg/branch-request'
+import { BranchRequestClosedRegular } from '@fluentui/react-icons/headless/svg/branch-request-closed'
+import { ChevronDownRegular } from '@fluentui/react-icons/headless/svg/chevron-down'
+import { ComposeRegular } from '@fluentui/react-icons/headless/svg/compose'
+import { MergeRegular } from '@fluentui/react-icons/headless/svg/merge'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -26,7 +31,7 @@ export function TopBar({
   const prs = session?.prs ?? []
   return (
     <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
-      <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
+      <IconButton icon={<ArrowLeftRegular />} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
       <div className={styles.heading} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
         {sessionId === null ? (
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
@@ -38,7 +43,7 @@ export function TopBar({
           </>
         )}
       </div>
-      {sessionId !== null && <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
+      {sessionId !== null && <IconButton icon={<ComposeRegular />} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
     </header>
   )
 }
@@ -55,7 +60,7 @@ function SessionTitle({ session }: { session: SessionSummary }) {
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
         <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
           <span className={styles.title}>{session.title || '（无内容）'}</span>
-          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
+          <ChevronDownRegular className={styles.titleChevron} />
         </button>
       </SessionActions>
     </span>
@@ -77,7 +82,7 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           className={styles.prMenu}
           trigger={
             <button type="button" className={styles.finished} aria-label="查看对话的 PR">
-              <GitMerge size={13} strokeWidth={2} />
+              <MergeRegular />
               {finished.length}
             </button>
           }
@@ -95,7 +100,7 @@ function PrList({ prs }: { prs: PullRequest[] }) {
   )
 }
 
-const prIcons = { open: GitPullRequest, merged: GitMerge, closed: GitPullRequestClosed }
+const prIcons = { open: BranchRequestRegular, merged: MergeRegular, closed: BranchRequestClosedRegular }
 const prStates = { open: '开着', merged: '已合并', closed: '已关闭' }
 
 // 这个 session 开的 PR：点编号去 GitHub，开着的有预览时另有预览链接
@@ -104,7 +109,7 @@ function PrLink({ pr }: { pr: PullRequest }) {
   return (
     <span className={styles.pr} data-state={pr.state}>
       <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
-        <Icon size={13} strokeWidth={2} />#{pr.number}
+        <Icon />#{pr.number}
       </a>
       {pr.preview && (
         <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>

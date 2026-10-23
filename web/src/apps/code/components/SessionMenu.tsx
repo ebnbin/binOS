@@ -1,8 +1,13 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
+import { ArchiveRegular } from '@fluentui/react-icons/headless/svg/archive'
+import { ArchiveArrowBackRegular } from '@fluentui/react-icons/headless/svg/archive-arrow-back'
+import { PinRegular } from '@fluentui/react-icons/headless/svg/pin'
+import { PinOffRegular } from '@fluentui/react-icons/headless/svg/pin-off'
+import { RenameRegular } from '@fluentui/react-icons/headless/svg/rename'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
+import { Input } from '../../../ui/Input.tsx'
+import { Menu, MenuItem } from '../../../ui/Menu.tsx'
 import { editSession } from '../api.ts'
 import styles from './SessionMenu.module.css'
 
@@ -35,67 +40,56 @@ export function SessionActions({
     }
   }
   return (
-    <Dropdown.Root
+    <Menu
       open={open}
       onOpenChange={(next) => {
         setError('')
         onOpenChange(next)
       }}
       modal={false}
+      label="会话操作"
+      trigger={children}
+      onCloseAutoFocus={(event) => {
+        if (renaming.current) event.preventDefault()
+      }}
     >
-      <Dropdown.Trigger asChild>{children}</Dropdown.Trigger>
-      <Dropdown.Portal>
-        <Dropdown.Content
-          className={styles.menu}
-          sideOffset={6}
-          collisionPadding={12}
-          aria-label="会话操作"
-          onCloseAutoFocus={(event) => {
-            if (renaming.current) event.preventDefault()
-          }}
-        >
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={() => {
-              renaming.current = true
-              onOpenChange(false)
-              onRename()
-            }}
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-            重命名
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ pinned: !session.pinned })
-            }}
-          >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
-            {session.pinned ? '取消置顶' : '置顶'}
-          </Dropdown.Item>
-          <Dropdown.Item
-            className={styles.menuItem}
-            disabled={saving}
-            onSelect={(event) => {
-              event.preventDefault()
-              void edit({ archived: !session.archived })
-            }}
-          >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
-            {session.archived ? '取消归档' : '归档'}
-          </Dropdown.Item>
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
-        </Dropdown.Content>
-      </Dropdown.Portal>
-    </Dropdown.Root>
+      <MenuItem
+        icon={<RenameRegular />}
+        disabled={saving}
+        onSelect={() => {
+          renaming.current = true
+          onOpenChange(false)
+          onRename()
+        }}
+      >
+        重命名
+      </MenuItem>
+      <MenuItem
+        icon={session.pinned ? <PinOffRegular /> : <PinRegular />}
+        disabled={saving}
+        onSelect={(event) => {
+          event.preventDefault()
+          void edit({ pinned: !session.pinned })
+        }}
+      >
+        {session.pinned ? '取消置顶' : '置顶'}
+      </MenuItem>
+      <MenuItem
+        icon={session.archived ? <ArchiveArrowBackRegular /> : <ArchiveRegular />}
+        disabled={saving}
+        onSelect={(event) => {
+          event.preventDefault()
+          void edit({ archived: !session.archived })
+        }}
+      >
+        {session.archived ? '取消归档' : '归档'}
+      </MenuItem>
+      {error && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
+    </Menu>
   )
 }
 
@@ -127,7 +121,7 @@ export function RenameInput({ session, className, onDone }: { session: SessionSu
   }
   return (
     <span className={`${styles.renameWrap} ${className ?? ''}`}>
-      <input
+      <Input
         className={styles.rename}
         value={value}
         autoFocus

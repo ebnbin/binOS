@@ -1,5 +1,6 @@
 import type { Limits } from '@binos/server/services/kita/types'
 import { blockingWindow, formatReset, formatSpan, windowsOf, windowState } from './quota.ts'
+import { Alert } from '../../ui/Alert.tsx'
 import styles from './Quota.module.css'
 
 // 一个 agent 的订阅额度详情：每个窗口用了多少、多久重置，进度条上的竖线是匀速用到现在该到的位置，
@@ -9,11 +10,11 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
   return (
     <div className={styles.windows}>
       {limits.limited && (
-        <p className={styles.limited}>
+        <Alert>
           {blocking
             ? `已被限流：${blocking.name}额度用满了，${formatReset(blocking.window.resetsAt, now).replace('重置', '恢复')}`
             : '已被限流'}
-        </p>
+        </Alert>
       )}
       {windowsOf(limits).map(({ key, longest, name, window, length }) => {
         const { used, left, expected, pace, runsOut } = windowState(window, length, now)

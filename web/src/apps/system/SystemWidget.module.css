@@ -1,50 +1,64 @@
+/* Windows 11 widget 的样子：大号的数字时间，下面是说明文字，状态放在底部 */
 .widget {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
+  color: var(--colorNeutralForeground1);
   text-align: left;
 }
 
+.widget:focus-visible {
+  border-radius: var(--borderRadiusMedium);
+}
+
 .time {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
+  font-family: var(--fontFamilyNumeric);
+  font-size: var(--fontSizeHero900);
+  line-height: var(--lineHeightHero900);
+  font-weight: var(--fontWeightSemibold);
   font-variant-numeric: tabular-nums;
 }
 
 .widget[data-size='2x2'] .time {
-  font-size: var(--font-size-3xl);
+  font-size: var(--fontSizeHero800);
+  line-height: var(--lineHeightHero800);
 }
 
 .date {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+}
+
+.metrics {
+  margin-top: var(--spacingVerticalS);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--spacingHorizontalSNudge);
   margin-top: auto;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-danger);
+  width: var(--spacingHorizontalS);
+  height: var(--spacingHorizontalS);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorPaletteRedBackground3);
 }
 
 .dot[data-connected='true'] {
-  background: var(--color-success);
+  background: var(--colorPaletteGreenBackground3);
 }
 
 .version {
-  font-family: var(--font-mono);
+  font-family: var(--fontFamilyMonospace);
 }
-
-.metrics { margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-size-xs); }

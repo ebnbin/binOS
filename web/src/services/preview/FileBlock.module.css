@@ -1,39 +1,309 @@
-.block { display: block; margin: var(--space-3) 0; border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; background: var(--color-surface); color: var(--color-text); font: var(--font-size-sm)/var(--line-height-snug) var(--font-sans); text-align: left; }
-.bar, .toolbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
-.bar { border-bottom: 0; }
-.title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--font-weight-medium); }
-.badge { font-size: var(--font-size-2xs); color: var(--color-text-tertiary); }
-.bar button, .bar a, .toolbar button, .toolbar a { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1-5); min-width: var(--size-control-sm); min-height: var(--size-control-sm); padding: var(--space-1-5); border: 0; border-radius: var(--radius-control); color: var(--color-text-secondary); background: transparent; font: inherit; text-decoration: none; cursor: pointer; }
-.bar button:hover, .bar a:hover, .toolbar button:hover, .toolbar a:hover { background: var(--color-hover); }
-.thumbnail { display: block; width: 100%; padding: 0; border: 0; background: var(--color-surface-sunken); cursor: zoom-in; }
-.thumbnail img { display: block; max-width: 100%; max-height: 420px; margin: auto; object-fit: contain; }
-.summary { display: flex; align-items: center; gap: var(--space-4); width: 100%; padding: var(--space-5); border: 0; border-top: 1px solid var(--color-border); background: transparent; color: var(--color-text-secondary); text-align: left; cursor: pointer; font: inherit; }
-.summary > span { flex: 1; overflow-wrap: anywhere; }
-.summary small { display: block; color: var(--color-text-tertiary); margin-top: var(--space-1); }
-.summary:hover { background: var(--color-hover); }
-.dialog { width: min(1160px, calc(100vw - var(--space-12))); height: min(820px, calc(100dvh - var(--space-16))); max-width: none; max-height: none; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-overlay); color: var(--color-text); background: var(--color-surface); box-shadow: var(--shadow-lg); font: var(--font-size-sm)/var(--line-height-snug) var(--font-sans); }
-.dialog::backdrop { background: var(--color-scrim); backdrop-filter: blur(6px); }
-.window { display: flex; flex-direction: column; height: 100%; }
-.toolbar { flex-shrink: 0; padding: var(--space-3) var(--space-4); }
-.body { display: flex; min-height: 0; flex: 1; position: relative; }
-.preview { flex: 1; min-width: 0; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--color-bg); }
-.image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-.media { max-width: 100%; max-height: 100%; width: 100%; }
-audio.media { max-width: 560px; margin: var(--space-6); }
-.document { width: 100%; height: 100%; border: 0; background: var(--color-document); }
-.prose { width: 100%; align-self: stretch; padding: var(--space-8); box-sizing: border-box; }
-.code { width: 100%; align-self: stretch; }
-.status { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-8); color: var(--color-text-tertiary); text-align: center; overflow-wrap: anywhere; }
-.status strong { color: var(--color-text); }
-.info { width: 260px; flex-shrink: 0; padding: var(--space-5); border-left: 1px solid var(--color-border); overflow: auto; background: var(--color-surface); }
-.info h3 { margin: 0 0 var(--space-6); font-size: var(--font-size-md); font-weight: var(--font-weight-medium); }
-.info dt { color: var(--color-text-tertiary); font-size: var(--font-size-2xs); margin-top: var(--space-5); }
-.info dd { margin: var(--space-1-5) 0 0; overflow-wrap: anywhere; }
-.info small { display: block; color: var(--color-text-tertiary); margin-top: var(--space-1); }
+/* 消息里的文件：Windows 11 的卡片，顶栏是文件名、类型和操作按钮 */
+.block {
+  display: block;
+  margin: var(--spacingVerticalM) 0;
+  overflow: hidden;
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyBase);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  text-align: left;
+}
+
+.bar,
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+}
+
+.bar {
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalXS) var(--spacingVerticalXS) var(--spacingHorizontalM);
+}
+
+.fileIcon {
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconMedium);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: var(--fontWeightSemibold);
+}
+
+.thumbnail {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
+  background: var(--colorNeutralBackground3);
+  cursor: zoom-in;
+}
+
+.thumbnail img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  margin: auto;
+  object-fit: contain;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  width: 100%;
+  padding: var(--spacingVerticalM) var(--spacingHorizontalM);
+  border: 0;
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
+  background: transparent;
+  color: var(--colorNeutralForeground1);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.summary > span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.summary small {
+  display: block;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.summaryIcon {
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconLarge);
+}
+
+.summaryAction {
+  flex: none;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconMedium);
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--colorSubtleBackgroundHover);
+  }
+}
+
+.summary:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+/* 预览窗口：Fluent 的 Dialog 表面，里面像一个 Windows 11 窗口：Mica 上的标题栏，内容在 Layer 上 */
+.dialog {
+  composes: surface from '../../ui/Dialog.module.css';
+  display: flex;
+  width: min(1160px, calc(100vw - 2 * var(--spacingHorizontalXXXL)));
+  max-width: none;
+  height: min(820px, calc(100dvh - 4 * var(--spacingVerticalXXXL)));
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border-color: var(--colorSurfaceStroke);
+  background: var(--colorMicaBackground);
+}
+
+.window {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.toolbar {
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 var(--spacingHorizontalXS) 0 var(--spacingHorizontalL);
+}
+
+.toolbar .fileIcon {
+  font-size: var(--sizeIconSmall);
+}
+
+.toolbar .title {
+  font-weight: var(--fontWeightRegular);
+}
+
+/* 关闭按钮：Windows 11 标题栏的关闭，悬停时变红 */
+@media (hover: hover) {
+  .toolbar .close:hover {
+    background: var(--colorStatusDangerBackground3);
+    color: var(--colorNeutralForegroundOnBrand);
+  }
+
+  .toolbar .close:hover > span {
+    color: var(--colorNeutralForegroundOnBrand);
+  }
+}
+
+.toolbar .close:active {
+  background: var(--colorStatusDangerBackground3Pressed);
+  color: var(--colorNeutralForegroundOnBrand);
+}
+
+.body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+}
+
+.preview {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: auto;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.media {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+audio.media {
+  max-width: 560px;
+  margin: var(--spacingVerticalXXL);
+}
+
+.document {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--colorDocumentBackground);
+}
+
+.prose {
+  box-sizing: border-box;
+  align-self: stretch;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--spacingVerticalXXXL);
+}
+
+.code {
+  align-self: stretch;
+  width: 100%;
+  padding: var(--spacingVerticalM);
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacingVerticalS);
+  padding: var(--spacingVerticalXXXL);
+  color: var(--colorNeutralForeground3);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.status strong {
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.statusIcon {
+  color: var(--colorNeutralForeground3);
+  font-size: calc(2 * var(--sizeIconLarge));
+}
+
+/* 文件信息：右侧的详情窗格 */
+.info {
+  flex-shrink: 0;
+  width: 280px;
+  padding: var(--spacingVerticalL) var(--spacingHorizontalL);
+  overflow: auto;
+  border-left: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  background: var(--colorMicaBackground);
+}
+
+.info h3 {
+  margin: 0 0 var(--spacingVerticalS);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.info dl {
+  margin: 0;
+}
+
+.info dt {
+  margin-top: var(--spacingVerticalM);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.info dd {
+  margin: var(--spacingVerticalXXS) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.info small {
+  display: block;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
 @media (max-width: 640px) {
-  .dialog { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
-  .toolbar { gap: var(--space-1-5); padding: var(--space-3); }
-  .toolbar a span { display: none; }
-  .info { position: absolute; inset: 0 0 0 auto; width: min(260px, 75%); box-shadow: var(--shadow-md); }
-  .prose { padding: var(--space-5); }
+  .dialog {
+    width: 100vw;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .toolbar {
+    gap: var(--spacingHorizontalXS);
+    padding-left: var(--spacingHorizontalM);
+  }
+
+  .downloadLabel {
+    display: none;
+  }
+
+  .info {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(280px, 75%);
+    box-shadow: var(--shadow16);
+  }
+
+  .prose {
+    padding: var(--spacingVerticalXL) var(--spacingHorizontalL);
+  }
 }
