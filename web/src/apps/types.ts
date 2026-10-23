@@ -1,10 +1,11 @@
-import type { LucideIcon } from 'lucide-react'
+import type { FluentIcon } from '@fluentui/react-icons/headless'
 import type { ComponentType } from 'react'
 
 export type ApplicationDefinition = {
   id: string
   name: string
-  icon: LucideIcon
+  // Fluent 的彩色图标（如 CalendarColor），桌面、任务栏用它代表这个 app
+  icon: FluentIcon
   // 独立部署的 web app 的网址，来自 app 注册表
   url?: string
   views: Record<string, ViewDefinition>

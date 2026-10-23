@@ -1,0 +1,58 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalXXS);
+  min-width: 0;
+}
+
+.label {
+  padding: var(--spacingVerticalXXS) 0;
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+}
+
+.required {
+  color: var(--colorPaletteRedForeground3);
+  padding-left: var(--spacingHorizontalXS);
+}
+
+.hint,
+.validation {
+  margin-top: var(--spacingVerticalXXS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.validation {
+  display: flex;
+  gap: var(--spacingHorizontalXS);
+  color: var(--colorPaletteRedForeground1);
+}
+
+.validation[data-state='warning'] {
+  color: var(--colorNeutralForeground3);
+}
+
+.validation[data-state='success'] {
+  color: var(--colorNeutralForeground3);
+}
+
+.validationIcon {
+  flex: none;
+  margin-top: var(--spacingVerticalXXS);
+  font-size: var(--fontSizeBase200);
+}
+
+.validation[data-state='error'] .validationIcon {
+  color: var(--colorPaletteRedForeground1);
+}
+
+.validation[data-state='warning'] .validationIcon {
+  color: var(--colorPaletteDarkOrangeForeground1);
+}
+
+.validation[data-state='success'] .validationIcon {
+  color: var(--colorPaletteGreenForeground1);
+}

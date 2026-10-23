@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import type { ApplicationDefinition } from '../apps/types.ts'
+import { AppIcon } from '../ui/AppIcon.tsx'
 import { WidgetHost } from './hosts/WidgetHost.tsx'
 import styles from './Desktop.module.css'
 import { desktopItems, itemSize } from './desktop-items.ts'
@@ -74,7 +75,7 @@ function Entry({
     return (
       <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
         <span className={styles.glyph}>
-          <app.icon strokeWidth={1.75} />
+          <AppIcon icon={app.icon} />
         </span>
         <span className={styles.label}>{app.name}</span>
       </button>

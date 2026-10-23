@@ -1,26 +1,30 @@
+/* Windows 11 的通知：Acrylic 表面，圆角 8px，从上面滑下来 */
 .status {
   position: fixed;
-  top: calc(var(--space-16) + env(safe-area-inset-top));
+  top: calc(var(--spacingVerticalXXXL) + env(safe-area-inset-top));
   left: 50%;
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--spacingHorizontalS);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalS) var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorSurfaceStrokeFlyout);
+  border-radius: var(--borderRadiusOverlay);
+  background: var(--colorAcrylicBackground);
+  box-shadow: var(--shadow16);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, calc(-1 * var(--space-1-5)));
+  transform: translate(-50%, calc(-1 * var(--spacingVerticalMNudge)));
+  -webkit-backdrop-filter: var(--acrylicBackdropFilter);
+  backdrop-filter: var(--acrylicBackdropFilter);
   transition:
-    opacity var(--duration-normal),
-    visibility var(--duration-normal),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--durationSlower) var(--curveDecelerateMid),
+    visibility var(--durationSlower),
+    transform var(--durationSlower) var(--curveDecelerateMid);
 }
 
 .status[data-visible='true'] {
@@ -36,11 +40,5 @@
 }
 
 .reload {
-  margin: calc(-1 * var(--space-0-5)) calc(-1 * var(--space-2)) calc(-1 * var(--space-0-5)) var(--space-0-5);
-  padding: var(--space-0-5) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  margin-left: var(--spacingHorizontalXS);
 }

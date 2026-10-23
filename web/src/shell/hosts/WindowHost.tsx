@@ -1,6 +1,7 @@
 import { Suspense, useMemo } from 'react'
 import { findApplication, useApplications, windowView } from '../../apps/index.ts'
 import type { WindowContext } from '../../apps/types.ts'
+import { Button } from '../../ui/Button.tsx'
 import { ErrorBoundary } from '../../ui/ErrorBoundary.tsx'
 import styles from './WindowHost.module.css'
 import { createWindowContext } from '../controller/navigation.ts'
@@ -21,9 +22,9 @@ export function WindowHost({ window: win, onTitle, onOpen }: { window: WindowIns
       fallback={(retry) => (
         <div className={styles.message}>
           <p>这个 app 出错了</p>
-          <button type="button" onClick={retry}>
+          <Button appearance="primary" onClick={retry}>
             重新打开
-          </button>
+          </Button>
         </div>
       )}
     >

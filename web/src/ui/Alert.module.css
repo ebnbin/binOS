@@ -1,17 +1,65 @@
+/* Fluent 2 MessageBar：最低 36px，左边 12px，图标 20px，圆角 4px，按意图着色 */
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-md);
+  gap: var(--spacingHorizontalS);
+  min-height: 36px;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .icon {
   flex: none;
-  margin-top: var(--space-1);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconMedium);
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: var(--fontWeightSemibold);
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacingHorizontalS);
+  flex: none;
+  margin: calc(-1 * var(--spacingVerticalXS)) 0;
+}
+
+.alert[data-intent='error'] {
+  border-color: var(--colorStatusDangerBorder1);
+  background: var(--colorStatusDangerBackground1);
+}
+
+.alert[data-intent='error'] .icon {
+  color: var(--colorStatusDangerForeground1);
+}
+
+.alert[data-intent='warning'] {
+  border-color: var(--colorStatusWarningBorder1);
+  background: var(--colorStatusWarningBackground1);
+}
+
+.alert[data-intent='warning'] .icon {
+  color: var(--colorStatusWarningForeground3);
+}
+
+.alert[data-intent='success'] {
+  border-color: var(--colorStatusSuccessBorder1);
+  background: var(--colorStatusSuccessBackground1);
+}
+
+.alert[data-intent='success'] .icon {
+  color: var(--colorStatusSuccessForeground1);
 }

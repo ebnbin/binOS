@@ -1,16 +1,7 @@
-import type { LucideIcon } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import styles from './IconButton.module.css'
+import type { ComponentProps, ReactNode } from 'react'
+import { Button } from './Button.tsx'
 
-export function IconButton({
-  icon: Icon,
-  label,
-  className,
-  ...props
-}: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
-    </button>
-  )
+// 只有图标的按钮，默认是 Fluent 的 subtle 外观。label 同时是无障碍名称和悬停提示
+export function IconButton({ icon, label, appearance = 'subtle', ...props }: { icon: ReactNode; label: string } & Omit<ComponentProps<typeof Button>, 'icon' | 'children'>) {
+  return <Button appearance={appearance} icon={icon} aria-label={label} title={label} {...props} />
 }

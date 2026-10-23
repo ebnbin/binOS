@@ -1,0 +1,136 @@
+/* small 16 / medium 20 / large 24，文字是 Caption 1 Strong */
+.badge {
+  --badge-bg: var(--colorBrandBackground);
+  --badge-fg: var(--colorNeutralForegroundOnBrand);
+  --badge-tint-bg: var(--colorBrandBackground2);
+  --badge-tint-fg: var(--colorBrandForeground2);
+  --badge-tint-border: var(--colorBrandStroke2);
+  --badge-outline: var(--colorBrandForeground1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingHorizontalXXS);
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--spacingHorizontalSNudge);
+  border: var(--strokeWidthThin) solid transparent;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightSemibold);
+  white-space: nowrap;
+}
+
+.badge[data-shape='circular'] {
+  border-radius: var(--borderRadiusCircular);
+}
+
+.badge[data-size='tiny'] {
+  min-width: 6px;
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  font-size: 0;
+}
+
+.badge[data-size='extra-small'] {
+  min-width: 10px;
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  font-size: 0;
+}
+
+.badge[data-size='small'] {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--spacingHorizontalXS);
+  border-radius: var(--borderRadiusSmall);
+  font-size: var(--fontSizeBase100);
+  line-height: var(--lineHeightBase100);
+}
+
+.badge[data-size='large'] {
+  min-width: 24px;
+  height: 24px;
+}
+
+.badge[data-shape='circular'][data-size] {
+  border-radius: var(--borderRadiusCircular);
+}
+
+.icon {
+  display: flex;
+  font-size: var(--fontSizeBase200);
+}
+
+.badge[data-color='danger'] {
+  --badge-bg: var(--colorPaletteRedBackground3);
+  --badge-tint-bg: var(--colorStatusDangerBackground1);
+  --badge-tint-fg: var(--colorStatusDangerForeground1);
+  --badge-tint-border: var(--colorStatusDangerBorder1);
+  --badge-outline: var(--colorStatusDangerForeground1);
+}
+
+.badge[data-color='success'] {
+  --badge-bg: var(--colorPaletteGreenBackground3);
+  --badge-tint-bg: var(--colorStatusSuccessBackground1);
+  --badge-tint-fg: var(--colorStatusSuccessForeground1);
+  --badge-tint-border: var(--colorStatusSuccessBorder1);
+  --badge-outline: var(--colorStatusSuccessForeground1);
+}
+
+.badge[data-color='warning'] {
+  --badge-bg: var(--colorPaletteYellowBackground3);
+  --badge-fg: var(--colorNeutralForeground1Static);
+  --badge-tint-bg: var(--colorStatusWarningBackground1);
+  --badge-tint-fg: var(--colorStatusWarningForeground1);
+  --badge-tint-border: var(--colorStatusWarningBorder1);
+  --badge-outline: var(--colorStatusWarningForeground1);
+}
+
+.badge[data-color='severe'] {
+  --badge-bg: var(--colorPaletteDarkOrangeBackground3);
+  --badge-tint-bg: var(--colorStatusWarningBackground1);
+  --badge-tint-fg: var(--colorPaletteDarkOrangeForeground1);
+  --badge-tint-border: var(--colorStatusWarningBorder1);
+  --badge-outline: var(--colorPaletteDarkOrangeForeground1);
+}
+
+.badge[data-color='informative'] {
+  --badge-bg: var(--colorNeutralBackground5);
+  --badge-fg: var(--colorNeutralForeground3);
+  --badge-tint-bg: var(--colorNeutralBackground4);
+  --badge-tint-fg: var(--colorNeutralForeground3);
+  --badge-tint-border: var(--colorNeutralStroke2);
+  --badge-outline: var(--colorNeutralForeground3);
+}
+
+.badge[data-color='important'] {
+  --badge-bg: var(--colorNeutralForeground1);
+  --badge-fg: var(--colorNeutralBackground1);
+  --badge-tint-bg: var(--colorNeutralForeground3);
+  --badge-tint-fg: var(--colorNeutralBackground1);
+  --badge-tint-border: transparent;
+  --badge-outline: var(--colorNeutralForeground1);
+}
+
+.badge[data-appearance='tint'] {
+  border-color: var(--badge-tint-border);
+  background: var(--badge-tint-bg);
+  color: var(--badge-tint-fg);
+}
+
+.badge[data-appearance='outline'] {
+  border-color: currentColor;
+  background: transparent;
+  color: var(--badge-outline);
+}
+
+.badge[data-appearance='ghost'] {
+  background: transparent;
+  color: var(--badge-outline);
+}

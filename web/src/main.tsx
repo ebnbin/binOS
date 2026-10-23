@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fluentui/react-icons/headless/styles.css'
 import './tokens.css'
 import './index.css'
 import { Shell } from './shell/Shell.tsx'
