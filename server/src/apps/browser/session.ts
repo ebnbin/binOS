@@ -51,7 +51,7 @@ class Session {
       void download.cancel().catch(() => {})
     })
     this.page.on('filechooser', () => this.emit({ type: 'error', message: '当前远程模式暂不支持文件上传' }))
-    this.page.on('close', () => { this.emit({ type: 'closed' }); this.disconnect?.(); this.destroy() })
+    this.page.on('close', () => { this.disconnect?.(); this.destroy() })
     this.cdp.on('Page.screencastFrame', (frame) => {
       if (!this.send || !this.streaming) {
         void this.releaseSource(frame.sessionId)

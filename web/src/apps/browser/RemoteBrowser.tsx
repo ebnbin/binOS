@@ -266,7 +266,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
       </form>
       <button type="button" onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
     </div>
-    <div className={styles.notice}>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</div>
+    <div className={styles.notice}>专用浏览器会保存登录状态，首次使用请在页面内登录账号，无需在 Mac 上批准连接。当前暂不支持声音、文件传输、复制和新窗口。</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
     <div ref={viewport} className={styles.remoteViewport}>
       <img ref={image} className={styles.remoteImage} style={closed ? { visibility: 'hidden' } : undefined} alt="远程浏览器页面" draggable={false}
