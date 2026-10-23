@@ -1,6 +1,7 @@
-import { Download, File, Info, X } from 'lucide-react'
+import { Download, File, Info, X } from '../../ui/icons'
 import { useEffect, useState } from 'react'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
+import { Spinner } from '../../ui/Spinner.tsx'
 import { CodeBlock } from '../../ui/content/CodeBlock.tsx'
 import { Markdown } from '../../ui/content/Markdown.tsx'
 import { languageOf } from '../../ui/content/highlight.ts'
@@ -40,8 +41,8 @@ function Preview({ item, type, source }: { item: PreviewFile; type: string; sour
   if (type === 'video') return <video className={styles.media} controls src={url} onError={() => setError('此视频无法在浏览器中播放，请下载查看')} />
   if (type === 'audio') return <audio className={styles.media} controls src={url} onError={() => setError('此音频无法在浏览器中播放，请下载查看')} />
   if (type === 'pdf') return <iframe className={styles.document} title={item.name} src={url} />
-  if (type === 'binary') return <div className={styles.status}><File size={48} strokeWidth={1} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
-  if (text === undefined) return <div className={styles.status}>加载中…</div>
+  if (type === 'binary') return <div className={styles.status}><File size={128} className={styles.statusIcon} /><strong className={styles.statusTitle}>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
+  if (text === undefined) return <div className={styles.status}><Spinner size={32} />加载中…</div>
   if (type === 'html' && !source) return <iframe className={styles.document} title={item.name} sandbox="allow-scripts" srcDoc={text} />
   if (type === 'markdown' && !source) return <div className={styles.prose}><Markdown text={text} /></div>
   return <div className={styles.code}><CodeBlock code={text} lang={languageOf(item.name)} startLine={1} label={item.name} /></div>
@@ -69,15 +70,19 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
     <ModalHost className={styles.dialog} onClose={close} label={item.name}>
       <div className={styles.window}>
         <header className={styles.toolbar}>
-          <File size={18} /><strong className={styles.title}>{item.name}</strong>
-          {['markdown', 'html'].includes(type) && <button type="button" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
-          <a href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
-          <button type="button" onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info size={17} /></button>
-          <button type="button" onClick={close} aria-label="关闭预览" autoFocus><X size={19} /></button>
+          <span className={styles.start}>
+            {['markdown', 'html'].includes(type) && <button type="button" className={styles.textButton} onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
+          </span>
+          <strong className={styles.dialogTitle}>{item.name}</strong>
+          <span className={styles.end}>
+            <a className={styles.toolButton} href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download /><span>下载</span></a>
+            <button type="button" className={styles.iconButton} onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info /></button>
+            <button type="button" className={styles.close} onClick={close} aria-label="关闭预览" autoFocus><X /></button>
+          </span>
         </header>
         <div className={styles.body}>
           <main className={styles.preview}><Preview item={item} type={type} source={source} /></main>
-          {info && <aside className={styles.info}><h3>文件信息</h3><dl>
+          {info && <aside className={styles.info}><h3 className={styles.infoTitle}>文件信息</h3><dl className={styles.properties}>
             <dt>名称</dt><dd>{item.name}</dd>
             <dt>类型</dt><dd>{extension(item.name).toUpperCase() || '文件'}{metadata && <small>{metadata.type}</small>}</dd>
             <dt>大小</dt><dd>{metadata ? `${sizeLabel(metadata.size)}（${metadata.size.toLocaleString()} 字节）` : !item.infoUrl ? '—' : error ? '读取失败' : '加载中…'}</dd>

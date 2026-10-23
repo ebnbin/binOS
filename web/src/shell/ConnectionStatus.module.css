@@ -1,26 +1,19 @@
+/* AdwToast：深灰底的胶囊，右侧一个按钮 */
 .status {
+  composes: adw-toast from global;
   position: fixed;
-  top: calc(var(--space-16) + env(safe-area-inset-top));
+  top: calc(var(--spacing-xxxl) + env(safe-area-inset-top));
   left: 50%;
   z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-md);
   white-space: nowrap;
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, calc(-1 * var(--space-1-5)));
+  transform: translate(-50%, calc(-1 * var(--spacing-xs))) scale(0.95);
   transition:
-    opacity var(--duration-normal),
-    visibility var(--duration-normal),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--duration-control) var(--ease-out-quad),
+    visibility var(--duration-control),
+    transform var(--duration-transition) var(--ease-out-cubic);
 }
 
 .status[data-visible='true'] {
@@ -36,11 +29,8 @@
 }
 
 .reload {
-  margin: calc(-1 * var(--space-0-5)) calc(-1 * var(--space-2)) calc(-1 * var(--space-0-5)) var(--space-0-5);
-  padding: var(--space-0-5) var(--space-3);
-  border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  composes: adw-button from global;
+  min-height: calc(var(--size-control) - var(--spacing-xs));
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-pill);
 }

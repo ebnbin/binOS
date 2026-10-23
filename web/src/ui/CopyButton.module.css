@@ -1,22 +1,13 @@
 .button {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-xs);
-  height: var(--size-control-xs);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast),
-    color var(--duration-fast);
+  composes: adw-button adw-flat adw-flat-icon from global;
+  min-width: var(--size-control-small);
+  width: var(--size-control-small);
+  min-height: var(--size-control-small);
+  height: var(--size-control-small);
+  border-radius: var(--radius-check);
+  opacity: var(--dim-opacity);
 }
 
-@media (hover: hover) {
-  .button:hover {
-    background: var(--color-hover);
-    color: var(--color-text);
-  }
+.button:hover {
+  opacity: 1;
 }

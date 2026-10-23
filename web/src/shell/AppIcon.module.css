@@ -1,0 +1,54 @@
+.icon {
+  --app-icon-color: var(--dark-2);
+  display: grid;
+  place-items: center;
+  flex: none;
+  aspect-ratio: 1;
+  border-radius: var(--radius-app-icon);
+  background:
+    linear-gradient(to top, var(--app-icon-edge-color) 0 7%, transparent 7%),
+    linear-gradient(var(--app-icon-highlight-color), transparent 60%),
+    var(--app-icon-color);
+  color: var(--app-icon-fg-color);
+}
+
+.icon svg {
+  width: 50%;
+  height: 50%;
+}
+
+.icon[data-app='code'] {
+  --app-icon-color: var(--purple-3);
+}
+
+.icon[data-app='browser'] {
+  --app-icon-color: var(--blue-3);
+}
+
+.icon[data-app='terminal'] {
+  --app-icon-color: var(--dark-3);
+}
+
+.icon[data-app='files'] {
+  --app-icon-color: var(--blue-5);
+}
+
+.icon[data-app='calendar'] {
+  --app-icon-color: var(--red-3);
+}
+
+.icon[data-app='music'] {
+  --app-icon-color: var(--orange-4);
+}
+
+.icon[data-app='system'] {
+  --app-icon-color: var(--dark-1);
+}
+
+.icon[data-app='devices'] {
+  --app-icon-color: var(--green-5);
+}
+
+.icon[data-app='builds'] {
+  --app-icon-color: var(--brown-3);
+}

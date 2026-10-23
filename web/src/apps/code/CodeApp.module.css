@@ -1,7 +1,9 @@
-/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页 */
+/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（侧栏 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页 */
 .app {
   container: agent / inline-size;
   height: 100%;
+  background-color: var(--window-bg-color);
+  color: var(--window-fg-color);
 }
 
 .layout {
@@ -19,25 +21,26 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  background-color: var(--view-bg-color);
+  color: var(--view-fg-color);
 }
 
+/* 对话不存在：状态页 */
 .missing {
-  display: flex;
+  composes: adw-status-page from global;
   flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  min-height: 0;
 }
 
 .missing p {
   margin: 0;
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-heavy);
 }
 
-.missing button {
-  color: var(--color-text);
-  text-decoration: underline;
+.missingButton {
+  composes: adw-button adw-pill from global;
+  margin-top: var(--spacing-md);
 }
 
 @container agent (width < 960px) {
@@ -57,8 +60,19 @@
   }
 }
 
+/* 构建和设备页的标题栏：只在一列时出现，左边返回、中间标题 */
 .toolBar {
   display: none;
+}
+
+.toolTitle {
+  composes: adw-window-title from global;
+  flex: 1;
+}
+
+.toolSpacer {
+  flex: none;
+  width: var(--size-control);
 }
 
 .content {
@@ -70,8 +84,11 @@
   .toolBar {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
+    gap: var(--spacing-xs);
+    min-height: var(--size-headerbar);
+    padding: var(--spacing-xs) var(--spacing-xs) calc(var(--spacing-xs) + 1px);
+    background-color: var(--headerbar-bg-color);
+    color: var(--headerbar-fg-color);
+    box-shadow: inset 0 -1px var(--headerbar-shade-color);
   }
 }

@@ -1,4 +1,4 @@
-import { ArrowUpRight, Check, Disc3, ListMusic, Music2, Plus, Search, Settings2, X } from 'lucide-react'
+import { ArrowUpRight, Check, ChevronDown, Disc3, ListMusic, Music2, Plus, Search, Settings2, X } from '../../ui/icons'
 import { useEffect, useRef, useState } from 'react'
 import type { CatalogPage, Lyrics, ProviderInfo } from '@binos/server/apps/music/types'
 import type { WindowContext } from '../types.ts'
@@ -80,7 +80,7 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
     readLyrics(lyricProvider, lyricId, controller.signal).then(value => { if (!controller.signal.aborted) setLyrics({ key: lyricKey, value }) }).catch(() => {})
     return () => controller.abort()
   }, [lyricProvider, lyricId, lyricKey, currentProvider?.capabilities.lyrics.state])
-  if (!provider) return <div className={styles.empty}><p>{providersError ?? '正在读取音乐来源…'}</p>{providersError && <button type="button" onClick={() => void refreshProviders()}>重试</button>}</div>
+  if (!provider) return <div className={styles.empty}><p className={styles.emptyText}>{providersError ?? '正在读取音乐来源…'}</p>{providersError && <button type="button" className={styles.pillButton} onClick={() => void refreshProviders()}>重试</button>}</div>
   const operation = inputOperation(provider, query.trim())
   const resolving = operation !== 'search'
   const queryCapability = provider.capabilities[operation]
@@ -88,27 +88,32 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <span className={styles.brand}><Music2 size={19} />音乐</span>
-        {musicProviders.length > 1 ? <select aria-label="音乐来源" value={provider.id} onChange={(event) => { request.current?.abort(); setBusy(false); setResults(undefined); setMessage(''); setProviderId(event.target.value) }}>{musicProviders.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select> : <span className={styles.source}>{provider.name}</span>}
-        {provider.configuration.fields.length > 0 && <button type="button" className={styles.iconButton} aria-label="音乐设置" title="音乐设置" aria-expanded={settings} onClick={() => setSettings(!settings)}><Settings2 size={18} /></button>}
+        <div className={styles.headerStart}>
+          {musicProviders.length > 1 ? <span className={styles.sourcePicker}><select className={styles.sourceSelect} aria-label="音乐来源" value={provider.id} onChange={(event) => { request.current?.abort(); setBusy(false); setResults(undefined); setMessage(''); setProviderId(event.target.value) }}>{musicProviders.map((source) => <option key={source.id} value={source.id}>{source.name}</option>)}</select><ChevronDown className={styles.sourceArrow} /></span> : <span className={styles.source}>{provider.name}</span>}
+        </div>
+        <span className={styles.brand}><Music2 />音乐</span>
+        <div className={styles.headerEnd}>
+          {provider.configuration.fields.length > 0 && <button type="button" className={styles.iconButton} aria-label="音乐设置" title="音乐设置" aria-pressed={settings} aria-expanded={settings} onClick={() => setSettings(!settings)}><Settings2 /></button>}
+        </div>
       </header>
+      <div className={styles.page}>
       {settings && <ProviderSettings key={provider.id} provider={provider} />}
       <p className={styles.providerDescription}>{provider.description}</p>
       {providersError && <p className={styles.notice}>{providersError}</p>}
       <form className={styles.search} onSubmit={(event) => { event.preventDefault(); void search() }}>
-        <Search size={17} />
+        <Search />
         <input aria-label="搜索音乐或粘贴链接" placeholder="歌名、歌手或音乐链接" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={500} />
         <button className={styles.primary} disabled={!query.trim() || queryCapability.state !== 'available'}>查找</button>
       </form>
       {queryCapability.state === 'configuration-required' && <p className={styles.providerDescription}>{queryCapability.reason}</p>}
       {queryCapability.state === 'unsupported' && <p className={styles.providerDescription}>此来源不支持{resolving ? '链接导入' : '搜索'}。</p>}
       <section className={styles.nowPlaying} aria-label="正在播放">
-        <span className={styles.artwork}>{track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={48} strokeWidth={1} />}</span>
+        <span className={styles.artwork}>{track?.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={48} />}</span>
         <div className={styles.trackInfo}>
           <span className={styles.eyebrow}>{state.status === 'playing' ? '正在播放' : state.status === 'loading' ? '正在连接…' : state.status === 'error' ? '播放遇到问题' : track ? '随时继续' : '你的音乐，随时播放'}</span>
           <h1>{track?.title ?? '从喜欢的一首开始'}</h1>
           <p>{track ? track.artists.join(' / ') || '未知艺人' : '搜索喜欢的音乐，或粘贴单曲和歌单链接。'}</p>
-          {track && <a href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开 <ArrowUpRight size={12} /></a>}
+          {track && <a href={track.externalUrl} target="_blank" rel="noreferrer" className={styles.trackLink}>在 {musicProviders.find((source) => source.id === track.ref.provider)?.name ?? track.ref.provider} 打开 <ArrowUpRight /></a>}
         </div>
       </section>
       {state.error && <div role="alert" className={styles.error}>{state.error}</div>}
@@ -116,19 +121,22 @@ export function MusicApp({ ctx }: { ctx: WindowContext }) {
       {track && currentProvider?.capabilities.recommendations.state === 'available' && <button type="button" className={styles.textButton} disabled={busy} onClick={() => void related()}>发现相似歌曲</button>}
       {currentLyrics?.text && <details className={styles.lyrics}><summary>歌词</summary><p>{currentLyrics.text}</p>{currentLyrics.attribution && <small>{currentLyrics.attribution}</small>}</details>}
       <div className={styles.tabs}>
-        <button type="button" data-active={tab === 'queue'} onClick={() => setTab('queue')}><ListMusic size={16} />队列 <span>{state.queue.length}</span></button>
-        <button type="button" data-active={tab === 'results'} onClick={() => setTab('results')}>查找结果{results && <span>{results.tracks.length}</span>}</button>
+        <div className={styles.tabGroup}>
+          <button type="button" className={styles.tab} aria-pressed={tab === 'queue'} onClick={() => setTab('queue')}><ListMusic />队列 <span>{state.queue.length}</span></button>
+          <button type="button" className={styles.tab} aria-pressed={tab === 'results'} onClick={() => setTab('results')}>查找结果{results && <span>{results.tracks.length}</span>}</button>
+        </div>
         <div className={styles.tabActions}>
-          {tab === 'queue' && state.queue.length > 0 && <button type="button" onClick={() => music.clear()}>清空</button>}
-          {tab === 'results' && shown.length > 0 && <button type="button" onClick={() => { music.add(shown); setTab('queue') }}>全部加入</button>}
+          {tab === 'queue' && state.queue.length > 0 && <button type="button" className={styles.textButton} onClick={() => music.clear()}>清空</button>}
+          {tab === 'results' && shown.length > 0 && <button type="button" className={styles.textButton} onClick={() => { music.add(shown); setTab('queue') }}>全部加入</button>}
         </div>
       </div>
       <div className={styles.content}>
         {message && <p className={styles.notice} role="status">{message}</p>}
-        {shown.length === 0 ? <div className={styles.empty}><Disc3 size={32} strokeWidth={1.2} /><p>{busy ? '正在查找音乐…' : tab === 'queue' ? '播放队列还是空的' : results ? '没有找到内容，试试其他关键词或链接' : '搜索歌名，或粘贴音乐链接'}</p></div> : <ul className={styles.list}>
+        {shown.length === 0 ? <div className={styles.empty}><Disc3 size={64} className={styles.emptyIcon} /><p className={styles.emptyText}>{busy ? '正在查找音乐…' : tab === 'queue' ? '播放队列还是空的' : results ? '没有找到内容，试试其他关键词或链接' : '搜索歌名，或粘贴音乐链接'}</p></div> : <ul className={styles.list}>
           {shown.map((item, index) => <TrackRow key={`${trackKey(item)}:${index}`} track={item} active={!!track && trackKey(item) === trackKey(track)} queued={queued.has(trackKey(item))} queue={tab === 'queue'} playable={musicProviders.find(source => source.id === item.ref.provider)?.capabilities.playback.state === 'available'} onPlay={() => tab === 'queue' ? void music.select(index) : music.add([item], true)} onAction={() => tab === 'queue' ? music.remove(index) : music.add([item])} />)}
         </ul>}
         {tab === 'results' && results?.nextPage && <button type="button" className={styles.loadMore} disabled={busy} onClick={() => void search(true)}>{busy ? '加载中…' : '加载更多'}</button>}
+      </div>
       </div>
       <footer className={styles.footer}><span>{state.queue.length >= 500 ? '队列已满（500 首）' : queueStatus}</span><PlaybackInspector engine={state.embedEngine} /></footer>
     </div>
@@ -139,10 +147,10 @@ function TrackRow({ track, active, queued, queue, playable, onPlay, onAction }: 
   return (
     <li className={styles.row} data-active={active}>
       <button type="button" className={styles.rowTrack} disabled={!playable} onClick={onPlay} title={`播放 ${track.title}`}>
-        <span className={styles.thumb}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Music2 size={18} />}</span>
+        <span className={styles.thumb}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Music2 />}</span>
         <span className={styles.rowInfo}><strong>{track.title}</strong><span>{track.artists.join(' / ') || '未知艺人'}</span></span>
       </button>
-      <button type="button" className={styles.iconButton} aria-label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`} title={queue ? '移除' : queued ? '已在队列中' : '加入队列'} disabled={!queue && queued} onClick={onAction}>{queue ? <X size={16} /> : queued ? <Check size={16} /> : <Plus size={17} />}</button>
+      <button type="button" className={styles.iconButton} aria-label={queue ? `移除 ${track.title}` : queued ? '已在队列中' : `加入队列 ${track.title}`} title={queue ? '移除' : queued ? '已在队列中' : '加入队列'} disabled={!queue && queued} onClick={onAction}>{queue ? <X /> : queued ? <Check /> : <Plus />}</button>
     </li>
   )
 }

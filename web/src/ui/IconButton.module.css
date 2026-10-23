@@ -1,24 +1,4 @@
+/* 标题栏和工具栏里的图标按钮：扁平，34px 见方 */
 .button {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  flex: none;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
-  transition: background-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .button:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
-.button:active:not(:disabled) {
-  background: var(--color-hover);
-}
-
-.button:disabled {
-  opacity: var(--opacity-disabled);
+  composes: adw-button adw-flat adw-flat-icon from global;
 }

@@ -1,3 +1,4 @@
+/* 桌面小组件：标题行（粗体名字、进行中的数量、新对话按钮），下面是最近对话的列表行 */
 .widget {
   display: flex;
   flex-direction: column;
@@ -8,83 +9,66 @@
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-xs);
   flex: none;
 }
 
 .name {
-  font-weight: var(--font-weight-semibold);
+  composes: adw-heading from global;
 }
 
 .running {
-  color: var(--color-accent);
-  font-size: var(--font-size-xs);
+  composes: adw-caption from global;
+  color: var(--accent-color);
 }
 
 .new {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1-5)) calc(-1 * var(--space-1)) auto;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  composes: adw-button adw-flat adw-flat-icon from global;
+  margin: calc(-1 * var(--spacing-xs)) calc(-1 * var(--spacing-xs)) calc(-1 * var(--spacing-xs)) auto;
 }
 
 .summary {
   display: flex;
   align-items: baseline;
-  gap: var(--space-1);
+  gap: var(--spacing-xxs);
   margin-top: auto;
 }
 
 .count {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
+  composes: adw-title-1 adw-numeric from global;
 }
 
 .muted {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  composes: adw-dimmed from global;
 }
 
 .list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-height: 0;
-  margin: var(--space-1-5) calc(-1 * var(--space-2)) 0;
+  margin: var(--spacing-xs) calc(-1 * var(--spacing-sm)) 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
 }
 
 .row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  text-align: left;
-  font-size: var(--font-size-sm);
-}
-
-@media (hover: hover) {
-  .new:hover,
-  .row:hover {
-    background: var(--color-hover);
-  }
+  composes: adw-sidebar-row from global;
+  gap: var(--spacing-sm);
+  min-height: var(--size-menu-item);
 }
 
 .dot {
   flex: none;
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--border-color);
 }
 
 .dot[data-running='true'] {
-  background: var(--color-accent);
+  background-color: var(--accent-bg-color);
 }
 
 .title {
@@ -96,15 +80,12 @@
 }
 
 .time {
+  composes: adw-caption adw-numeric adw-dimmed from global;
   flex: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  font-variant-numeric: tabular-nums;
 }
 
 .empty {
   margin: auto 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
   text-align: center;
+  opacity: var(--dim-opacity);
 }

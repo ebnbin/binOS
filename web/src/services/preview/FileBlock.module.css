@@ -1,39 +1,305 @@
-.block { display: block; margin: var(--space-3) 0; border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; background: var(--color-surface); color: var(--color-text); font: var(--font-size-sm)/var(--line-height-snug) var(--font-sans); text-align: left; }
-.bar, .toolbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3); border-bottom: 1px solid var(--color-border); }
-.bar { border-bottom: 0; }
-.title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--font-weight-medium); }
-.badge { font-size: var(--font-size-2xs); color: var(--color-text-tertiary); }
-.bar button, .bar a, .toolbar button, .toolbar a { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-1-5); min-width: var(--size-control-sm); min-height: var(--size-control-sm); padding: var(--space-1-5); border: 0; border-radius: var(--radius-control); color: var(--color-text-secondary); background: transparent; font: inherit; text-decoration: none; cursor: pointer; }
-.bar button:hover, .bar a:hover, .toolbar button:hover, .toolbar a:hover { background: var(--color-hover); }
-.thumbnail { display: block; width: 100%; padding: 0; border: 0; background: var(--color-surface-sunken); cursor: zoom-in; }
-.thumbnail img { display: block; max-width: 100%; max-height: 420px; margin: auto; object-fit: contain; }
-.summary { display: flex; align-items: center; gap: var(--space-4); width: 100%; padding: var(--space-5); border: 0; border-top: 1px solid var(--color-border); background: transparent; color: var(--color-text-secondary); text-align: left; cursor: pointer; font: inherit; }
-.summary > span { flex: 1; overflow-wrap: anywhere; }
-.summary small { display: block; color: var(--color-text-tertiary); margin-top: var(--space-1); }
-.summary:hover { background: var(--color-hover); }
-.dialog { width: min(1160px, calc(100vw - var(--space-12))); height: min(820px, calc(100dvh - var(--space-16))); max-width: none; max-height: none; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-overlay); color: var(--color-text); background: var(--color-surface); box-shadow: var(--shadow-lg); font: var(--font-size-sm)/var(--line-height-snug) var(--font-sans); }
-.dialog::backdrop { background: var(--color-scrim); backdrop-filter: blur(6px); }
-.window { display: flex; flex-direction: column; height: 100%; }
-.toolbar { flex-shrink: 0; padding: var(--space-3) var(--space-4); }
-.body { display: flex; min-height: 0; flex: 1; position: relative; }
-.preview { flex: 1; min-width: 0; overflow: auto; display: flex; align-items: center; justify-content: center; background: var(--color-bg); }
-.image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
-.media { max-width: 100%; max-height: 100%; width: 100%; }
-audio.media { max-width: 560px; margin: var(--space-6); }
-.document { width: 100%; height: 100%; border: 0; background: var(--color-document); }
-.prose { width: 100%; align-self: stretch; padding: var(--space-8); box-sizing: border-box; }
-.code { width: 100%; align-self: stretch; }
-.status { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-8); color: var(--color-text-tertiary); text-align: center; overflow-wrap: anywhere; }
-.status strong { color: var(--color-text); }
-.info { width: 260px; flex-shrink: 0; padding: var(--space-5); border-left: 1px solid var(--color-border); overflow: auto; background: var(--color-surface); }
-.info h3 { margin: 0 0 var(--space-6); font-size: var(--font-size-md); font-weight: var(--font-weight-medium); }
-.info dt { color: var(--color-text-tertiary); font-size: var(--font-size-2xs); margin-top: var(--space-5); }
-.info dd { margin: var(--space-1-5) 0 0; overflow-wrap: anywhere; }
-.info small { display: block; color: var(--color-text-tertiary); margin-top: var(--space-1); }
+/* 消息里的文件：一张卡片，顶上一行是文件名和操作，下面是缩略图、内嵌网页或打开预览的一行 */
+.block {
+  composes: adw-card from global;
+  display: block;
+  margin: var(--spacing-md) 0;
+  overflow: hidden;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  text-align: left;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: var(--size-row);
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-md);
+}
+
+.fileIcon {
+  flex: none;
+  margin-right: var(--spacing-xs);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  composes: adw-caption from global;
+  flex: none;
+  opacity: var(--dim-opacity);
+}
+
+.iconButton {
+  composes: adw-button adw-flat adw-flat-icon from global;
+  color: inherit;
+}
+
+.thumbnail {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--card-shade-color);
+  background: var(--document-bg-color);
+  cursor: zoom-in;
+}
+
+.thumbnail img {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  margin: auto;
+  object-fit: contain;
+}
+
+.summary {
+  composes: adw-row adw-row-activatable from global;
+  gap: var(--spacing-md);
+  border-top: 1px solid var(--card-shade-color);
+}
+
+.summaryText {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.summaryText small {
+  display: block;
+  margin-top: var(--spacing-xxs);
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
+.summaryIcon {
+  flex: none;
+  opacity: var(--dim-opacity);
+}
+
+/* 预览窗口：AdwDialog，圆角的浮动面板，顶上是标题栏 */
+.dialog {
+  width: min(1160px, calc(100vw - var(--spacing-xxxl)));
+  height: min(820px, calc(100dvh - var(--spacing-xxxl) * 1.5));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-dialog);
+  background: var(--window-bg-color);
+  color: var(--window-fg-color);
+  box-shadow: var(--dialog-shadow);
+  outline: 1px solid var(--window-outline-color);
+  outline-offset: -1px;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+}
+
+.dialog::backdrop {
+  background: var(--dimming-color);
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolbar {
+  composes: adw-headerbar from global;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+}
+
+.start,
+.end {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.end {
+  justify-content: flex-end;
+}
+
+.dialogTitle {
+  composes: adw-window-title from global;
+  padding: 0 var(--spacing-md);
+}
+
+.textButton {
+  composes: adw-button adw-flat from global;
+  padding: 0 var(--spacing-sm);
+}
+
+.toolButton {
+  composes: adw-button adw-icon-text-button from global;
+  background-color: transparent;
+}
+
+.toolButton:hover {
+  background-color: var(--hover-color);
+}
+
+/* 窗口的关闭按钮：24px 的圆形，按钮同款的半透明底 */
+.close {
+  composes: adw-button adw-circular from global;
+  min-width: var(--size-control-small);
+  width: var(--size-control-small);
+  min-height: var(--size-control-small);
+  margin: 0 var(--spacing-xs);
+}
+
+.body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.preview {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: auto;
+  background: var(--view-bg-color);
+  color: var(--view-fg-color);
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.media {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+audio.media {
+  max-width: 560px;
+  margin: var(--spacing-xl);
+}
+
+.document {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--document-bg-color);
+}
+
+.prose {
+  align-self: stretch;
+  width: 100%;
+  max-width: var(--size-clamp-wide);
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+.code {
+  align-self: stretch;
+  width: 100%;
+  padding: var(--spacing-md);
+}
+
+/* 不能预览、出错、加载中：AdwStatusPage */
+.status {
+  composes: adw-status-page from global;
+  min-height: 0;
+  overflow-wrap: anywhere;
+}
+
+.status > span {
+  opacity: var(--dim-opacity);
+}
+
+.statusIcon {
+  composes: adw-status-page-icon from global;
+}
+
+.statusTitle {
+  composes: adw-title-2 from global;
+}
+
+/* 文件信息：右侧的侧栏，属性是一组只读的行（.property：名称淡、值突出） */
+.info {
+  composes: adw-sidebar from global;
+  flex-shrink: 0;
+  width: var(--size-sidebar);
+  padding: var(--spacing-md);
+  overflow: auto;
+  box-shadow: inset 1px 0 var(--sidebar-border-color);
+}
+
+.infoTitle {
+  composes: adw-group-title from global;
+  margin: var(--spacing-xs) 0 var(--spacing-md);
+}
+
+.properties {
+  composes: adw-card from global;
+  margin: 0;
+  overflow: hidden;
+}
+
+.properties dt {
+  font-size: var(--font-size-caption);
+  padding: var(--spacing-sm) var(--spacing-md) 0;
+  opacity: var(--dim-opacity);
+}
+
+.properties dt:not(:first-child) {
+  border-top: 1px solid var(--card-shade-color);
+}
+
+.properties dd {
+  margin: 0;
+  padding: var(--spacing-xxs) var(--spacing-md) var(--spacing-sm);
+  overflow-wrap: anywhere;
+}
+
+.properties small {
+  display: block;
+  margin-top: var(--spacing-xxs);
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
 @media (max-width: 640px) {
-  .dialog { width: 100vw; height: 100dvh; border-radius: 0; border: 0; }
-  .toolbar { gap: var(--space-1-5); padding: var(--space-3); }
-  .toolbar a span { display: none; }
-  .info { position: absolute; inset: 0 0 0 auto; width: min(260px, 75%); box-shadow: var(--shadow-md); }
-  .prose { padding: var(--space-5); }
+  .dialog {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+    outline: 0;
+  }
+
+  .toolButton span {
+    display: none;
+  }
+
+  .info {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(var(--size-sidebar), 75%);
+    box-shadow: var(--popover-shadow);
+  }
+
+  .prose {
+    padding: var(--spacing-md);
+  }
 }

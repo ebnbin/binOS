@@ -2,25 +2,33 @@
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: var(--color-chrome);
+  background: var(--panel-bg-color);
 }
 
 .workspace[hidden], .pane[hidden] { display: none; }
 
+/* 每个窗口是一块圆角的 GNOME 窗口 */
 .pane {
   position: absolute;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius-window);
-  background: var(--color-bg);
-  transition: left var(--duration-normal) var(--ease-standard), width var(--duration-normal) var(--ease-standard), top var(--duration-normal) var(--ease-standard), height var(--duration-normal) var(--ease-standard);
+  background: var(--window-bg-color);
+  color: var(--window-fg-color);
+  transition:
+    left var(--duration-transition) var(--ease-out-cubic),
+    width var(--duration-transition) var(--ease-out-cubic),
+    top var(--duration-transition) var(--ease-out-cubic),
+    height var(--duration-transition) var(--ease-out-cubic);
 }
 
 .content {
   position: absolute;
   inset: 0;
-  transition: transform var(--duration-normal) var(--ease-standard), opacity var(--duration-normal) var(--ease-standard);
+  transition:
+    transform var(--duration-transition) var(--ease-out-cubic),
+    opacity var(--duration-transition) var(--ease-out-cubic);
 }
 
 .pane[data-exiting='true'] .content, .pane[data-exiting='true'] .picker {
@@ -32,59 +40,62 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: color-mix(in srgb, var(--color-chrome) 35%, transparent);
+  background: var(--panel-dimming-color);
   pointer-events: none;
 }
 
+/* 松手提示是一条吐司 */
 .exitHint {
+  composes: adw-toast from global;
   position: absolute;
-  bottom: var(--space-6);
+  bottom: var(--spacing-xl);
   left: 50%;
   z-index: 3;
+  padding: var(--spacing-xs) var(--spacing-lg);
   transform: translateX(-50%);
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-chrome) 80%, transparent);
-  color: var(--color-on-chrome);
-  font-size: var(--font-size-md);
   pointer-events: none;
 }
 
+/* 选择第二个 app：状态页的排版，下面是应用网格 */
 .picker {
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: safe center;
-  gap: var(--space-4);
+  gap: var(--spacing-md);
   overflow: auto;
-  padding: var(--space-5);
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
 }
 
-.picker p { margin: 0; }
+.pickerTitle {
+  composes: adw-title-2 from global;
+  margin: 0;
+}
+
+.pickerDescription {
+  composes: adw-body adw-dimmed from global;
+}
 
 .choices {
-  --gap: var(--space-3);
+  --gap: var(--spacing-md);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: var(--space-5) var(--gap);
+  gap: var(--spacing-xxl) var(--gap);
   width: 100%;
   max-width: 440px;
   flex-shrink: 0;
+  margin: var(--spacing-lg) 0 var(--spacing-xl);
 }
 
 .choices button { aspect-ratio: 1; }
 
-.picker > button {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
+.cancel {
+  composes: adw-button adw-pill from global;
 }
 
+/* 分屏的拖动条：GNOME 窗口平铺时中间的胶囊把手 */
 .divider {
   position: absolute;
   top: 0;
@@ -92,32 +103,44 @@
   z-index: 2;
   display: grid;
   place-items: center;
-  cursor: col-resize;
   touch-action: none;
   user-select: none;
-  transition: left var(--duration-normal) var(--ease-standard), top var(--duration-normal) var(--ease-standard);
+  transition: left var(--duration-transition) var(--ease-out-cubic), top var(--duration-transition) var(--ease-out-cubic);
+}
+
+.divider:focus-visible {
+  outline: none;
 }
 
 .handle {
   width: 4px;
   height: 48px;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-on-chrome) 40%, transparent);
-  transition: width var(--duration-fast) var(--ease-standard), height var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+  border-radius: var(--radius-pill);
+  background: var(--panel-dim-color);
+  transition:
+    width var(--duration-shell) var(--ease-out-quad),
+    height var(--duration-shell) var(--ease-out-quad),
+    background-color var(--duration-shell) var(--ease-out-quad);
   pointer-events: none;
 }
 
-.divider:hover .handle, .divider:focus-visible .handle { background: var(--color-on-chrome); }
+.divider:hover .handle { background: var(--panel-fg-color); }
+
+.divider:focus-visible .handle {
+  background: var(--panel-fg-color);
+  box-shadow: 0 0 0 2px var(--focus-ring-color);
+}
 
 .workspace[data-dragging='true'] .handle {
   width: 8px;
   height: 64px;
-  background: var(--color-on-chrome);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-chrome) 60%, transparent);
+  background: var(--panel-fg-color);
 }
 
 .workspace[data-dragging='true'] .pane { pointer-events: none; }
 .workspace[data-dragging='true'] .pane, .workspace[data-dragging='true'] .divider { transition: none; }
+
+.workspace[data-portrait='false'] .divider { cursor: col-resize; }
 
 .workspace[data-portrait='true'] .divider {
   left: 0;
@@ -134,13 +157,11 @@
 }
 
 .pane[inert] .content { opacity: 0.85; }
-.picker small { color: var(--color-text-tertiary); text-align: center; }
 
 .waitingMask {
   position: absolute;
   z-index: 3;
   border-radius: var(--radius-window);
-  background: color-mix(in srgb, var(--color-chrome) 20%, transparent);
-  backdrop-filter: blur(2px);
+  background: var(--dimming-color);
   pointer-events: none;
 }

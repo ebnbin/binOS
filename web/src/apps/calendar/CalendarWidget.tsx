@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from '../../ui/icons'
 import { useEffect, useState } from 'react'
 import styles from './CalendarWidget.module.css'
 
@@ -29,13 +29,13 @@ export function CalendarWidget() {
       <header className={styles.header}>
         <h2 aria-live="polite">{monthLabel.format(month)}</h2>
         <div className={styles.actions}>
-          <button type="button" aria-label="上一月" onClick={() => move(-1)}><ChevronLeft size={16} /></button>
-          <button type="button" onClick={() => {
+          <button type="button" className={styles.action} aria-label="上一月" onClick={() => move(-1)}><ChevronLeft /></button>
+          <button type="button" className={styles.action} onClick={() => {
             const now = new Date()
             setToday(now)
             setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
           }}>今天</button>
-          <button type="button" aria-label="下一月" onClick={() => move(1)}><ChevronRight size={16} /></button>
+          <button type="button" className={styles.action} aria-label="下一月" onClick={() => move(1)}><ChevronRight /></button>
         </div>
       </header>
       <table className={styles.month} aria-label={monthLabel.format(month)}>

@@ -47,7 +47,7 @@ export function Usage({ session }: { session: SessionSummary }) {
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
-          <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
+          <svg viewBox="0 0 20 20" width={16} height={16} aria-hidden>
             <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
             <circle
               cx="10"

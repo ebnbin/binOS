@@ -1,6 +1,5 @@
 import type { SessionSummary } from '@binos/server/apps/code/types'
 import * as Dropdown from '@radix-ui/react-dropdown-menu'
-import { Archive, ArchiveRestore, Pencil, Pin, PinOff } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import { editSession } from '../api.ts'
@@ -47,7 +46,7 @@ export function SessionActions({
       <Dropdown.Portal>
         <Dropdown.Content
           className={styles.menu}
-          sideOffset={6}
+          sideOffset={4}
           collisionPadding={12}
           aria-label="会话操作"
           onCloseAutoFocus={(event) => {
@@ -63,7 +62,6 @@ export function SessionActions({
               onRename()
             }}
           >
-            <Pencil size={14} strokeWidth={1.75} />
             重命名
           </Dropdown.Item>
           <Dropdown.Item
@@ -74,7 +72,6 @@ export function SessionActions({
               void edit({ pinned: !session.pinned })
             }}
           >
-            {session.pinned ? <PinOff size={14} strokeWidth={1.75} /> : <Pin size={14} strokeWidth={1.75} />}
             {session.pinned ? '取消置顶' : '置顶'}
           </Dropdown.Item>
           <Dropdown.Item
@@ -85,7 +82,6 @@ export function SessionActions({
               void edit({ archived: !session.archived })
             }}
           >
-            {session.archived ? <ArchiveRestore size={14} strokeWidth={1.75} /> : <Archive size={14} strokeWidth={1.75} />}
             {session.archived ? '取消归档' : '归档'}
           </Dropdown.Item>
           {error && (

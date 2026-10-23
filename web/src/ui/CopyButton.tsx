@@ -1,4 +1,4 @@
-import { Check, Copy, CircleAlert } from 'lucide-react'
+import { Check, Copy, CircleAlert } from './icons'
 import { useEffect, useState } from 'react'
 import styles from './CopyButton.module.css'
 
@@ -29,11 +29,11 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
       }}
     >
       {copied ? (
-        <Check size={13} strokeWidth={2} />
+        <Check />
       ) : state === 'failed' ? (
-        <CircleAlert size={13} />
+        <CircleAlert />
       ) : (
-        <Copy size={13} strokeWidth={1.75} />
+        <Copy />
       )}
     </button>
   )

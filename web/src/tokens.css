@@ -1,154 +1,334 @@
-/* binOS 的设计 token。界面上的颜色、字号、间距、圆角、阴影和动效都只取这里的变量，
-   换一套设计只需要改写这个文件的取值；组件之间的差异用语义 token（如 --radius-control）表达，
-   不直接引用基础阶梯。 */
+/* binOS 的设计 token，按 GNOME（libadwaita 的 Adwaita 样式和 GNOME Shell）取值。界面上的颜色、字号、间距、
+   圆角、阴影和动效都只取这里的变量。颜色变量和 libadwaita 的 CSS 变量同名同值，分三层：
+   GNOME 调色板 → 界面颜色（成对的 bg/fg，加上自动推导的独立色）→ 交互状态色（随 currentColor 叠加）。
+   组件之间的差异用语义 token（如 --radius-button、--size-row）表达，不直接引用调色板。 */
 :root {
   color-scheme: light;
 
-  /* 颜色：页面底色 → 表面 → 填充，文字分三级，边框分两级 */
-  --color-bg: #f8f7f4;
-  --color-bg-subtle: #f1efeb;
-  --color-surface: #ffffff;
-  --color-surface-sunken: #f6f5f2;
-  --color-fill: #edebe6;
-  --color-hover: rgb(36 34 30 / 5%);
-  --color-text: #24221e;
-  --color-text-secondary: #5f5b54;
-  --color-text-tertiary: #959087;
-  --color-border: #e7e4de;
-  --color-separator: rgb(36 34 30 / 7%);
-  --color-primary: #24221e;
-  --color-on-primary: #ffffff;
-  --color-accent: #d4862b;
-  --color-danger: #c8442f;
-  --color-danger-subtle: #fbefec;
-  --color-success: #1a7f37;
-  --color-info: #276aca;
-  --color-done: #8250df;
-  --color-scrim: rgb(20 18 15 / 32%);
-  --color-focus: rgb(36 34 30 / 40%);
-  --color-shadow: rgb(36 34 30 / 10%);
+  /* GNOME 调色板 */
+  --blue-1: #99c1f1;
+  --blue-2: #62a0ea;
+  --blue-3: #3584e4;
+  --blue-4: #1c71d8;
+  --blue-5: #1a5fb4;
+  --green-1: #8ff0a4;
+  --green-2: #57e389;
+  --green-3: #33d17a;
+  --green-4: #2ec27e;
+  --green-5: #26a269;
+  --yellow-1: #f9f06b;
+  --yellow-2: #f8e45c;
+  --yellow-3: #f6d32d;
+  --yellow-4: #f5c211;
+  --yellow-5: #e5a50a;
+  --orange-1: #ffbe6f;
+  --orange-2: #ffa348;
+  --orange-3: #ff7800;
+  --orange-4: #e66100;
+  --orange-5: #c64600;
+  --red-1: #f66151;
+  --red-2: #ed333b;
+  --red-3: #e01b24;
+  --red-4: #c01c28;
+  --red-5: #a51d2d;
+  --purple-1: #dc8add;
+  --purple-2: #c061cb;
+  --purple-3: #9141ac;
+  --purple-4: #813d9c;
+  --purple-5: #613583;
+  --brown-1: #cdab8f;
+  --brown-2: #b5835a;
+  --brown-3: #986a44;
+  --brown-4: #865e3c;
+  --brown-5: #63452c;
+  --light-1: #ffffff;
+  --light-2: #f6f5f4;
+  --light-3: #deddda;
+  --light-4: #c0bfbc;
+  --light-5: #9a9996;
+  --dark-1: #77767b;
+  --dark-2: #5e5c64;
+  --dark-3: #3d3846;
+  --dark-4: #241f31;
+  --dark-5: #000000;
+
+  /* 强调色：GNOME 默认的蓝色。独立色（--*-color）用于中性底色上的彩色文字和图标，由底色在 Oklab 里推导 */
+  --standalone-color-oklab: min(l, 0.5) a b;
+  --accent-bg-color: #3584e4;
+  --accent-fg-color: #ffffff;
+  --accent-color: oklab(from var(--accent-bg-color) var(--standalone-color-oklab));
+  --destructive-bg-color: #e01b24;
+  --destructive-fg-color: #ffffff;
+  --destructive-color: oklab(from var(--destructive-bg-color) var(--standalone-color-oklab));
+  --success-bg-color: #2ec27e;
+  --success-fg-color: #ffffff;
+  --success-color: oklab(from var(--success-bg-color) var(--standalone-color-oklab));
+  --warning-bg-color: #e5a50a;
+  --warning-fg-color: rgb(0 0 0 / 80%);
+  --warning-color: oklab(from var(--warning-bg-color) var(--standalone-color-oklab));
+  --error-bg-color: #e01b24;
+  --error-fg-color: #ffffff;
+  --error-color: oklab(from var(--error-bg-color) var(--standalone-color-oklab));
+
+  /* 界面颜色：窗口底色 → 内容视图 → 标题栏、侧栏、卡片、弹层、对话框 */
+  --window-bg-color: #fafafb;
+  --window-fg-color: rgb(0 0 6 / 80%);
+  --view-bg-color: #ffffff;
+  --view-fg-color: rgb(0 0 6 / 80%);
+  --headerbar-bg-color: #ffffff;
+  --headerbar-fg-color: rgb(0 0 6 / 80%);
+  --headerbar-border-color: rgb(0 0 6 / 80%);
+  --headerbar-shade-color: rgb(0 0 6 / 12%);
+  --headerbar-darker-shade-color: rgb(0 0 6 / 12%);
+  --sidebar-bg-color: #ebebed;
+  --sidebar-fg-color: rgb(0 0 6 / 80%);
+  --sidebar-border-color: rgb(0 0 6 / 7%);
+  --sidebar-shade-color: rgb(0 0 6 / 7%);
+  --secondary-sidebar-bg-color: #f3f3f5;
+  --secondary-sidebar-fg-color: rgb(0 0 6 / 80%);
+  --secondary-sidebar-border-color: rgb(0 0 6 / 7%);
+  --card-bg-color: #ffffff;
+  --card-fg-color: rgb(0 0 6 / 80%);
+  --card-shade-color: rgb(0 0 6 / 7%);
+  --thumbnail-bg-color: #ffffff;
+  --thumbnail-fg-color: rgb(0 0 6 / 80%);
+  --active-toggle-bg-color: #ffffff;
+  --active-toggle-fg-color: rgb(0 0 6 / 80%);
+  --overview-bg-color: #f3f3f5;
+  --overview-fg-color: rgb(0 0 6 / 80%);
+  --dialog-bg-color: #fafafb;
+  --dialog-fg-color: rgb(0 0 6 / 80%);
+  --popover-bg-color: #ffffff;
+  --popover-fg-color: rgb(0 0 6 / 80%);
+  --popover-shade-color: rgb(0 0 6 / 7%);
+  --shade-color: rgb(0 0 6 / 7%);
+  --scrollbar-outline-color: #ffffff;
+  /* 半透明黑底的浮层（OSD）：媒体控制、浮动工具栏、提示气泡、吐司 */
+  --osd-bg-color: rgb(0 0 0 / 70%);
+  --osd-fg-color: rgb(255 255 255 / 90%);
+  --osd-button-bg-color: rgb(0 0 0 / 65%);
+  --osd-button-hover-color: color-mix(in srgb, #000000 55.25%, currentColor 9.75%);
+  --osd-button-active-color: color-mix(in srgb, #000000 48.75%, currentColor 16.25%);
+  --tooltip-bg-color: rgb(0 0 6 / 80%);
+  --tooltip-border-color: rgb(255 255 255 / 10%);
+  --toast-bg-color: #505053;
+  --toast-fg-color: #ffffff;
+  --window-outline-color: rgb(255 255 255 / 7%);
+  --banner-neutral-color: #7d7d83;
   /* 网页和文档预览的底色，和网页自己的默认一致，不跟随深浅色 */
-  --color-document: #ffffff;
+  --document-bg-color: #ffffff;
 
-  /* 外框：屏幕四周和任务栏，不跟随深浅色 */
-  --color-chrome: #000000;
-  --color-on-chrome: #ffffff;
-  --color-on-chrome-secondary: rgb(255 255 255 / 65%);
-  --color-chrome-hover: rgb(255 255 255 / 8%);
-  --color-chrome-selected: rgb(255 255 255 / 16%);
-  --color-chrome-border: rgb(255 255 255 / 20%);
+  /* 通用的不透明度。高对比度模式下取值不同 */
+  --border-opacity: 15%;
+  --dim-opacity: 55%;
+  --disabled-opacity: 50%;
+  --strong-disabled-opacity: 30%;
+  --dimmer-opacity: 30%;
+  --focus-border-opacity: 50%;
 
-  /* 终端始终是深色 */
-  --color-terminal-bg: #161513;
-  --color-terminal-text: #ecebe7;
-  --color-terminal-selection: #55514a;
+  /* 交互状态色：都按 currentColor 叠加，前景色变了也跟着变 */
+  --border-color: color-mix(in srgb, currentColor var(--border-opacity), transparent);
+  --dim-color: color-mix(in srgb, currentColor var(--dim-opacity), transparent);
+  --focus-ring-color: color-mix(in srgb, var(--accent-color) var(--focus-border-opacity), transparent);
+  --hover-color: color-mix(in srgb, currentColor 7%, transparent);
+  --active-color: color-mix(in srgb, currentColor 16%, transparent);
+  --selected-color: color-mix(in srgb, currentColor 10%, transparent);
+  --selected-hover-color: color-mix(in srgb, currentColor 13%, transparent);
+  --selected-active-color: color-mix(in srgb, currentColor 19%, transparent);
+  --view-hover-color: color-mix(in srgb, currentColor 4%, transparent);
+  --view-active-color: color-mix(in srgb, currentColor 8%, transparent);
+  --view-selected-color: color-mix(in srgb, var(--accent-bg-color) 25%, transparent);
+  --view-selected-hover-color: color-mix(in srgb, var(--accent-bg-color) 32%, transparent);
+  --view-selected-active-color: color-mix(in srgb, var(--accent-bg-color) 39%, transparent);
+  --card-hover-color: color-mix(in srgb, currentColor 3%, transparent);
+  --card-active-color: color-mix(in srgb, currentColor 8%, transparent);
+  --button-color: color-mix(in srgb, currentColor 10%, transparent);
+  --button-hover-color: color-mix(in srgb, currentColor 15%, transparent);
+  --button-active-color: color-mix(in srgb, currentColor 30%, transparent);
+  --button-checked-color: color-mix(in srgb, currentColor 30%, transparent);
+  --button-checked-hover-color: color-mix(in srgb, currentColor 35%, transparent);
+  --destructive-button-color: color-mix(in srgb, currentColor 15%, transparent);
+  --destructive-button-hover-color: color-mix(in srgb, currentColor 20%, transparent);
+  --destructive-button-active-color: color-mix(in srgb, currentColor 35%, transparent);
+  --opaque-button-hover-overlay: color-mix(in srgb, currentColor 10%, transparent);
+  --opaque-button-active-overlay: rgb(0 0 6 / 20%);
+  --trough-color: color-mix(in srgb, currentColor 15%, transparent);
+  --trough-hover-color: color-mix(in srgb, currentColor 20%, transparent);
+  --trough-active-color: color-mix(in srgb, currentColor 25%, transparent);
+  --slider-color: color-mix(in srgb, #ffffff 80%, var(--view-bg-color));
+  --scrollbar-slider-color: color-mix(in srgb, currentColor 20%, transparent);
+  --link-color: var(--accent-color);
+  --link-visited-color: color-mix(in srgb, var(--accent-color) 80%, var(--view-fg-color));
+  --selection-color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);
+  --dimming-color: rgb(0 0 6 / 14%);
 
-  /* 字体 */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  /* GNOME Shell：顶栏和 Dash。屏幕四周的外框就是顶栏的黑色，不跟随深浅色 */
+  --panel-bg-color: #000000;
+  --panel-fg-color: #ffffff;
+  --panel-hover-color: rgb(255 255 255 / 17%);
+  --panel-active-color: rgb(255 255 255 / 28%);
+  --panel-active-hover-color: rgb(255 255 255 / 32%);
+  --panel-dim-color: rgb(255 255 255 / 55%);
+  --panel-border-color: rgb(255 255 255 / 10%);
+  --panel-dimming-color: rgb(0 0 0 / 35%);
 
-  --font-size-2xs: 11px;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-md: 14px;
-  --font-size-lg: 15px;
-  --font-size-xl: 17px;
-  --font-size-2xl: 22px;
-  --font-size-3xl: 28px;
-  --font-size-4xl: 34px;
-  --font-size-body: var(--font-size-lg);
+  /* 终端（GNOME Console 的深色配色）始终是深色 */
+  --terminal-bg-color: #1d1d20;
+  --terminal-fg-color: #ffffff;
+  --terminal-selection-color: #3d3d42;
 
+  /* 应用图标：GNOME 的应用图标是调色板颜色的圆角方块，下沿有一条更深的「底边」，上面是白色的图形 */
+  --app-icon-fg-color: #ffffff;
+  --app-icon-edge-color: rgb(0 0 6 / 22%);
+  --app-icon-highlight-color: rgb(255 255 255 / 18%);
+
+  /* 桌面（应用网格）：概览的底色上透一点强调色 */
+  --desktop-bg: radial-gradient(ellipse at 15% 0%, color-mix(in srgb, var(--accent-bg-color) 14%, transparent), transparent 60%),
+    radial-gradient(ellipse at 90% 100%, color-mix(in srgb, var(--purple-2) 8%, transparent), transparent 55%), var(--overview-bg-color);
+
+  /* 字体：GNOME 的系统字体 Adwaita Sans（基于 Inter）和 Adwaita Mono，中文落到系统的黑体 */
+  --font-family: 'Adwaita Sans', 'Noto Sans CJK SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --monospace-font-family: 'Adwaita Mono', 'Noto Sans Mono CJK SC', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* 字号：系统字号 11pt，其余按 libadwaita 的样式类换算：
+     .title-1 181%、.title-2/.title-3 136%、.title-4 118%、.caption 82%、.document 12pt、.monospace 11pt */
+  --font-size: 15px;
+  --font-size-caption: 12px;
+  --font-size-title-4: 18px;
+  --font-size-title-3: 20px;
+  --font-size-title-2: 20px;
+  --font-size-title-1: 27px;
+  --font-size-display: 36px;
+  --document-font-size: 16px;
+  --monospace-font-size: 14px;
+  --font-size-input: var(--font-size);
+
+  /* 字重：正文常规，标题、按钮和 .heading 是粗体，大标题更粗 */
   --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-heavy: 800;
 
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.4;
-  --line-height-normal: 1.6;
-  --line-height-relaxed: 1.8;
+  /* 行高：界面文字取字体默认，.body/.document/.caption 是 140% */
+  --line-height: 1.25;
+  --line-height-body: 1.4;
 
-  --letter-spacing-tight: -0.02em;
-  --letter-spacing-wide: 0.06em;
+  /* 间距：GNOME 的节奏是 6px，外边距 12、18、24 */
+  --spacing-xxs: 3px;
+  --spacing-xs: 6px;
+  --spacing-sm: 9px;
+  --spacing-md: 12px;
+  --spacing-lg: 18px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 36px;
+  --spacing-xxxl: 48px;
 
-  /* 间距：4px 网格，后缀是 4px 的倍数 */
-  --space-0-5: 2px;
-  --space-1: 4px;
-  --space-1-5: 6px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  /* 尺寸：按钮和输入框 34px，标题栏 47px，列表行 50px，侧栏行 36px，菜单项 32px */
+  --size-icon: 16px;
+  --size-icon-large: 32px;
+  --size-control: 34px;
+  --size-control-small: 24px;
+  --size-headerbar: 47px;
+  --size-row: 50px;
+  --size-sidebar-row: 36px;
+  --size-menu-item: 32px;
+  --size-check: 20px;
+  --size-switch-width: 46px;
+  --size-switch-height: 26px;
+  --size-progress: 8px;
+  --size-osd-progress: 2px;
+  --size-clamp: 600px;
+  --size-clamp-wide: 840px;
+  --size-sidebar: 280px;
+  --size-panel-button: 40px;
+  --size-panel-icon: 24px;
+  --size-running-dot: 5px;
 
-  /* 控件高度，按钮、输入框、列表项都从这里取 */
-  --size-control-xs: 24px;
-  --size-control-sm: 28px;
-  --size-control-md: 32px;
-  --size-control-lg: 36px;
-  --size-control-xl: 40px;
-  --size-touch-target: 44px;
+  /* 圆角：按钮和菜单项 9px，卡片 12px，弹层、对话框和窗口 15px，提示对话框 18px */
+  --radius-check: 6px;
+  --radius-button: 9px;
+  --radius-menu-item: 9px;
+  --radius-tooltip: 9px;
+  --radius-card: 12px;
+  --radius-popover: 15px;
+  --radius-dialog: 15px;
+  --radius-window: 15px;
+  --radius-alert: 18px;
+  --radius-tile: 16px;
+  --radius-pill: 9999px;
+  --radius-app-icon: 22%;
 
-  /* 圆角 */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 999px;
-  --radius-item: var(--radius-sm);
-  --radius-control: var(--radius-md);
-  --radius-card: var(--radius-lg);
-  --radius-overlay: var(--radius-lg);
-  --radius-window: 12px;
+  /* 阴影：卡片、弹层、对话框各一档 */
+  --card-shadow: 0 0 0 1px rgb(0 0 6 / 3%), 0 1px 3px 1px rgb(0 0 6 / 7%), 0 2px 6px 2px rgb(0 0 6 / 3%);
+  --popover-shadow: 0 0 0 1px rgb(0 0 0 / 5%), 0 1px 5px 1px rgb(0 0 0 / 9%), 0 2px 14px 3px rgb(0 0 0 / 5%);
+  --dialog-shadow: 0 0 14px 2px rgb(0 0 6 / 3%), 0 0 5px 2px rgb(0 0 6 / 10%), 0 0 0 1px rgb(0 0 0 / 5%);
+  --toast-shadow: 0 1px 3px 1px rgb(0 0 6 / 7%), 0 2px 6px 2px rgb(0 0 6 / 3%);
+  --switch-slider-shadow: 0 2px 4px rgb(0 0 6 / 20%);
+  --toggle-shadow: 0 1px 3px 1px rgb(0 0 6 / 7%), 0 2px 6px 2px rgb(0 0 6 / 2%);
 
-  /* 阴影：sm 贴着表面，md 浮起的菜单和卡片，lg 悬浮的窗口 */
-  --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(36 34 30 / 4%);
-  --shadow-md: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px var(--color-shadow);
-  --shadow-lg: 0 2px 6px rgb(36 34 30 / 6%), 0 12px 40px -8px rgb(36 34 30 / 20%);
+  /* 动效：控件状态 200ms ease-out-quad，Shell 150ms，页面和对话框的进出用 ease-out-cubic */
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --duration-shell: 150ms;
+  --duration-control: 200ms;
+  --duration-transition: 250ms;
 
-  /* 动效 */
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
-
-  --opacity-disabled: 0.4;
   --z-overlay: 1000;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --color-bg: #1b1a18;
-    --color-bg-subtle: #161513;
-    --color-surface: #23221f;
-    --color-surface-sunken: #1f1e1b;
-    --color-fill: #2c2a27;
-    --color-hover: rgb(255 255 255 / 5%);
-    --color-text: #ecebe7;
-    --color-text-secondary: #b6b2aa;
-    --color-text-tertiary: #7f7a71;
-    --color-border: #33312d;
-    --color-separator: rgb(255 255 255 / 6%);
-    --color-primary: #ecebe7;
-    --color-on-primary: #1b1a18;
-    --color-accent: #e8a24f;
-    --color-danger: #f0806b;
-    --color-danger-subtle: #33201b;
-    --color-success: #4fb76a;
-    --color-info: #5b9cf0;
-    --color-done: #a57ff0;
-    --color-scrim: rgb(0 0 0 / 50%);
-    --color-focus: rgb(236 235 231 / 40%);
-    --color-shadow: rgb(0 0 0 / 50%);
+    --standalone-color-oklab: max(l, 0.85) a b;
+    --destructive-bg-color: #c01c28;
+    --success-bg-color: #26a269;
+    --warning-bg-color: #cd9309;
+    --error-bg-color: #c01c28;
 
-    --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(0 0 0 / 30%);
-    --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px var(--color-shadow);
-    --shadow-lg: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 40px -8px rgb(0 0 0 / 60%);
+    --window-bg-color: #222226;
+    --window-fg-color: #ffffff;
+    --view-bg-color: #1d1d20;
+    --view-fg-color: #ffffff;
+    --headerbar-bg-color: #2e2e32;
+    --headerbar-fg-color: #ffffff;
+    --headerbar-border-color: #ffffff;
+    --headerbar-shade-color: rgb(0 0 6 / 36%);
+    --headerbar-darker-shade-color: rgb(0 0 6 / 90%);
+    --sidebar-bg-color: #2e2e32;
+    --sidebar-fg-color: #ffffff;
+    --sidebar-border-color: rgb(0 0 6 / 36%);
+    --sidebar-shade-color: rgb(0 0 6 / 25%);
+    --secondary-sidebar-bg-color: #28282c;
+    --secondary-sidebar-fg-color: #ffffff;
+    --secondary-sidebar-border-color: rgb(0 0 6 / 36%);
+    --card-bg-color: rgb(255 255 255 / 8%);
+    --card-fg-color: #ffffff;
+    --card-shade-color: rgb(0 0 6 / 36%);
+    --thumbnail-bg-color: #39393d;
+    --thumbnail-fg-color: #ffffff;
+    --active-toggle-bg-color: rgb(255 255 255 / 20%);
+    --active-toggle-fg-color: #ffffff;
+    --overview-bg-color: #28282c;
+    --overview-fg-color: #ffffff;
+    --dialog-bg-color: #36363a;
+    --dialog-fg-color: #ffffff;
+    --popover-bg-color: #36363a;
+    --popover-fg-color: #ffffff;
+    --popover-shade-color: rgb(0 0 6 / 25%);
+    --shade-color: rgb(0 0 6 / 25%);
+    --scrollbar-outline-color: rgb(0 0 12 / 95%);
+    --dimming-color: rgb(0 0 6 / 50%);
+    --app-icon-edge-color: rgb(0 0 6 / 30%);
+  }
+}
+
+/* 高对比度：边框、弱化文字和禁用态更明显 */
+@media (prefers-contrast: more) {
+  :root {
+    --border-opacity: 50%;
+    --dim-opacity: 90%;
+    --disabled-opacity: 40%;
+    --dimmer-opacity: 80%;
+    --focus-border-opacity: 80%;
   }
 }
 
@@ -156,6 +336,6 @@
 @media (pointer: coarse) {
   :root {
     --radius-window: 22px;
-    --font-size-body: 16px;
+    --font-size-input: 16px;
   }
 }

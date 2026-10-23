@@ -1,14 +1,11 @@
 .prompt {
+  composes: adw-card adw-monospace from global;
   max-height: 240px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--spacing-md);
   overflow: auto;
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  background-color: var(--view-bg-color);
+  line-height: var(--line-height-body);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: var(--color-text-secondary);
 }

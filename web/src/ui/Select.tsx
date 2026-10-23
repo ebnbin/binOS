@@ -1,5 +1,5 @@
 import * as Primitive from '@radix-ui/react-select'
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp } from './icons'
 import styles from './Select.module.css'
 
 type Option = { value: string; label: string; disabled?: boolean }
@@ -19,20 +19,20 @@ export function Select({ value, options, onValueChange, label, title, disabled, 
     <Primitive.Root value={encode(value)} onValueChange={(next) => onValueChange(next.slice(7))} disabled={disabled}>
       <Primitive.Trigger aria-label={label} title={title} className={`${styles.trigger} ${className ?? ''}`}>
         <span className={styles.value}><Primitive.Value /></span>
-        <Primitive.Icon className={styles.icon}><ChevronDown size={13} /></Primitive.Icon>
+        <Primitive.Icon className={styles.icon}><ChevronDown /></Primitive.Icon>
       </Primitive.Trigger>
       <Primitive.Portal>
-        <Primitive.Content className={styles.content} position="popper" sideOffset={6} collisionPadding={8}>
-          <Primitive.ScrollUpButton className={styles.scroll}><ChevronUp size={14} /></Primitive.ScrollUpButton>
+        <Primitive.Content className={styles.content} position="popper" sideOffset={4} collisionPadding={8}>
+          <Primitive.ScrollUpButton className={styles.scroll}><ChevronUp /></Primitive.ScrollUpButton>
           <Primitive.Viewport className={styles.viewport}>
             {options.map((option) => (
               <Primitive.Item key={option.value} value={encode(option.value)} disabled={option.disabled} className={styles.item}>
                 <Primitive.ItemText>{option.label}</Primitive.ItemText>
-                <Primitive.ItemIndicator className={styles.indicator}><Check size={14} /></Primitive.ItemIndicator>
+                <Primitive.ItemIndicator className={styles.indicator}><Check /></Primitive.ItemIndicator>
               </Primitive.Item>
             ))}
           </Primitive.Viewport>
-          <Primitive.ScrollDownButton className={styles.scroll}><ChevronDown size={14} /></Primitive.ScrollDownButton>
+          <Primitive.ScrollDownButton className={styles.scroll}><ChevronDown /></Primitive.ScrollDownButton>
         </Primitive.Content>
       </Primitive.Portal>
     </Primitive.Root>

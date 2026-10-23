@@ -1,28 +1,45 @@
+/* GtkCheckButton：14px 的方框加 3px 内边距，未选中是 2px 的轨道色描边，选中填强调色 */
 .label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xxs);
+  border-radius: calc(var(--radius-check) + var(--spacing-xxs));
 }
 
 .label .control {
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 17px;
-  height: 17px;
+  width: var(--size-check);
+  height: var(--size-check);
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--radius-check);
+  background: none;
+  box-shadow: inset 0 0 0 2px var(--trough-color);
+  color: var(--accent-fg-color);
+  transition:
+    background-color var(--duration-control) var(--ease-out-quad),
+    box-shadow var(--duration-control) var(--ease-out-quad);
+}
+
+.label:hover .control[data-state='unchecked'] {
+  box-shadow: inset 0 0 0 2px var(--trough-hover-color);
+}
+
+.label:active .control[data-state='unchecked'] {
+  background-color: var(--trough-active-color);
+  box-shadow: none;
 }
 
 .label .control[data-state='checked'] {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background-color: var(--accent-bg-color);
+  box-shadow: none;
+}
+
+.label:hover .control[data-state='checked'] {
+  background-image: linear-gradient(var(--opaque-button-hover-overlay), var(--opaque-button-hover-overlay));
 }
 
 .indicator {

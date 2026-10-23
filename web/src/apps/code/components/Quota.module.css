@@ -1,49 +1,41 @@
 .quota {
-  margin-left: auto;
+  display: flex;
 }
 
+/* 订阅额度：标题栏里扁平的按钮，圆环加百分比 */
 .summary {
-  display: flex;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1-5);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  composes: adw-button adw-flat adw-numeric from global;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-sm);
+  font-size: var(--font-size-caption);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacing-xxs);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--color-danger);
+  color: var(--error-color);
 }
 
 .details {
-  width: 340px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  box-shadow: var(--shadow-md);
+  gap: var(--spacing-md);
+  width: 340px;
+  padding: var(--spacing-md);
 }
 
 .details h3 {
-  margin: 0 0 var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-xs);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
 }
 
 .details section + section {
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-separator);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
 }

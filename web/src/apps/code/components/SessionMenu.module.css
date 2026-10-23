@@ -1,62 +1,40 @@
 .renameWrap {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xxs);
   min-width: 0;
   width: 100%;
 }
 
 .rename {
+  composes: adw-entry from global;
   width: 100%;
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
 }
 
+.rename[aria-invalid='true'] {
+  outline: 2px solid color-mix(in srgb, var(--error-color) var(--focus-border-opacity), transparent);
+  outline-offset: -2px;
+  color: var(--error-color);
+}
+
+/* GNOME 的菜单：只有文字，没有图标 */
 .menu {
-  z-index: var(--z-overlay);
+  composes: adw-popover from global;
   display: flex;
   flex-direction: column;
-  min-width: 140px;
+  min-width: 160px;
   max-width: var(--radix-dropdown-menu-content-available-width);
   max-height: var(--radix-dropdown-menu-content-available-height);
   overflow: auto;
-  padding: var(--space-1);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
 }
 
 .menuItem {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border-radius: var(--radius-item);
-  outline: none;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.menuItem[data-highlighted] {
-  background: var(--color-hover);
-}
-
-.menuItem[data-disabled] {
-  opacity: var(--opacity-disabled);
-  cursor: default;
+  composes: adw-menu-item from global;
 }
 
 .error {
-  margin: var(--space-1) 0;
-  padding: 0 var(--space-1-5);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+  composes: adw-caption from global;
+  margin: var(--spacing-xxs) 0;
+  padding: 0 var(--spacing-md);
+  color: var(--error-color);
 }

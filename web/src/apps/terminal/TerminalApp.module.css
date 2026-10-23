@@ -1,226 +1,269 @@
+/* GNOME Console 的样子：整个窗口是深色的，标题栏、标签栏和终端连成一片。
+   独立色和焦点环由 :root 推导，换成深色时要在这里重新推导一次 */
 .app {
-  height: 100%;
-  min-height: 0;
+  --window-bg-color: var(--terminal-bg-color);
+  --window-fg-color: var(--terminal-fg-color);
+  --headerbar-bg-color: color-mix(in srgb, var(--terminal-fg-color) 7%, var(--terminal-bg-color));
+  --headerbar-fg-color: var(--terminal-fg-color);
+  --headerbar-shade-color: var(--panel-dimming-color);
+  --popover-bg-color: color-mix(in srgb, var(--terminal-fg-color) 12%, var(--terminal-bg-color));
+  --popover-fg-color: var(--terminal-fg-color);
+  --standalone-color-oklab: max(l, 0.85) a b;
+  --accent-color: oklab(from var(--accent-bg-color) var(--standalone-color-oklab));
+  --success-color: oklab(from var(--success-bg-color) var(--standalone-color-oklab));
+  --warning-color: oklab(from var(--warning-bg-color) var(--standalone-color-oklab));
+  --error-color: oklab(from var(--error-bg-color) var(--standalone-color-oklab));
+  --destructive-color: oklab(from var(--destructive-bg-color) var(--standalone-color-oklab));
+  --focus-ring-color: color-mix(in srgb, var(--accent-color) var(--focus-border-opacity), transparent);
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background: var(--color-surface);
+  height: 100%;
+  min-height: 0;
+  background-color: var(--window-bg-color);
+  color: var(--window-fg-color);
+  color-scheme: dark;
 }
+
 .toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  composes: adw-headerbar from global;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
 }
-.toolbar strong,
-.actions,
-.app button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.toolbar strong {
-  font-size: var(--font-size-sm);
-  white-space: nowrap;
-}
+
+.start,
 .actions {
-  gap: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
 }
-.app button {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-control);
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
+
+.actions {
+  justify-content: flex-end;
 }
-.app button:hover {
-  background: var(--color-hover);
+
+.title {
+  composes: adw-window-title from global;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
-.app button:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
+
+.headerButton {
+  composes: adw-button adw-flat from global;
+  padding: 0 var(--spacing-sm);
 }
-.app button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
-}
+
+/* AdwTabBar：和标题栏同色，标签等宽，当前标签是浅一层的底 */
 .tabs {
   display: flex;
-  gap: var(--space-1-5);
-  padding: var(--space-2) var(--space-3);
-  overflow-x: auto;
+  gap: var(--spacing-xxs);
   flex-shrink: 0;
-  background: var(--color-bg-subtle);
+  padding: 0 var(--spacing-xs) var(--spacing-xs);
+  overflow-x: auto;
+  background-color: var(--headerbar-bg-color);
+  box-shadow: inset 0 -1px var(--headerbar-shade-color);
 }
-.tabs button {
-  white-space: nowrap;
-  color: var(--color-text-secondary);
+
+.tab {
+  composes: adw-button adw-flat from global;
+  flex: 1 0 auto;
+  min-width: 120px;
+  max-width: 240px;
+  font-weight: var(--font-weight-regular);
 }
-.tabs button[aria-current] {
-  color: var(--color-text);
-  border-color: var(--color-text-secondary);
-  background: var(--color-surface);
+
+.tab[aria-current='page'] {
+  background-color: var(--selected-color);
+  font-weight: var(--font-weight-bold);
 }
+
 .pane {
   flex: 1;
   min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: var(--color-terminal-bg);
-  color: var(--color-terminal-text);
   overflow: hidden;
+  background-color: var(--terminal-bg-color);
+  color: var(--terminal-fg-color);
 }
+
 .status {
+  composes: adw-caption from global;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-2xs);
-  color: color-mix(in srgb, var(--color-terminal-text) 65%, var(--color-terminal-bg));
-  padding: var(--space-2) var(--space-4);
+  gap: var(--spacing-xs);
   flex-shrink: 0;
+  min-height: var(--size-control);
+  padding: var(--spacing-xxs) var(--spacing-xs) var(--spacing-xxs) var(--spacing-md);
 }
+
 .status > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
+  width: var(--spacing-xs);
+  height: var(--spacing-xs);
+  border-radius: var(--radius-pill);
+  background-color: var(--warning-color);
 }
+
 .status > span[data-connected='true'] {
-  background: color-mix(in srgb, var(--color-success) 60%, var(--color-terminal-text));
+  background-color: var(--success-color);
 }
-.status button {
+
+.statusButton {
+  composes: adw-button adw-flat from global;
   margin-left: auto;
-  color: var(--color-terminal-text);
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
+  padding: 0 var(--spacing-sm);
 }
+
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-4);
+  padding: var(--spacing-xxs) var(--spacing-md) var(--spacing-xs);
 }
+
 .terminal :global(.xterm) {
   height: 100%;
 }
+
 .terminal :global(.xterm-screen) {
   user-select: none;
 }
+
+/* 底部操作栏（GtkActionBar）：当前目录和结束按钮 */
 .footer {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  composes: adw-toolbar from global;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-2xs);
-  border-top: 1px solid var(--color-border);
+  gap: var(--spacing-md);
+  padding-left: var(--spacing-md);
+  background-color: var(--headerbar-bg-color);
+  box-shadow: inset 0 1px var(--headerbar-shade-color);
 }
-.footer > span {
+
+.cwd {
+  composes: adw-monospace adw-dimmed from global;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
 }
-.footer button {
+
+.footerButton {
+  composes: adw-button adw-flat from global;
   flex-shrink: 0;
+  padding: 0 var(--spacing-sm);
 }
+
 .connection {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-secondary);
+  composes: adw-caption from global;
   max-height: 140px;
   overflow: auto;
+  padding: var(--spacing-xs) var(--spacing-md) var(--spacing-sm);
+  background-color: var(--headerbar-bg-color);
 }
+
 .connection summary {
-  cursor: pointer;
+  opacity: var(--dim-opacity);
 }
+
 .connection code {
   display: block;
+  padding: var(--spacing-xs) 0;
+  font-family: var(--monospace-font-family);
   user-select: text;
   overflow-wrap: anywhere;
-  padding: var(--space-2) 0;
 }
+
 .connection p {
-  margin: 0 0 var(--space-1-5);
+  margin: 0;
+  opacity: var(--dim-opacity);
 }
+
 .empty {
+  composes: adw-status-page from global;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  text-align: center;
-  color: var(--color-text-secondary);
+  min-height: 0;
+  overflow: auto;
 }
-.empty h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
+
+.emptyIcon {
+  composes: adw-status-page-icon from global;
 }
-.empty p {
-  font-size: var(--font-size-sm);
+
+.emptyTitle {
+  composes: adw-title-1 adw-status-page-title from global;
+}
+
+.emptyText {
+  composes: adw-body adw-status-page-description from global;
   max-width: 360px;
 }
-.empty button {
-  margin-top: var(--space-4);
+
+.emptyText code {
+  font-family: var(--monospace-font-family);
 }
+
+.emptyButton {
+  composes: adw-button adw-pill adw-suggested from global;
+  margin-top: var(--spacing-md);
+}
+
 .error {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+  composes: adw-banner adw-banner-error from global;
+  min-height: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
+
+/* 确认结束：浮在底部的弹层 */
 .confirm {
+  composes: adw-popover from global;
   position: absolute;
   bottom: 50px;
-  left: var(--space-3);
-  right: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-md);
+  left: var(--spacing-md);
+  right: var(--spacing-md);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
 }
+
 .confirm span {
   flex: 1;
 }
-.confirm button:last-child {
-  color: var(--color-danger);
+
+.confirmCancel {
+  composes: adw-button from global;
 }
+
+.confirmEnd {
+  composes: adw-button adw-destructive from global;
+}
+
 .keys {
   display: none;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  overflow-x: auto;
+  gap: var(--spacing-xs);
   flex-shrink: 0;
+  padding: var(--spacing-xs);
+  overflow-x: auto;
 }
-.keys button {
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
-  color: var(--color-terminal-text);
-  white-space: nowrap;
+
+.key {
+  composes: adw-button from global;
+  padding: 0 var(--spacing-md);
 }
+
 @media (pointer: coarse) {
   .keys {
     display: flex;
   }
 }
+
 @media (max-width: 480px) {
-  .toolbar {
-    padding: var(--space-3);
-  }
-  .actions button span {
+  .actions button span,
+  .start button span {
     display: none;
   }
+
   .confirm {
     flex-wrap: wrap;
   }

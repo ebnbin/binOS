@@ -4,6 +4,8 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  background-color: var(--view-bg-color);
+  color: var(--view-fg-color);
 }
 
 .scroll {
@@ -13,64 +15,45 @@
   overscroll-behavior: contain;
 }
 
+/* 回到底部：盖在内容上的圆形 OSD 按钮 */
 .toBottom {
+  composes: adw-button adw-osd adw-circular from global;
   position: absolute;
-  bottom: var(--space-3);
+  bottom: var(--spacing-md);
   left: 50%;
-  display: grid;
-  place-items: center;
-  width: var(--size-control-md);
-  height: var(--size-control-md);
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
   transform: translateX(-50%);
-  animation: appear var(--duration-normal) var(--ease-standard) both;
-}
-
-@media (hover: hover) {
-  .toBottom:hover {
-    color: var(--color-text);
-  }
+  animation: appear var(--duration-control) var(--ease-out-quad) both;
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--spacing-xl);
   min-height: 100%;
-  max-width: 780px;
+  max-width: var(--size-clamp-wide);
   margin: 0 auto;
-  padding: var(--space-3) var(--space-8) var(--space-10);
+  padding: var(--spacing-md) var(--spacing-xl) var(--spacing-xxl);
 }
 
+/* 新对话：状态页的排版，大图标、大标题，下面是项目选择 */
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  composes: adw-status-page from global;
   flex: 1;
-  gap: var(--space-4);
-  padding-bottom: var(--space-16);
-  text-align: center;
-  animation: rise 0.5s var(--ease-standard) both;
+  min-height: 0;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-xxxl);
+  animation: rise var(--duration-transition) var(--ease-out-cubic) both;
+}
+
+.empty > svg {
+  margin-bottom: var(--spacing-md);
 }
 
 .empty h1 {
   margin: 0;
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-.empty p {
-  margin: calc(-1 * var(--space-2)) 0 0;
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
+  font-size: var(--font-size-title-1);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
 }
 
 @keyframes rise {
@@ -89,8 +72,8 @@
 
 @container agent (width < 600px) {
   .column {
-    gap: var(--space-6);
-    padding: var(--space-5) var(--space-5) var(--space-8);
+    gap: var(--spacing-lg);
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-xl);
   }
 }
 
@@ -105,17 +88,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-md);
+  gap: var(--spacing-xs);
+}
+
+.projectChoice > svg {
+  opacity: var(--dim-opacity);
 }
 
 .projectChoice button {
   max-width: 240px;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
 }

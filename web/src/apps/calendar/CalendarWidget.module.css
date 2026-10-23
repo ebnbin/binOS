@@ -1,54 +1,43 @@
+/* 月历（参考 GNOME Shell 日期菜单里的日历）：标题和翻月按钮在上，星期弱化，今天是强调色的圆，
+   周末和不在本月的日期弱化 */
 .calendar {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xs);
   height: 100%;
-  gap: var(--space-3);
-  color: var(--color-text);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--spacing-xs);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-0-5);
+  gap: var(--spacing-xxs);
 }
 
-.actions button {
-  display: grid;
-  place-items: center;
-  min-width: var(--size-control-sm);
-  height: var(--size-control-md);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--color-bg-subtle);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+.action {
+  composes: adw-button adw-flat from global;
+  min-width: var(--size-control-small);
+  min-height: var(--size-control-small);
+  padding: 0 var(--spacing-xs);
+  font-size: var(--font-size-caption);
 }
 
 .month {
-  width: 100%;
   flex: 1;
+  width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
   text-align: center;
@@ -56,24 +45,22 @@
 }
 
 .month th {
-  height: 28px;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  opacity: var(--dim-opacity);
 }
 
 .month td {
   padding: 0;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-caption);
 }
 
-.month td:nth-child(n + 6) {
-  color: var(--color-text-secondary);
+.month td:nth-child(n + 6) span {
+  opacity: var(--dim-opacity);
 }
 
-.month td[data-outside='true'] {
-  color: var(--color-text-tertiary);
-  opacity: var(--opacity-disabled);
+.month td[data-outside='true'] span {
+  opacity: var(--strong-disabled-opacity);
 }
 
 .month td span {
@@ -81,11 +68,12 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-pill);
 }
 
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-semibold);
+  background-color: var(--accent-bg-color);
+  color: var(--accent-fg-color);
+  font-weight: var(--font-weight-bold);
+  opacity: 1;
 }

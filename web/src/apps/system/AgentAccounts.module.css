@@ -1,25 +1,44 @@
+/* Agent 页：自带标题栏的设置子页，每个 agent 一组，组里是只读属性的列表 */
 .page {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow-y: auto;
-  font-size: var(--font-size-md);
 }
 
 .bar {
+  composes: adw-headerbar from global;
   position: sticky;
   top: 0;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
 }
 
 .bar h1 {
-  flex: 1;
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  overflow: hidden;
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.start {
+  display: flex;
+}
+
+.end {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 宽屏时侧栏已经在，返回按钮只在窄屏出现 */
+@container system (min-width: 641px) {
+  .back {
+    visibility: hidden;
+  }
 }
 
 .spinning svg {
@@ -33,69 +52,76 @@
 }
 
 .loading {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-10);
+  composes: adw-status-page from global;
+  min-height: 0;
+  flex: 1;
 }
 
 .failed {
-  padding: var(--space-5);
-  color: var(--color-danger);
+  margin: 0;
+  color: var(--error-color);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  width: 100%;
+  max-width: calc(var(--size-clamp) + 2 * var(--spacing-md));
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
 }
 
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-5);
+  min-width: 0;
 }
 
 .header {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
 }
 
 .status {
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+  composes: adw-caption from global;
+  color: var(--error-color);
 }
 
 .status[data-ok='true'] {
-  color: var(--color-success);
+  color: var(--success-color);
 }
 
 .version {
+  composes: adw-caption adw-numeric from global;
   margin-left: auto;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  opacity: var(--dim-opacity);
 }
 
 .list {
-  margin: var(--space-1) 0 0;
+  composes: adw-card adw-boxed-list from global;
 }
 
 .row {
-  display: flex;
+  composes: adw-row from global;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+  gap: var(--spacing-lg);
 }
 
 .row dt {
   flex-shrink: 0;
-  color: var(--color-text-secondary);
 }
 
 .row dd {
   min-width: 0;
   margin: 0;
-  text-align: right;
+  text-align: end;
   overflow-wrap: anywhere;
 }
 
@@ -103,60 +129,70 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-0-5);
+  gap: var(--spacing-xxs);
 }
 
-[data-expired='true'] {
-  color: var(--color-danger);
+.row dd > span > span:first-child {
+  opacity: var(--dim-opacity);
+}
+
+.row [data-expired='true'] {
+  color: var(--error-color);
+  opacity: 1;
 }
 
 .note {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  composes: adw-caption from global;
+  opacity: var(--dim-opacity);
 }
 
 .mono {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  composes: adw-monospace from global;
+  opacity: var(--dim-opacity);
 }
 
+/* 要留意的事：列表里的一行，淡淡的强调色底 */
 .attention {
-  margin: var(--space-3) 0 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
+  composes: adw-body from global;
+  margin: 0;
+  padding: var(--spacing-md);
+  background-color: color-mix(in srgb, var(--accent-bg-color) 12%, transparent);
 }
 
 .attention[data-tone='bad'] {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
+  background-color: color-mix(in srgb, var(--error-bg-color) 15%, transparent);
+  color: var(--error-color);
 }
 
 .loginActions {
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-3) 0 var(--space-0-5);
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
 }
 
-.loginActions button {
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
+/* 一组里只有第一个操作是强调按钮，其余是普通按钮 */
+.loginAction {
+  composes: adw-button from global;
+}
+
+.loginAction:first-child {
+  background-color: var(--accent-bg-color);
+  color: var(--accent-fg-color);
+}
+
+.loginAction:first-child:hover {
+  background-image: linear-gradient(var(--opaque-button-hover-overlay), var(--opaque-button-hover-overlay));
+}
+
+.loginAction:first-child:active {
+  background-image: linear-gradient(var(--opaque-button-active-overlay), var(--opaque-button-active-overlay));
 }
 
 .login {
-  padding: var(--space-3) 0 var(--space-0-5);
+  padding: var(--spacing-md);
 }
 
 .quotaWindows {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+  padding: var(--spacing-md);
 }

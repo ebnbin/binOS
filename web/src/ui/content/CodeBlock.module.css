@@ -1,45 +1,50 @@
+/* 代码块：GtkSourceView 的样子，内容视图底色的卡片，顶上一栏是语言和复制按钮 */
 .block {
+  composes: adw-card from global;
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  background-color: var(--view-bg-color);
+  color: var(--view-fg-color);
 }
 
 .header {
+  composes: adw-caption from global;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--size-control-md);
-  padding: 0 var(--space-1-5) 0 var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-xs);
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-xs) 0 var(--spacing-md);
+  border-bottom: 1px solid var(--card-shade-color);
+  font-family: var(--monospace-font-family);
+}
+
+.header > span {
+  opacity: var(--dim-opacity);
 }
 
 .pre {
+  composes: adw-monospace from global;
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3) 0;
+  padding: var(--spacing-sm) 0;
   overflow: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
-  color: var(--color-text);
+  line-height: var(--line-height-body);
 }
 
 .line {
   display: block;
-  padding: 0 var(--space-4);
+  padding: 0 var(--spacing-md);
   white-space: pre;
 }
 
+/* 行号：GtkSourceView 的行号是淡色、右对齐 */
 .gutter {
   display: inline-block;
   min-width: 2.5em;
-  margin-right: var(--space-4);
+  margin-right: var(--spacing-md);
   text-align: right;
-  color: var(--color-text-tertiary);
+  opacity: var(--dimmer-opacity);
+  font-variant-numeric: tabular-nums;
   user-select: none;
 }
 

@@ -1,50 +1,55 @@
+/* 时钟（参考 GNOME Shell 的日期菜单）：大号的粗体等宽数字时间，下面是日期，底部是状态 */
 .widget {
   display: flex;
   flex-direction: column;
-  height: 100%;
   width: 100%;
-  text-align: left;
+  height: 100%;
+  text-align: start;
 }
 
 .time {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
+  line-height: var(--line-height);
 }
 
 .widget[data-size='2x2'] .time {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-title-1);
 }
 
 .date {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.metrics {
+  composes: adw-caption adw-numeric from global;
+  margin-top: var(--spacing-md);
+  opacity: var(--dim-opacity);
 }
 
 .status {
+  composes: adw-caption from global;
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--spacing-xs);
   margin-top: auto;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-danger);
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: var(--error-bg-color);
 }
 
 .dot[data-connected='true'] {
-  background: var(--color-success);
+  background-color: var(--success-bg-color);
 }
 
 .version {
-  font-family: var(--font-mono);
+  composes: adw-monospace from global;
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
 }
-
-.metrics { margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-size-xs); }
