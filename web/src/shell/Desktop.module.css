@@ -4,9 +4,9 @@
   overflow: hidden auto;
   overscroll-behavior: contain;
   background:
-    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--live) 16%, transparent), transparent 55%),
-    radial-gradient(ellipse at 85% 100%, color-mix(in srgb, var(--ink) 8%, transparent), transparent 60%),
-    var(--sidebar);
+    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 55%),
+    radial-gradient(ellipse at 85% 100%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 60%),
+    var(--color-bg-subtle);
 }
 
 .columns {
@@ -38,10 +38,10 @@
   width: 80%;
   aspect-ratio: 1;
   border-radius: 24%;
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 0 0 1px var(--hairline), 0 2px 6px rgb(0 0 0 / 10%);
-  transition: transform 0.15s var(--ease);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--duration-fast) var(--ease-standard);
 }
 
 .glyph svg {
@@ -51,37 +51,37 @@
 
 @media (hover: hover) {
   .icon:hover .glyph {
-    transform: translateY(-2px);
+    transform: translateY(calc(-1 * var(--space-0-5)));
   }
 }
 
 .label {
   position: absolute;
-  top: calc(80% + 4px);
+  top: calc(80% + var(--space-1));
   max-width: calc(100% + var(--gap));
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--text-2);
-  font-size: 12px;
-  line-height: 1.3;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-tight);
 }
 
 .widget {
   min-width: 0;
   min-height: 0;
-  padding: 14px 16px;
+  padding: var(--space-4);
   overflow: hidden;
   border-radius: calc(var(--cell) * 0.3);
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--hairline), var(--shadow);
-  font-size: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-separator), var(--shadow-md);
+  font-size: var(--font-size-md);
   cursor: default;
 }
 
 .failed {
-  color: var(--muted);
-  font-size: 13px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
 }
 
 .widget[data-opens-window='true'] {

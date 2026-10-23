@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: #2fa84f;
+  --window: var(--color-success);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--live);
+  --window: var(--color-accent);
 }
 
 .ring g {
@@ -19,36 +19,36 @@
 }
 
 .ring [data-full] {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  font-size: 13px;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
 }
 
 .limited {
   margin: 0;
-  padding: 7px 10px;
-  border-radius: 8px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-card);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  font-size: 12px;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
 }
 
 .windowLine > :last-child {
@@ -58,9 +58,9 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 550;
+  gap: var(--space-1-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
 }
 
 .swatch {
@@ -71,18 +71,18 @@
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .danger {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .bar {
   position: relative;
   height: 6px;
-  border-radius: 999px;
-  background: var(--hover);
+  border-radius: var(--radius-full);
+  background: var(--color-hover);
 }
 
 .bar span {
@@ -93,7 +93,7 @@
 }
 
 .bar[data-full] span {
-  background: var(--danger);
+  background: var(--color-danger);
 }
 
 /* 匀速线 */
@@ -103,6 +103,6 @@
   bottom: -3px;
   width: 2px;
   margin-left: -1px;
-  border-radius: 1px;
-  background: var(--text-2);
+  border-radius: var(--radius-full);
+  background: var(--color-text-secondary);
 }

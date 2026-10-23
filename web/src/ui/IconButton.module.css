@@ -1,24 +1,24 @@
 .button {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: var(--size-control-lg);
+  height: var(--size-control-lg);
   flex: none;
-  border-radius: 9px;
-  color: var(--text-2);
-  transition: background-color 0.15s;
+  border-radius: var(--radius-control);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast);
 }
 
 @media (hover: hover) {
   .button:hover:not(:disabled) {
-    background: var(--hover);
+    background: var(--color-hover);
   }
 }
 
 .button:active:not(:disabled) {
-  background: var(--hover);
+  background: var(--color-hover);
 }
 
 .button:disabled {
-  opacity: 0.35;
+  opacity: var(--opacity-disabled);
 }

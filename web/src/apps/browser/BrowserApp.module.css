@@ -4,15 +4,15 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--surface);
+  background: var(--color-surface);
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 8px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-1-5);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
 }
 .navigation {
   display: flex;
@@ -22,55 +22,55 @@
   align-items: center;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
 }
 .address input {
   width: 100%;
   min-width: 0;
-  padding: 7px 10px;
+  padding: var(--space-2) var(--space-3);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: transparent;
-  font-size: 16px;
+  font-size: var(--font-size-xl);
 }
 .address button {
   flex-shrink: 0;
-  padding: 7px 10px;
-  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
 }
 .external {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  color: var(--text-2);
-  border-radius: 8px;
+  width: var(--size-control-lg);
+  height: var(--size-control-lg);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-control);
 }
 .external:hover,
 .address button:hover {
-  background: var(--hover);
+  background: var(--color-hover);
 }
 .notice {
-  padding: 6px 12px;
-  font-size: 12px;
-  color: var(--text-2);
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-1-5) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
 }
 .error {
   margin: 0;
-  padding: 8px 12px;
-  color: var(--danger);
-  background: var(--danger-bg);
-  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-danger);
+  background: var(--color-danger-subtle);
+  font-size: var(--font-size-sm);
 }
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: white;
+  background: var(--color-surface);
   color-scheme: normal;
 }
 .home {
@@ -80,20 +80,20 @@
   align-items: center;
   justify-content: center;
   overflow: auto;
-  padding: 32px 24px;
+  padding: var(--space-8) var(--space-6);
   text-align: center;
-  color: var(--text-2);
+  color: var(--color-text-secondary);
 }
 .home h1 {
-  color: var(--text);
-  font-size: 22px;
-  font-weight: 500;
-  margin: 16px 0 8px;
+  color: var(--color-text);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  margin: var(--space-4) 0 var(--space-2);
 }
 .home p {
   max-width: 380px;
-  margin: 4px 0;
-  font-size: 13px;
+  margin: var(--space-1) 0;
+  font-size: var(--font-size-sm);
 }
 @container browser (width < 440px) {
   .address {
@@ -107,19 +107,19 @@
 
 .modeBar {
   display: flex;
-  gap: 4px;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-1);
+  padding: var(--space-1-5) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
 }
 .modeBar button {
-  padding: 5px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  color: var(--text-2);
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-control);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 }
 .modeBar button[aria-pressed="true"] {
-  color: var(--text);
-  background: var(--hover);
+  color: var(--color-text);
+  background: var(--color-hover);
 }
 .modeContent, .remote {
   display: flex;
@@ -132,7 +132,7 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: white;
+  background: var(--color-surface);
 }
 .remoteImage {
   display: block;
@@ -147,8 +147,8 @@
   inset: 0;
   display: grid;
   place-items: center;
-  color: #555;
-  background: #ffffffd9;
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
   pointer-events: none;
 }
 .remoteInput {

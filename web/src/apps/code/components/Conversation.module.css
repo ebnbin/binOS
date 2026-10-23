@@ -15,37 +15,37 @@
 
 .toBottom {
   position: absolute;
-  bottom: 12px;
+  bottom: var(--space-3);
   left: 50%;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: var(--size-control-md);
+  height: var(--size-control-md);
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: var(--surface);
-  color: var(--text-2);
-  box-shadow: var(--shadow);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  box-shadow: var(--shadow-md);
   cursor: pointer;
   transform: translateX(-50%);
-  animation: appear 0.2s var(--ease) both;
+  animation: appear var(--duration-normal) var(--ease-standard) both;
 }
 
 @media (hover: hover) {
   .toBottom:hover {
-    color: var(--text);
+    color: var(--color-text);
   }
 }
 
 .column {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-8);
   min-height: 100%;
   max-width: 780px;
   margin: 0 auto;
-  padding: 12px 28px 40px;
+  padding: var(--space-3) var(--space-8) var(--space-10);
 }
 
 .empty {
@@ -54,23 +54,23 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 14px;
-  padding-bottom: 64px;
+  gap: var(--space-4);
+  padding-bottom: var(--space-16);
   text-align: center;
-  animation: rise 0.5s var(--ease) both;
+  animation: rise 0.5s var(--ease-standard) both;
 }
 
 .empty h1 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .empty p {
-  margin: -8px 0 0;
-  font-size: 14px;
-  color: var(--muted);
+  margin: calc(-1 * var(--space-2)) 0 0;
+  font-size: var(--font-size-md);
+  color: var(--color-text-tertiary);
 }
 
 @keyframes rise {
@@ -89,8 +89,8 @@
 
 @container agent (width < 600px) {
   .column {
-    gap: 26px;
-    padding: 18px 18px 28px;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-5) var(--space-8);
   }
 }
 
@@ -105,17 +105,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 14px;
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-md);
 }
 
 .projectChoice button {
   max-width: 240px;
-  padding: 7px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   background: none;
-  color: var(--text);
+  color: var(--color-text);
   font: inherit;
 }

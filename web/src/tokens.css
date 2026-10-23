@@ -1,0 +1,161 @@
+/* binOS 的设计 token。界面上的颜色、字号、间距、圆角、阴影和动效都只取这里的变量，
+   换一套设计只需要改写这个文件的取值；组件之间的差异用语义 token（如 --radius-control）表达，
+   不直接引用基础阶梯。 */
+:root {
+  color-scheme: light;
+
+  /* 颜色：页面底色 → 表面 → 填充，文字分三级，边框分两级 */
+  --color-bg: #f8f7f4;
+  --color-bg-subtle: #f1efeb;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f6f5f2;
+  --color-fill: #edebe6;
+  --color-hover: rgb(36 34 30 / 5%);
+  --color-text: #24221e;
+  --color-text-secondary: #5f5b54;
+  --color-text-tertiary: #959087;
+  --color-border: #e7e4de;
+  --color-separator: rgb(36 34 30 / 7%);
+  --color-primary: #24221e;
+  --color-on-primary: #ffffff;
+  --color-accent: #d4862b;
+  --color-danger: #c8442f;
+  --color-danger-subtle: #fbefec;
+  --color-success: #1a7f37;
+  --color-info: #276aca;
+  --color-done: #8250df;
+  --color-scrim: rgb(20 18 15 / 32%);
+  --color-focus: rgb(36 34 30 / 40%);
+  --color-shadow: rgb(36 34 30 / 10%);
+  /* 网页和文档预览的底色，和网页自己的默认一致，不跟随深浅色 */
+  --color-document: #ffffff;
+
+  /* 外框：屏幕四周和任务栏，不跟随深浅色 */
+  --color-chrome: #000000;
+  --color-on-chrome: #ffffff;
+  --color-on-chrome-secondary: rgb(255 255 255 / 65%);
+  --color-chrome-hover: rgb(255 255 255 / 8%);
+  --color-chrome-selected: rgb(255 255 255 / 16%);
+  --color-chrome-border: rgb(255 255 255 / 20%);
+
+  /* 终端始终是深色 */
+  --color-terminal-bg: #161513;
+  --color-terminal-text: #ecebe7;
+  --color-terminal-selection: #55514a;
+
+  /* 字体 */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+
+  --font-size-2xs: 11px;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-md: 14px;
+  --font-size-lg: 15px;
+  --font-size-xl: 17px;
+  --font-size-2xl: 22px;
+  --font-size-3xl: 28px;
+  --font-size-4xl: 34px;
+  --font-size-body: var(--font-size-lg);
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.4;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.8;
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-wide: 0.06em;
+
+  /* 间距：4px 网格，后缀是 4px 的倍数 */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* 控件高度，按钮、输入框、列表项都从这里取 */
+  --size-control-xs: 24px;
+  --size-control-sm: 28px;
+  --size-control-md: 32px;
+  --size-control-lg: 36px;
+  --size-control-xl: 40px;
+  --size-touch-target: 44px;
+
+  /* 圆角 */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+  --radius-item: var(--radius-sm);
+  --radius-control: var(--radius-md);
+  --radius-card: var(--radius-lg);
+  --radius-overlay: var(--radius-lg);
+  --radius-window: 12px;
+
+  /* 阴影：sm 贴着表面，md 浮起的菜单和卡片，lg 悬浮的窗口 */
+  --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(36 34 30 / 4%);
+  --shadow-md: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px var(--color-shadow);
+  --shadow-lg: 0 2px 6px rgb(36 34 30 / 6%), 0 12px 40px -8px rgb(36 34 30 / 20%);
+
+  /* 动效 */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --opacity-disabled: 0.4;
+  --z-overlay: 1000;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg: #1b1a18;
+    --color-bg-subtle: #161513;
+    --color-surface: #23221f;
+    --color-surface-sunken: #1f1e1b;
+    --color-fill: #2c2a27;
+    --color-hover: rgb(255 255 255 / 5%);
+    --color-text: #ecebe7;
+    --color-text-secondary: #b6b2aa;
+    --color-text-tertiary: #7f7a71;
+    --color-border: #33312d;
+    --color-separator: rgb(255 255 255 / 6%);
+    --color-primary: #ecebe7;
+    --color-on-primary: #1b1a18;
+    --color-accent: #e8a24f;
+    --color-danger: #f0806b;
+    --color-danger-subtle: #33201b;
+    --color-success: #4fb76a;
+    --color-info: #5b9cf0;
+    --color-done: #a57ff0;
+    --color-scrim: rgb(0 0 0 / 50%);
+    --color-focus: rgb(236 235 231 / 40%);
+    --color-shadow: rgb(0 0 0 / 50%);
+
+    --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(0 0 0 / 30%);
+    --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px var(--color-shadow);
+    --shadow-lg: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 40px -8px rgb(0 0 0 / 60%);
+  }
+}
+
+/* 触屏上屏幕圆角跟随设备；输入框字号小于 16px 时 iOS 会自动放大页面 */
+@media (pointer: coarse) {
+  :root {
+    --radius-window: 22px;
+    --font-size-body: 16px;
+  }
+}

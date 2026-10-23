@@ -1,17 +1,17 @@
 .alert {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 14px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  font-size: var(--font-size-md);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .icon {
   flex: none;
-  margin-top: 3px;
+  margin-top: var(--space-1);
 }

@@ -4,14 +4,14 @@
 
 .summary {
   display: flex;
-  gap: 10px;
-  padding: 3px 9px 3px 6px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1-5);
   border: 0;
-  border-radius: 999px;
-  background: var(--hover);
-  color: var(--muted);
+  border-radius: var(--radius-full);
+  background: var(--color-hover);
+  color: var(--color-text-tertiary);
   font: inherit;
-  font-size: 11.5px;
+  font-size: var(--font-size-2xs);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
 }
@@ -19,31 +19,31 @@
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .details {
   width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 12px 14px 14px;
-  box-shadow: var(--shadow);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  box-shadow: var(--shadow-md);
 }
 
 .details h3 {
-  margin: 0 0 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
+  margin: 0 0 var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
 }
 
 .details section + section {
-  padding-top: 14px;
-  border-top: 1px solid var(--hairline);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-separator);
 }
