@@ -63,6 +63,7 @@ import app.binos.more.ExternalAppsScreen
 import app.binos.more.MoreScreen
 import app.binos.more.SettingsScreen
 import app.binos.more.WebAppScreen
+import app.binos.music.MiniPlayer
 import app.binos.music.MusicScreen
 import app.binos.system.AccountsScreen
 import app.binos.system.SystemScreen
@@ -113,7 +114,7 @@ fun MainScreen() {
         ) {
             Column {
                 ConnectionBanner()
-                NavHost(nav, startDestination = CodeRoute) {
+                NavHost(nav, startDestination = CodeRoute, modifier = Modifier.weight(1f)) {
                     composable<CodeRoute> { CodeHomeScreen() }
                     composable<SessionRoute> { ConversationScreen(it.toRoute<SessionRoute>().id, null, it.toRoute<SessionRoute>().item.takeIf { item -> item >= 0 }) }
                     composable<NewSessionRoute> { ConversationScreen(null, it.toRoute<NewSessionRoute>().project.ifEmpty { null }, null) }
@@ -134,6 +135,9 @@ fun MainScreen() {
                     composable<ExternalAppsRoute> { ExternalAppsScreen() }
                     composable<WebAppRoute> { it.toRoute<WebAppRoute>().let { route -> WebAppScreen(route.name, route.url) } }
                     composable<SettingsRoute> { SettingsScreen() }
+                }
+                if (topLevel && destination?.hasRoute(MusicRoute::class) != true) {
+                    MiniPlayer { nav.navigate(MusicRoute) { popUpTo(nav.graph.findStartDestination().id) { saveState = true }; launchSingleTop = true; restoreState = true } }
                 }
             }
         }
