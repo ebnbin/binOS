@@ -39,13 +39,15 @@ class Session {
   async start() {
     this.cdp = await this.page.context().newCDPSession(this.page)
     this.page.on('dialog', (dialog) => {
+      // 离开页面的确认来自用户自己的导航，取消会让后退、跳转都停在原页
+      if (dialog.type() === 'beforeunload') {
+        void dialog.accept().catch(() => {})
+        return
+      }
       this.emit({ type: 'error', message: `网页弹窗已关闭：${dialog.message().slice(0, 300)}` })
       void dialog.dismiss().catch(() => {})
     })
-    this.page.on('popup', (popup) => {
-      this.emit({ type: 'error', message: '当前远程模式暂不支持新窗口，请使用网页内的链接导航' })
-      void popup.close().catch(() => {})
-    })
+    this.page.on('popup', (popup) => void this.popup(popup))
     this.page.on('download', (download) => {
       this.emit({ type: 'error', message: '当前远程模式暂不支持文件下载' })
       void download.cancel().catch(() => {})
@@ -63,6 +65,20 @@ class Session {
     })
     await this.cdp.send('Emulation.setFocusEmulationEnabled', { enabled: true })
     await this.viewport()
+  }
+
+  // 没有 opener 的新窗口（target="_blank" 链接等）不需要和原页面通信，改在当前页打开；登录等依赖 opener 的弹窗仍不支持
+  async popup(popup: Page) {
+    const url = popup.url()
+    const standalone = await popup.evaluate('window.opener === null').catch(() => false)
+    await popup.close().catch(() => {})
+    if (!standalone || !/^https?:/.test(url)) {
+      this.emit({ type: 'error', message: '当前远程模式暂不支持新窗口，请使用网页内的链接导航' })
+      return
+    }
+    this.queue = this.queue.then(() => this.command({ type: 'navigate', url })).catch((error: unknown) => {
+      this.emit({ type: 'error', message: error instanceof Error ? error.message : String(error) })
+    })
   }
 
   async viewport() {
