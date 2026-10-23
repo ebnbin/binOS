@@ -1,139 +1,156 @@
+/* GNOME Web 的样子：标题栏里是导航按钮和居中的地址栏，网页铺满下面 */
 .app {
   container: browser / inline-size;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background-color: var(--window-bg-color);
+  color: var(--window-fg-color);
 }
+
+/* 嵌入/远程切换：标题栏中间的切换组，和地址栏那一行连成一组顶栏 */
+.modeBar {
+  composes: adw-headerbar from global;
+  justify-content: center;
+  box-shadow: none;
+}
+
+.modes {
+  composes: adw-toggle-group from global;
+}
+
+.mode {
+  composes: adw-toggle from global;
+}
+
 .toolbar {
-  display: flex;
+  composes: adw-headerbar from global;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  padding-top: 0;
 }
+
 .navigation {
   display: flex;
+  gap: var(--spacing-xs);
 }
+
 .address {
-  display: flex;
-  align-items: center;
+  composes: adw-entry from global;
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
+  max-width: var(--size-clamp-wide);
+  margin: 0 auto;
+  padding-right: var(--spacing-xxs);
 }
+
 .address input {
+  flex: 1;
   width: 100%;
   min-width: 0;
-  padding: var(--space-2) var(--space-3);
+  padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
+  outline: none;
   background: transparent;
-  font-size: var(--font-size-xl);
+  text-align: center;
 }
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+
+.address input:focus {
+  text-align: start;
 }
+
+.address input::placeholder {
+  color: inherit;
+  opacity: var(--dimmer-opacity);
+}
+
+.go {
+  composes: adw-button adw-flat from global;
+  min-height: calc(var(--size-control) - 2 * var(--spacing-xxs));
+  padding: 0 var(--spacing-sm);
+  border-radius: calc(var(--radius-button) - var(--spacing-xxs));
+}
+
 .external {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
+  composes: adw-button adw-flat adw-flat-icon from global;
+  color: inherit;
 }
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
+
+.reconnect {
+  composes: adw-button adw-flat from global;
+  padding: 0 var(--spacing-sm);
 }
+
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  composes: adw-banner adw-caption from global;
+  min-height: 0;
+  padding: var(--spacing-xs) var(--spacing-md);
 }
+
 .error {
+  composes: adw-banner adw-banner-error from global;
+  min-height: 0;
   margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  overflow-wrap: anywhere;
 }
+
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  background-color: var(--document-bg-color);
   color-scheme: normal;
 }
+
 .home {
+  composes: adw-status-page from global;
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  min-height: 0;
   overflow: auto;
-  padding: var(--space-8) var(--space-6);
-  text-align: center;
-  color: var(--color-text-secondary);
 }
-.home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
+
+.homeIcon {
+  composes: adw-status-page-icon from global;
 }
-.home p {
-  max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+
+.homeTitle {
+  composes: adw-title-1 adw-status-page-title from global;
 }
+
+.homeText {
+  composes: adw-body adw-status-page-description from global;
+  max-width: 420px;
+}
+
 @container browser (width < 440px) {
   .address {
     order: 1;
     flex-basis: 100%;
   }
+
   .external {
     margin-left: auto;
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
-.modeContent, .remote {
+.modeContent,
+.remote {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background-color: var(--document-bg-color);
 }
+
 .remoteImage {
   display: block;
   width: 100%;
@@ -142,15 +159,22 @@
   user-select: none;
   object-fit: contain;
 }
+
+/* 连接状态：盖在画面上，中间一枚 OSD 提示 */
 .remoteStatus {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  background-color: var(--dimming-color);
   pointer-events: none;
 }
+
+.remoteStatusText {
+  composes: adw-toast from global;
+  padding-right: var(--spacing-md);
+}
+
 .remoteInput {
   position: absolute;
   left: 0;

@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Keyboard, RotateCw, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Keyboard, RotateCw, X } from '../../ui/icons'
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import type { BrowserState, ClientMessage, ServerMessage } from '@binos/server/apps/browser/protocol'
@@ -263,9 +263,9 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
       </div>
       <form className={styles.address} onSubmit={(event) => { event.preventDefault(); visit() }}>
         <input aria-label="网址" value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder="输入网址" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-        <button type="submit" disabled={closed || !!status && status !== '正在加载页面…'}>前往</button>
+        <button type="submit" className={styles.go} disabled={closed || !!status && status !== '正在加载页面…'}>前往</button>
       </form>
-      <button type="button" onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
+      <button type="button" className={styles.reconnect} onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
     </div>
     <div className={styles.notice}>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
@@ -276,7 +276,7 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
         onPointerUp={(event) => pointer(event, 'up')}
         onPointerCancel={(event) => pointer(event, 'up')}
         onContextMenu={(event) => event.preventDefault()} />
-      {status && <div className={styles.remoteStatus} role="status">{status}</div>}
+      {status && <div className={styles.remoteStatus} role="status"><span className={styles.remoteStatusText}>{status}</span></div>}
       <textarea ref={input} className={styles.remoteInput} aria-label="远程网页输入" autoCapitalize="none" autoCorrect="off" spellCheck={false}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing || event.key === 'Process' || event.key === 'Unidentified' || event.key === 'Dead') return

@@ -1,34 +1,34 @@
+/* 登录提醒：侧栏顶部的 AdwBanner，要紧的换成错误色；点了就地展开登录 */
 .banner {
-  margin: 0 var(--space-3) var(--space-3);
+  composes: adw-banner from global;
+  display: block;
+  min-height: 0;
+  padding: var(--spacing-xs);
+  text-align: start;
+}
+
+.banner[data-tone='bad'] {
+  --banner-color: var(--error-bg-color);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-md);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-xxs) var(--spacing-xs);
   border: 0;
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  text-align: left;
-  cursor: pointer;
+  background: none;
+  color: inherit;
+  text-align: start;
 }
 
 .row > svg {
   flex: none;
-  color: var(--color-accent);
-}
-
-.banner[data-tone='bad'] .row {
-  background: var(--color-danger-subtle);
 }
 
 .banner[data-tone='bad'] .row > svg {
-  color: var(--color-danger);
+  color: var(--error-color);
 }
 
 .row > span:first-of-type {
@@ -36,7 +36,7 @@
   min-width: 0;
 }
 
+/* 右边的操作：和 AdwBanner 的按钮一样是普通按钮 */
 .action {
-  flex: none;
-  font-weight: var(--font-weight-medium);
+  composes: adw-button from global;
 }

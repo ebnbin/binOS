@@ -1,0 +1,275 @@
+/* 构建页：限宽居中的内容页。设置是开关行的列表，构建记录是一张张卡片，日志盖满整页 */
+.page {
+  height: 100%;
+  overflow: auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+  background-color: var(--window-bg-color);
+  color: var(--window-fg-color);
+}
+
+.page > * {
+  max-width: var(--size-clamp-wide);
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-heavy);
+}
+
+.header p {
+  margin: var(--spacing-xxs) 0 0;
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
+.button {
+  composes: adw-button from global;
+}
+
+.primary {
+  composes: adw-button adw-suggested from global;
+}
+
+.flat {
+  composes: adw-button adw-flat from global;
+  padding: 0 var(--spacing-sm);
+}
+
+.hint {
+  composes: adw-caption from global;
+  opacity: var(--dim-opacity);
+}
+
+.notice {
+  composes: adw-body from global;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-card);
+  background-color: color-mix(in srgb, var(--accent-bg-color) 12%, transparent);
+}
+
+.error {
+  composes: adw-body from global;
+  color: var(--error-color);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  composes: adw-body from global;
+  padding: var(--spacing-xxl) 0;
+  opacity: var(--dim-opacity);
+  text-align: center;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xl);
+}
+
+.list {
+  composes: adw-card adw-boxed-list from global;
+}
+
+/* AdwSwitchRow：标题在左，开关在右，整行可点 */
+.switchRow {
+  composes: adw-row adw-row-activatable from global;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.switchRow small {
+  display: block;
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
+/* GtkSwitch：26px 高的胶囊轨道，白色圆形滑块，打开时轨道是强调色 */
+.switch {
+  position: relative;
+  flex: none;
+  width: var(--size-switch-width);
+  height: var(--size-switch-height);
+  margin: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--trough-color);
+  transition: background-color var(--duration-control) var(--ease-out-quad);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: var(--spacing-xxs);
+  left: var(--spacing-xxs);
+  width: calc(var(--size-switch-height) - 2 * var(--spacing-xxs));
+  height: calc(var(--size-switch-height) - 2 * var(--spacing-xxs));
+  border-radius: var(--radius-pill);
+  background-color: var(--slider-color);
+  box-shadow: var(--switch-slider-shadow);
+  transition: transform var(--duration-control) var(--ease-out-quad);
+}
+
+.switch:hover {
+  background-color: var(--trough-hover-color);
+}
+
+.switch:checked {
+  background-color: var(--accent-bg-color);
+}
+
+.switch:checked::after {
+  transform: translateX(calc(var(--size-switch-width) - var(--size-switch-height)));
+}
+
+.switch:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 160px;
+}
+
+.field > span {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+}
+
+.entry {
+  composes: adw-entry from global;
+}
+
+/* 筛选：AdwToggleGroup */
+.filters {
+  composes: adw-toggle-group from global;
+  display: flex;
+  width: fit-content;
+  margin-bottom: var(--spacing-md);
+}
+
+.toggle {
+  composes: adw-toggle from global;
+}
+
+.builds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.build {
+  composes: adw-card from global;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs) var(--spacing-md);
+}
+
+.row code {
+  font-family: var(--monospace-font-family);
+  font-size: var(--monospace-font-size);
+  opacity: var(--dim-opacity);
+}
+
+.trigger {
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
+.status {
+  padding: var(--spacing-xxs) var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  background-color: var(--button-color);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+}
+
+.status[data-status='running'],
+.status[data-status='queued'] {
+  background-color: color-mix(in srgb, var(--accent-bg-color) 15%, transparent);
+  color: var(--accent-color);
+}
+
+.status[data-status='success'] {
+  background-color: color-mix(in srgb, var(--success-bg-color) 15%, transparent);
+  color: var(--success-color);
+}
+
+.status[data-status='failed'],
+.status[data-status='interrupted'] {
+  background-color: color-mix(in srgb, var(--error-bg-color) 15%, transparent);
+  color: var(--error-color);
+}
+
+.artifact {
+  padding: var(--spacing-xxs) 0;
+  color: var(--link-color);
+  overflow-wrap: anywhere;
+}
+
+/* 日志：盖满整页，顶部是标题栏，正文是等宽字的内容视图 */
+.log {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  background-color: var(--view-bg-color);
+  color: var(--view-fg-color);
+}
+
+.logBar {
+  composes: adw-headerbar from global;
+  padding-inline: var(--spacing-md) var(--spacing-xs);
+}
+
+.logBar strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log pre {
+  flex: 1;
+  margin: 0;
+  padding: var(--spacing-md);
+  overflow: auto;
+  font-family: var(--monospace-font-family);
+  font-size: var(--monospace-font-size);
+  line-height: var(--line-height-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

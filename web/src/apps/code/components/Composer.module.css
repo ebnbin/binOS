@@ -1,49 +1,41 @@
+/* 输入区：窗口底部的工具栏（AdwToolbarView 的底栏），上面一条阴影线；里面是条目样式的多行输入框，下面一排扁平按钮 */
 .dock {
   flex: none;
-  padding: 0 var(--space-8) var(--space-5);
+  padding: var(--spacing-xs);
+  background-color: var(--headerbar-bg-color);
+  color: var(--headerbar-fg-color);
+  box-shadow: inset 0 1px var(--headerbar-shade-color);
 }
 
 .card {
   position: relative;
-  max-width: 724px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  max-width: var(--size-clamp-wide);
   margin: 0 auto;
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-sm);
-  cursor: text;
-  transition: border-color var(--duration-fast);
-}
-
-.card:focus-within {
-  border-color: color-mix(in srgb, var(--color-text-tertiary) 55%, transparent);
+  border-radius: var(--radius-card);
 }
 
 .card.dragging {
-  border-color: var(--color-text-secondary);
-  border-style: dashed;
+  outline: 2px dashed var(--accent-color);
+  outline-offset: 2px;
 }
 
 .attachments {
-  padding: var(--space-1) 0 var(--space-3);
+  padding: var(--spacing-xxs) var(--spacing-xxs) 0;
 }
 
 .input {
+  composes: adw-entry from global;
   display: block;
   width: 100%;
   min-height: 52px;
   max-height: 200px;
   field-sizing: content;
-  padding: var(--space-0-5) 0 0;
-  border: 0;
-  outline: none;
-  background: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  line-height: var(--line-height-body);
   resize: none;
-}
-
-.input::placeholder {
-  color: var(--color-text-tertiary);
 }
 
 .input:read-only {
@@ -54,94 +46,49 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: var(--space-0-5);
-  margin-top: var(--space-1-5);
+  gap: var(--spacing-xs);
 }
 
 .attach {
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  margin-left: calc(-1 * var(--space-2));
 }
 
+/* 发送：圆形的强调按钮 */
 .action {
-  display: grid;
+  composes: adw-button adw-circular adw-suggested from global;
   margin-left: auto;
-  place-items: center;
-  width: var(--size-control-md);
-  height: var(--size-control-md);
-  flex: none;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  transition: 
-    opacity var(--duration-fast),
-    transform var(--duration-fast) var(--ease-standard);
-}
-
-.action:active:not(:disabled) {
-  transform: scale(0.92);
-}
-
-.action:disabled {
-  opacity: var(--opacity-disabled);
 }
 
 .interrupt {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  height: var(--size-control-sm);
+  composes: adw-button adw-icon-text-button from global;
   margin-left: auto;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .interrupt:hover {
-    background: var(--color-hover);
-  }
 }
 
 .interrupt + .interrupt {
   margin-left: 0;
 }
 
-.interrupt + .action {
-  margin-left: var(--space-2);
-}
-
-/* 排队的消息：输入框里面最上面，一条一行 */
+/* 排队的消息：输入框上面，一条一行，下面一条分隔线 */
 .queue {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) var(--space-2) calc(-1 * var(--space-2));
-  padding: 0 0 var(--space-1-5);
-  border-bottom: 1px solid var(--color-separator);
+  margin: 0;
+  padding: 0 0 var(--spacing-xs);
+  border-bottom: 1px solid var(--border-color);
   list-style: none;
 }
 
 .queue li {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  min-height: var(--size-control-sm);
-  padding-left: var(--space-2);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  gap: var(--spacing-xs);
+  min-height: var(--size-control);
+  padding-left: var(--spacing-sm);
 }
 
 .queueIcon {
   flex: none;
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
 }
 
 .queueText {
@@ -153,54 +100,43 @@
 }
 
 .queueFiles {
+  composes: adw-caption adw-numeric from global;
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-xxs);
+  opacity: var(--dim-opacity);
 }
 
 .queueButton {
   flex: none;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
 }
 
+/* 正在发送和停止：普通的圆形按钮 */
 .busy {
-  background: var(--color-fill);
+  composes: adw-button adw-circular from global;
+  margin-left: auto;
+}
+
+.stop {
+  composes: adw-button adw-circular from global;
+  margin-left: auto;
 }
 
 .stopIcon {
-  width: 11px;
-  height: 11px;
-  border-radius: var(--radius-xs);
+  width: 10px;
+  height: 10px;
+  border-radius: calc(var(--radius-check) / 2);
   background: currentColor;
 }
 
-@container agent (width < 600px) {
-  .dock {
-    padding: 0 var(--space-3) var(--space-3);
-  }
-
-  .card {
-    padding: var(--space-3) var(--space-3) var(--space-2) var(--space-4);
-  }
-}
-
+/* 模型和思考程度：工具栏里扁平的下拉按钮 */
 .model {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
+  composes: adw-button adw-flat from global;
+  gap: var(--spacing-xs);
   min-width: 0;
-  height: var(--size-control-xl);
-  padding: 0 var(--space-1-5);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
+  padding: 0 var(--spacing-sm);
+  font-weight: var(--font-weight-regular);
 }
 
 .model span {
@@ -209,103 +145,104 @@
   text-overflow: ellipsis;
 }
 
-.model svg { flex: none; }
-.model:disabled, .settings:disabled { opacity: var(--opacity-disabled); }
+.model svg {
+  flex: none;
+}
 
 .settings {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
+  composes: adw-button adw-flat from global;
+  padding: 0 var(--spacing-sm);
+  font-weight: var(--font-weight-regular);
 }
 
 .actions {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--spacing-xs);
   margin-left: auto;
 }
 
 .modelMenu {
-  z-index: var(--z-overlay);
+  composes: adw-popover from global;
   width: 320px;
-  max-width: calc(100vw - 2 * var(--space-3));
+  max-width: calc(100vw - 2 * var(--spacing-md));
   max-height: min(420px, var(--radix-select-content-available-height));
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
 }
 
-.modelList { padding: var(--space-1-5); }
+.modelList {
+  max-height: inherit;
+}
+
+/* 两行的菜单项：模型名和所属 agent，选中的右边打勾 */
 .modelOption {
+  composes: adw-menu-item from global;
   position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--spacing-xs) var(--spacing-xxl) var(--spacing-xs) var(--spacing-md);
+}
+
+.modelOption small {
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
+}
+
+.selected {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-md);
+  display: flex;
+  transform: translateY(-50%);
+}
+
+.settingsMenu {
+  width: 200px;
+}
+
+.settingsTitle {
+  display: block;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-weight: var(--font-weight-bold);
+}
+
+.settingsMenu [role='group'] {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3) var(--space-8) var(--space-3) var(--space-3);
-  border-radius: var(--radius-item);
-  font-size: var(--font-size-sm);
-  outline: none;
-  cursor: pointer;
-}
-.modelOption small { color: var(--color-text-tertiary); font-size: var(--font-size-2xs); }
-.modelOption[data-highlighted] { background: var(--color-hover); }
-.modelOption[data-disabled] { opacity: var(--opacity-disabled); cursor: default; }
-.selected { position: absolute; right: var(--space-3); top: 18px; }
-.settingsMenu { width: 200px; padding: var(--space-1-5); }
-.settingsTitle { display: block; margin: var(--space-1-5) var(--space-3); font-size: var(--font-size-sm); color: var(--color-text-secondary); }
-.settingsMenu [role='group'] { display: flex; flex-direction: column; gap: var(--space-0-5); }
-.settingsMenu button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: var(--size-control-lg);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-.settingsMenu button[aria-pressed='true'] { color: var(--color-text); background: var(--color-hover); }
-@media (hover: hover) {
-  .settingsMenu button:hover:not(:disabled), .model:hover:not(:disabled), .settings:hover:not(:disabled) { background: var(--color-hover); }
-}
-@media (pointer: coarse) {
-  .attach, .settings, .model, .action { min-height: var(--size-touch-target); }
-  .attach, .action { width: var(--size-touch-target); }
-  .settings { min-width: var(--size-touch-target); }
-  .settingsMenu button { min-height: var(--size-touch-target); }
-}
-@container agent (width < 400px) {
-  .bar:has(.interrupt) { flex-wrap: wrap; }
-  .bar:has(.interrupt) .actions { width: 100%; justify-content: flex-end; }
 }
 
+.settingsOption {
+  composes: adw-menu-item from global;
+  justify-content: space-between;
+}
+
+@container agent (width < 400px) {
+  .bar:has(.interrupt) {
+    flex-wrap: wrap;
+  }
+
+  .bar:has(.interrupt) .actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+/* 手机上模型菜单从底部弹出，像底部面板 */
 @media (pointer: coarse) and (width < 600px) {
   :global([data-radix-popper-content-wrapper]):has(.modelMenu) {
     position: fixed !important;
-    inset: auto var(--space-3) var(--space-3) !important;
+    inset: auto var(--spacing-xs) var(--spacing-xs) !important;
     transform: none !important;
   }
+
   .modelMenu {
-    width: calc(100vw - 2 * var(--space-3));
+    width: calc(100vw - 2 * var(--spacing-xs));
     max-height: 60dvh;
-    border-radius: var(--radius-overlay);
   }
-  .modelList { max-height: 60dvh; }
+
+  .modelList {
+    max-height: 60dvh;
+  }
 }

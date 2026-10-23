@@ -1,28 +1,28 @@
 import type { MonitorStatus } from '@binos/server/apps/system/types'
-import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from 'lucide-react'
+import { Cpu, HardDrive, MemoryStick, Network, PlugZap } from '../../ui/icons'
 import { bytes } from './format.ts'
 import styles from './Monitor.module.css'
 
 const pressureNames = { normal: '正常', warning: '偏高', critical: '很高', unknown: '未知' }
 export function HostMonitor({ status }: { status: MonitorStatus }) {
   const s = status.snapshot
-  if (!s) return <p className={styles.empty}>正在读取 Mac 状态…</p>
+  if (!s) return <div className={styles.status}><p>正在读取 Mac 状态…</p></div>
   const usedMemory = s.memory.cached === null ? null : Math.max(0, s.memory.total - s.memory.free - s.memory.cached)
   const cpu = s.cpu.percent
   const uptime = s.host.uptime
   return (
-    <div className={styles.content}>
+    <div className={styles.contentWide}>
       <header className={styles.hero}>
         <h1>{s.host.name}</h1>
         <p>
           {s.host.chip} · {s.host.cores} 核 · {s.host.os}
         </p>
       </header>
-      {s.unavailable.length > 0 && <p className={styles.warning}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</p>}
+      {s.unavailable.length > 0 && <p className={styles.inlineWarning}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</p>}
       <div className={styles.cards}>
         <section className={styles.card}>
           <h2>
-            <Cpu size={18} />
+            <Cpu />
             CPU
           </h2>
           <strong>{cpu === null ? '采样中' : `${cpu.toFixed(0)}%`}</strong>
@@ -31,7 +31,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         </section>
         <section className={styles.card}>
           <h2>
-            <MemoryStick size={18} />
+            <MemoryStick />
             内存
           </h2>
           <strong>
@@ -47,7 +47,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         </section>
         <section className={styles.card}>
           <h2>
-            <Network size={18} />
+            <Network />
             网络速度
           </h2>
           <div className={styles.speeds}>
@@ -64,7 +64,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
         </section>
         <section className={styles.card}>
           <h2>
-            <PlugZap size={18} />
+            <PlugZap />
             供电与运行时间
           </h2>
           <strong>
@@ -76,13 +76,14 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           </p>
         </section>
       </div>
-      <section className={styles.section}>
+      <section className={styles.group}>
         <h2>
-          <HardDrive size={18} />
+          <HardDrive />
           存储
         </h2>
         {s.volumes.length ? (
-          s.volumes.map((volume) => {
+          <div className={styles.list}>
+          {s.volumes.map((volume) => {
             const startup = volume.mount === '/' || volume.mount === '/System/Volumes/Data'
             const name = startup ? '启动磁盘' : volume.mount.split('/').pop()
             return (
@@ -97,7 +98,8 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
                 <p>已使用 {bytes(Math.max(0, volume.total - volume.available))}</p>
               </article>
             )
-          })
+          })}
+          </div>
         ) : (
           <p className={styles.note}>暂时无法读取存储信息</p>
         )}

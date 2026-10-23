@@ -1,5 +1,5 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from '../../../ui/icons'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
@@ -26,7 +26,9 @@ export function TopBar({
   const prs = session?.prs ?? []
   return (
     <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
-      <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
+      <div className={styles.start}>
+        <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
+      </div>
       <div className={styles.heading} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
         {sessionId === null ? (
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
@@ -34,11 +36,13 @@ export function TopBar({
           <>
             {session ? <SessionTitle key={session.id} session={session} /> : <span className={styles.title}>{title}</span>}
             <span className={styles.id}>#{sessionId}</span>
-            {prs.length > 0 && <PrList prs={prs} />}
           </>
         )}
       </div>
-      {sessionId !== null && <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
+      <div className={styles.end}>
+        {sessionId !== null && prs.length > 0 && <PrList prs={prs} />}
+        {sessionId !== null && <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
+      </div>
     </header>
   )
 }
@@ -55,7 +59,7 @@ function SessionTitle({ session }: { session: SessionSummary }) {
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
         <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
           <span className={styles.title}>{session.title || '（无内容）'}</span>
-          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
+          <ChevronDown className={styles.titleChevron} />
         </button>
       </SessionActions>
     </span>
@@ -77,13 +81,13 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           className={styles.prMenu}
           trigger={
             <button type="button" className={styles.finished} aria-label="查看对话的 PR">
-              <GitMerge size={13} strokeWidth={2} />
+              <GitMerge />
               {finished.length}
             </button>
           }
         >
           {[...prs].reverse().map((pr) => (
-            <a key={pr.url} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
+            <a key={pr.url} className={styles.prItem} href={pr.url} target="_blank" rel="noreferrer" data-state={pr.state}>
               <span className={styles.prNumber}>#{pr.number}</span>
               <span className={styles.prTitle}>{pr.title ?? pr.url}</span>
               <span className={styles.prState}>{pr.state && prStates[pr.state]}</span>
@@ -104,7 +108,7 @@ function PrLink({ pr }: { pr: PullRequest }) {
   return (
     <span className={styles.pr} data-state={pr.state}>
       <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
-        <Icon size={13} strokeWidth={2} />#{pr.number}
+        <Icon />#{pr.number}
       </a>
       {pr.preview && (
         <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>

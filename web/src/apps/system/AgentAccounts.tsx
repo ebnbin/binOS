@@ -1,6 +1,6 @@
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
-import { ChevronLeft, RefreshCw } from 'lucide-react'
+import { ChevronLeft, RefreshCw } from '../../ui/icons'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { agentAccounts } from '../../services/kita/api.ts'
@@ -38,18 +38,26 @@ export function AgentAccounts({ back }: { back: () => void }) {
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <IconButton icon={ChevronLeft} label="返回" onClick={back} />
+        <span className={styles.start}>
+          <IconButton icon={ChevronLeft} label="返回" onClick={back} className={styles.back} />
+        </span>
         <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <span className={styles.end}>
+          <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        </span>
       </header>
       {accounts === undefined ? (
         <div className={styles.loading}>
-          <Spinner />
+          <Spinner size={32} />
         </div>
       ) : accounts === null ? (
-        <p className={styles.failed}>没能读取 agent 的信息</p>
+        <div className={styles.loading}>
+          <p className={styles.failed}>没能读取 agent 的信息</p>
+        </div>
       ) : (
-        accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
+        <div className={styles.content}>
+          {accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)}
+        </div>
       )}
     </div>
   )
@@ -119,7 +127,7 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
         actions.length > 0 && (
           <div className={styles.loginActions}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <button key={action.fix} type="button" className={styles.loginAction} onClick={() => setFix(action.fix)}>
                 {action.label}
               </button>
             ))}

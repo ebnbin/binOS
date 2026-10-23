@@ -1,0 +1,655 @@
+/* libadwaita 的样式类，全局加载一次。各处的 CSS Modules 用 `composes: adw-… from global` 组合这里的类，
+   不重复画按钮、输入框、卡片和列表。一个类依赖另一个类时要一起组合：.adw-flat、.adw-suggested 等按钮变体要和
+   .adw-button 一起用，.adw-flat-icon 还要加 .adw-flat，.adw-card-activatable 和 .adw-boxed-list 要加 .adw-card，
+   .adw-row-activatable 要加 .adw-row，.adw-headerbar-flat 要加 .adw-headerbar，.adw-banner-error 要加 .adw-banner。
+   规则都包在 :where() 里、优先级为零，各处自己的样式总能覆盖这里。 */
+
+/* 排版 */
+:where(.adw-title-1) {
+  font-size: var(--font-size-title-1);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
+}
+
+:where(.adw-title-2) {
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
+}
+
+:where(.adw-title-3) {
+  font-size: var(--font-size-title-3);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height);
+}
+
+:where(.adw-title-4) {
+  font-size: var(--font-size-title-4);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height);
+}
+
+:where(.adw-heading) {
+  font-weight: var(--font-weight-bold);
+}
+
+:where(.adw-body) {
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+}
+
+:where(.adw-document) {
+  font-size: var(--document-font-size);
+  line-height: var(--line-height-body);
+}
+
+:where(.adw-caption) {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+}
+
+:where(.adw-caption-heading) {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+}
+
+:where(.adw-monospace) {
+  font-family: var(--monospace-font-family);
+  font-size: var(--monospace-font-size);
+}
+
+:where(.adw-numeric) {
+  font-variant-numeric: tabular-nums;
+}
+
+:where(.adw-dimmed) {
+  opacity: var(--dim-opacity);
+}
+
+:where(.adw-accent) {
+  color: var(--accent-color);
+}
+
+:where(.adw-success) {
+  color: var(--success-color);
+}
+
+:where(.adw-warning) {
+  color: var(--warning-color);
+}
+
+:where(.adw-error) {
+  color: var(--error-color);
+}
+
+/* 按钮 */
+:where(.adw-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  flex: none;
+  min-width: var(--size-control);
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-lg);
+  border: 0;
+  border-radius: var(--radius-button);
+  background-color: var(--button-color);
+  color: inherit;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height);
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-control) var(--ease-out-quad),
+    box-shadow var(--duration-control) var(--ease-out-quad),
+    outline-color var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-button:hover) {
+  background-color: var(--button-hover-color);
+}
+
+:where(.adw-button:active) {
+  background-color: var(--button-active-color);
+}
+
+:where(.adw-button[aria-pressed='true']),
+:where(.adw-button[data-state='open']),
+:where(.adw-button[data-state='on']) {
+  background-color: var(--button-checked-color);
+}
+
+:where(.adw-button[aria-pressed='true']:hover, .adw-button[data-state='open']:hover, .adw-button[data-state='on']:hover) {
+  background-color: var(--button-checked-hover-color);
+}
+
+:where(.adw-button:disabled),
+:where(.adw-button[aria-disabled='true']) {
+  opacity: var(--disabled-opacity);
+  pointer-events: none;
+}
+
+@media (prefers-contrast: more) {
+  :where(.adw-button) {
+    box-shadow: inset 0 0 0 1px var(--border-color);
+  }
+}
+
+/* 只有图标的按钮是正方形 */
+:where(.adw-icon-button) {
+  width: var(--size-control);
+  padding: 0;
+}
+
+/* 图标加文字 */
+:where(.adw-icon-text-button) {
+  padding: 0 var(--spacing-sm);
+}
+
+:where(.adw-flat) {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+:where(.adw-flat:hover) {
+  background-color: var(--hover-color);
+}
+
+:where(.adw-flat:active) {
+  background-color: var(--active-color);
+}
+
+:where(.adw-flat[aria-pressed='true']),
+:where(.adw-flat[data-state='open']),
+:where(.adw-flat[data-state='on']) {
+  background-color: var(--selected-color);
+}
+
+:where(.adw-flat:disabled:not([aria-pressed='true'])) {
+  opacity: var(--strong-disabled-opacity);
+}
+
+:where(.adw-flat-icon) {
+  width: var(--size-control);
+  padding: 0;
+}
+
+/* 强调操作：强调色底，悬停和按下用一层叠加色 */
+:where(.adw-suggested) {
+  background-color: var(--accent-bg-color);
+  color: var(--accent-fg-color);
+}
+
+:where(.adw-suggested:hover) {
+  background-color: var(--accent-bg-color);
+  background-image: linear-gradient(var(--opaque-button-hover-overlay), var(--opaque-button-hover-overlay));
+}
+
+:where(.adw-suggested:active) {
+  background-color: var(--accent-bg-color);
+  background-image: linear-gradient(var(--opaque-button-active-overlay), var(--opaque-button-active-overlay));
+}
+
+/* 危险操作：红色文字，底色跟着变红 */
+:where(.adw-destructive) {
+  background-color: var(--destructive-button-color);
+  color: var(--destructive-color);
+}
+
+:where(.adw-destructive:hover) {
+  background-color: var(--destructive-button-hover-color);
+}
+
+:where(.adw-destructive:active) {
+  background-color: var(--destructive-button-active-color);
+}
+
+:where(.adw-pill) {
+  min-height: 0;
+  padding: var(--spacing-sm) var(--spacing-xxl);
+  border-radius: var(--radius-pill);
+}
+
+:where(.adw-circular) {
+  width: var(--size-control);
+  padding: 0;
+  border-radius: var(--radius-pill);
+}
+
+/* 盖在内容上的大按钮：半透明黑底 */
+:where(.adw-osd) {
+  background-color: var(--osd-button-bg-color);
+  color: var(--osd-fg-color);
+}
+
+:where(.adw-osd:hover) {
+  background-color: var(--osd-button-hover-color);
+  color: var(--light-1);
+}
+
+:where(.adw-osd:active) {
+  background-color: var(--osd-button-active-color);
+  color: var(--light-1);
+}
+
+/* 链接样式的按钮 */
+:where(.adw-link) {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link-color);
+  font-weight: inherit;
+  text-decoration: underline;
+}
+
+/* 输入框：和按钮同样的半透明底，聚焦时画焦点环 */
+:where(.adw-entry) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-width: 0;
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-sm);
+  border: 0;
+  border-radius: var(--radius-button);
+  background-color: var(--button-color);
+  color: inherit;
+  font-size: var(--font-size-input);
+  outline: 0 solid transparent;
+  outline-offset: 2px;
+  transition:
+    outline-color var(--duration-control) var(--ease-out-quad),
+    outline-width var(--duration-control) var(--ease-out-quad),
+    outline-offset var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-entry)::placeholder {
+  color: inherit;
+  opacity: var(--dimmer-opacity);
+}
+
+:where(.adw-entry:focus),
+:where(.adw-entry:focus-within) {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: -2px;
+}
+
+:where(.adw-entry:disabled) {
+  opacity: var(--disabled-opacity);
+}
+
+@media (prefers-contrast: more) {
+  :where(.adw-entry) {
+    box-shadow: inset 0 0 0 1px var(--border-color);
+  }
+}
+
+/* 卡片：白底、12px 圆角、三层很淡的阴影 */
+:where(.adw-card) {
+  border-radius: var(--radius-card);
+  background-color: var(--card-bg-color);
+  color: var(--card-fg-color);
+  box-shadow: var(--card-shadow);
+}
+
+@media (prefers-contrast: more) {
+  :where(.adw-card) {
+    box-shadow: 0 0 0 1px var(--border-color), var(--card-shadow);
+  }
+}
+
+:where(.adw-card-activatable) {
+  transition: background-image var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-card-activatable:hover) {
+  background-image: linear-gradient(var(--view-hover-color), var(--view-hover-color));
+}
+
+:where(.adw-card-activatable:active) {
+  background-image: linear-gradient(var(--view-active-color), var(--view-active-color));
+}
+
+:where(.adw-card-activatable[aria-pressed='true']),
+:where(.adw-card-activatable[aria-current='true']) {
+  background-image: linear-gradient(var(--view-selected-color), var(--view-selected-color));
+}
+
+/* 列表：一张卡片里的若干行，行之间是细分隔线 */
+:where(.adw-boxed-list) {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+:where(.adw-boxed-list > * + *) {
+  border-top: 1px solid var(--card-shade-color);
+}
+
+:where(.adw-row) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: var(--size-row);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+}
+
+:where(.adw-row-activatable) {
+  width: 100%;
+  transition: background-color var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-row-activatable:hover) {
+  background-color: var(--card-hover-color);
+}
+
+:where(.adw-row-activatable:active) {
+  background-color: var(--card-active-color);
+}
+
+:where(.adw-row-activatable[aria-pressed='true']),
+:where(.adw-row-activatable[aria-current='true']),
+:where(.adw-row-activatable[aria-selected='true']) {
+  background-color: var(--view-selected-color);
+}
+
+:where(.adw-row-title) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.adw-row-subtitle) {
+  min-width: 0;
+  opacity: var(--dim-opacity);
+}
+
+/* 列表组的标题：粗体、在卡片上方 */
+:where(.adw-group-title) {
+  margin: 0 0 var(--spacing-xs);
+  padding: 0;
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
+}
+
+:where(.adw-group-description) {
+  margin: 0 0 var(--spacing-xs);
+  opacity: var(--dim-opacity);
+}
+
+/* 侧栏里的导航行：圆角、选中是中性的灰色 */
+/* 和侧栏两边各留 6px，行与行之间 2px */
+:where(.adw-sidebar-row) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: calc(100% - 2 * var(--spacing-xs));
+  margin: 0 var(--spacing-xs) 2px;
+  min-height: var(--size-sidebar-row);
+  padding: 0 var(--spacing-sm);
+  border: 0;
+  border-radius: var(--radius-menu-item);
+  background: none;
+  color: inherit;
+  text-align: start;
+  transition: background-color var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-sidebar-row:hover) {
+  background-color: var(--hover-color);
+}
+
+:where(.adw-sidebar-row:active) {
+  background-color: var(--active-color);
+}
+
+:where(.adw-sidebar-row[aria-current='true']),
+:where(.adw-sidebar-row[aria-pressed='true']),
+:where(.adw-sidebar-row[aria-selected='true']),
+:where(.adw-sidebar-row[data-state='open']) {
+  background-color: var(--selected-color);
+}
+
+:where(.adw-sidebar-row[aria-current='true']:hover),
+:where(.adw-sidebar-row[aria-pressed='true']:hover),
+:where(.adw-sidebar-row[aria-selected='true']:hover) {
+  background-color: var(--selected-hover-color);
+}
+
+:where(.adw-sidebar) {
+  background-color: var(--sidebar-bg-color);
+  color: var(--sidebar-fg-color);
+}
+
+/* 标题栏：47px，底下一条阴影线；里面的按钮都是扁平的 */
+:where(.adw-headerbar) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: none;
+  min-height: var(--size-headerbar);
+  padding: var(--spacing-xs) var(--spacing-xs) calc(var(--spacing-xs) + 1px);
+  background-color: var(--headerbar-bg-color);
+  color: var(--headerbar-fg-color);
+  box-shadow: inset 0 -1px var(--headerbar-shade-color);
+}
+
+/* 标题栏和内容同色、没有阴影线（AdwToolbarView 顶栏不滚动时的样子） */
+:where(.adw-headerbar-flat) {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+:where(.adw-window-title) {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where(.adw-toolbar) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+}
+
+/* 弹层和菜单 */
+:where(.adw-popover) {
+  z-index: var(--z-overlay);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-popover);
+  background-color: var(--popover-bg-color);
+  color: var(--popover-fg-color);
+  box-shadow: var(--popover-shadow);
+}
+
+@media (prefers-contrast: more) {
+  :where(.adw-popover) {
+    box-shadow: 0 0 0 1px var(--border-color), var(--popover-shadow);
+  }
+}
+
+:where(.adw-menu-item) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  width: 100%;
+  min-height: var(--size-menu-item);
+  padding: 0 var(--spacing-md);
+  border: 0;
+  border-radius: var(--radius-menu-item);
+  background: none;
+  color: inherit;
+  outline: none;
+  text-align: start;
+  cursor: default;
+  user-select: none;
+}
+
+:where(.adw-menu-item:hover),
+:where(.adw-menu-item[data-highlighted]) {
+  background-color: var(--selected-color);
+}
+
+:where(.adw-menu-item:active) {
+  background-color: var(--selected-active-color);
+}
+
+:where(.adw-menu-item:disabled),
+:where(.adw-menu-item[data-disabled]) {
+  opacity: var(--disabled-opacity);
+}
+
+:where(.adw-menu-separator) {
+  height: 1px;
+  margin: var(--spacing-xs) 0;
+  background-color: var(--border-color);
+}
+
+:where(.adw-separator) {
+  flex: none;
+  align-self: stretch;
+  min-width: 1px;
+  min-height: 1px;
+  background-color: var(--border-color);
+}
+
+/* 提示条（AdwBanner）：横跨顶部，灰色底；.adw-banner-error 换成错误色 */
+:where(.adw-banner) {
+  --banner-color: var(--banner-neutral-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  min-height: var(--size-headerbar);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: color-mix(in srgb, var(--banner-color) 30%, var(--window-bg-color));
+  color: var(--window-fg-color);
+  text-align: center;
+}
+
+:where(.adw-banner-error) {
+  --banner-color: var(--error-bg-color);
+}
+
+/* 吐司：深灰底的胶囊，浮在窗口底部 */
+:where(.adw-toast) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  min-height: var(--size-control);
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-pill);
+  background-color: var(--toast-bg-color);
+  color: var(--toast-fg-color);
+  box-shadow: var(--toast-shadow);
+}
+
+/* 提示气泡 */
+:where(.adw-tooltip) {
+  padding: var(--spacing-xs) 10px;
+  border: 1px solid var(--tooltip-border-color);
+  border-radius: var(--radius-tooltip);
+  background-color: var(--tooltip-bg-color);
+  background-clip: padding-box;
+  color: var(--light-1);
+}
+
+/* 状态页（AdwStatusPage）：空状态、出错、未登录等整页提示 */
+:where(.adw-status-page) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  gap: var(--spacing-md);
+  min-height: 100%;
+  padding: var(--spacing-xxl) var(--spacing-md);
+  text-align: center;
+}
+
+:where(.adw-status-page-icon) {
+  margin-bottom: var(--spacing-xl);
+  opacity: var(--dim-opacity);
+}
+
+:where(.adw-status-page-title) {
+  margin: 0;
+}
+
+:where(.adw-status-page-description) {
+  max-width: var(--size-clamp);
+  margin: 0;
+}
+
+/* 胶囊形的切换组（AdwToggleGroup） */
+:where(.adw-toggle-group) {
+  display: inline-flex;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-xxs);
+  border-radius: var(--radius-button);
+  background-color: var(--button-color);
+}
+
+:where(.adw-toggle) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  min-width: calc(var(--size-control) - 2 * var(--spacing-xxs));
+  min-height: calc(var(--size-control) - 2 * var(--spacing-xxs));
+  padding: 0 calc(11px - var(--spacing-xxs));
+  border: 0;
+  border-radius: calc(var(--radius-button) - var(--spacing-xxs));
+  background: none;
+  color: inherit;
+  font-weight: var(--font-weight-bold);
+  transition:
+    background-color var(--duration-control) var(--ease-out-quad),
+    box-shadow var(--duration-control) var(--ease-out-quad);
+}
+
+:where(.adw-toggle:hover) {
+  background-color: var(--hover-color);
+}
+
+:where(.adw-toggle:active) {
+  background-color: var(--active-color);
+}
+
+:where(.adw-toggle[aria-pressed='true']),
+:where(.adw-toggle[aria-selected='true']),
+:where(.adw-toggle[aria-checked='true']),
+:where(.adw-toggle[data-state='active']),
+:where(.adw-toggle[data-state='on']) {
+  background-color: var(--active-toggle-bg-color);
+  color: var(--active-toggle-fg-color);
+  box-shadow: var(--toggle-shadow);
+}
+
+/* 进度条：8px 的胶囊，强调色 */
+:where(.adw-progress-trough) {
+  overflow: hidden;
+  height: var(--size-progress);
+  border-radius: var(--radius-pill);
+  background-color: var(--trough-color);
+}
+
+:where(.adw-progress) {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-bg-color);
+}

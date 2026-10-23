@@ -1,110 +1,99 @@
+/* 这一轮改动的文件：一组 boxed list，每个文件是一行 AdwExpanderRow，展开看每一处修改 */
 .card {
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  composes: adw-card adw-boxed-list from global;
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-md);
+  min-height: var(--size-control);
+  padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.headerTitle {
+  font-weight: var(--font-weight-bold);
 }
 
 .files {
   margin: 0;
-  padding: var(--space-1);
+  padding: 0;
   list-style: none;
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+.files > li + li {
+  border-top: 1px solid var(--card-shade-color);
 }
 
-@media (hover: hover) {
-  .row:hover {
-    background: var(--color-hover);
-  }
+.row {
+  composes: adw-row adw-row-activatable from global;
+  gap: var(--spacing-md);
+  min-height: var(--size-row);
+  font: inherit;
+}
+
+.titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  composes: adw-monospace from global;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dir {
+  composes: adw-caption from global;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  opacity: var(--dim-opacity);
+}
+
+.kind {
+  composes: adw-caption-heading from global;
+  flex: none;
+  padding: var(--spacing-xxs) var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  background: var(--button-color);
+}
+
+.counts {
+  composes: adw-numeric from global;
+  display: flex;
+  flex: none;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+  font-family: var(--monospace-font-family);
+  font-size: var(--font-size-caption);
+}
+
+.added {
+  color: var(--success-color);
+}
+
+.removed {
+  color: var(--error-color);
 }
 
 .chevron {
   flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  opacity: var(--dim-opacity);
+  transition: transform var(--duration-control) var(--ease-out-quad);
 }
 
 [data-open] > .row .chevron {
   transform: rotate(90deg);
 }
 
-.name {
-  flex: none;
-  max-width: 60%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.dir {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.kind {
-  flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-}
-
-.counts {
-  display: flex;
-  flex: none;
-  gap: var(--space-1-5);
-  margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.added {
-  color: var(--color-success);
-}
-
-.removed {
-  color: var(--color-danger);
-}
-
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-md) var(--spacing-md);
+  border-top: 1px solid var(--card-shade-color);
 }

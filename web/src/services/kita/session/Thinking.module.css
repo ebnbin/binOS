@@ -1,4 +1,8 @@
+/* 思考的内容是次要的：正文字号、淡色 */
 .text {
-  font-size: var(--font-size-md);
-  color: var(--color-text-secondary);
+  opacity: var(--dim-opacity);
+}
+
+.text > div {
+  font-size: var(--font-size);
 }

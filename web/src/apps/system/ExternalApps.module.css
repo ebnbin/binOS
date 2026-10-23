@@ -1,173 +1,161 @@
+/* 外部 app 的清单：设置页里的一组，行点开后就地变成编辑表单 */
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
+  min-width: 0;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--spacing-md);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
 }
 
 .hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  composes: adw-caption from global;
+  margin: var(--spacing-xxs) 0 var(--spacing-md);
+  opacity: var(--dim-opacity);
 }
 
 .add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
+  composes: adw-button adw-suggested from global;
+  padding: 0 var(--spacing-sm);
 }
 
 .list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  composes: adw-card adw-boxed-list from global;
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-separator);
+.list:empty {
+  display: none;
 }
 
 .row {
+  composes: adw-row adw-row-activatable from global;
+  gap: var(--spacing-md);
+}
+
+.row:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--size-icon-large);
+  height: var(--size-icon-large);
+  border-radius: var(--radius-button);
+  background-color: var(--button-color);
+}
+
+.text {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
-  text-align: left;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .name {
-  flex: none;
-  color: var(--color-text);
+  composes: adw-row-title from global;
 }
 
 .url {
-  min-width: 0;
+  composes: adw-caption adw-row-subtitle from global;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
 }
 
 .editor label,
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-xs);
+}
+
+.editor label > span,
+.field > span {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
 }
 
 .editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-sm);
+  border: 0;
+  border-radius: var(--radius-button);
+  outline: 0 solid transparent;
+  background-color: var(--button-color);
+  font-size: var(--font-size-input);
+  transition: outline-color var(--duration-control) var(--ease-out-quad);
 }
 
 .editor input:focus {
-  border-color: var(--color-text-tertiary);
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: -2px;
 }
 
 .icons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--size-control));
+  gap: var(--spacing-xs);
 }
 
 .icons button {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: var(--radius-button);
+  transition: background-color var(--duration-control) var(--ease-out-quad);
 }
 
+.icons button:hover {
+  background-color: var(--hover-color);
+}
+
+.icons button:active {
+  background-color: var(--active-color);
+}
+
+/* 选中的图标用强调色（GtkFlowBox 的选中态） */
 .icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background-color: var(--view-selected-color);
+  color: var(--accent-color);
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-xs);
 }
 
 .spacer {
   flex: 1;
 }
 
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-}
-
 .primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
+  composes: adw-button adw-suggested from global;
 }
 
 .secondary {
-  background: var(--color-fill);
+  composes: adw-button from global;
 }
 
 .danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
-  }
+  composes: adw-button adw-destructive from global;
 }

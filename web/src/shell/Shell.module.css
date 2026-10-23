@@ -1,4 +1,4 @@
-/* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
+/* 安全区域涂成纯黑（GNOME 顶栏的颜色），中间是一块圆角的屏幕，app 只在屏幕里显示。
    除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
    固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
 .shell {
@@ -10,7 +10,7 @@
   padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px)) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
-  background: var(--color-chrome);
+  background: var(--panel-bg-color);
 }
 
 .shell[data-bar='left'],
@@ -38,6 +38,6 @@
   min-height: 0;
   overflow: hidden;
   border-radius: var(--radius-window);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--window-bg-color);
+  color: var(--window-fg-color);
 }

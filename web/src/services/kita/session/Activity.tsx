@@ -1,6 +1,7 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '../../../ui/icons'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { Spinner } from '../../../ui/Spinner.tsx'
 import styles from './Activity.module.css'
 
 export type ActivityStatus = 'running' | 'done' | 'error' | 'stopped'
@@ -31,11 +32,11 @@ export function Activity({
   return (
     <div className={styles.activity} data-status={status} data-quiet={quiet || undefined} data-open={open || undefined}>
       <button type="button" className={styles.row} onClick={() => setOpen(!open)} disabled={!body} aria-expanded={body ? open : undefined}>
-        <span className={styles.dot} />
+        <span className={styles.status}>{status === 'running' ? <Spinner /> : <span className={styles.dot} />}</span>
         <span className={styles.label}>{label}</span>
         {detail && <span className={styles.detail}>{detail}</span>}
         {meta && <span className={styles.meta}>{meta}</span>}
-        {body && <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />}
+        {body && <ChevronRight className={styles.chevron} />}
       </button>
       {!open && preview && <pre className={styles.preview}>{preview}</pre>}
       {open && body && <div className={styles.body}>{body()}</div>}

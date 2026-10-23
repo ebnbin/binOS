@@ -1,7 +1,7 @@
 :root {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-normal);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
 }
@@ -21,46 +21,55 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: var(--color-chrome);
+  background: var(--panel-bg-color);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--color-chrome);
-  color: var(--color-text);
+  background: var(--panel-bg-color);
+  color: var(--window-fg-color);
 }
 
-button,
-input,
-textarea {
+/* 元素的默认样式都放在 :where() 里，不压过 ui/adwaita.css 的样式类 */
+:where(button, input, textarea, select) {
   font: inherit;
   color: inherit;
 }
 
-input,
-textarea {
+:where(input, textarea) {
   appearance: none;
 }
 
-button {
+:where(button) {
   appearance: none;
   padding: 0;
   border: 0;
   background: none;
-  cursor: pointer;
-}
-
-button:disabled {
   cursor: default;
 }
 
+/* GNOME 的焦点环：2px、强调色半透明，画在控件内侧 */
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: -2px;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  background: var(--selection-color);
+}
+
+:where(a) {
+  color: var(--link-color);
+}
+
+:where(a:visited) {
+  color: var(--link-visited-color);
+}
+
+/* GNOME 的滚动条：细长的半透明胶囊 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-slider-color) transparent;
 }

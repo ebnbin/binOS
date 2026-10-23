@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react'
+import { ChevronRight, Plus } from '../../ui/icons'
 import { useState } from 'react'
 import { icons, iconNames } from '../external/icons.ts'
 import { saveExternalApps, useExternalApps } from '../external/registry.ts'
@@ -38,7 +38,7 @@ export function ExternalApps() {
       <header className={styles.header}>
         <h2>外部 app</h2>
         <button type="button" className={styles.add} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
-          <Plus size={15} strokeWidth={2} />
+          <Plus />
           添加
         </button>
       </header>
@@ -52,9 +52,12 @@ export function ExternalApps() {
           ) : (
             <li key={app.id}>
               <button type="button" className={styles.row} disabled={editing !== null} onClick={() => setEditing({ index, draft: app })}>
-                <AppIcon name={app.icon} />
-                <span className={styles.name}>{app.name}</span>
-                <span className={styles.url}>{app.url}</span>
+                <span className={styles.icon}><AppIcon name={app.icon} /></span>
+                <span className={styles.text}>
+                  <span className={styles.name}>{app.name}</span>
+                  <span className={styles.url}>{app.url}</span>
+                </span>
+                <ChevronRight />
               </button>
             </li>
           ),
@@ -71,7 +74,7 @@ export function ExternalApps() {
 
 function AppIcon({ name }: { name: ExternalAppConfig['icon'] }) {
   const Icon = icons[name]
-  return <Icon size={18} strokeWidth={1.75} />
+  return <Icon />
 }
 
 function Editor({
@@ -135,7 +138,7 @@ function Editor({
               确认删除
             </button>
           ) : (
-            <button type="button" className={styles.secondary} onClick={() => setConfirming(true)}>
+            <button type="button" className={styles.danger} onClick={() => setConfirming(true)}>
               删除
             </button>
           ))}

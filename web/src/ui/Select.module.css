@@ -1,17 +1,12 @@
+/* GtkDropDown：按钮样式的触发器，右侧是 pan-down 箭头；弹出的是菜单样式的弹层，选中项后面打勾 */
 .trigger {
-  display: inline-flex;
-  align-items: center;
+  composes: adw-button from global;
   justify-content: space-between;
-  gap: var(--space-1-5);
+  gap: var(--spacing-xs);
   min-width: 0;
-  height: var(--size-control-sm);
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  text-align: left;
+  padding: 0 var(--spacing-sm);
+  font-weight: var(--font-weight-regular);
+  text-align: start;
 }
 
 .value {
@@ -23,83 +18,32 @@
 .icon {
   display: flex;
   flex: none;
-  color: var(--color-text-tertiary);
-}
-
-.trigger[data-state='open'] {
-  background: var(--color-hover);
-}
-
-.trigger:disabled {
-  opacity: var(--opacity-disabled);
 }
 
 .content {
-  z-index: var(--z-overlay);
+  composes: adw-popover from global;
   min-width: var(--radix-select-trigger-width);
   max-width: min(360px, var(--radix-select-content-available-width));
-  max-height: min(320px, var(--radix-select-content-available-height));
+  max-height: min(360px, var(--radix-select-content-available-height));
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-  font-size: var(--font-size-sm);
-}
-
-.viewport {
-  padding: var(--space-1);
 }
 
 .item {
+  composes: adw-menu-item from global;
   position: relative;
-  display: flex;
-  align-items: center;
-  min-height: var(--size-control-md);
-  padding: var(--space-1-5) var(--space-8) var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-item);
-  outline: none;
-  cursor: pointer;
-  user-select: none;
+  padding-right: var(--spacing-xxl);
   overflow-wrap: anywhere;
-}
-
-.item[data-highlighted] {
-  background: var(--color-hover);
-}
-
-.item[data-state='checked'] {
-  font-weight: var(--font-weight-medium);
-}
-
-.item[data-disabled] {
-  opacity: var(--opacity-disabled);
-  cursor: default;
 }
 
 .indicator {
   position: absolute;
-  right: var(--space-2);
+  right: var(--spacing-md);
   display: flex;
 }
 
 .scroll {
   display: flex;
   justify-content: center;
-  padding: var(--space-1);
-  color: var(--color-text-tertiary);
-}
-
-@media (hover: hover) {
-  .trigger:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
-@media (pointer: coarse) {
-  .trigger,
-  .item {
-    min-height: var(--size-control-lg);
-  }
+  padding: var(--spacing-xxs);
+  opacity: var(--dim-opacity);
 }

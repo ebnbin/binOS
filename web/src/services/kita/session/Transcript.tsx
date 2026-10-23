@@ -1,5 +1,5 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight } from '../../../ui/icons'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
@@ -282,11 +282,11 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   return (
     <div className={styles.worked} data-open={open || undefined}>
       <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
-        <span>
+        <span className={styles.workedTitle}>
           {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
           {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
         </span>
-        <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
+        <ChevronRight className={styles.workedChevron} />
       </button>
       {open && <div className={styles.steps}>{list}</div>}
     </div>

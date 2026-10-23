@@ -1,329 +1,433 @@
+/* 容器名 system 也供子页（Agent 页）判断侧栏是否在。「系统」参考 GNOME 设置：左边是导航侧栏，右边是限宽居中的设置页；窄屏收起侧栏，分区切换放到底部 */
 .app {
+  container: system / inline-size;
+  display: grid;
+  grid-template-columns: var(--size-sidebar) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
   height: 100%;
   min-height: 0;
+  background-color: var(--window-bg-color);
+  color: var(--window-fg-color);
+}
+
+.sidebar {
+  composes: adw-sidebar from global;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg);
-  font-size: var(--font-size-md);
+  min-height: 0;
+  box-shadow: inset -1px 0 var(--sidebar-border-color);
 }
-.top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-  gap: var(--space-3);
+
+.sidebarHeader {
+  composes: adw-headerbar adw-headerbar-flat from global;
+  justify-content: center;
 }
-.top > div {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
+
+.sidebarTitle {
+  composes: adw-window-title from global;
 }
-.top strong {
-  font-size: var(--font-size-xl);
-}
-.freshness {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-success);
-  font-size: var(--font-size-xs);
-}
-.freshness::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  background: currentColor;
-  border-radius: 50%;
-}
-.freshness[data-stale='true'] {
-  color: var(--color-danger);
-}
-.freshness small {
-  color: var(--color-text-tertiary);
-}
+
 .sections {
   display: flex;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
-}
-.sections button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  text-align: left;
-  color: var(--color-text-secondary);
-}
-.sections button[aria-current='page'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  border-color: var(--color-primary);
-}
-.sections small {
-  display: block;
-  opacity: 0.65;
-  font-size: var(--font-size-2xs);
-  margin-top: var(--space-0-5);
-}
-.body {
-  flex: 1;
-  min-height: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-xs);
   overflow-y: auto;
 }
-.content {
-  padding: var(--space-6);
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.hero {
-  margin-bottom: var(--space-6);
-}
-.hero h1 {
-  font-size: var(--font-size-2xl);
-  margin: 0 0 var(--space-1-5);
-  overflow-wrap: anywhere;
-}
-.hero p {
-  color: var(--color-text-tertiary);
-  margin: 0;
-  font-size: var(--font-size-sm);
-}
-.cards {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
-}
-.card,
+
 .section {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  padding: var(--space-6);
-  min-width: 0;
+  composes: adw-sidebar-row from global;
 }
-.card h2,
-.section h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  margin: 0 0 var(--space-5);
-  color: var(--color-text-secondary);
-}
-.card > strong {
-  display: block;
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-medium);
-  margin-bottom: var(--space-3);
-}
-.card > strong small {
-  font-size: var(--font-size-md);
-  color: var(--color-text-tertiary);
-}
-.card p,
-.volume p {
-  margin: var(--space-3) 0 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-}
-.card progress,
-.volume progress {
-  width: 100%;
-  height: 8px;
-  display: block;
-  border: 0;
-  border-radius: var(--radius-full);
-  appearance: none;
-  background: var(--color-fill);
-  accent-color: var(--color-success);
-}
-.card progress::-webkit-progress-bar,
-.volume progress::-webkit-progress-bar {
-  background: var(--color-fill);
-  border-radius: var(--radius-full);
-}
-.card progress::-webkit-progress-value,
-.volume progress::-webkit-progress-value {
-  background: var(--color-success);
-  border-radius: var(--radius-full);
-}
-.card progress::-moz-progress-bar,
-.volume progress::-moz-progress-bar {
-  background: var(--color-success);
-  border-radius: var(--radius-full);
-}
-.speeds {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-5);
-}
-.speeds > span {
+
+.sectionLabel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  min-width: 0;
+  padding: var(--spacing-xs) 0;
 }
-.speeds strong {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
+
+.sectionLabel small {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  opacity: var(--dim-opacity);
 }
-.speeds small {
-  font-size: var(--font-size-2xs);
-}
-.section {
-  margin-bottom: var(--space-5);
-}
-.volume {
-  padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--color-separator);
-}
-.volume:last-child {
-  border: 0;
-  padding-bottom: 0;
-}
-.volume header {
+
+.page {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
-.volume header strong {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+
+.top {
+  composes: adw-headerbar from global;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
 }
-.volume header span {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+
+.start {
+  display: flex;
 }
-.note {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-relaxed);
+
+.end {
+  display: flex;
+  justify-content: flex-end;
 }
-.bad {
-  color: var(--color-danger);
-}
-.warning {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
-  padding: var(--space-3) var(--space-5);
-  overflow-wrap: anywhere;
-}
-.empty {
-  text-align: center;
-  padding: var(--space-16) var(--space-5);
-  color: var(--color-text-tertiary);
-}
-.actions button {
-  display: inline-flex;
+
+/* AdwWindowTitle：粗体标题，下面是弱化的副标题 */
+.title {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
+  min-width: 0;
+  text-align: center;
 }
-.app button:disabled {
-  opacity: var(--opacity-disabled);
+
+.title strong {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
-.rows {
-  margin: 0;
+
+.freshness {
+  composes: adw-caption from global;
+  max-width: 100%;
+  overflow: hidden;
+  opacity: var(--dim-opacity);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.rows > div {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-5);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+
+.freshness[data-stale='true'] {
+  color: var(--error-color);
+  opacity: 1;
 }
-.rows > div:last-child {
-  border: 0;
-}
-.rows dt {
-  color: var(--color-text-secondary);
-}
-.rows dd {
-  margin: 0;
-}
-.settingLink {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  width: 100%;
-  text-align: left;
-}
-.settingLink span {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-}
-.spin {
+
+.spin svg {
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
-@media (max-width: 550px) {
-  .top {
-    padding: var(--space-3) var(--space-4);
+
+.warning {
+  composes: adw-banner adw-banner-error from global;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* AdwPreferencesPage：居中限宽，组与组之间 24px */
+.content,
+.contentWide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+  max-width: calc(var(--size-clamp) + 2 * var(--spacing-md));
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.contentWide {
+  max-width: calc(var(--size-clamp-wide) + 2 * var(--spacing-md));
+}
+
+.hero h1 {
+  font-size: var(--font-size-title-1);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
+  margin: 0 0 var(--spacing-xs);
+  overflow-wrap: anywhere;
+}
+
+.hero p {
+  margin: 0;
+  opacity: var(--dim-opacity);
+}
+
+/* 资源卡片（参考「资源」app）：图标和标题、大号数值、电平条 */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+
+.card {
+  composes: adw-card from global;
+  min-width: 0;
+  padding: var(--spacing-lg);
+}
+
+.card h2,
+.group h2 {
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--font-size);
+}
+
+.group h2 {
+  margin-bottom: var(--spacing-xs);
+}
+
+.card > strong {
+  font-size: var(--font-size-title-1);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
+  font-variant-numeric: tabular-nums;
+  display: block;
+  margin-bottom: var(--spacing-md);
+}
+
+.card > strong small {
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-regular);
+  opacity: var(--dim-opacity);
+}
+
+.card p,
+.volume p {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  margin: var(--spacing-xs) 0 0;
+  opacity: var(--dim-opacity);
+}
+
+/* GtkLevelBar：8px 的胶囊，强调色 */
+.card progress,
+.volume progress {
+  display: block;
+  width: 100%;
+  height: var(--size-progress);
+  border: 0;
+  border-radius: var(--radius-pill);
+  appearance: none;
+  background-color: var(--trough-color);
+  color: var(--accent-bg-color);
+  overflow: hidden;
+}
+
+.card progress::-webkit-progress-bar,
+.volume progress::-webkit-progress-bar {
+  border-radius: var(--radius-pill);
+  background-color: var(--trough-color);
+}
+
+.card progress::-webkit-progress-value,
+.volume progress::-webkit-progress-value {
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-bg-color);
+}
+
+.card progress::-moz-progress-bar,
+.volume progress::-moz-progress-bar {
+  border-radius: var(--radius-pill);
+  background-color: var(--accent-bg-color);
+}
+
+.speeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.speeds > span {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+}
+
+.speeds strong {
+  font-size: var(--font-size-title-2);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height);
+  font-variant-numeric: tabular-nums;
+}
+
+.speeds small {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  opacity: var(--dim-opacity);
+}
+
+.group {
+  min-width: 0;
+}
+
+.list {
+  composes: adw-card adw-boxed-list from global;
+}
+
+.volume {
+  padding: var(--spacing-md);
+}
+
+.volume header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
+}
+
+.volume header span {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  font-variant-numeric: tabular-nums;
+  opacity: var(--dim-opacity);
+}
+
+.note {
+  composes: adw-caption from global;
+  display: block;
+  margin: 0;
+  opacity: var(--dim-opacity);
+}
+
+.card .note {
+  margin-top: var(--spacing-xxs);
+}
+
+.bad {
+  color: var(--error-color);
+}
+
+.inlineWarning {
+  composes: adw-body from global;
+  margin: 0;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-card);
+  background-color: color-mix(in srgb, var(--warning-bg-color) 20%, transparent);
+  color: var(--warning-color);
+  overflow-wrap: anywhere;
+}
+
+.status {
+  composes: adw-status-page from global;
+}
+
+.status p {
+  margin: 0;
+  opacity: var(--dim-opacity);
+}
+
+/* 只读的属性：一行一个，名称在左、值在右 */
+.rows {
+  composes: adw-card adw-boxed-list from global;
+}
+
+.rows > div {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  min-height: var(--size-row);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+  justify-content: space-between;
+}
+
+.rows dd {
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  min-width: 0;
+  opacity: var(--dim-opacity);
+  text-align: end;
+  overflow-wrap: anywhere;
+}
+
+.settingLink {
+  composes: adw-row adw-row-activatable from global;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.settingText span {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  min-width: 0;
+  opacity: var(--dim-opacity);
+}
+
+/* 窄屏底部的分区切换（AdwViewSwitcherBar）：图标在上、名字在下 */
+.switcher {
+  display: none;
+  gap: var(--spacing-xxs);
+  padding: var(--spacing-xs);
+  background-color: var(--headerbar-bg-color);
+  color: var(--headerbar-fg-color);
+  box-shadow: inset 0 1px var(--headerbar-shade-color);
+}
+
+.switch {
+  composes: adw-button adw-flat from global;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-xxs);
+  min-width: 0;
+  padding: var(--spacing-xxs) var(--spacing-xs);
+  font-size: var(--font-size-caption);
+}
+
+.switch[aria-current='page'] {
+  background-color: var(--selected-color);
+}
+
+/* 窄屏收起侧栏，底部换成切换栏。.app 自己是查询的容器，只能调整它里面的元素 */
+@container system (max-width: 640px) {
+  .sidebar {
+    display: none;
   }
-  .top > div {
-    gap: var(--space-3);
+
+  .page {
+    grid-column: 1 / -1;
   }
+
+  .switcher {
+    display: flex;
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
   .freshness small {
     display: none;
   }
-  .sections {
-    padding: var(--space-3) var(--space-3);
-    gap: var(--space-1-5);
-  }
-  .sections button {
-    padding: var(--space-3) var(--space-2);
-    gap: var(--space-2);
-  }
-  .sections small {
-    font-size: var(--font-size-2xs);
-  }
-  .content {
-    padding: var(--space-5) var(--space-3);
-  }
-  .cards {
-    gap: var(--space-3);
-  }
-  .card,
-  .section {
-    padding: var(--space-4);
-  }
-  .card > strong {
-    font-size: var(--font-size-2xl);
-  }
-  .hero h1 {
-    font-size: var(--font-size-2xl);
-  }
-  .speeds {
-    gap: var(--space-3);
-  }
-  .speeds strong {
-    font-size: var(--font-size-xl);
+
+  .content,
+  .contentWide {
+    padding: var(--spacing-lg) var(--spacing-md);
   }
 }
-@media (max-width: 380px) {
+
+@container system (max-width: 400px) {
   .cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

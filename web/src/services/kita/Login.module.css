@@ -1,120 +1,106 @@
+/* 网页上的登录流程：一张卡片，标题、步骤、输入框，底部右侧是按钮，主操作是强调色 */
 .flow {
+  composes: adw-card adw-body from global;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
   text-align: left;
 }
 
 .title {
-  font-weight: var(--font-weight-semibold);
+  composes: adw-heading from global;
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
   margin: 0;
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--spacing-md);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  color: var(--color-text);
+  gap: var(--spacing-xs);
+  width: fit-content;
+  color: var(--link-color);
   text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
-  color: var(--color-text-secondary);
+  gap: var(--spacing-xs);
 }
 
 .codeLabel input {
-  height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-sm);
+  border: 0;
+  border-radius: var(--radius-button);
+  background-color: var(--button-color);
+  color: inherit;
+  font-family: var(--monospace-font-family);
+  font-size: var(--font-size-input);
+  outline: 0 solid transparent;
+  transition: outline-color var(--duration-control) var(--ease-out-quad);
+}
+
+.codeLabel input::placeholder {
+  color: inherit;
+  opacity: var(--dimmer-opacity);
 }
 
 .codeLabel input:focus {
-  border-color: var(--color-text-secondary);
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: -2px;
+}
+
+.codeLabel input:disabled {
+  opacity: var(--disabled-opacity);
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  min-width: 64px;
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
+  gap: var(--spacing-xs);
 }
 
 .primary {
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
+  composes: adw-button adw-suggested from global;
+  min-width: 80px;
 }
 
 .secondary {
-  border: 1px solid var(--color-border);
-  background: none;
-  color: var(--color-text-secondary);
+  composes: adw-button from global;
+  min-width: 80px;
 }
 
 .done {
   margin: 0;
-  color: var(--color-success);
+  color: var(--success-color);
 }
 
 .error {
   margin: 0;
-  color: var(--color-danger);
+  color: var(--error-color);
   overflow-wrap: anywhere;
 }
 
 .deviceCode {
+  composes: adw-title-2 adw-monospace from global;
   align-self: flex-start;
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-wide);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-button);
+  background: var(--button-color);
+  font-size: var(--font-size-title-2);
   user-select: all;
 }

@@ -1,107 +1,113 @@
+/* 输出、命令和 diff：内容视图底色的卡片，等宽字 */
+.output {
+  composes: adw-card adw-monospace from global;
+}
+
+.terminal {
+  composes: adw-card adw-monospace from global;
+}
+
+.diffLines {
+  composes: adw-card adw-monospace from global;
+}
+
 .output,
 .terminal,
 .diffLines {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--spacing-sm) var(--spacing-md);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  background-color: var(--view-bg-color);
+  color: var(--view-fg-color);
+  line-height: var(--line-height-body);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .output[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--error-color);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
   user-select: none;
 }
 
-.terminal {
-  color: var(--color-text);
-}
-
+/* 命令行是正文色，输出淡一些 */
 .terminalOutput {
-  color: var(--color-text-secondary);
+  opacity: 0.8;
 }
 
 .terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--error-color);
+  opacity: 1;
 }
 
 .note {
+  composes: adw-caption from global;
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacing-xs);
 }
 
 .diffLines {
-  padding: var(--space-3) 0;
+  padding: var(--spacing-sm) 0;
   white-space: pre;
 }
 
 .diffLine {
   display: block;
-  padding: 0 var(--space-3) 0 0;
+  padding: 0 var(--spacing-md) 0 0;
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: color-mix(in srgb, var(--success-bg-color) 15%, transparent);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: color-mix(in srgb, var(--error-bg-color) 15%, transparent);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  color: var(--accent-color);
 }
 
 .diffSign {
   display: inline-block;
   width: 26px;
   text-align: center;
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
   user-select: none;
 }
 
+/* 搜到的网页：一组可点的行 */
 .links {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-0-5);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  composes: adw-card adw-boxed-list from global;
 }
 
 .links a {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
+  gap: var(--spacing-sm);
+  min-height: var(--size-control);
+  padding: var(--spacing-sm) var(--spacing-md);
   color: inherit;
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  transition: background-color var(--duration-control) var(--ease-out-quad);
 }
 
-@media (hover: hover) {
-  .links a:hover {
-    background: var(--color-hover);
-  }
+.links a:hover {
+  background-color: var(--card-hover-color);
+}
+
+.links a:active {
+  background-color: var(--card-active-color);
 }
 
 .linkTitle {
@@ -113,8 +119,9 @@
 
 .linkHost {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  margin-left: auto;
+  font-size: var(--font-size-caption);
+  opacity: var(--dim-opacity);
 }
 
 .image {
@@ -126,6 +133,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
   border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
 }

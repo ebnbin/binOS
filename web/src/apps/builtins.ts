@@ -1,4 +1,4 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Terminal } from 'lucide-react'
+import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Terminal } from '../ui/icons'
 import { lazy } from 'react'
 import type { ApplicationDefinition } from './types.ts'
 

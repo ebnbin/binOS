@@ -1,46 +1,52 @@
+/* 回答过程里的一步：像 AdwExpanderRow 的标题行，左边是状态，右边是 pan-end 箭头，展开后箭头朝下 */
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacing-sm);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 1px 0;
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-xs);
   border: 0;
+  border-radius: var(--radius-menu-item);
   background: none;
-  color: var(--color-text-tertiary);
+  color: inherit;
   font: inherit;
-  font-size: var(--font-size-sm);
   text-align: left;
-  cursor: pointer;
+  transition: background-color var(--duration-control) var(--ease-out-quad);
 }
 
-.row:disabled {
-  cursor: default;
+.row:hover:not(:disabled) {
+  background-color: var(--hover-color);
 }
 
-/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
+.row:active:not(:disabled) {
+  background-color: var(--active-color);
+}
+
+/* 进行中是转圈，出错是红点，完成是淡色的点 */
+.status {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--size-icon);
+  height: var(--size-icon);
+}
+
 .dot {
   width: 6px;
   height: 6px;
-  margin: 0 var(--space-1) 0 1px;
-  flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-text-tertiary) 70%, transparent);
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  opacity: var(--dimmer-opacity);
 }
 
 [data-status='error'] > .row .dot {
-  background: var(--color-danger);
+  background: var(--error-bg-color);
+  opacity: 1;
 }
 
-[data-status='running'] > .row .dot {
-  background: var(--color-accent);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  50% {
-    opacity: 0.3;
-  }
+[data-status='running'] > .row .status {
+  color: var(--accent-color);
 }
 
 .label {
@@ -49,79 +55,68 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text);
-  font-weight: var(--font-weight-medium);
 }
 
 [data-quiet] > .row .label {
-  color: var(--color-text-tertiary);
-  font-weight: var(--font-weight-regular);
+  opacity: var(--dim-opacity);
 }
 
 .detail {
+  composes: adw-monospace from global;
   flex: 1;
   min-width: 0;
   overflow: hidden;
+  font-size: var(--font-size-caption);
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  opacity: var(--dim-opacity);
 }
 
 .meta {
+  composes: adw-caption adw-numeric from global;
   display: flex;
-  gap: var(--space-1-5);
   flex: none;
+  gap: var(--spacing-xs);
   margin-left: auto;
-  font-size: var(--font-size-xs);
-  font-variant-numeric: tabular-nums;
+  opacity: var(--dim-opacity);
 }
 
 .chevron {
   flex: none;
-  opacity: 0;
-  transition:
-    opacity var(--duration-fast),
-    transform var(--duration-normal) var(--ease-standard);
-}
-
-@media (hover: hover) {
-  .row:hover .chevron {
-    opacity: 1;
-  }
+  opacity: var(--dim-opacity);
+  transition: transform var(--duration-control) var(--ease-out-quad);
 }
 
 .activity[data-open] > .row .chevron {
-  opacity: 1;
   transform: rotate(90deg);
 }
 
-/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
+/* 收起时下面的几行输出，和展开的内容一样缩进到状态图标右边，左边一条细线 */
 .preview,
 .body {
-  margin: 0 0 var(--space-1) 5px;
-  padding-left: 13px;
-  border-left: 1px solid var(--color-separator);
+  margin: 0 0 var(--spacing-xxs) calc(var(--spacing-xs) + var(--size-icon) / 2);
+  padding-left: calc(var(--spacing-sm) + var(--size-icon) / 2 - 1px);
+  border-left: 1px solid var(--border-color);
 }
 
 .preview {
+  composes: adw-monospace from global;
   overflow: hidden;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-body);
   white-space: pre;
   text-overflow: ellipsis;
+  opacity: var(--dim-opacity);
 }
 
 [data-status='error'] > .preview {
-  color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-tertiary));
+  color: var(--error-color);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-xxs);
+  padding-bottom: var(--spacing-xs);
 }

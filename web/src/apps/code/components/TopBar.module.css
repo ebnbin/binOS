@@ -1,17 +1,27 @@
+/* 对话页的标题栏：左边返回，中间是标题按钮（点开会话菜单）和编号，右边是 PR 和新对话 */
 .bar {
+  composes: adw-headerbar from global;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) minmax(0, 1fr);
+}
+
+.start,
+.end {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.end {
+  justify-content: flex-end;
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
   min-width: 0;
 }
 
@@ -19,8 +29,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-bold);
 }
 
 .titleWrap {
@@ -29,104 +38,58 @@
   min-width: 0;
 }
 
+/* 标题本身是扁平的菜单按钮 */
 .titleButton {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  composes: adw-button adw-flat from global;
+  gap: var(--spacing-xs);
   min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
-}
-
-@media (hover: hover) {
-  .titleButton:hover {
-    background: var(--color-hover);
-  }
-}
-
-.titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
+  padding: 0 var(--spacing-sm);
 }
 
 .titleChevron {
   flex: none;
-  color: var(--color-text-tertiary);
 }
 
 .rename {
   align-self: center;
-  max-width: 420px;
-  min-height: var(--size-control-md);
+  width: min(420px, 60vw);
 }
 
 .id {
+  composes: adw-numeric adw-dimmed from global;
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
 }
 
 .prs {
   position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
-  margin-left: auto;
+  gap: var(--spacing-xs);
 }
 
 .finished {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  composes: adw-button adw-flat adw-numeric from global;
+  padding: 0 var(--spacing-sm);
 }
 
 .prMenu {
   display: flex;
   flex-direction: column;
   width: 360px;
-  max-height: min(320px, var(--radix-popover-content-available-height));
+  max-height: min(360px, var(--radix-popover-content-available-height));
   overflow-y: auto;
-  padding: var(--space-1);
-  box-shadow: var(--shadow-md);
 }
 
-.prMenu a {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
+/* 菜单项：编号、标题、状态 */
+.prItem {
+  composes: adw-menu-item from global;
+  gap: var(--spacing-xs);
   text-decoration: none;
-  font-size: var(--font-size-sm);
-}
-
-@media (hover: hover) {
-  .prMenu a:hover {
-    background: var(--color-hover);
-  }
 }
 
 .prNumber {
+  composes: adw-numeric adw-dimmed from global;
   flex: none;
-  color: var(--color-text-tertiary);
-  font-variant-numeric: tabular-nums;
 }
 
 .prTitle {
@@ -138,48 +101,55 @@
 }
 
 .prState {
+  composes: adw-caption from global;
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
+  color: var(--success-color);
+  opacity: 1;
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
+  color: oklab(from var(--purple-3) var(--standalone-color-oklab));
+  opacity: 1;
 }
 
+/* 开着的 PR：标题栏里的扁平按钮，编号和预览连成一组 */
 .pr {
+  composes: adw-numeric from global;
   display: inline-flex;
   align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
 }
 
 .pr a {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
+  gap: var(--spacing-xs);
+  min-height: var(--size-control);
+  padding: 0 var(--spacing-sm);
+  border-radius: var(--radius-button);
+  color: inherit;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
+  transition: background-color var(--duration-control) var(--ease-out-quad);
+}
+
+.pr a:hover {
+  background-color: var(--hover-color);
+}
+
+.pr a:active {
+  background-color: var(--active-color);
 }
 
 .pr[data-state='open'] a:first-child {
-  color: var(--color-success);
+  color: var(--success-color);
 }
 
 .pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
-}
-
-.pr .preview {
-  border-left: 1px solid var(--color-separator);
+  color: oklab(from var(--purple-3) var(--standalone-color-oklab));
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
@@ -187,25 +157,23 @@
   display: none;
 }
 
+/* 一列时空间紧：标题占满中间、能截断，两边的按钮不被挤掉 */
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
+    display: flex;
   }
 
-  .bar:has(.heading:last-child)::after {
-    content: '';
-    width: var(--size-control-lg);
+  .start,
+  .end {
     flex: none;
   }
 
   .heading {
-    justify-content: center;
+    flex: 1;
   }
 
   .bar .singleColumnOnly {
-    display: grid;
+    display: inline-flex;
   }
 
   .bar span.singleColumnOnly {

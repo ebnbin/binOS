@@ -1,11 +1,21 @@
 .content {
-  z-index: var(--z-overlay);
+  composes: adw-popover from global;
   max-width: var(--radix-popover-content-available-width);
   max-height: var(--radix-popover-content-available-height);
   overflow: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: appear var(--duration-shell) var(--ease-out-quad);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
 }

@@ -29,7 +29,7 @@ export function Popover({
           aria-label={label}
           side={side}
           align={align}
-          sideOffset={8}
+          sideOffset={4}
           collisionPadding={12}
           className={`${styles.content} ${className ?? ''}`}
         >

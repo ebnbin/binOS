@@ -2,7 +2,7 @@ import { Select } from '../../../ui/Select.tsx'
 import type { Project, SessionSummary, Upload } from '@binos/server/apps/code/types'
 import { defaultAgent } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { ArrowDown, Folder } from 'lucide-react'
+import { ArrowDown, Folder } from '../../../ui/icons'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
@@ -141,10 +141,10 @@ export function Conversation({
           <div className={styles.column}>
             {sessionId === null ? (
               <div className={styles.empty}>
-                <BrandMark size={36} />
+                <BrandMark size={64} />
                 <h1>开始新对话</h1>
                 <div className={styles.projectChoice}>
-                  <Folder size={16} aria-hidden="true" />
+                  <Folder aria-hidden="true" />
                   <Select
                     label="对话所属项目"
                     value={project}
@@ -161,7 +161,7 @@ export function Conversation({
         </div>
         {awayFromBottom && (
           <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
+            <ArrowDown />
           </button>
         )}
       </div>

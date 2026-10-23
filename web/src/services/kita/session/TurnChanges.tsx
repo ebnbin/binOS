@@ -1,4 +1,4 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
+import { ChevronRight, FileDiff } from '../../../ui/icons'
 import { useState } from 'react'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
@@ -19,8 +19,8 @@ export function TurnChanges({ thread, files }: { thread: string; files: FileChan
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <FileDiff size={14} strokeWidth={1.75} />
-        <span>改动了 {files.length} 个文件</span>
+        <FileDiff />
+        <span className={styles.headerTitle}>改动了 {files.length} 个文件</span>
         <Counts added={added} removed={removed} />
       </div>
       <ul className={styles.files}>
@@ -37,11 +37,13 @@ function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   return (
     <li data-open={open || undefined}>
       <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
-        <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
-        <span className={styles.name}>{file.path.split('/').at(-1)}</span>
-        <span className={styles.dir}>{directory(file.path)}</span>
+        <span className={styles.titles}>
+          <span className={styles.name}>{file.path.split('/').at(-1)}</span>
+          <span className={styles.dir}>{directory(file.path)}</span>
+        </span>
         {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
         <Counts added={file.added} removed={file.removed} />
+        <ChevronRight className={styles.chevron} />
       </button>
       {open && (
         <div className={styles.body}>

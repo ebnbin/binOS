@@ -1,4 +1,4 @@
-/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
+/* 额度：GtkLevelBar 的样子。最长的窗口用强调色，其余用成功色，快满了用错误色 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-success);
+  --window: var(--success-bg-color);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--accent-bg-color);
 }
 
 .ring g {
@@ -19,36 +19,35 @@
 }
 
 .ring [data-full] {
-  color: var(--color-danger);
+  color: var(--error-bg-color);
 }
 
 .windows {
+  composes: adw-numeric from global;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
+  gap: var(--spacing-md);
 }
 
 .limited {
   margin: 0;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--error-bg-color) 15%, transparent);
+  color: var(--error-color);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacing-xs);
 }
 
 .windowLine {
+  composes: adw-caption from global;
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  gap: var(--spacing-sm);
 }
 
 .windowLine > :last-child {
@@ -58,31 +57,31 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-xs);
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-bold);
 }
 
 .swatch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
   background: var(--window);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
+  opacity: var(--dim-opacity);
 }
 
 .danger {
-  color: var(--color-danger);
+  color: var(--error-color);
 }
 
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
+  height: var(--size-progress);
+  border-radius: var(--radius-pill);
+  background: var(--trough-color);
 }
 
 .bar span {
@@ -93,16 +92,17 @@
 }
 
 .bar[data-full] span {
-  background: var(--color-danger);
+  background: var(--error-bg-color);
 }
 
 /* 匀速线 */
 .bar i {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
+  top: calc(-1 * var(--spacing-xxs));
+  bottom: calc(-1 * var(--spacing-xxs));
   width: 2px;
   margin-left: -1px;
-  border-radius: var(--radius-full);
-  background: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  background: currentColor;
+  opacity: var(--dim-opacity);
 }
