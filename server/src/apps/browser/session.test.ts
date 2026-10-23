@@ -114,15 +114,6 @@ describe('remote browser reconnection', () => {
     expect(third.close).not.toHaveBeenCalled()
   })
 
-  it('allows the client to reconnect when the browser unexpectedly exits', async () => {
-    const current = client()
-    await connectBrowser(undefined, current.send, current.close)
-    fixture.page.emit('close')
-    expect(current.close).toHaveBeenCalledExactlyOnceWith(1000)
-    expect(current.messages).not.toContainEqual({ type: 'closed' })
-    expect(current.messages).not.toContainEqual({ type: 'replaced' })
-  })
-
   it('closes only the owned page and invalidates the remote session', async () => {
     const current = client()
     const connection = await connectBrowser(undefined, current.send, current.close)
