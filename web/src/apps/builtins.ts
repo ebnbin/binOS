@@ -1,4 +1,4 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Terminal } from 'lucide-react'
+import { CalendarMonth, Code, Folder, Language, MusicNote, Speed, Terminal } from '../ui/icons.tsx'
 import { lazy } from 'react'
 import type { ApplicationDefinition } from './types.ts'
 
@@ -6,7 +6,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'calendar',
     name: '日历',
-    icon: CalendarDays,
+    icon: CalendarMonth,
     views: {
       month: { kind: 'widget', component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))) },
     },
@@ -15,7 +15,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'music',
     name: '音乐',
-    icon: Music,
+    icon: MusicNote,
     mainWindow: { viewId: 'main' },
     views: {
       main: { kind: 'window', component: lazy(() => import('./music/MusicApp.tsx').then((module) => ({ default: module.MusicApp }))) },
@@ -26,7 +26,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'browser',
     name: '浏览器',
-    icon: Globe,
+    icon: Language,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -62,7 +62,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'code',
     name: 'Code',
-    icon: CodeXml,
+    icon: Code,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -79,7 +79,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'system',
     name: '系统',
-    icon: Gauge,
+    icon: Speed,
     mainWindow: { viewId: 'main' },
     views: {
       main: {

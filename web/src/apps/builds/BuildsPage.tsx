@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Build, Snapshot, Target } from '@binos/server/apps/builds/types'
+import { Button } from '../../ui/Button.tsx'
+import { Check, Close, Description, Download, Refresh, Sync } from '../../ui/icons.tsx'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Select } from '../../ui/Select.tsx'
 import './builds.css'
 const base = '/api/apps/builds'
 const targetLabels: Record<Target, string> = { android: 'Android APK', 'ios-simulator': 'iOS 模拟器', 'ios-adhoc': 'iOS Ad Hoc' }
@@ -40,7 +44,7 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
   }
   async function act(body: unknown) { setBusy(true); try { setData(await request(body)); setError('') } catch (e) { setError(String(e)) } finally { setBusy(false) } }
   return <section className="builds-page">
-    <header><div><h1>构建</h1><p>Android 与 iOS 的持续集成、日志和产物</p></div><button disabled={busy} onClick={() => void act({ action: 'poll' })}>检查更新</button></header>
+    <header><div><h1>构建</h1><p>Android 与 iOS 的持续集成、日志和产物</p></div><Button variant="tonal" icon={Sync} disabled={busy} onClick={() => void act({ action: 'poll' })}>检查更新</Button></header>
     {data?.mode === 'mock' && <p className="builds-notice">预览模式：模拟构建，与正式构建及签名隔离。</p>}
     {error && <p role="alert" className="builds-error">{error}</p>}
     {data?.pollError && <p role="alert" className="builds-error">检查仓库失败：{data.pollError}</p>}
@@ -50,19 +54,19 @@ export function BuildsPage({ initialRef = 'main' }: { initialRef?: string }) {
       {data.checkedAt && <small>上次检查：{new Date(data.checkedAt).toLocaleString()}</small>}
     </div>}
     <form onSubmit={(e) => { e.preventDefault(); void act({ action: 'enqueue', ref: ref.trim(), targets: target === 'both' ? ['android', 'ios-simulator'] : [target] }) }}>
-      <label>构建来源<input aria-label="构建来源" required value={ref} onChange={(e) => setRef(e.target.value)} placeholder="main、pr/编号、完整提交号" /></label>
-      <label>构建目标<select value={target} onChange={(e) => setTarget(e.target.value)}><option value="both">Android + iOS 模拟器</option>{Object.entries(targetLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <button disabled={busy || !data} type="submit">开始构建</button>
+      <label className="builds-field"><span>构建来源</span><input aria-label="构建来源" required value={ref} onChange={(e) => setRef(e.target.value)} placeholder="main、pr/编号、完整提交号" /></label>
+      <div className="builds-field"><span>构建目标</span><Select label="构建目标" value={target} onValueChange={setTarget} options={[{ value: 'both', label: 'Android + iOS 模拟器' }, ...Object.entries(targetLabels).map(([value, label]) => ({ value, label }))]} /></div>
+      <Button disabled={busy || !data} type="submit">开始构建</Button>
     </form>
-    <nav aria-label="构建筛选">{[['all', '全部'], ['main', 'main'], ['pr', 'PR'], ['manual', '手动']].map(([key, label]) => <button key={key} aria-pressed={filter === key} onClick={() => setFilter(key)}>{label}</button>)}</nav>
-    {!data ? <p>正在连接构建服务…</p> : !data.builds.length ? <p>暂无构建。提交包含移动端构建脚本后将自动构建，也可以手动指定来源。</p> : data.builds.filter((b) => filter === 'all' || b.trigger === filter).map((b) => <article key={b.id}>
-      <div className="builds-row"><strong>{targetLabels[b.target]}</strong><span data-status={b.status}>{statusLabels[b.status]}</span><code title={b.commit}>{b.commit.slice(0, 7)}</code><span>{b.trigger === 'pr' ? `PR #${b.pr}` : b.trigger === 'manual' ? '手动' : 'main'}</span></div>
+    <nav aria-label="构建筛选">{[['all', '全部'], ['main', 'main'], ['pr', 'PR'], ['manual', '手动']].map(([key, label]) => <button key={key} className="builds-chip" aria-pressed={filter === key} onClick={() => setFilter(key)}>{filter === key && <Check size={18} />}{label}</button>)}</nav>
+    {!data ? <p className="builds-empty">正在连接构建服务…</p> : !data.builds.length ? <p className="builds-empty">暂无构建。提交包含移动端构建脚本后将自动构建，也可以手动指定来源。</p> : data.builds.filter((b) => filter === 'all' || b.trigger === filter).map((b) => <article key={b.id}>
+      <div className="builds-row"><strong>{targetLabels[b.target]}</strong><span className="builds-status" data-status={b.status}>{statusLabels[b.status]}</span><code title={b.commit}>{b.commit.slice(0, 7)}</code><span>{b.trigger === 'pr' ? `PR #${b.pr}` : b.trigger === 'manual' ? '手动' : 'main'}</span></div>
       <small>{new Date(b.createdAt).toLocaleString()}{b.startedAt && ` · 用时 ${Math.max(0, Math.round(((b.endedAt ? Date.parse(b.endedAt) : clock) - Date.parse(b.startedAt)) / 1000))} 秒`}</small>
       {b.error && <p className="builds-error">{b.error}</p>}
-      <div className="builds-row"><button onClick={() => { setText('读取日志…'); setLog(b) }}>查看日志</button>{['queued', 'running'].includes(b.status) ? <button disabled={busy} onClick={() => void act({ action: 'cancel', id: b.id })}>取消</button> : <button disabled={busy} onClick={() => void act({ action: 'retry', id: b.id })}>重新构建</button>}</div>
-      {data.mode === 'real' && b.target === 'ios-adhoc' && b.status === 'success' && <div className="builds-row"><button disabled={busy} onClick={() => void install(b.id)}>在 iPhone / iPad 上安装</button><small>仅限描述文件内已注册的设备，安装链接有效期 24 小时</small></div>}
-      {b.artifacts.map((a) => <a className="builds-artifact" key={a.name} href={`${base}/${b.id}/artifacts/${encodeURIComponent(a.name)}`} download title={`SHA-256: ${a.sha256}`}>{a.name} · {(a.size / 1024 / 1024).toFixed(1)} MB ↓</a>)}
+      <div className="builds-row"><Button variant="outlined" size="xs" icon={Description} onClick={() => { setText('读取日志…'); setLog(b) }}>查看日志</Button>{['queued', 'running'].includes(b.status) ? <Button variant="text" size="xs" disabled={busy} onClick={() => void act({ action: 'cancel', id: b.id })}>取消</Button> : <Button variant="tonal" size="xs" icon={Refresh} disabled={busy} onClick={() => void act({ action: 'retry', id: b.id })}>重新构建</Button>}</div>
+      {data.mode === 'real' && b.target === 'ios-adhoc' && b.status === 'success' && <div className="builds-row"><Button size="xs" disabled={busy} onClick={() => void install(b.id)}>在 iPhone / iPad 上安装</Button><small>仅限描述文件内已注册的设备，安装链接有效期 24 小时</small></div>}
+      {b.artifacts.map((a) => <a className="builds-artifact" key={a.name} href={`${base}/${b.id}/artifacts/${encodeURIComponent(a.name)}`} download title={`SHA-256: ${a.sha256}`}><Download size={20} /><span>{a.name} · {(a.size / 1024 / 1024).toFixed(1)} MB</span></a>)}
     </article>)}
-    {log && <section className="builds-log" aria-label="构建日志"><header><strong>{targetLabels[log.target]} · {log.commit.slice(0, 7)}</strong><a href={`${base}/${log.id}/log?download=1`} download>下载完整日志</a><button onClick={() => setLog(undefined)}>关闭日志</button></header><pre>{text}</pre></section>}
+    {log && <section className="builds-log" aria-label="构建日志"><header><IconButton icon={Close} label="关闭日志" onClick={() => setLog(undefined)} /><strong>{targetLabels[log.target]} · {log.commit.slice(0, 7)}</strong><a href={`${base}/${log.id}/log?download=1`} download><Download size={20} />下载完整日志</a></header><pre>{text}</pre></section>}
   </section>
 }

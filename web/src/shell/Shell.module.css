@@ -1,6 +1,5 @@
-/* 安全区域涂成纯黑，中间是一块圆角的屏幕，app 只在屏幕里显示。
-   除了安全区域和控制栏，屏幕不再留边。控制栏在安全区域以内。
-   固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
+/* M3 的窗口结构：外框是 surface-container，导航栏（控制栏）在外框上，中间是一块圆角的屏幕，app 只在屏幕里显示。
+   控制栏在安全区域以内。固定定位、盖住页面顶边，iOS 装成 app 时顶部才不会变成毛玻璃，见 status-bar.ts */
 .shell {
   position: fixed;
   inset: 0 0 auto;
@@ -10,7 +9,7 @@
   padding: calc(max(env(safe-area-inset-top), env(titlebar-area-height, 0px)) + var(--status-bar-tint, 0px)) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
   overflow: hidden;
-  background: var(--color-chrome);
+  background: var(--md-sys-color-surface-container);
 }
 
 .shell[data-bar='left'],
@@ -37,7 +36,22 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--radius-window);
-  background: var(--color-bg);
-  color: var(--color-text);
+  border-radius: var(--binos-window-shape);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+}
+
+/* 有指针的设备上屏幕和外框之间留一圈，没有控制栏的一侧也留 */
+@media (pointer: fine) {
+  .screen {
+    margin: var(--binos-window-spacer) var(--binos-window-spacer) 0;
+  }
+
+  .shell[data-bar='left'] .screen {
+    margin: var(--binos-window-spacer) var(--binos-window-spacer) var(--binos-window-spacer) 0;
+  }
+
+  .shell[data-bar='right'] .screen {
+    margin: var(--binos-window-spacer) 0 var(--binos-window-spacer) var(--binos-window-spacer);
+  }
 }

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { ProviderInfo } from '@binos/server/apps/music/types'
 import { configureProvider } from './api.ts'
 import { refreshProviders } from './providers.ts'
+import { Button } from '../../ui/Button.tsx'
+import textField from '../../ui/TextField.module.css'
 import styles from './music.module.css'
 
 export function ProviderSettings({ provider }: { provider: ProviderInfo }) {
@@ -17,14 +19,14 @@ export function ProviderSettings({ provider }: { provider: ProviderInfo }) {
     finally { setSaving(false) }
   }
   return <section className={styles.settings} aria-label="音乐来源设置">
-    <strong>{provider.name}</strong><p>{provider.description}</p>
+    <h2>{provider.name}</h2><p>{provider.description}</p>
     {provider.configuration.fields.map(field => <form key={field.id} onSubmit={event => { event.preventDefault(); void save({ [field.id]: values[field.id]?.trim() ?? '' }) }}>
       <label htmlFor={`music-config-${field.id}`}>{field.label}{field.configured ? ' · 已配置' : ''}</label>
       <p>{field.description}</p>
       <div className={styles.keyForm}>
-        <input id={`music-config-${field.id}`} type={field.secret ? 'password' : 'text'} autoComplete="off" value={values[field.id] ?? ''} placeholder={field.configured ? '输入新值以替换' : field.label} onChange={event => setValues({ ...values, [field.id]: event.target.value })} />
-        <button className={styles.primary} disabled={saving || !values[field.id]?.trim()}>保存</button>
-        {field.configured && <button type="button" disabled={saving} onClick={() => void save({ [field.id]: '' })}>移除</button>}
+        <input className={`${textField.outlined} ${textField.dense}`} id={`music-config-${field.id}`} type={field.secret ? 'password' : 'text'} autoComplete="off" value={values[field.id] ?? ''} placeholder={field.configured ? '输入新值以替换' : field.label} onChange={event => setValues({ ...values, [field.id]: event.target.value })} />
+        <Button type="submit" disabled={saving || !values[field.id]?.trim()}>保存</Button>
+        {field.configured && <Button variant="text" disabled={saving} onClick={() => void save({ [field.id]: '' })}>移除</Button>}
       </div>
       <div className={styles.settingsLinks}>{field.links?.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}</div>
     </form>)}

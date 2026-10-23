@@ -47,8 +47,8 @@ export function Usage({ session }: { session: SessionSummary }) {
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
-          <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
-            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
+          <svg viewBox="0 0 20 20" width={20} height={20} aria-hidden>
+            <circle className={styles.track} cx="10" cy="10" r="8" fill="none" strokeWidth="2.5" />
             <circle
               cx="10"
               cy="10"
@@ -59,6 +59,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={circumference * (1 - ratio)}
+              opacity={ratio > 0 ? 1 : 0}
             />
           </svg>
         </button>
@@ -76,8 +77,9 @@ export function Usage({ session }: { session: SessionSummary }) {
         )}
       </div>
       {context && (
-        <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
+        <div className={styles.bar} data-level={level} style={{ ['--value' as string]: ratio }}>
+          <span />
+          <span />
         </div>
       )}
       <div className={styles.line}>

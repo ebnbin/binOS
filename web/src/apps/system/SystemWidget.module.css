@@ -3,48 +3,63 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  color: var(--md-sys-color-on-surface);
   text-align: left;
 }
 
 .time {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
+  font: var(--md-sys-typescale-display-medium);
+  letter-spacing: var(--md-sys-typescale-display-medium-tracking);
   font-variant-numeric: tabular-nums;
 }
 
 .widget[data-size='2x2'] .time {
-  font-size: var(--font-size-3xl);
+  font: var(--md-sys-typescale-display-small);
+  letter-spacing: var(--md-sys-typescale-display-small-tracking);
 }
 
 .date {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  margin-top: var(--space-1);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.widget[data-size='2x2'] .date {
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.metrics {
+  margin-top: var(--space-3);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   margin-top: auto;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-danger);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-error);
 }
 
 .dot[data-connected='true'] {
-  background: var(--color-success);
+  background: var(--md-sys-color-success);
 }
 
 .version {
-  font-family: var(--font-mono);
+  margin-left: auto;
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
 }
-
-.metrics { margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-size-xs); }

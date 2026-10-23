@@ -1,24 +1,129 @@
 .button {
-  display: grid;
+  --container: transparent;
+  --content: var(--md-sys-color-on-surface-variant);
+  position: relative;
+  display: inline-grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
   flex: none;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
-  transition: background-color var(--duration-fast);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: var(--container);
+  color: var(--content);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects),
+    color var(--md-sys-motion-spring-fast-effects);
+}
+
+.button[data-size='s'][data-width='narrow'] { width: 32px; }
+.button[data-size='s'][data-width='wide'] { width: 52px; }
+
+.button[data-size='xs'] {
+  width: 32px;
+  height: 32px;
+}
+
+.button[data-size='xs'][data-width='narrow'] { width: 28px; }
+.button[data-size='xs'][data-width='wide'] { width: 40px; }
+
+.button[data-size='m'] {
+  width: 56px;
+  height: 56px;
+}
+
+.button[data-size='m'][data-width='narrow'] { width: 48px; }
+.button[data-size='m'][data-width='wide'] { width: 72px; }
+
+/* 触屏上不足 48 的按钮把可点的范围扩到 48 */
+@media (pointer: coarse) {
+  .button[data-size='xs']::before,
+  .button[data-size='s']::before {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max(100%, var(--md-sys-size-target));
+    height: var(--md-sys-size-target);
+    transform: translate(-50%, -50%);
+  }
+}
+
+.button[data-variant='standard'][aria-pressed='true'] {
+  --content: var(--md-sys-color-primary);
+}
+
+.button[data-variant='filled'] {
+  --container: var(--md-sys-color-primary);
+  --content: var(--md-sys-color-on-primary);
+}
+
+.button[data-variant='filled'][aria-pressed='false'] {
+  --container: var(--md-sys-color-surface-container);
+  --content: var(--md-sys-color-on-surface-variant);
+}
+
+.button[data-variant='tonal'] {
+  --container: var(--md-sys-color-secondary-container);
+  --content: var(--md-sys-color-on-secondary-container);
+}
+
+.button[data-variant='tonal'][aria-pressed='true'] {
+  --container: var(--md-sys-color-secondary);
+  --content: var(--md-sys-color-on-secondary);
+}
+
+.button[data-variant='outlined'] {
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+}
+
+.button[data-variant='outlined'][aria-pressed='true'] {
+  --container: var(--md-sys-color-inverse-surface);
+  --content: var(--md-sys-color-inverse-on-surface);
+  box-shadow: none;
+}
+
+/* 开关按钮选中时由圆变方 */
+.button[aria-pressed='true']:not([data-variant='standard']) {
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+.button[data-size='m'][aria-pressed='true']:not([data-variant='standard']) {
+  border-radius: var(--md-sys-shape-corner-large);
 }
 
 @media (hover: hover) {
   .button:hover:not(:disabled) {
-    background: var(--color-hover);
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
   }
 }
 
+.button:focus-visible {
+  background-image: linear-gradient(var(--md-sys-state-focus) 0 0);
+}
+
 .button:active:not(:disabled) {
-  background: var(--color-hover);
+  border-radius: var(--md-sys-shape-corner-small);
+}
+
+.button[data-size='m']:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .button:disabled {
-  opacity: var(--opacity-disabled);
+  --content: var(--md-sys-state-disabled-content);
+  cursor: default;
+}
+
+.button:disabled:is([data-variant='filled'], [data-variant='tonal']) {
+  --container: var(--md-sys-state-disabled-container);
+}
+
+.button[data-variant='outlined']:disabled {
+  box-shadow: inset 0 0 0 1px var(--md-sys-state-disabled-container);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
 }

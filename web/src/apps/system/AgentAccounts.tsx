@@ -1,6 +1,5 @@
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
-import { ChevronLeft, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { agentAccounts } from '../../services/kita/api.ts'
@@ -8,8 +7,10 @@ import { useMinuteNow } from '../../services/kita/quota.ts'
 import { QuotaWindows } from '../../services/kita/QuotaWindows.tsx'
 import { useAgentStatus } from '../../services/kita/status.ts'
 import { agentView } from '../../services/kita/views.ts'
+import { Button } from '../../ui/Button.tsx'
+import { ArrowBack, CheckCircle, ErrorIcon, Refresh } from '../../ui/icons.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
-import { Spinner } from '../../ui/Spinner.tsx'
+import { CircularProgress } from '../../ui/Progress.tsx'
 import { formatMoment } from '../../ui/time.ts'
 import styles from './AgentAccounts.module.css'
 
@@ -38,18 +39,22 @@ export function AgentAccounts({ back }: { back: () => void }) {
   return (
     <div className={styles.page}>
       <header className={styles.bar}>
-        <IconButton icon={ChevronLeft} label="返回" onClick={back} />
+        <IconButton icon={ArrowBack} label="返回" onClick={back} />
         <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <IconButton icon={Refresh} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
       </header>
       {accounts === undefined ? (
         <div className={styles.loading}>
-          <Spinner />
+          <CircularProgress />
         </div>
       ) : accounts === null ? (
         <p className={styles.failed}>没能读取 agent 的信息</p>
       ) : (
-        accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
+        <div className={styles.accounts}>
+          {accounts.map((account) => (
+            <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />
+          ))}
+        </div>
       )}
     </div>
   )
@@ -64,6 +69,7 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
       <header className={styles.header}>
         <h2>{agents[account.agent].name}</h2>
         <span className={styles.status} data-ok={account.loggedIn}>
+          {account.loggedIn ? <CheckCircle size={18} filled /> : <ErrorIcon size={18} filled />}
           {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
         </span>
         {account.version && <span className={styles.version}>{account.version}</span>}
@@ -119,9 +125,9 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
         actions.length > 0 && (
           <div className={styles.loginActions}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <Button key={action.fix} variant="tonal" onClick={() => setFix(action.fix)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
           </div>
         )

@@ -1,5 +1,6 @@
 import type { Limits } from '@binos/server/services/kita/types'
 import { blockingWindow, formatReset, formatSpan, windowsOf, windowState } from './quota.ts'
+import { ErrorIcon } from '../../ui/icons.tsx'
 import styles from './Quota.module.css'
 
 // 一个 agent 的订阅额度详情：每个窗口用了多少、多久重置，进度条上的竖线是匀速用到现在该到的位置，
@@ -10,6 +11,7 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
     <div className={styles.windows}>
       {limits.limited && (
         <p className={styles.limited}>
+          <ErrorIcon size={20} />
           {blocking
             ? `已被限流：${blocking.name}额度用满了，${formatReset(blocking.window.resetsAt, now).replace('重置', '恢复')}`
             : '已被限流'}
@@ -27,8 +29,9 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
               <span>{Math.round(used * 100)}%</span>
               <span className={styles.muted}>{formatReset(window.resetsAt, now)}</span>
             </div>
-            <div className={styles.bar} data-full={used >= 0.95 || undefined}>
-              <span style={{ width: `${used * 100}%` }} />
+            <div className={styles.bar} data-full={used >= 0.95 || undefined} style={{ ['--value' as string]: Math.min(used, 1) }}>
+              <span />
+              <span />
               {left !== undefined && <i style={{ left: `${expected * 100}%` }} title="匀速用到现在该到的位置" />}
             </div>
             {left !== undefined && (

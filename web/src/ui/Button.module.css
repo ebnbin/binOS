@@ -1,0 +1,108 @@
+.button {
+  --container: transparent;
+  --content: var(--md-sys-color-primary);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex: none;
+  height: 40px;
+  min-width: 48px;
+  padding: 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: var(--container);
+  color: var(--content);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects),
+    box-shadow var(--md-sys-motion-spring-fast-effects);
+}
+
+.button[data-size='xs'] {
+  gap: var(--space-1);
+  height: 32px;
+  padding: 0 var(--space-3);
+}
+
+.button[data-size='m'] {
+  height: 56px;
+  padding: 0 var(--space-6);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.button[data-variant='filled'] {
+  --container: var(--md-sys-color-primary);
+  --content: var(--md-sys-color-on-primary);
+}
+
+.button[data-variant='tonal'] {
+  --container: var(--md-sys-color-secondary-container);
+  --content: var(--md-sys-color-on-secondary-container);
+}
+
+.button[data-variant='outlined'] {
+  --content: var(--md-sys-color-on-surface-variant);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+}
+
+.button[data-variant='text'] {
+  padding: 0 var(--space-3);
+}
+
+.button[data-variant='elevated'] {
+  --container: var(--md-sys-color-surface-container-low);
+  box-shadow: var(--md-sys-elevation-level1);
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+
+  .button[data-variant='filled']:hover:not(:disabled),
+  .button[data-variant='tonal']:hover:not(:disabled) {
+    box-shadow: var(--md-sys-elevation-level1);
+  }
+
+  .button[data-variant='elevated']:hover:not(:disabled) {
+    box-shadow: var(--md-sys-elevation-level2);
+  }
+}
+
+.button:focus-visible {
+  background-image: linear-gradient(var(--md-sys-state-focus) 0 0);
+}
+
+.button:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-corner-small);
+}
+
+.button[data-size='m']:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+
+.button:disabled {
+  --content: var(--md-sys-state-disabled-content);
+  cursor: default;
+  box-shadow: none;
+}
+
+.button:disabled:not([data-variant='text'], [data-variant='outlined']) {
+  --container: var(--md-sys-state-disabled-container);
+}
+
+.button[data-variant='outlined']:disabled {
+  box-shadow: inset 0 0 0 1px var(--md-sys-state-disabled-container);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

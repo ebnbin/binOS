@@ -1,93 +1,156 @@
+/* 上下文圆环：标准图标按钮里一个 M3 的确定进度圆环，快满时换成 warning、error */
 .ring {
+  position: relative;
   display: grid;
   place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
+  flex: none;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
+  border-radius: var(--md-sys-shape-corner-full);
   background: none;
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-primary);
   cursor: pointer;
+  transition: border-radius var(--md-sys-motion-spring-fast-spatial);
 }
 
 .ring svg {
   transform: rotate(-90deg);
 }
 
+.track {
+  stroke: var(--md-sys-color-secondary-container);
+}
+
 @media (hover: hover) {
   .ring:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
 }
 
+.ring:active {
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-state-pressed);
+}
+
+.ring[aria-expanded='true'] {
+  background: var(--md-sys-color-secondary-container);
+}
+
+.ring[aria-expanded='true'] .track {
+  stroke: var(--md-sys-color-surface-container-highest);
+}
+
 .ring[data-level='warning'] {
-  color: var(--color-accent);
+  color: var(--md-sys-color-warning);
 }
 
 .ring[data-level='danger'] {
-  color: var(--color-danger);
+  color: var(--md-sys-color-error);
 }
 
+@media (pointer: coarse) {
+  .ring::before {
+    content: '';
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: var(--md-sys-size-target);
+    height: var(--md-sys-size-target);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* 用量面板：M3 富提示的样式，小标题 title-small，正文 body-medium */
 .panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  width: 300px;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
+  width: 320px;
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   font-variant-numeric: tabular-nums;
   cursor: default;
 }
 
 .line {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-3);
+  color: var(--md-sys-color-on-surface);
+}
+
+.line + .line,
+.parts + .line,
+.bar + .line {
+  margin-top: var(--space-1);
 }
 
 .label {
-  font-weight: var(--font-weight-medium);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
+/* M3 的线性进度：进度段和轨道之间留 4 的缝，轨道末端一个停止点 */
 .bar {
-  height: 6px;
-  margin-top: calc(-1 * var(--space-0-5));
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  overflow: hidden;
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  height: 4px;
+  --active: var(--md-sys-color-primary);
 }
 
 .bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-text-secondary);
+  border-radius: var(--md-sys-shape-corner-full);
 }
 
-.bar[data-level='warning'] span {
-  background: var(--color-accent);
+.bar span:first-child {
+  flex: none;
+  width: calc(var(--value) * (100% - var(--space-1)));
+  background: var(--active);
 }
 
-.bar[data-level='danger'] span {
-  background: var(--color-danger);
+.bar span:last-child {
+  flex: 1;
+  background: var(--md-sys-color-secondary-container);
+}
+
+.bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--active);
+}
+
+.bar[data-level='warning'] {
+  --active: var(--md-sys-color-warning);
+}
+
+.bar[data-level='danger'] {
+  --active: var(--md-sys-color-error);
 }
 
 .parts {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-0-5) var(--space-3);
-  margin-top: calc(-1 * var(--space-1));
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }
 
 .note {
-  margin: 0;
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  margin: var(--space-1) 0 0;
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }

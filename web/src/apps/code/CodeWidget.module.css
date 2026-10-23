@@ -10,25 +10,22 @@
   align-items: center;
   gap: var(--space-2);
   flex: none;
+  min-height: 32px;
 }
 
 .name {
-  font-weight: var(--font-weight-semibold);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
 }
 
 .running {
-  color: var(--color-accent);
-  font-size: var(--font-size-xs);
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
 }
 
 .new {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1-5)) calc(-1 * var(--space-1)) auto;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) calc(-1 * var(--space-1)) auto;
 }
 
 .summary {
@@ -39,52 +36,63 @@
 }
 
 .count {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
+  font: var(--md-sys-typescale-display-small);
+  letter-spacing: var(--md-sys-typescale-display-small-tracking);
+  font-variant-numeric: tabular-nums;
 }
 
 .muted {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 .list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
   min-height: 0;
-  margin: var(--space-1-5) calc(-1 * var(--space-2)) 0;
+  margin: var(--space-2) calc(-1 * var(--space-2)) 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
 }
 
+/* 一行的列表项，胶囊形的状态层 */
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   width: 100%;
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface);
   text-align: left;
-  font-size: var(--font-size-sm);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 @media (hover: hover) {
-  .new:hover,
   .row:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
+}
+
+.row:active {
+  background: var(--md-sys-state-pressed);
 }
 
 .dot {
   flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-border);
+  width: 8px;
+  height: 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-outline-variant);
 }
 
 .dot[data-running='true'] {
-  background: var(--color-accent);
+  background: var(--md-sys-color-primary);
 }
 
 .title {
@@ -97,14 +105,16 @@
 
 .time {
   flex: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-small);
+  letter-spacing: var(--md-sys-typescale-label-small-tracking);
   font-variant-numeric: tabular-nums;
 }
 
 .empty {
   margin: auto 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
   text-align: center;
 }

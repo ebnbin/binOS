@@ -1,34 +1,29 @@
+/* M3 的横幅：warning 或 error 的容器色，前面图标、中间说明、后面文字按钮样式的操作 */
 .banner {
   margin: 0 var(--space-3) var(--space-3);
 }
 
 .row {
+  --container: var(--md-sys-color-warning-container);
+  --content: var(--md-sys-color-on-warning-container);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
+  min-height: 48px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-large);
+  background-color: var(--container);
+  color: var(--content);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   text-align: left;
   cursor: pointer;
 }
 
-.row > svg {
-  flex: none;
-  color: var(--color-accent);
-}
-
 .banner[data-tone='bad'] .row {
-  background: var(--color-danger-subtle);
-}
-
-.banner[data-tone='bad'] .row > svg {
-  color: var(--color-danger);
+  --container: var(--md-sys-color-error-container);
+  --content: var(--md-sys-color-on-error-container);
 }
 
 .row > span:first-of-type {
@@ -38,5 +33,22 @@
 
 .action {
   flex: none;
-  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  transition: background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+@media (hover: hover) {
+  .row:hover .action {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.row:active .action {
+  background: var(--md-sys-state-pressed);
 }

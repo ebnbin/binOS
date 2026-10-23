@@ -1,279 +1,570 @@
 .app {
   container: files / inline-size;
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
-  position: relative;
-  font-size: var(--font-size-sm);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
+
+/* 侧栏是 M3 Expressive 导航抽屉的样式：48 高的胶囊项，选中的是 secondary-container */
 .sidebar {
-  width: 170px;
-  flex-shrink: 0;
-  padding: var(--space-5) var(--space-3);
-  background: var(--color-bg-subtle);
-  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  flex: none;
+  width: 220px;
+  padding: var(--space-3);
   overflow: auto;
+  background: var(--md-sys-color-surface-container-low);
 }
+
 .caption {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-4) var(--space-3) var(--space-2);
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
+
+.caption:not(:first-child) {
+  margin-top: var(--space-2);
+}
+
 .sidebar button {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-3);
+  flex: none;
   width: 100%;
-  border-radius: var(--radius-item);
+  height: 48px;
+  padding: 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
   text-align: left;
+  white-space: nowrap;
+  transition: background-color var(--md-sys-motion-spring-fast-effects);
 }
-.sidebar button:hover,
-.entry:hover {
-  background: var(--color-hover);
+
+.sidebar button svg {
+  flex: none;
 }
+
 .sidebar .active {
-  background: var(--color-fill);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
+
+@media (hover: hover) {
+  .sidebar button:hover:not(:disabled) {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+}
+
+.sidebar button:active:not(:disabled) {
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+.sidebar button:disabled {
+  color: var(--md-sys-state-disabled-content);
+}
+
 .main {
-  flex: 1;
-  min-width: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
+
+/* M3 小型顶部应用栏：导航按钮、面包屑和操作按钮 */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-1);
+  flex: none;
+  height: 64px;
+  padding: 0 var(--space-2);
 }
-.toolbar button {
+
+.breadcrumb {
   display: flex;
-  padding: var(--space-1-5);
-  border-radius: var(--radius-control);
-}
-.app button:disabled,
-.dialog button:disabled {
-  opacity: var(--opacity-disabled);
-}
-.app input,
-.dialog input {
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  font: inherit;
-  padding: var(--space-1-5) var(--space-2);
+  align-items: center;
+  flex: 1;
   min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.crumb {
+  display: flex;
+  align-items: center;
+  flex: none;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.crumb button {
+  height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+  white-space: nowrap;
+}
+
+.crumb button[aria-current='page'] {
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-large);
+  letter-spacing: var(--md-sys-typescale-title-large-tracking);
+}
+
+@media (hover: hover) {
+  .crumb button:hover:not(:disabled) {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.crumb button:active:not(:disabled) {
+  background: var(--md-sys-state-pressed);
+}
+
+.editPath {
+  margin-left: var(--space-1);
+}
+
 .path {
   flex: 1;
   min-width: 0;
 }
+
 .path input {
   width: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  height: 48px;
+  padding: 0 var(--space-4);
+  border: 0;
+  outline: none;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-high);
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-code-medium);
+  letter-spacing: 0;
 }
+
 .controls {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: 0 var(--space-4) var(--space-2);
 }
-.controls label {
+
+/* M3 搜索栏 */
+.search {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
-  white-space: nowrap;
-}
-.search {
+  gap: var(--space-3);
   flex: 1;
-  min-width: 120px;
+  min-width: 160px;
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: box-shadow var(--md-sys-motion-spring-fast-effects);
 }
+
+.search:focus-within {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
 .search input {
+  flex: 1;
   width: 100%;
+  min-width: 0;
   border: 0;
+  outline: none;
   background: transparent;
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
+
+.search input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1-5);
-  padding: 0 var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-4) var(--space-3);
+  box-shadow: inset 0 -1px 0 var(--md-sys-color-outline-variant);
 }
-.actions button,
+
+/* 下载是链接，样式和旁边的外框按钮一致 */
 .actions a {
-  display: flex;
-  gap: var(--space-1);
+  display: inline-flex;
   align-items: center;
-  border: 1px solid var(--color-border);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-control);
-  color: var(--color-text);
+  gap: var(--space-1);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
   text-decoration: none;
-  font-size: var(--font-size-xs);
 }
+
+@media (hover: hover) {
+  .actions a:hover {
+    background: var(--md-sys-state-hover);
+  }
+}
+
 .content {
   flex: 1;
-  overflow: auto;
   min-height: 0;
+  overflow: auto;
+  padding-bottom: 88px;
 }
+
+/* M3 列表：56 高，24 的前置图标，名称 body-large，修改时间和大小 label-medium */
+.list {
+  padding: 0 var(--space-2);
+}
+
 .columns,
 .entry {
   display: grid;
-  grid-template-columns: minmax(150px, 1fr) 150px 80px;
-  gap: var(--space-3);
+  grid-template-columns: minmax(150px, 1fr) 160px 88px;
+  gap: var(--space-4);
   align-items: center;
   width: 100%;
-  padding: var(--space-2) var(--space-5);
+  padding: 0 var(--space-4);
   text-align: left;
 }
+
 .columns {
   position: sticky;
   top: 0;
-  background: var(--color-surface);
-  color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--font-size-2xs);
+  z-index: 1;
+  height: 40px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
 }
+
+.entry {
+  min-height: 56px;
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--md-sys-color-on-surface);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+@media (hover: hover) {
+  .entry:hover:not(:disabled) {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+}
+
+.entry:active:not(:disabled) {
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+.entry.selected {
+  border-radius: var(--md-sys-shape-corner-large);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
 .name {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-4);
   min-width: 0;
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
+
 .name span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .name svg {
-  flex-shrink: 0;
+  flex: none;
 }
+
 .folder {
-  color: var(--color-info);
-  fill: color-mix(in srgb, var(--color-info) 18%, transparent);
+  color: var(--md-sys-color-primary);
 }
+
+.file,
+.chevron {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.chevron {
+  margin-left: auto;
+}
+
 .meta {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
+  font-variant-numeric: tabular-nums;
 }
-.entry.selected {
-  background: color-mix(in srgb, var(--color-info) 18%, var(--color-surface));
+
+.selected .meta,
+.selected .file,
+.selected .chevron {
+  color: var(--md-sys-color-on-secondary-container);
 }
+
+/* 图标视图 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  padding: var(--space-5);
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
 }
+
 .grid .entry {
   display: flex;
-  padding: var(--space-3) var(--space-1-5);
   justify-content: center;
-  border-radius: var(--radius-item);
+  padding: var(--space-4) var(--space-2) var(--space-3);
+  border-radius: var(--md-sys-shape-corner-large);
 }
+
+.grid .entry.selected {
+  border-radius: var(--md-sys-shape-corner-extra-large);
+}
+
 .grid .name {
   flex-direction: column;
+  gap: var(--space-2);
   width: 100%;
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+  text-align: center;
 }
+
 .grid .name span {
   max-width: 100%;
 }
+
 .empty {
-  color: var(--color-text-tertiary);
-  padding: var(--space-10);
+  margin: 0;
+  padding: var(--space-12) var(--space-6);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
   text-align: center;
 }
-.status {
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-  display: flex;
-  gap: var(--space-5);
+
+/* M3 扩展 FAB：56 高、16 圆角、primary-container、level3 */
+.fab {
+  position: absolute;
+  right: var(--space-4);
+  bottom: 52px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 56px;
+  padding: 0 var(--space-5) 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-large);
+  background-color: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  box-shadow: var(--md-sys-elevation-level3);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    box-shadow var(--md-sys-motion-spring-fast-effects);
 }
+
+@media (hover: hover) {
+  .fab:hover:not(:disabled) {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+    box-shadow: var(--md-sys-elevation-level4);
+  }
+}
+
+.fab:active:not(:disabled) {
+  border-radius: var(--md-sys-shape-corner-medium);
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+.fab:disabled {
+  background-color: var(--md-sys-state-disabled-container);
+  color: var(--md-sys-state-disabled-content);
+  box-shadow: none;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex: none;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
 .status span {
   margin-left: auto;
   overflow: hidden;
-  white-space: nowrap;
+  font: var(--md-sys-typescale-code-small);
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .error {
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
+  margin: var(--space-2) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
   overflow-wrap: anywhere;
 }
+
+/* M3 对话框 */
 .modal {
-  width: min(388px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
+  width: min(400px, calc(100vw - 48px));
+  max-height: calc(100dvh - 48px);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-overlay);
-  color: var(--color-text);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  font: inherit;
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
 }
 
 .modal::backdrop {
-  background: var(--color-scrim);
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
 }
 
 .dialog {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
   width: 100%;
+  padding: var(--space-6) var(--space-6) var(--space-5);
 }
+
+.dialog h2 {
+  margin: 0;
+  font: var(--md-sys-typescale-headline-small);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+}
+
 .dialog p {
   margin: 0;
-  color: var(--color-text-secondary);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
+
+/* 对话框里的外框文本框 */
+.dialog input {
+  height: 56px;
+  min-width: 0;
+  padding: 0 var(--space-4);
+  border: 0;
+  outline: none;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+
+.dialog input:focus {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
 .dialog > div {
   display: flex;
-  gap: var(--space-4);
   justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
-.dialog button {
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-}
+
 @container files (width < 650px) {
   .sidebar {
-    width: 120px;
-    padding: var(--space-2) var(--space-1);
+    width: 160px;
+    padding: var(--space-2);
   }
+
+  .sidebar button {
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
+  }
+
+  .caption {
+    padding: 0 var(--space-3);
+  }
+
   .columns,
   .entry {
-    grid-template-columns: minmax(100px, 1fr) 65px;
-    padding: var(--space-2) var(--space-3);
+    grid-template-columns: minmax(100px, 1fr) 72px;
+    gap: var(--space-3);
+    padding: 0 var(--space-3);
   }
+
   .columns > span:nth-child(2),
   .entry > .meta:nth-child(2) {
     display: none;
   }
-  .controls {
-    gap: var(--space-1-5);
-  }
+
   .status span {
     display: none;
   }
+
+  .actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
 }
-@container files (width < 400px) {
+
+@container files (width < 440px) {
   .sidebar {
     display: none;
+  }
+
+  .toolbar {
+    padding: 0 var(--space-1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar button,
+  .entry,
+  .fab,
+  .search {
+    transition: none;
   }
 }

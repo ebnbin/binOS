@@ -1,21 +1,393 @@
-.builds-page { padding: var(--space-5); height: 100%; overflow: auto; color: var(--color-text); }
-.builds-page header, .builds-row, .builds-page nav, .builds-page form { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
-.builds-page header { justify-content: space-between; }
-.builds-page h1 { margin: 0; font-size: var(--font-size-2xl); }
-.builds-page p, .builds-page small { color: var(--color-text-tertiary); }
-.builds-page button, .builds-page input:not([type=checkbox]), .builds-page select { border: 1px solid var(--color-border); border-radius: var(--radius-control); padding: var(--space-2) var(--space-3); background: var(--color-surface); color: var(--color-text); }
-.builds-page button { cursor: pointer; }
-.builds-page button:disabled { opacity: var(--opacity-disabled); cursor: default; }
-.builds-page button[aria-pressed=true] { background: var(--color-primary); color: var(--color-on-primary); }
-.builds-page form, .builds-settings { padding: var(--space-4) 0; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-4); }
-.builds-page form label { display: flex; flex-direction: column; gap: var(--space-1-5); flex: 1; min-width: 160px; }
-.builds-settings { display: flex; flex-direction: column; gap: var(--space-2); }
-.builds-page article { padding: var(--space-4); margin: var(--space-3) 0; border: 1px solid var(--color-border); border-radius: var(--radius-card); }
-.builds-row { margin: var(--space-2) 0; }
-.builds-page .builds-error { color: var(--color-danger); white-space: pre-wrap; overflow-wrap: anywhere; }
-.builds-notice { padding: var(--space-3); background: color-mix(in srgb, var(--color-accent) 10%, transparent); border-radius: var(--radius-card); }
-.builds-artifact { display: block; padding: var(--space-3) 0; overflow-wrap: anywhere; text-decoration: underline; }
-.builds-log { position: absolute; inset: 0; background: var(--color-surface); z-index: 5; display: flex; flex-direction: column; padding: var(--space-4); }
-.builds-log pre { overflow: auto; flex: 1; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--font-size-xs); }
+.builds-page {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: var(--space-4) var(--space-6) var(--space-6);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
 
-.builds-settings input[type=checkbox] { appearance: auto; width: 16px; height: 16px; margin-right: var(--space-2); vertical-align: middle; }
+.builds-page > header,
+.builds-row,
+.builds-page nav,
+.builds-page form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.builds-page > header {
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.builds-page h1 {
+  margin: 0;
+  font: var(--md-sys-typescale-headline-small);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
+}
+
+.builds-page p,
+.builds-page small {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.builds-page small {
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+.builds-page .builds-error {
+  margin: var(--space-2) 0;
+  color: var(--md-sys-color-error);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.builds-page > .builds-error {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.builds-page .builds-notice {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-info-container);
+  color: var(--md-sys-color-on-info-container);
+}
+
+/* 自动构建的开关：分段列表里的两行，复选框用 primary */
+.builds-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  margin-bottom: var(--space-4);
+}
+
+.builds-settings label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-surface-container);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  cursor: pointer;
+}
+
+.builds-settings label:first-child {
+  border-top-left-radius: var(--md-sys-shape-corner-large);
+  border-top-right-radius: var(--md-sys-shape-corner-large);
+}
+
+.builds-settings label:nth-last-child(2):has(+ small),
+.builds-settings label:last-child {
+  border-bottom-left-radius: var(--md-sys-shape-corner-large);
+  border-bottom-right-radius: var(--md-sys-shape-corner-large);
+}
+
+.builds-settings input[type='checkbox'] {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  appearance: auto;
+  accent-color: var(--md-sys-color-primary);
+}
+
+.builds-settings small {
+  padding: var(--space-1) var(--space-4) 0;
+}
+
+/* 手动构建：外框文本框和下拉，标签固定浮在边框上 */
+.builds-page form {
+  align-items: flex-end;
+  margin: var(--space-6) 0 var(--space-4);
+}
+
+.builds-field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 180px;
+}
+
+.builds-field > span {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: var(--space-3);
+  padding: 0 var(--space-1);
+  transform: translateY(-50%);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+  pointer-events: none;
+}
+
+.builds-field:focus-within > span {
+  color: var(--md-sys-color-primary);
+}
+
+.builds-field > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.builds-field input {
+  height: 40px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.builds-field input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (hover: hover) {
+  .builds-field input:hover:not(:focus) {
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-on-surface);
+  }
+}
+
+.builds-field input:focus {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
+/* 筛选是 M3 的过滤芯片：选中时 secondary-container、带对勾 */
+.builds-page nav {
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.builds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+.builds-chip[aria-pressed='true'] {
+  padding-left: var(--space-2);
+  border-radius: var(--md-sys-shape-corner-full);
+  box-shadow: none;
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+@media (hover: hover) {
+  .builds-chip:hover {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+}
+
+.builds-chip:active {
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+.builds-empty {
+  padding: var(--space-8) var(--space-4);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  text-align: center;
+}
+
+/* 每次构建是一张填充卡片 */
+.builds-page article {
+  margin: var(--space-2) 0;
+  padding: var(--space-4);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+}
+
+.builds-row {
+  margin: var(--space-2) 0;
+}
+
+.builds-row:first-child {
+  margin-top: 0;
+}
+
+.builds-row strong {
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.builds-row code {
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
+}
+
+.builds-row > span:not(.builds-status) {
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+}
+
+/* 状态是辅助芯片的样式，按结果取状态色 */
+.builds-status {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--space-2);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
+}
+
+.builds-status[data-status='success'] {
+  box-shadow: none;
+  background: var(--md-sys-color-success-container);
+  color: var(--md-sys-color-on-success-container);
+}
+
+.builds-status[data-status='running'],
+.builds-status[data-status='queued'] {
+  box-shadow: none;
+  background: var(--md-sys-color-info-container);
+  color: var(--md-sys-color-on-info-container);
+}
+
+.builds-status[data-status='failed'] {
+  box-shadow: none;
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.builds-status[data-status='interrupted'] {
+  box-shadow: none;
+  background: var(--md-sys-color-warning-container);
+  color: var(--md-sys-color-on-warning-container);
+}
+
+.builds-artifact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  margin: 0 calc(-1 * var(--space-2));
+  padding: var(--space-2);
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+@media (hover: hover) {
+  .builds-artifact:hover {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.builds-artifact:active {
+  background: var(--md-sys-state-pressed);
+}
+
+/* 日志盖住整页：顶栏加等宽的日志正文 */
+.builds-log {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--md-sys-color-surface);
+}
+
+.builds-log header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 64px;
+  padding: 0 var(--space-4) 0 var(--space-1);
+}
+
+.builds-log header strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: var(--space-1);
+  font: var(--md-sys-typescale-title-large);
+  letter-spacing: var(--md-sys-typescale-title-large-tracking);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.builds-log header a {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .builds-log header a:hover {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.builds-log header a:active {
+  background: var(--md-sys-state-pressed);
+}
+
+.builds-log pre {
+  flex: 1;
+  margin: 0 var(--space-4) var(--space-4);
+  padding: var(--space-4);
+  overflow: auto;
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+  font: var(--md-sys-typescale-code-small);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 599px) {
+  .builds-page {
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+}
+
+@media (pointer: coarse) {
+  .builds-field input {
+    font: var(--md-sys-typescale-body-large);
+  }
+}

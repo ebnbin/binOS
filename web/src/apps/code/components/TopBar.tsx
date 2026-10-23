@@ -1,12 +1,12 @@
 import type { PullRequest, SessionSummary } from '@binos/server/apps/code/types'
-import { ChevronDown, ChevronLeft, GitMerge, GitPullRequest, GitPullRequestClosed, SquarePen } from 'lucide-react'
+import { ArrowBack, Cancel, EditSquare, ForkRight, KeyboardArrowDown, Merge } from '../../../ui/icons.tsx'
 import { useState } from 'react'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { Popover } from '../../../ui/Popover.tsx'
 import styles from './TopBar.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
 
-// 一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题，上下文的用量在输入框里。session：列表里这个 session 的概况，还没读到时没有。
+// M3 的小型顶部应用栏。一列时左边返回列表、右边新对话；两列时列表就在旁边，只显示标题，上下文的用量在输入框里。session：列表里这个 session 的概况，还没读到时没有。
 // 点空白处回到对话顶部，和 iOS 点状态栏一样
 export function TopBar({
   title,
@@ -26,7 +26,7 @@ export function TopBar({
   const prs = session?.prs ?? []
   return (
     <header className={styles.bar} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
-      <IconButton icon={ChevronLeft} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
+      <IconButton icon={ArrowBack} label="返回对话列表" className={styles.singleColumnOnly} onClick={onBack} />
       <div className={styles.heading} onClick={(event) => event.target === event.currentTarget && onScrollTop()}>
         {sessionId === null ? (
           <span className={`${styles.title} ${styles.singleColumnOnly}`}>新对话</span>
@@ -38,7 +38,7 @@ export function TopBar({
           </>
         )}
       </div>
-      {sessionId !== null && <IconButton icon={SquarePen} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
+      {sessionId !== null && <IconButton icon={EditSquare} label="新对话" className={styles.singleColumnOnly} onClick={onNew} />}
     </header>
   )
 }
@@ -55,7 +55,7 @@ function SessionTitle({ session }: { session: SessionSummary }) {
       <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
         <button type="button" className={styles.titleButton} aria-expanded={menuOpen} aria-haspopup="menu">
           <span className={styles.title}>{session.title || '（无内容）'}</span>
-          <ChevronDown size={14} strokeWidth={2} className={styles.titleChevron} />
+          <KeyboardArrowDown size={20} className={styles.titleChevron} />
         </button>
       </SessionActions>
     </span>
@@ -77,7 +77,7 @@ function PrList({ prs }: { prs: PullRequest[] }) {
           className={styles.prMenu}
           trigger={
             <button type="button" className={styles.finished} aria-label="查看对话的 PR">
-              <GitMerge size={13} strokeWidth={2} />
+              <Merge size={18} />
               {finished.length}
             </button>
           }
@@ -95,7 +95,7 @@ function PrList({ prs }: { prs: PullRequest[] }) {
   )
 }
 
-const prIcons = { open: GitPullRequest, merged: GitMerge, closed: GitPullRequestClosed }
+const prIcons = { open: ForkRight, merged: Merge, closed: Cancel }
 const prStates = { open: '开着', merged: '已合并', closed: '已关闭' }
 
 // 这个 session 开的 PR：点编号去 GitHub，开着的有预览时另有预览链接
@@ -104,7 +104,7 @@ function PrLink({ pr }: { pr: PullRequest }) {
   return (
     <span className={styles.pr} data-state={pr.state}>
       <a href={pr.url} target="_blank" rel="noreferrer" title={[pr.title, pr.state && prStates[pr.state]].filter(Boolean).join(' · ')}>
-        <Icon size={13} strokeWidth={2} />#{pr.number}
+        <Icon size={18} />#{pr.number}
       </a>
       {pr.preview && (
         <a href={pr.preview} target="_blank" rel="noreferrer" className={styles.preview}>

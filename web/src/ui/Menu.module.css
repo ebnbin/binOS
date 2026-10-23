@@ -1,0 +1,110 @@
+/* M3 Expressive 的竖向菜单：surface-container-low 的大圆角容器，项高 44，首尾项外侧圆角更大，选中项用 tertiary-container。
+   Radix 的 Select、DropdownMenu 都用这里的样式 */
+.menu {
+  z-index: var(--binos-z-overlay);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
+  min-width: 112px;
+  max-width: min(280px, var(--radix-dropdown-menu-content-available-width, 280px));
+  max-height: var(--radix-dropdown-menu-content-available-height);
+  overflow: auto;
+  padding: var(--space-1);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level2);
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin, var(--radix-select-content-transform-origin));
+  animation: enter var(--md-sys-motion-spring-fast-spatial);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scaleY(0.6);
+  }
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  cursor: pointer;
+  user-select: none;
+  overflow-wrap: anywhere;
+  transition: border-radius var(--md-sys-motion-spring-fast-spatial);
+}
+
+.item:first-child {
+  border-top-left-radius: var(--md-sys-shape-corner-medium);
+  border-top-right-radius: var(--md-sys-shape-corner-medium);
+}
+
+.item:last-child {
+  border-bottom-left-radius: var(--md-sys-shape-corner-medium);
+  border-bottom-right-radius: var(--md-sys-shape-corner-medium);
+}
+
+.item > svg {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.item[data-highlighted] {
+  background: var(--md-sys-state-hover);
+}
+
+.item[data-state='checked'] {
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+.item[data-state='checked'] > svg {
+  color: inherit;
+}
+
+.item[data-state='checked'][data-highlighted] {
+  background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+}
+
+.item[data-disabled] {
+  color: var(--md-sys-state-disabled-content);
+  cursor: default;
+}
+
+.item[data-disabled] > svg {
+  color: inherit;
+}
+
+.divider {
+  height: 1px;
+  margin: var(--space-0-5) var(--space-3);
+  background: var(--md-sys-color-outline-variant);
+}
+
+/* 菜单里的提示文字，比如保存失败 */
+.supporting {
+  margin: 0;
+  padding: var(--space-1) var(--space-4) var(--space-2);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+.supporting[role='alert'] {
+  color: var(--md-sys-color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation: none;
+  }
+}

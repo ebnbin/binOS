@@ -1,14 +1,13 @@
 .prompt {
   max-height: 240px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   overflow: auto;
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  color: var(--color-text-secondary);
 }

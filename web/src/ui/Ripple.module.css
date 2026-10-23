@@ -1,0 +1,44 @@
+.ripple {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--ripple-y, 0px) - var(--ripple-size, 0px) / 2);
+  left: calc(var(--ripple-x, 0px) - var(--ripple-size, 0px) / 2);
+  width: var(--ripple-size, 0px);
+  height: var(--ripple-size, 0px);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: currentColor;
+  opacity: 0;
+  transform: scale(0.2);
+  transition: opacity var(--md-sys-motion-duration-medium2) linear;
+}
+
+.ripple[data-state='reset']::after {
+  transition: none;
+}
+
+/* 涟漪就是按下时的状态层，透明度同 --md-sys-state-pressed */
+.ripple[data-state='pressed']::after {
+  opacity: 0.1;
+  transform: scale(1);
+  transition:
+    transform var(--md-sys-motion-duration-long2) var(--md-sys-motion-easing-standard),
+    opacity var(--md-sys-motion-duration-short2) linear;
+}
+
+.ripple[data-state='released']::after {
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple[data-state='pressed']::after {
+    transition: none;
+  }
+}

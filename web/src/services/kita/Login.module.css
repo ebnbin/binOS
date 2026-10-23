@@ -1,120 +1,90 @@
+/* 就地登录：M3 的表单卡片。headline-small 标题，正文 body-medium，代码用描边文本框，操作是右对齐的文字按钮和填充按钮 */
 .flow {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  font-size: var(--font-size-sm);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   text-align: left;
 }
 
 .title {
-  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-headline-small);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   margin: 0;
-  color: var(--color-text-tertiary);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  color: var(--color-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  align-self: flex-start;
+  gap: var(--space-2);
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 }
 
 .codeLabel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
-  color: var(--color-text-secondary);
+  gap: var(--space-2);
 }
 
 .codeLabel input {
-  height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-}
-
-.codeLabel input:focus {
-  border-color: var(--color-text-secondary);
+  width: 100%;
+  font-family: var(--md-ref-typeface-mono);
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-2);
 }
 
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  min-width: 64px;
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--color-border);
-  background: none;
-  color: var(--color-text-secondary);
-}
-
 .done {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin: 0;
-  color: var(--color-success);
+  color: var(--md-sys-color-success);
 }
 
-.error {
-  margin: 0;
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
-}
-
+/* 一次性的码：等宽的大字，整段一点就能选中 */
 .deviceCode {
   align-self: flex-start;
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-wide);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-headline-small);
+  font-family: var(--md-ref-typeface-mono);
+  letter-spacing: 0.1em;
   user-select: all;
 }

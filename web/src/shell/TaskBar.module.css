@@ -1,4 +1,5 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
+/* 在下面时是 M3 的导航栏（64 高），在侧边时是窄导航轨（80 宽）。项是 56×32 的胶囊，
+   聚焦的窗口用 secondary-container 的激活指示、图标填充；显示着但没聚焦的窗口用较浅的指示 */
 .bar {
   display: flex;
   align-items: center;
@@ -6,12 +7,15 @@
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-1-5) 0;
+  height: 64px;
+  padding: 0 var(--space-3);
 }
 
 .bar[data-placement='left'],
 .bar[data-placement='right'] {
-  padding: 0 var(--space-1-5);
+  width: 80px;
+  height: auto;
+  padding: var(--space-3) 0;
 }
 
 .bar[data-placement='left'] {
@@ -21,7 +25,7 @@
 .dock {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
   min-height: 0;
   max-width: 100%;
@@ -31,7 +35,7 @@
 /* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
 .apps {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -40,77 +44,67 @@
 }
 
 .bar[data-placement='left'] .apps,
-.bar[data-placement='right'] .apps {
-  flex-direction: column;
-}
-
+.bar[data-placement='right'] .apps,
 .bar[data-placement='left'] .dock,
 .bar[data-placement='right'] .dock {
   flex-direction: column;
+  gap: var(--space-3);
 }
 
 .item {
   position: relative;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  border-radius: var(--radius-lg);
-  color: var(--color-on-chrome-secondary);
-  transition: background-color var(--duration-fast), color var(--duration-fast);
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  transition:
+    background-color var(--md-sys-motion-spring-fast-effects),
+    color var(--md-sys-motion-spring-fast-effects),
+    width var(--md-sys-motion-spring-fast-spatial);
+}
+
+/* 可点的范围补到 48 高 */
+.item::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-2)) 0;
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: var(--color-chrome-hover);
-    color: var(--color-on-chrome);
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+    color: var(--md-sys-color-on-surface);
   }
 }
 
+.item[data-visible='true'] {
+  background-color: var(--md-sys-color-surface-container-highest);
+  color: var(--md-sys-color-on-surface);
+}
+
 .item[aria-pressed='true'] {
-  background: var(--color-chrome-selected);
-  color: var(--color-on-chrome);
-}
-
-/* 正在显示的 app 旁边有个点 */
-.item[data-visible='true']::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome-secondary);
-}
-
-.bar[data-placement='left'] .item[data-visible='true']::after,
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  top: 18px;
-  bottom: auto;
-}
-
-.bar[data-placement='left'] .item[data-visible='true']::after {
-  right: 2px;
-}
-
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  left: 2px;
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 .separator {
   flex: none;
   width: 1px;
-  height: 22px;
-  margin: 0 var(--space-1-5);
-  background: var(--color-chrome-border);
+  height: 24px;
+  margin: 0 var(--space-1);
+  background: var(--md-sys-color-outline-variant);
 }
 
 .bar[data-placement='left'] .separator,
 .bar[data-placement='right'] .separator {
-  width: 22px;
+  width: 24px;
   height: 1px;
-  margin: var(--space-1-5) 0;
+  margin: var(--space-1) 0;
 }
 
 .glyph {
@@ -127,45 +121,57 @@
 }
 
 .glyph i {
-  border-radius: calc(var(--radius-xs) / 2);
+  border-radius: calc(var(--md-sys-shape-corner-extra-small) / 2);
   background: currentColor;
-  opacity: 0.85;
 }
 
 .glyph i[data-active='false'] {
-  opacity: 0.3;
-}
-
-.glyph i[data-active='true'] {
-  opacity: 1;
-  background: var(--color-on-chrome);
+  opacity: 0.38;
 }
 
 .item[data-group='true'] {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1-5);
-  width: 58px;
-  box-shadow: inset 0 0 0 1px var(--color-chrome-border);
+  width: auto;
+  padding: 0 var(--space-3);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
 }
 
-.item[data-group='true']::after { display: none; }
+.item[data-group='true'][aria-pressed='true'],
+.item[data-group='true'][data-visible='true'] {
+  box-shadow: none;
+}
+
+.bar[data-placement='left'] .item[data-group='true'],
+.bar[data-placement='right'] .item[data-group='true'] {
+  flex-direction: column;
+  width: 56px;
+  height: auto;
+  padding: var(--space-1-5) 0;
+}
 
 .member {
-  position: relative;
   display: grid;
   place-items: center;
-  height: 100%;
 }
 
-.member[data-focused='true']::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome);
+/* 分屏组里没聚焦的一个淡一些 */
+.item[aria-pressed='true'] .member[data-focused='false'] {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: none;
+  }
+}
+
+/* 窄屏上开着的窗口多，激活指示收窄到 48，多放下一个 */
+@media (max-width: 599px) {
+  .item:not([data-group='true']) {
+    width: 48px;
+  }
+
+  .dock,
+  .apps {
+    gap: var(--space-1);
+  }
 }

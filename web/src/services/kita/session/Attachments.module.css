@@ -4,12 +4,17 @@
   gap: var(--space-2);
 }
 
+/* 已发出的附件和用户的消息一样靠右 */
 .sent {
   flex-direction: column;
-  width: 420px;
-  align-self: flex-end;
   justify-content: flex-end;
+  align-self: flex-end;
+  width: 420px;
   max-width: 78%;
+}
+
+.sent > span {
+  margin: 0;
 }
 
 .thumb {
@@ -17,9 +22,8 @@
   width: 64px;
   height: 64px;
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-high);
 }
 
 .thumb img {
@@ -28,65 +32,59 @@
   object-fit: cover;
 }
 
+/* 不是图片的附件：M3 的描边卡片，文件图标加文件名 */
 .card {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   max-width: 220px;
   height: 64px;
   padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.card svg {
-  flex: none;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .name {
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-text);
-}
-
-.link {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .link:hover .card {
-    background: var(--color-hover);
-  }
+  text-overflow: ellipsis;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 .pending {
   position: relative;
 }
 
+/* 右上角的移除按钮：反色的小圆，在图片上也看得清 */
 .remove {
   position: absolute;
-  top: calc(-1 * var(--space-1-5));
-  right: calc(-1 * var(--space-1-5));
+  top: calc(-1 * var(--space-2));
+  right: calc(-1 * var(--space-2));
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-inverse-on-surface);
+  box-shadow: 0 0 0 2px var(--md-sys-color-surface);
+}
+
+@media (hover: hover) {
+  .remove:hover {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
 }
 
 /* 触屏上按钮太小不好点，扩大可点区域 */
 .remove::after {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--space-2));
+  inset: calc(-1 * var(--space-3));
 }
 
 @container agent (width < 600px) {

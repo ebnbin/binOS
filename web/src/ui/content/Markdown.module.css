@@ -1,5 +1,8 @@
+/* 正文用 body-large，标题按 M3 的字阶从 headline-small 往下排。容器可以改 font 换成更小的正文 */
 .markdown {
-  line-height: var(--line-height-relaxed);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
   overflow-wrap: anywhere;
 }
 
@@ -16,38 +19,40 @@
 }
 
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: var(--space-6) 0 var(--space-3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-snug);
-  letter-spacing: var(--letter-spacing-tight);
+  margin: var(--space-6) 0 var(--space-2);
+  color: var(--md-sys-color-on-surface);
 }
 
 .markdown h1 {
-  font-size: 1.4em;
+  font: var(--md-sys-typescale-headline-small);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
 }
 
 .markdown h2 {
-  font-size: 1.22em;
+  font: var(--md-sys-typescale-title-large);
+  letter-spacing: var(--md-sys-typescale-title-large-tracking);
 }
 
 .markdown h3 {
-  font-size: 1.08em;
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
 }
 
 .markdown :is(h4, h5, h6) {
-  font-size: 1em;
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
 
 .markdown strong {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--md-ref-typeface-weight-bold);
 }
 
 .markdown a {
-  color: inherit;
+  color: var(--md-sys-color-primary);
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--md-sys-color-primary) 40%, transparent);
   text-underline-offset: 3px;
-  transition: text-decoration-color var(--duration-fast);
+  transition: text-decoration-color var(--md-sys-motion-spring-fast-effects);
 }
 
 @media (hover: hover) {
@@ -70,7 +75,7 @@
 }
 
 .markdown li::marker {
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .markdown li > p {
@@ -78,9 +83,9 @@
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 var(--space-1-5) 0 0;
-  vertical-align: -1px;
-  accent-color: var(--color-primary);
+  margin: 0 var(--space-2) 0 0;
+  vertical-align: -2px;
+  accent-color: var(--md-sys-color-primary);
 }
 
 .markdown :global(.contains-task-list) {
@@ -89,23 +94,23 @@
 }
 
 .markdown blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
-  color: var(--color-text-secondary);
+  padding: var(--space-1) 0 var(--space-1) var(--space-4);
+  border-left: 4px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .markdown hr {
   height: 1px;
   border: 0;
-  background: var(--color-separator);
+  background: var(--md-sys-color-outline-variant);
 }
 
 .markdown code {
-  padding: 1px var(--space-1-5);
-  border-radius: var(--radius-xs);
-  background: var(--color-fill);
-  font-family: var(--font-mono);
-  font-size: 0.86em;
+  padding: 0.1em 0.4em;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-surface-container-high);
+  font-family: var(--md-ref-typeface-mono);
+  font-size: 0.875em;
 }
 
 .markdown .codeBlock code {
@@ -121,58 +126,64 @@
   overflow-y: hidden;
 }
 
+/* 表格放在描边卡片里，表头是 title-small、单元格是 body-medium，行之间用 outline-variant 分隔 */
 .tableWrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
 }
 
 .markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: var(--line-height-normal);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 .markdown :is(th, td) {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown th {
-  background: var(--color-surface-sunken);
-  font-weight: var(--font-weight-semibold);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
   white-space: nowrap;
 }
 
 .markdown tr + tr td,
 .markdown thead + tbody td {
-  border-top: 1px solid var(--color-separator);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: var(--space-1-5) 0;
+  margin: var(--space-2) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container);
 }
 
+/* 显示不了的图片：像 M3 的辅助 chip */
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-0-5) var(--space-3);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text-tertiary);
-  font-size: 0.9em;
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: 0 var(--space-4) 0 var(--space-2);
+  border: 1px dashed var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-small);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  vertical-align: middle;
 }

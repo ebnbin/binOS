@@ -2,48 +2,73 @@
   margin-left: auto;
 }
 
+/* 额度摘要：assist chip 的样子，每个 agent 一个圆环和用量 */
 .summary {
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1-5);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
+  align-items: center;
+  gap: var(--space-3);
+  height: 32px;
+  padding: 0 var(--space-3) 0 var(--space-2);
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  background: none;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition: background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.summary:active {
+  background: var(--md-sys-state-pressed);
+}
+
+.summary[data-state='open'] {
+  box-shadow: none;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* 打开时底色就是 secondary-container，圆环的轨道换一个能看出来的颜色 */
+.summary[data-state='open'] circle:first-child {
+  stroke: var(--md-sys-color-surface-container-highest);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-1-5);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--color-danger);
+  color: var(--md-sys-color-error);
 }
 
+/* 详情：M3 富提示的样式 */
 .details {
   width: 340px;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
 }
 
 .details h3 {
   margin: 0 0 var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
 
 .details section + section {
   padding-top: var(--space-4);
-  border-top: 1px solid var(--color-separator);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
 }
