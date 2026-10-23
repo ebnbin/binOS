@@ -1,226 +1,238 @@
 .app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--color-surface);
+  background: var(--bgColor-default);
 }
+
 .toolbar {
   display: flex;
+  flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--base-size-12);
+  min-height: var(--base-size-48);
+  padding: 0 var(--base-size-12) 0 var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
 }
-.toolbar strong,
-.actions,
-.app button {
+
+.toolbar h1 {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-}
-.toolbar strong {
-  font-size: var(--font-size-sm);
+  gap: var(--base-size-8);
+  margin: 0;
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
   white-space: nowrap;
 }
+
+.toolbar h1 svg {
+  color: var(--fgColor-muted);
+}
+
 .actions {
-  gap: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
 }
-.app button {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-control);
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
+
+.error {
+  flex: none;
+  margin: var(--base-size-8) var(--base-size-12) 0;
 }
-.app button:hover {
-  background: var(--color-hover);
-}
-.app button:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
-}
+
 .tabs {
-  display: flex;
-  gap: var(--space-1-5);
-  padding: var(--space-2) var(--space-3);
-  overflow-x: auto;
-  flex-shrink: 0;
-  background: var(--color-bg-subtle);
+  min-height: var(--base-size-40);
 }
-.tabs button {
-  white-space: nowrap;
-  color: var(--color-text-secondary);
-}
-.tabs button[aria-current] {
-  color: var(--color-text);
-  border-color: var(--color-text-secondary);
-  background: var(--color-surface);
-}
+
+/* 终端区域固定是 Primer 暗色主题，状态栏、终端和快捷键都在里面 */
 .pane {
-  flex: 1;
-  min-height: 100px;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  background: var(--color-terminal-bg);
-  color: var(--color-terminal-text);
+  min-height: 100px;
   overflow: hidden;
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+  color-scheme: dark;
 }
+
 .status {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-2xs);
-  color: color-mix(in srgb, var(--color-terminal-text) 65%, var(--color-terminal-bg));
-  padding: var(--space-2) var(--space-4);
-  flex-shrink: 0;
+  gap: var(--base-size-8);
+  min-height: var(--base-size-40);
+  padding: var(--base-size-4) var(--base-size-8) var(--base-size-4) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
-.status > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
+
+.dot {
+  flex: none;
+  width: var(--base-size-8);
+  height: var(--base-size-8);
+  border-radius: var(--borderRadius-full);
+  background: var(--bgColor-attention-emphasis);
 }
-.status > span[data-connected='true'] {
-  background: color-mix(in srgb, var(--color-success) 60%, var(--color-terminal-text));
+
+.dot[data-connected='true'] {
+  background: var(--bgColor-success-emphasis);
 }
-.status button {
+
+.dot[data-ended='true'] {
+  background: var(--bgColor-neutral-emphasis);
+}
+
+.reconnect {
   margin-left: auto;
-  color: var(--color-terminal-text);
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
 }
+
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-4);
+  padding: var(--base-size-8) var(--base-size-12) var(--base-size-8) var(--base-size-16);
 }
+
 .terminal :global(.xterm) {
   height: 100%;
 }
+
 .terminal :global(.xterm-screen) {
   user-select: none;
 }
-.footer {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-2xs);
-  border-top: 1px solid var(--color-border);
-}
-.footer > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
-}
-.footer button {
-  flex-shrink: 0;
-}
-.connection {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-secondary);
-  max-height: 140px;
-  overflow: auto;
-}
-.connection summary {
-  cursor: pointer;
-}
-.connection code {
-  display: block;
-  user-select: text;
-  overflow-wrap: anywhere;
-  padding: var(--space-2) 0;
-}
-.connection p {
-  margin: 0 0 var(--space-1-5);
-}
-.empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-8);
-  text-align: center;
-  color: var(--color-text-secondary);
-}
-.empty h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
-}
-.empty p {
-  font-size: var(--font-size-sm);
-  max-width: 360px;
-}
-.empty button {
-  margin-top: var(--space-4);
-}
-.error {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
-}
-.confirm {
-  position: absolute;
-  bottom: 50px;
-  left: var(--space-3);
-  right: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
-}
-.confirm span {
-  flex: 1;
-}
-.confirm button:last-child {
-  color: var(--color-danger);
-}
+
 .keys {
   display: none;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
+  flex: none;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8);
   overflow-x: auto;
-  flex-shrink: 0;
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
-.keys button {
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
-  color: var(--color-terminal-text);
-  white-space: nowrap;
+
+.keys kbd {
+  font-family: var(--fontStack-monospace);
 }
+
 @media (pointer: coarse) {
   .keys {
     display: flex;
   }
 }
+
+.footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  padding: var(--base-size-8) var(--base-size-12) var(--base-size-8) var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
+  font-size: var(--text-body-size-small);
+}
+
+.footer > span {
+  overflow: hidden;
+  color: var(--fgColor-muted);
+  font-family: var(--fontStack-monospace);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Primer 的 Details：小号标题，展开后是一段代码 */
+.connection {
+  flex: none;
+  max-height: 160px;
+  padding: 0 var(--base-size-16) var(--base-size-8);
+  overflow: auto;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+.connection summary {
+  color: var(--fgColor-muted);
+  cursor: pointer;
+}
+
+.connection summary:hover {
+  color: var(--fgColor-accent);
+}
+
+.connection code {
+  display: block;
+  margin: var(--base-size-8) 0;
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: var(--text-codeBlock-size);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.connection p {
+  margin: 0 0 var(--base-size-4);
+}
+
+.empty {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty code {
+  padding: var(--base-size-2) var(--base-size-4);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-neutral-muted);
+  font-size: var(--text-codeInline-size);
+}
+
+/* 结束会话的确认：贴在底部的 Primer Overlay，带警告图标 */
+.confirm {
+  position: absolute;
+  right: var(--base-size-12);
+  bottom: var(--base-size-48);
+  left: var(--base-size-12);
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-12) var(--base-size-16);
+  border-radius: var(--borderRadius-large);
+  background: var(--overlay-bgColor);
+  box-shadow: var(--shadow-floating-small);
+  font-size: var(--text-body-size-medium);
+}
+
+.confirmIcon {
+  display: flex;
+  color: var(--fgColor-attention);
+}
+
+.confirmText {
+  flex: 1;
+}
+
+.confirmActions {
+  display: flex;
+  gap: var(--base-size-8);
+}
+
 @media (max-width: 480px) {
   .toolbar {
-    padding: var(--space-3);
+    padding-left: var(--base-size-12);
   }
-  .actions button span {
+
+  .collapsible {
     display: none;
   }
+
   .confirm {
     flex-wrap: wrap;
   }

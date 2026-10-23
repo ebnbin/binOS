@@ -1,53 +1,96 @@
-.card {
+/* Primer Box：标题栏是浅灰底，每个文件一行，行之间细线分隔 */
+.box {
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  font-size: var(--text-body-size-small);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
+}
+
+.headerIcon {
+  flex: none;
+  color: var(--fgColor-muted);
+}
+
+.headerTitle {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header .counts {
+  margin-left: auto;
+}
+
+.diffstat {
+  display: flex;
+  flex: none;
+  gap: var(--base-size-2);
+}
+
+.diffstat i {
+  width: var(--base-size-8);
+  height: var(--base-size-8);
+  border-radius: var(--borderRadius-small);
+  background: var(--bgColor-neutral-muted);
+}
+
+.diffstat i[data-kind='added'] {
+  background: var(--bgColor-success-emphasis);
+}
+
+.diffstat i[data-kind='removed'] {
+  background: var(--bgColor-danger-emphasis);
 }
 
 .files {
   margin: 0;
-  padding: var(--space-1);
+  padding: 0;
   list-style: none;
+}
+
+.files > li + li {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--base-size-8);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0 var(--space-2);
+  min-height: var(--control-medium-size);
+  padding: var(--base-size-4) var(--base-size-16) var(--base-size-4) var(--base-size-8);
   border: 0;
-  border-radius: var(--radius-item);
   background: none;
-  color: var(--color-text);
+  color: var(--fgColor-default);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--motion-transition-hover);
 }
 
 @media (hover: hover) {
   .row:hover {
-    background: var(--color-hover);
+    background: var(--bgColor-muted);
   }
 }
 
 .chevron {
   flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  color: var(--fgColor-muted);
+  transition: transform var(--motion-transition-stateChange);
 }
 
 [data-open] > .row .chevron {
@@ -60,8 +103,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .dir {
@@ -70,41 +114,33 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.kind {
-  flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--fgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
 }
 
 .counts {
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--base-size-4);
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  color: var(--color-success);
+  color: var(--fgColor-success);
 }
 
 .removed {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  gap: var(--base-size-8);
+  padding: 0 var(--base-size-16) var(--base-size-16);
 }

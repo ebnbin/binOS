@@ -1,45 +1,63 @@
+/* GitHub 的代码块：灰底、6px 圆角；有标题时顶上是文件头一栏，和代码之间一条分隔线 */
 .block {
+  position: relative;
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+}
+
+.block[data-header] {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-default);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--size-control-md);
-  padding: 0 var(--space-1-5) 0 var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-8);
+  min-height: var(--control-medium-size);
+  padding: var(--base-size-2) var(--base-size-4) var(--base-size-2) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pre {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3) 0;
+  padding: var(--base-size-16) 0;
   overflow: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
-  color: var(--color-text);
+  color: var(--fgColor-default);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-codeBlock-size);
+  line-height: 1.45;
 }
 
 .line {
   display: block;
-  padding: 0 var(--space-4);
+  width: max-content;
+  min-width: 100%;
+  padding: 0 var(--base-size-16);
   white-space: pre;
 }
 
+/* 有行号时像 GitHub 的文件视图：行号一栏右对齐，淡色 */
 .gutter {
   display: inline-block;
-  min-width: 2.5em;
-  margin-right: var(--space-4);
+  min-width: 3ch;
+  margin-right: var(--base-size-16);
+  color: var(--fgColor-muted);
   text-align: right;
-  color: var(--color-text-tertiary);
   user-select: none;
 }
 
@@ -48,7 +66,11 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .token {
+  :global([data-color-mode='auto']) .token {
     color: var(--shiki-dark);
   }
+}
+
+:global([data-color-mode='dark']) .token {
+  color: var(--shiki-dark);
 }

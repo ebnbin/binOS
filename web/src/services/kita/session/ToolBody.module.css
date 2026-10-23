@@ -1,87 +1,116 @@
+/* 输出和命令：GitHub 代码块的灰底；改动：GitHub 的 diff 视图，用 Primer 的 diffBlob token */
 .output,
-.terminal,
-.diffLines {
+.terminal {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--base-size-16);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-codeBlock-size);
+  line-height: 1.45;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .output[data-error='true'] {
-  color: var(--color-danger);
+  background: var(--bgColor-danger-muted);
+  color: var(--fgColor-danger);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
   user-select: none;
 }
 
-.terminal {
-  color: var(--color-text);
-}
-
 .terminalOutput {
-  color: var(--color-text-secondary);
+  color: var(--fgColor-muted);
 }
 
 .terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--base-size-8);
 }
 
 .diffLines {
-  padding: var(--space-3) 0;
+  max-height: 480px;
+  margin: 0;
+  overflow: auto;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
+  line-height: var(--base-size-20);
   white-space: pre;
 }
 
 .diffLine {
   display: block;
-  padding: 0 var(--space-3) 0 0;
+  width: max-content;
+  min-width: 100%;
+  padding-right: var(--base-size-16);
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: var(--diffBlob-additionLine-bgColor);
+  color: var(--diffBlob-additionLine-fgColor);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: var(--diffBlob-deletionLine-bgColor);
+  color: var(--diffBlob-deletionLine-fgColor);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  background: var(--diffBlob-hunkLine-bgColor);
+  color: var(--diffBlob-hunkLine-fgColor);
 }
 
+/* 符号一栏相当于 GitHub diff 的行号栏 */
 .diffSign {
   display: inline-block;
-  width: 26px;
+  width: var(--base-size-32);
+  margin-right: var(--base-size-8);
+  color: var(--fgColor-muted);
   text-align: center;
-  color: var(--color-text-tertiary);
   user-select: none;
 }
 
+[data-change='added'] > .diffSign {
+  background: var(--diffBlob-additionNum-bgColor);
+  color: var(--diffBlob-additionNum-fgColor);
+}
+
+[data-change='removed'] > .diffSign {
+  background: var(--diffBlob-deletionNum-bgColor);
+  color: var(--diffBlob-deletionNum-fgColor);
+}
+
+[data-hunk] > .diffSign {
+  background: var(--diffBlob-hunkNum-bgColor-rest);
+  color: var(--diffBlob-hunkNum-fgColor-rest);
+}
+
+/* 搜到的网页：ActionList 的样子，标题和域名一行 */
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
+  gap: var(--base-size-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -90,17 +119,22 @@
 .links a {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  color: inherit;
+  gap: var(--base-size-8);
+  min-height: var(--control-small-size);
+  padding: var(--base-size-4) var(--base-size-8);
+  border-radius: var(--borderRadius-medium);
+  color: var(--fgColor-accent);
+  font-size: var(--text-body-size-small);
   text-decoration: none;
-  font-size: var(--font-size-sm);
 }
 
 @media (hover: hover) {
   .links a:hover {
-    background: var(--color-hover);
+    background: var(--control-transparent-bgColor-hover);
+  }
+
+  .links a:hover .linkTitle {
+    text-decoration: underline;
   }
 }
 
@@ -113,8 +147,8 @@
 
 .linkHost {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .image {
@@ -126,6 +160,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
 }

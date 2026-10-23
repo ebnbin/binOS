@@ -1,6 +1,6 @@
 import * as Select from '@radix-ui/react-select'
 import { Popover } from '../../../ui/Popover.tsx'
-import { ArrowUp, Check, ChevronDown, Clock, Settings2, ListPlus, Paperclip, X, Zap } from 'lucide-react'
+import { ArrowUpIcon, CheckIcon, ClockIcon, GearIcon, PaperclipIcon, SquareFillIcon, StackAddIcon, TriangleDownIcon, XIcon, ZapIcon } from '@primer/octicons-react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { ClipboardEvent, DragEvent, KeyboardEvent } from 'react'
 import type { QueuedMessage, SessionSummary } from '@binos/server/apps/code/types'
@@ -12,7 +12,12 @@ import type { Choice, SendMode } from './Conversation.tsx'
 import { sendQueued, withdrawQueued } from '../api.ts'
 import { effortName, useAgentCatalogs } from '../../../services/kita/models.ts'
 import styles from './Composer.module.css'
+import { Button } from '../../../ui/Button.tsx'
+import { buttonProps } from '../../../ui/button-props.ts'
+import button from '../../../ui/Button.module.css'
 import { IconButton } from '../../../ui/IconButton.tsx'
+import list from '../../../ui/ActionList.module.css'
+import overlay from '../../../ui/Overlay.module.css'
 import { Spinner } from '../../../ui/Spinner.tsx'
 
 // 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
@@ -220,24 +225,24 @@ export function Composer({
           <ul className={styles.queue} aria-label="排队的消息">
             {queue.map((item) => (
               <li key={item.id}>
-                <Clock size={13} strokeWidth={1.75} className={styles.queueIcon} aria-label="排队中" />
+                <span className={styles.queueIcon}><ClockIcon size={16} aria-label="排队中" /></span>
                 <span className={styles.queueText}>{item.text.trim() || item.attachments?.[0]?.name}</span>
                 {item.attachments?.length ? (
                   <span className={styles.queueFiles}>
-                    <Paperclip size={12} strokeWidth={1.75} />
+                    <PaperclipIcon size={12} />
                     {item.attachments.length}
                   </span>
                 ) : null}
                 {/* 被停止或出错后留下的，可以现在就发 */}
                 {!running && (
                   <IconButton
-                    icon={ArrowUp}
+                    icon={ArrowUpIcon}
                     label="现在发送"
-                    className={styles.queueButton}
+                    size="small"
                     onClick={() => void sendQueued(sessionId, item.id)}
                   />
                 )}
-                <IconButton icon={X} label="撤回到输入框" className={styles.queueButton} onClick={() => void withdraw(item.id)} />
+                <IconButton icon={XIcon} label="撤回到输入框" size="small" onClick={() => void withdraw(item.id)} />
               </li>
             ))}
           </ul>
@@ -274,9 +279,9 @@ export function Composer({
             }}
           />
           <IconButton
-            icon={Paperclip}
+            icon={PaperclipIcon}
             label={enterSends ? '添加附件（也可以粘贴或拖进来）' : '添加附件'}
-            className={styles.attach}
+            size="small"
             disabled={sending}
             onClick={() => fileInputRef.current?.click()}
           />
@@ -286,23 +291,32 @@ export function Composer({
             onChoice({ agent: option.agent, model: option.model.isDefault ? undefined : option.model.id,
               ...(option.agent === choice.agent && choice.effort && option.model.efforts.includes(choice.effort) && { effort: choice.effort }) })
           }}>
-            <Select.Trigger className={styles.model} aria-label="模型" title={running ? '回答结束后可切换模型' : '选择模型'}>
-              <span>{selectedModel?.name ?? choice.model ?? agents[choice.agent].name}</span>
-              <ChevronDown size={13} />
+            <Select.Trigger {...buttonProps({ variant: 'invisible', size: 'small' }, styles.model)} aria-label="模型" title={running ? '回答结束后可切换模型' : '选择模型'}>
+              <span className={button.label}>{selectedModel?.name ?? choice.model ?? agents[choice.agent].name}</span>
+              <span className={button.trailingAction}><TriangleDownIcon size={16} /></span>
             </Select.Trigger>
             <Select.Portal>
-              <Select.Content className={styles.modelMenu} position="popper" side="top" sideOffset={8} collisionPadding={12}>
-                <Select.Viewport className={styles.modelList}>
+              <Select.Content className={`${overlay.overlay} ${styles.modelMenu}`} position="popper" side="top" sideOffset={4} collisionPadding={8}>
+                <Select.Viewport className={list.list}>
                   {modelOptions.map((option) => (
-                    <Select.Item key={option.value} value={option.value} disabled={option.disabled} className={styles.modelOption}>
-                      <Select.ItemText>{option.model.name}</Select.ItemText>
-                      <small>{agents[option.agent].name}{option.model.isDefault ? ' · 默认' : ''}</small>
-                      <Select.ItemIndicator className={styles.selected}><Check size={16} /></Select.ItemIndicator>
+                    <Select.Item key={option.value} value={option.value} disabled={option.disabled} className={list.item}>
+                      <span className={list.visual}>
+                        <Select.ItemIndicator className={styles.indicator}><CheckIcon size={16} /></Select.ItemIndicator>
+                      </span>
+                      <span className={list.content}>
+                        <Select.ItemText>{option.model.name}</Select.ItemText>
+                        <span className={list.description}>{agents[option.agent].name}{option.model.isDefault ? ' · 默认' : ''}</span>
+                      </span>
                     </Select.Item>
                   ))}
                   {!modelOptions.some((option) => option.value === modelValue) && (
-                    <Select.Item value={modelValue} className={styles.modelOption}>
-                      <Select.ItemText>{choice.model ?? '模型信息暂不可用'}</Select.ItemText>
+                    <Select.Item value={modelValue} className={list.item}>
+                      <span className={list.visual}>
+                        <Select.ItemIndicator className={styles.indicator}><CheckIcon size={16} /></Select.ItemIndicator>
+                      </span>
+                      <span className={list.content}>
+                        <Select.ItemText>{choice.model ?? '模型信息暂不可用'}</Select.ItemText>
+                      </span>
                     </Select.Item>
                   )}
                 </Select.Viewport>
@@ -310,21 +324,20 @@ export function Composer({
             </Select.Portal>
           </Select.Root>
           <Popover open={settingsOpen} onOpenChange={setSettingsOpen} label="思考程度" side="top" align="start" className={styles.settingsMenu} trigger={
-            <button type="button" className={styles.settings} disabled={running} aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`} title="思考程度">
-              <Settings2 size={18} />
-              {choice.effort && <span>{effortName(choice.effort)}</span>}
-            </button>
+            <Button variant="invisible" size="small" leadingVisual={GearIcon} className={styles.settings} disabled={running} aria-label={`思考程度：${choice.effort ? effortName(choice.effort) : '默认'}`} title="思考程度">
+              {choice.effort && effortName(choice.effort)}
+            </Button>
           }>
-            <span className={styles.settingsTitle}>思考程度</span>
-            <div role="group" aria-label="思考程度">
+            <div role="group" aria-label="思考程度" className={list.list}>
+              <h3 className={list.heading}>思考程度</h3>
               {['', ...new Set([...efforts, ...(choice.effort ? [choice.effort] : [])])].map((effort) => (
-                <button key={effort} type="button" disabled={running} aria-pressed={(choice.effort ?? '') === effort}
+                <button key={effort} type="button" className={list.item} disabled={running} aria-pressed={(choice.effort ?? '') === effort}
                   onClick={() => {
                     onChoice({ ...choice, effort: effort || undefined })
                     setSettingsOpen(false)
                   }}>
-                  {effort ? effortName(effort) : '默认'}
-                  {(choice.effort ?? '') === effort && <Check size={16} aria-hidden="true" />}
+                  <span className={list.visual}>{(choice.effort ?? '') === effort && <CheckIcon size={16} aria-hidden="true" />}</span>
+                  <span className={list.label}>{effort ? effortName(effort) : '默认'}</span>
                 </button>
               ))}
             </div>
@@ -332,48 +345,46 @@ export function Composer({
           <div className={styles.actions}>
             {session && <Usage session={session} />}
             {sending ? (
-              <span className={`${styles.action} ${styles.busy}`}>
+              <span className={styles.busy}>
                 <Spinner />
               </span>
             ) : running && !hasContent ? (
-              <button type="button" className={styles.action} onClick={onStop} aria-label="停止" title="停止">
-                <span className={styles.stopIcon} />
-              </button>
+              <IconButton icon={SquareFillIcon} label="停止" variant="danger" size="small" onClick={onStop} />
             ) : (
               <>
                 {running && (
                   <>
-                    <button
-                      type="button"
+                    <Button
+                      size="small"
+                      leadingVisual={ZapIcon}
                       className={styles.interrupt}
                       onClick={() => void send('interrupt')}
                       aria-label="打断并发送"
                       title="打断正在做的事，马上处理这句话"
                     >
-                      <Zap size={14} strokeWidth={2} />
                       打断
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      size="small"
+                      leadingVisual={StackAddIcon}
                       className={styles.interrupt}
                       onClick={() => void send('queue')}
                       aria-label="排队"
                       title={enterSends ? `排队：这一轮答完再发（${queueShortcut}）` : '排队：这一轮答完再发'}
                     >
-                      <ListPlus size={14} strokeWidth={2} />
                       排队
-                    </button>
+                    </Button>
                   </>
                 )}
-                <button
+                <IconButton
                   type="submit"
-                  className={styles.action}
+                  icon={ArrowUpIcon}
+                  variant="primary"
+                  size="small"
                   disabled={!canSend}
-                  aria-label={running ? '插话' : '发送'}
-                  title={running ? '插话：agent 在下一步看到' : '发送'}
-                >
-                  <ArrowUp size={17} strokeWidth={2.2} />
-                </button>
+                  label={running ? '插话' : '发送'}
+                  tooltip={running ? '插话：agent 在下一步看到' : '发送'}
+                />
               </>
             )}
           </div>

@@ -1,47 +1,52 @@
 .results {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-1);
+  gap: var(--base-size-8);
+  padding: var(--base-size-8) 0;
 }
 
 .summary {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-1-5);
-  padding: 0 var(--space-1);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  gap: var(--base-size-6);
+  padding: 0 var(--base-size-8);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
+.summaryTitle {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+/* 每个对话一个 Primer Box：标题行是 Box 的头部，命中的消息是下面的行 */
 .group {
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
 }
 
 .heading,
 .match {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--base-size-4);
   width: 100%;
-  padding: var(--space-3) var(--space-3);
+  padding: var(--base-size-8) var(--base-size-12);
   text-align: left;
+  transition: background-color var(--motion-transition-hover);
 }
 
-.heading:focus-visible,
-.match:focus-visible {
-  outline-offset: -3px;
+.heading {
+  background: var(--bgColor-muted);
 }
 
 .context,
 .count,
 .kind {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .context {
@@ -53,9 +58,10 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-snug);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--base-text-lineHeight-normal);
   overflow-wrap: anywhere;
 }
 
@@ -63,11 +69,16 @@
 .kind {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--base-size-4);
+}
+
+.kind svg {
+  width: var(--base-size-12);
+  height: var(--base-size-12);
 }
 
 .match {
-  border-top: 1px solid var(--color-separator);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
 .snippet {
@@ -75,67 +86,43 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-small);
+  line-height: var(--base-text-lineHeight-normal);
   overflow-wrap: anywhere;
 }
 
+/* GitHub 搜索结果的黄色高亮 */
 .results mark {
-  padding: 0 1px;
-  border-radius: var(--radius-xs);
-  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
-  color: var(--color-text);
-  font-weight: var(--font-weight-medium);
+  border-radius: var(--borderRadius-small);
+  background: var(--highlight-neutral-bgColor);
+  color: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
 }
 
-.state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-12) var(--space-4);
-  color: var(--color-text-secondary);
-  text-align: center;
-  font-size: var(--font-size-md);
-}
-
-.state svg {
-  color: var(--color-text-tertiary);
-}
-
-.state p,
 .limit {
   margin: 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-}
-
-.limit {
-  padding: 0 var(--space-1);
-}
-
-.state button {
-  padding: var(--space-1-5) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text);
-  background: var(--color-surface);
+  padding: 0 var(--base-size-8);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-10) var(--space-3);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  gap: var(--base-size-8);
+  padding: var(--base-size-32) var(--base-size-12);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-medium);
 }
 
 @media (hover: hover) {
-  .heading:hover,
+  .heading:hover {
+    background: var(--bgColor-neutral-muted);
+  }
+
   .match:hover {
-    background: var(--color-hover);
+    background: var(--control-transparent-bgColor-hover);
   }
 }

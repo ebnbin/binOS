@@ -7,10 +7,10 @@ export function CodeBlock({ code, lang, startLine, label }: { code: string; lang
   const tokens = useHighlight(code, lang)
   const lines = tokens ?? code.split('\n').map((content) => [{ content, htmlStyle: undefined }])
   return (
-    <div className={styles.block}>
+    <div className={styles.block} data-header={label !== undefined || undefined}>
       {label !== undefined && (
         <div className={styles.header}>
-          <span>{label}</span>
+          <span className={styles.name}>{label}</span>
           <CopyButton text={code} label="复制代码" />
         </div>
       )}

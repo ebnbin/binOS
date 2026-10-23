@@ -1,0 +1,249 @@
+/* Primer Button：中号 32px、6px 圆角、1px 边框，四种变体 default / primary / danger / invisible */
+.button {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--control-medium-gap);
+  min-width: max-content;
+  height: var(--control-medium-size);
+  padding: 0 var(--control-medium-paddingInline-normal);
+  border: var(--borderWidth-thin) solid var(--button-default-borderColor-rest);
+  border-radius: var(--borderRadius-medium);
+  background: var(--button-default-bgColor-rest);
+  box-shadow: var(--button-default-shadow-resting);
+  color: var(--button-default-fgColor-rest);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-medium);
+  line-height: var(--base-text-lineHeight-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--motion-transition-hover);
+  transition-property: color, fill, background-color, border-color;
+}
+
+.button[data-block] {
+  width: 100%;
+}
+
+.button[data-size='small'] {
+  gap: var(--control-small-gap);
+  height: var(--control-small-size);
+  padding: 0 var(--control-small-paddingInline-condensed);
+  font-size: var(--text-body-size-small);
+}
+
+.button[data-size='large'] {
+  gap: var(--control-large-gap);
+  height: var(--control-large-size);
+  padding: 0 var(--control-large-paddingInline-spacious);
+}
+
+.visual,
+.trailingAction {
+  display: flex;
+  flex: none;
+  color: var(--fgColor-muted);
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.button:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: calc(-1 * var(--borderWidth-thick));
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled, [aria-disabled='true']) {
+    border-color: var(--button-default-borderColor-hover);
+    background: var(--button-default-bgColor-hover);
+  }
+}
+
+.button:active:not(:disabled, [aria-disabled='true']) {
+  border-color: var(--button-default-borderColor-active);
+  background: var(--button-default-bgColor-active);
+}
+
+.button[aria-expanded='true'],
+.button[aria-pressed='true'] {
+  background: var(--button-default-bgColor-selected);
+}
+
+.button:disabled,
+.button[aria-disabled='true'] {
+  border-color: var(--button-default-borderColor-disabled);
+  background: var(--button-default-bgColor-disabled);
+  box-shadow: none;
+  color: var(--button-default-fgColor-disabled);
+  cursor: not-allowed;
+}
+
+.button:disabled .visual,
+.button:disabled .trailingAction {
+  color: inherit;
+}
+
+/* primary：每个界面最多一个，绿色 */
+.button[data-variant='primary'] {
+  border-color: var(--button-primary-borderColor-rest);
+  background: var(--button-primary-bgColor-rest);
+  box-shadow: var(--shadow-resting-small);
+  color: var(--button-primary-fgColor-rest);
+}
+
+.button[data-variant='primary'] .visual,
+.button[data-variant='primary'] .trailingAction {
+  color: var(--button-primary-iconColor-rest);
+}
+
+@media (hover: hover) {
+  .button[data-variant='primary']:hover:not(:disabled, [aria-disabled='true']) {
+    border-color: var(--button-primary-borderColor-hover);
+    background: var(--button-primary-bgColor-hover);
+  }
+}
+
+.button[data-variant='primary']:active:not(:disabled, [aria-disabled='true']) {
+  border-color: var(--button-primary-borderColor-active);
+  background: var(--button-primary-bgColor-active);
+}
+
+.button[data-variant='primary']:focus-visible {
+  box-shadow: inset 0 0 0 var(--borderWidth-thick) var(--fgColor-onEmphasis);
+}
+
+.button[data-variant='primary']:disabled,
+.button[data-variant='primary'][aria-disabled='true'] {
+  border-color: var(--button-primary-borderColor-disabled);
+  background: var(--button-primary-bgColor-disabled);
+  color: var(--button-primary-fgColor-disabled);
+}
+
+/* danger：静止时是普通按钮的红字，悬停才变成红底 */
+.button[data-variant='danger'] {
+  border-color: var(--button-danger-borderColor-rest);
+  background: var(--button-danger-bgColor-rest);
+  color: var(--button-danger-fgColor-rest);
+}
+
+.button[data-variant='danger'] .visual,
+.button[data-variant='danger'] .trailingAction {
+  color: var(--button-danger-iconColor-rest);
+}
+
+@media (hover: hover) {
+  .button[data-variant='danger']:hover:not(:disabled, [aria-disabled='true']) {
+    border-color: var(--button-danger-borderColor-hover);
+    background: var(--button-danger-bgColor-hover);
+    color: var(--button-danger-fgColor-hover);
+  }
+
+  .button[data-variant='danger']:hover:not(:disabled, [aria-disabled='true']) .visual {
+    color: var(--button-danger-iconColor-hover);
+  }
+}
+
+.button[data-variant='danger']:active:not(:disabled, [aria-disabled='true']) {
+  border-color: var(--button-danger-borderColor-active);
+  background: var(--button-danger-bgColor-active);
+  color: var(--button-danger-fgColor-active);
+}
+
+.button[data-variant='danger']:disabled {
+  color: var(--button-danger-fgColor-disabled);
+}
+
+/* invisible：工具栏和行内操作，没有边框和底色 */
+.button[data-variant='invisible'] {
+  border-color: var(--button-invisible-borderColor-rest);
+  background: var(--button-invisible-bgColor-rest);
+  box-shadow: none;
+  color: var(--button-invisible-fgColor-rest);
+}
+
+.button[data-variant='invisible'] .visual,
+.button[data-variant='invisible'] .trailingAction {
+  color: var(--button-invisible-iconColor-rest);
+}
+
+@media (hover: hover) {
+  .button[data-variant='invisible']:hover:not(:disabled, [aria-disabled='true']) {
+    border-color: var(--button-invisible-borderColor-hover);
+    background: var(--button-invisible-bgColor-hover);
+    color: var(--button-invisible-fgColor-hover);
+  }
+
+  .button[data-variant='invisible']:hover:not(:disabled, [aria-disabled='true']) .visual {
+    color: var(--button-invisible-iconColor-hover);
+  }
+}
+
+.button[data-variant='invisible']:active:not(:disabled, [aria-disabled='true']),
+.button[data-variant='invisible'][aria-expanded='true'],
+.button[data-variant='invisible'][aria-pressed='true'] {
+  background: var(--button-invisible-bgColor-active);
+}
+
+.button[data-variant='invisible']:disabled,
+.button[data-variant='invisible'][aria-disabled='true'] {
+  border-color: var(--button-invisible-borderColor-disabled);
+  background: var(--button-invisible-bgColor-disabled);
+  color: var(--button-invisible-fgColor-disabled);
+}
+
+.button[data-variant='invisible']:disabled .visual {
+  color: var(--button-invisible-iconColor-disabled);
+}
+
+/* IconButton：正方形，只放一个 16px 图标 */
+.button[data-icon-only] {
+  width: var(--control-medium-size);
+  min-width: 0;
+  padding: 0;
+}
+
+.button[data-icon-only][data-size='small'] {
+  width: var(--control-small-size);
+}
+
+.button[data-icon-only][data-size='large'] {
+  width: var(--control-large-size);
+}
+
+.button[data-icon-only] .visual {
+  color: inherit;
+}
+
+.button[data-icon-only][data-variant='invisible'] {
+  color: var(--button-invisible-iconColor-rest);
+}
+
+@media (hover: hover) {
+  .button[data-icon-only][data-variant='invisible']:hover:not(:disabled) {
+    color: var(--button-invisible-iconColor-hover);
+  }
+}
+
+.button[data-icon-only][data-variant='invisible']:disabled {
+  color: var(--button-invisible-iconColor-disabled);
+}
+
+@media (pointer: coarse) {
+  .button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, var(--control-minTarget-coarse));
+    height: max(100%, var(--control-minTarget-coarse));
+    transform: translate(-50%, -50%);
+  }
+}

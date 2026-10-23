@@ -1,6 +1,9 @@
-import { ExternalLink } from 'lucide-react'
+import { CheckCircleIcon, LinkExternalIcon } from '@primer/octicons-react'
 import { useEffect, useRef, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { Button } from '../../../ui/Button.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
+import { TextInput } from '../../../ui/TextInput.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
 import styles from '../Login.module.css'
@@ -61,65 +64,72 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
 
   return (
     <div className={styles.flow}>
-      <div className={styles.title}>{titles[kind]}</div>
+      <h3 className={styles.title}>{titles[kind]}</h3>
       {step.name === 'starting' && (
-        <p className={styles.waiting}>
-          <Spinner /> 正在拿授权链接
-        </p>
+        <div className={styles.body}>
+          <p className={styles.waiting}>
+            <Spinner /> 正在拿授权链接
+          </p>
+        </div>
       )}
       {(step.name === 'code' || step.name === 'finishing') && (
         <form
-          className={styles.steps}
           onSubmit={(event) => {
             event.preventDefault()
             void submit()
           }}
         >
-          <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
-            1. 打开授权页面，用 Claude 账号授权
-            <ExternalLink size={14} strokeWidth={1.75} />
-          </a>
-          <label className={styles.codeLabel}>
-            2. 把授权后页面上显示的代码贴到这里
-            <input
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-              placeholder="授权代码"
-              autoComplete="off"
-              spellCheck={false}
-              disabled={step.name === 'finishing'}
-            />
-          </label>
+          <ol className={`${styles.body} ${styles.steps}`}>
+            <li className={styles.step}>
+              <div className={styles.stepContent}>
+                <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
+                  打开授权页面，用 Claude 账号授权
+                  <LinkExternalIcon size={16} />
+                </a>
+              </div>
+            </li>
+            <li className={styles.step}>
+              <label className={styles.stepContent}>
+                <span className={styles.stepTitle}>把授权后页面上显示的代码贴到这里</span>
+                <TextInput
+                  block
+                  className={styles.code}
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  placeholder="授权代码"
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={step.name === 'finishing'}
+                />
+              </label>
+            </li>
+          </ol>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              取消
-            </button>
-            <button type="submit" className={styles.primary} disabled={!code.trim() || step.name === 'finishing'}>
+            <Button onClick={onClose}>取消</Button>
+            <Button type="submit" variant="primary" disabled={!code.trim() || step.name === 'finishing'}>
               {step.name === 'finishing' ? <Spinner /> : '完成'}
-            </button>
+            </Button>
           </div>
         </form>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
+          <div className={styles.body}>
+            <p className={styles.done}><CheckCircleIcon size={16} />{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
+          </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
-              好
-            </button>
+            <Button variant="primary" onClick={onClose}>好</Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <div className={styles.body}>
+            <Alert>{step.error}</Alert>
+          </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
-              关上
-            </button>
-            <button type="button" className={styles.primary} onClick={restart}>
-              重新开始
-            </button>
+            <Button onClick={onClose}>关上</Button>
+            <Button variant="primary" onClick={restart}>重新开始</Button>
           </div>
         </>
       )}

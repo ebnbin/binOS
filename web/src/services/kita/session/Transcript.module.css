@@ -2,45 +2,48 @@
 .turn {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--base-size-12);
 }
 
+/* 用户的话像 Copilot Chat：靠右的浅灰块，没有气泡尾巴 */
 .user {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   align-self: flex-end;
-  max-width: 100%;
+  max-width: 85%;
   min-width: 0;
-  gap: var(--space-1);
+  gap: var(--base-size-4);
 }
 
 .userText {
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
+  padding: var(--base-size-8) var(--base-size-12);
+  border-radius: var(--borderRadius-large);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  line-height: var(--base-text-lineHeight-normal);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .turn > .user:not(:first-child) {
-  margin-top: var(--space-1);
+  margin-top: var(--base-size-4);
 }
 
 .userMeta {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--size-control-xs);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-4);
+  min-height: var(--control-small-size);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast);
+  transition: opacity var(--motion-transition-hover);
 }
 
 .user:hover .userMeta,
@@ -65,15 +68,15 @@
 .workedRow {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--base-size-8);
   width: 100%;
-  min-height: var(--size-control-sm);
+  min-height: var(--control-small-size);
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--text-body-size-small);
   text-align: left;
   cursor: pointer;
 }
@@ -81,9 +84,9 @@
 .workedRow::after {
   content: '';
   flex: 1;
-  height: 1px;
-  margin-left: var(--space-1-5);
-  background: var(--color-separator);
+  height: var(--borderWidth-thin);
+  margin-left: var(--base-size-4);
+  background: var(--borderColor-muted);
 }
 
 .workedRow > span {
@@ -95,13 +98,19 @@
 
 @media (hover: hover) {
   .workedRow:hover {
-    color: var(--color-text-secondary);
+    color: var(--fgColor-default);
+  }
+
+  .workedRow:hover .workedChevron {
+    color: var(--fgColor-default);
   }
 }
 
 .workedChevron {
   flex: none;
-  transition: transform var(--duration-normal) var(--ease-standard);
+  width: var(--base-size-24);
+  color: var(--fgColor-muted);
+  transition: transform var(--motion-transition-stateChange);
 }
 
 .worked[data-open] .workedChevron {
@@ -109,70 +118,67 @@
 }
 
 .errors {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .divider {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-12);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  height: 1px;
-  background: var(--color-separator);
+  height: var(--borderWidth-thin);
+  background: var(--borderColor-muted);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  padding-top: var(--space-1);
+  padding-top: var(--base-size-4);
 }
 
 .time {
   align-self: center;
-  margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  margin-top: var(--base-size-8);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
   font-variant-numeric: tabular-nums;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-4);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
   font-variant-numeric: tabular-nums;
 }
 
+/* 进行中的状态：Spinner 加一行淡色说明 */
 .status {
-  width: fit-content;
-  font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding-left: var(--base-size-4);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-medium);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--color-text-tertiary) 35%, var(--color-text) 50%, var(--color-text-tertiary) 65%) 0 0 / 300% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 2.2s linear infinite;
 }
 
-@keyframes shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
-  }
+.status > svg {
+  color: var(--fgColor-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status {
-    animation: none;
+  .workedChevron,
+  .userMeta {
+    transition: none;
   }
 }

@@ -1,0 +1,147 @@
+/* 文件预览：放大的 Primer Dialog，正文是预览区，右边可以展开文件信息 */
+dialog.dialog {
+  width: min(1160px, calc(100vw - var(--base-size-48)));
+  height: min(820px, calc(100dvh - var(--base-size-64)));
+  max-height: none;
+}
+
+.fileIcon {
+  display: flex;
+  flex: none;
+  padding: var(--base-size-8) 0 0 var(--base-size-8);
+  color: var(--fgColor-muted);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.body {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.preview {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow: auto;
+}
+
+.image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.media {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+audio.media {
+  max-width: 560px;
+  margin: var(--base-size-24);
+}
+
+.document {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--document-bgColor);
+}
+
+.prose {
+  align-self: stretch;
+  width: 100%;
+  max-width: 1012px;
+  margin: 0 auto;
+  padding: var(--base-size-32);
+}
+
+.code {
+  align-self: stretch;
+  width: 100%;
+  padding: var(--base-size-16);
+}
+
+.loading {
+  display: flex;
+  color: var(--fgColor-muted);
+}
+
+/* 文件信息：GitHub 仓库页右栏「About」的样子 */
+.info {
+  flex: none;
+  width: 296px;
+  padding: var(--base-size-16);
+  overflow: auto;
+  border-left: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--overlay-bgColor);
+}
+
+.info h3 {
+  margin: 0 0 var(--base-size-16);
+  font-size: var(--text-body-size-large);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.info dl {
+  margin: 0;
+}
+
+.info dt {
+  margin-top: var(--base-size-16);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.info dt:first-child {
+  margin-top: 0;
+}
+
+.info dd {
+  margin: var(--base-size-4) 0 0;
+  font-size: var(--text-body-size-medium);
+  overflow-wrap: anywhere;
+}
+
+.info small {
+  display: block;
+  margin-top: var(--base-size-2);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+@media (max-width: 640px) {
+  dialog.dialog {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .download > :last-child {
+    display: none;
+  }
+
+  .info {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(296px, 80%);
+    box-shadow: var(--shadow-floating-small);
+  }
+
+  .prose {
+    padding: var(--base-size-16);
+  }
+}

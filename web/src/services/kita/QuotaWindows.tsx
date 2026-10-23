@@ -1,4 +1,6 @@
 import type { Limits } from '@binos/server/services/kita/types'
+import { Alert } from '../../ui/Alert.tsx'
+import { ProgressBar } from '../../ui/ProgressBar.tsx'
 import { blockingWindow, formatReset, formatSpan, windowsOf, windowState } from './quota.ts'
 import styles from './Quota.module.css'
 
@@ -9,11 +11,11 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
   return (
     <div className={styles.windows}>
       {limits.limited && (
-        <p className={styles.limited}>
+        <Alert>
           {blocking
             ? `已被限流：${blocking.name}额度用满了，${formatReset(blocking.window.resetsAt, now).replace('重置', '恢复')}`
             : '已被限流'}
-        </p>
+        </Alert>
       )}
       {windowsOf(limits).map(({ key, longest, name, window, length }) => {
         const { used, left, expected, pace, runsOut } = windowState(window, length, now)
@@ -24,11 +26,11 @@ export function QuotaWindows({ limits, now }: { limits: Limits; now: number }) {
                 <span className={styles.swatch} />
                 {name}
               </span>
-              <span>{Math.round(used * 100)}%</span>
+              <span className={styles.percent}>{Math.round(used * 100)}%</span>
               <span className={styles.muted}>{formatReset(window.resetsAt, now)}</span>
             </div>
-            <div className={styles.bar} data-full={used >= 0.95 || undefined}>
-              <span style={{ width: `${used * 100}%` }} />
+            <div className={styles.bar}>
+              <ProgressBar progress={used * 100} tone={used >= 0.95 ? 'danger' : longest ? 'accent' : 'success'} label={`${name}已用`} />
               {left !== undefined && <i style={{ left: `${expected * 100}%` }} title="匀速用到现在该到的位置" />}
             </div>
             {left !== undefined && (

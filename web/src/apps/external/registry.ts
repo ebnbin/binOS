@@ -30,6 +30,8 @@ function refresh() {
 function subscribe(listener: () => void) {
   if (!started) {
     started = true
+    // 全局通知可能在订阅之前就已经连上，第一次直接读取
+    refresh()
     onChange((event) => {
       if (event === null || event.type === 'apps') {
         refresh()

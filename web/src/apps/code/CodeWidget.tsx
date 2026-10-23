@@ -1,6 +1,10 @@
-import { SquarePen } from 'lucide-react'
+import { CommentIcon, PencilIcon } from '@primer/octicons-react'
 import type { WidgetContext } from '../types.ts'
 import styles from './CodeWidget.module.css'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { Label } from '../../ui/Label.tsx'
+import list from '../../ui/ActionList.module.css'
+import { Spinner } from '../../ui/Spinner.tsx'
 import { formatTime } from '../../ui/time.ts'
 import { useSessions } from './useSessions.ts'
 
@@ -13,20 +17,18 @@ export function CodeWidget({ size, open }: WidgetContext) {
   return (
     <div className={styles.widget}>
       <header className={styles.header}>
-        <span className={styles.name}>Code</span>
-        {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
-          type="button"
+        <h3 className={styles.name}>Code</h3>
+        {running > 0 && <Label variant="accent">{running} 个进行中</Label>}
+        <IconButton
+          icon={PencilIcon}
+          label="新对话"
+          size="small"
           className={styles.new}
-          aria-label="新对话"
-          title="新对话"
           onClick={(event) => {
             event.stopPropagation()
             open('/new')
           }}
-        >
-          <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        />
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>
@@ -41,15 +43,15 @@ export function CodeWidget({ size, open }: WidgetContext) {
             <li key={session.id}>
               <button
                 type="button"
-                className={styles.row}
+                className={`${list.item} ${styles.row}`}
                 onClick={(event) => {
                   event.stopPropagation()
                   open(`/${session.id}`)
                 }}
               >
-                <span className={styles.dot} data-running={session.running} />
-                <span className={styles.title}>{session.title || '新对话'}</span>
-                <span className={styles.time}>{session.updatedAt ? formatTime(new Date(session.updatedAt)) : ''}</span>
+                <span className={list.visual} data-running={session.running}>{session.running ? <Spinner /> : <CommentIcon size={16} />}</span>
+                <span className={`${list.label} ${styles.title}`}>{session.title || '新对话'}</span>
+                <span className={list.trailing}>{session.updatedAt ? formatTime(new Date(session.updatedAt)) : ''}</span>
               </button>
             </li>
           ))}

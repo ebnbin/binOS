@@ -74,7 +74,7 @@ function Entry({
     return (
       <button type="button" className={styles.icon} style={style} onClick={() => onOpen(app.id)}>
         <span className={styles.glyph}>
-          <app.icon strokeWidth={1.75} />
+          <app.icon size={24} />
         </span>
         <span className={styles.label}>{app.name}</span>
       </button>

@@ -1,7 +1,7 @@
 .list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
 }
 
 .sent {
@@ -9,17 +9,17 @@
   width: 420px;
   align-self: flex-end;
   justify-content: flex-end;
-  max-width: 78%;
+  max-width: 85%;
 }
 
 .thumb {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: var(--base-size-64);
+  height: var(--base-size-64);
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
 }
 
 .thumb img {
@@ -28,40 +28,31 @@
   object-fit: cover;
 }
 
+/* 待发的文件：和缩略图一样高的边框块 */
 .card {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
   max-width: 220px;
-  height: 64px;
-  padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  height: var(--base-size-64);
+  padding: 0 var(--base-size-16) 0 var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
-.card svg {
+.cardIcon {
   flex: none;
+  color: var(--fgColor-muted);
 }
 
 .name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-text);
-}
-
-.link {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .link:hover .card {
-    background: var(--color-hover);
-  }
+  color: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .pending {
@@ -70,27 +61,38 @@
 
 .remove {
   position: absolute;
-  top: calc(-1 * var(--space-1-5));
-  right: calc(-1 * var(--space-1-5));
+  top: calc(-1 * var(--base-size-8));
+  right: calc(-1 * var(--base-size-8));
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  width: var(--base-size-20);
+  height: var(--base-size-20);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  background: var(--bgColor-default);
+  box-shadow: var(--shadow-resting-small);
+  color: var(--fgColor-muted);
+  transition: var(--motion-transition-hover);
+  transition-property: background-color, color;
+}
+
+@media (hover: hover) {
+  .remove:hover {
+    background: var(--bgColor-danger-emphasis);
+    border-color: var(--borderColor-danger-emphasis);
+    color: var(--fgColor-onEmphasis);
+  }
 }
 
 /* 触屏上按钮太小不好点，扩大可点区域 */
 .remove::after {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--space-2));
+  inset: calc(-1 * var(--base-size-8));
 }
 
 @container agent (width < 600px) {
   .sent {
-    max-width: 86%;
+    max-width: 90%;
   }
 }

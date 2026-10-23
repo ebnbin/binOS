@@ -1,0 +1,30 @@
+/* Primer ProgressBar：8px 高的圆角轨道 */
+.track {
+  display: flex;
+  flex: none;
+  height: var(--base-size-8);
+  overflow: hidden;
+  border-radius: var(--borderRadius-medium);
+  background: var(--progressBar-track-bgColor);
+}
+
+.track[data-size='small'] {
+  height: calc(var(--base-size-4) + var(--base-size-2) / 2);
+}
+
+.track[data-size='large'] {
+  height: calc(var(--base-size-8) + var(--base-size-2));
+}
+
+.bar {
+  height: 100%;
+  background: var(--progressBar-bgColor-accent);
+  transition: width var(--motion-transition-stateChange);
+}
+
+.bar[data-tone='success'] { background: var(--progressBar-bgColor-success); }
+.bar[data-tone='attention'] { background: var(--progressBar-bgColor-attention); }
+.bar[data-tone='severe'] { background: var(--progressBar-bgColor-severe); }
+.bar[data-tone='danger'] { background: var(--progressBar-bgColor-danger); }
+.bar[data-tone='done'] { background: var(--progressBar-bgColor-done); }
+.bar[data-tone='neutral'] { background: var(--progressBar-bgColor-neutral); }

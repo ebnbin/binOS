@@ -1,0 +1,74 @@
+/* Primer TextInput：32px、6px 圆角，聚焦时蓝色边框加 2px 焦点框 */
+.input {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--control-medium-gap);
+  min-width: 0;
+  height: var(--control-medium-size);
+  padding: 0 var(--control-medium-paddingInline-condensed);
+  border: var(--borderWidth-thin) solid var(--control-borderColor-rest);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  box-shadow: var(--shadow-inset);
+  color: var(--fgColor-default);
+  font-size: var(--text-input-size);
+  line-height: var(--base-text-lineHeight-normal);
+  cursor: text;
+}
+
+.input[data-size='small'] {
+  height: var(--control-small-size);
+}
+
+.input[data-size='large'] {
+  height: var(--control-large-size);
+  padding: 0 var(--control-large-paddingInline-normal);
+}
+
+.input[data-block] {
+  display: flex;
+  width: 100%;
+}
+
+.input:focus-within {
+  border-color: var(--borderColor-accent-emphasis);
+  outline: var(--focus-outline-width) solid var(--focus-outlineColor);
+  outline-offset: calc(-1 * var(--borderWidth-thin));
+}
+
+.input[data-disabled] {
+  border-color: var(--control-borderColor-disabled);
+  background: var(--control-bgColor-disabled);
+  box-shadow: none;
+  color: var(--control-fgColor-disabled);
+  cursor: not-allowed;
+}
+
+.input input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 var(--base-size-4);
+  border: 0;
+  outline: none;
+  background: none;
+  font-size: inherit;
+}
+
+.input input::placeholder {
+  color: var(--control-fgColor-placeholder);
+}
+
+.visual {
+  display: flex;
+  flex: none;
+  padding-left: var(--base-size-4);
+  color: var(--fgColor-muted);
+}
+
+.trailing {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-right: calc(-1 * var(--base-size-4));
+}

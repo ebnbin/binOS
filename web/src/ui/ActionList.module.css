@@ -1,0 +1,155 @@
+/* Primer ActionList / NavList：列表左右各留 8px，项目 32px 高、6px 圆角；
+   悬停是透明控件的底色，当前项再加左侧 4px 的强调色竖条（NavList） */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-2);
+  margin: 0;
+  padding: var(--base-size-8);
+  list-style: none;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--base-size-8);
+  width: 100%;
+  min-height: var(--control-medium-size);
+  padding: var(--control-medium-paddingBlock) var(--control-medium-paddingInline-condensed);
+  border-radius: var(--borderRadius-medium);
+  background: var(--control-transparent-bgColor-rest);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+  line-height: var(--base-text-lineHeight-normal);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition: background-color var(--motion-transition-hover);
+}
+
+@media (hover: hover) {
+  .item:hover:not([data-disabled], :disabled) {
+    background: var(--control-transparent-bgColor-hover);
+  }
+}
+
+.item:active:not([data-disabled], :disabled),
+.item[data-highlighted] {
+  background: var(--control-transparent-bgColor-active);
+}
+
+/* 菜单里的项目聚焦时已经有高亮底色，不再画焦点框 */
+.item:focus-visible:not([data-highlighted]) {
+  outline: var(--focus-outline);
+  outline-offset: calc(-1 * var(--borderWidth-thick));
+}
+
+.item[aria-current]:not([aria-current='false']),
+.item[data-current] {
+  background: var(--control-transparent-bgColor-selected);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.item[aria-current]:not([aria-current='false'])::after,
+.item[data-current]::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - var(--base-size-12));
+  left: calc(-1 * var(--base-size-8));
+  width: var(--base-size-4);
+  height: var(--base-size-24);
+  border-radius: var(--borderRadius-medium);
+  background: var(--borderColor-accent-emphasis);
+}
+
+.item[data-disabled],
+.item:disabled {
+  color: var(--fgColor-disabled);
+  cursor: not-allowed;
+}
+
+.item[data-variant='danger'] {
+  color: var(--fgColor-danger);
+}
+
+@media (hover: hover) {
+  .item[data-variant='danger']:hover:not([data-disabled]) {
+    background: var(--control-danger-bgColor-hover);
+    color: var(--control-danger-fgColor-hover);
+  }
+}
+
+.item[data-variant='danger'][data-highlighted] {
+  background: var(--control-danger-bgColor-active);
+}
+
+.visual {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--base-size-16);
+  color: var(--fgColor-muted);
+}
+
+.item[data-variant='danger'] .visual {
+  color: inherit;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.description {
+  overflow: hidden;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-normal);
+  line-height: var(--base-text-lineHeight-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trailing {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-left: auto;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+.divider {
+  height: var(--borderWidth-thin);
+  margin: var(--base-size-6) calc(-1 * var(--base-size-8));
+  border: 0;
+  background: var(--borderColor-muted);
+}
+
+.heading {
+  margin: 0;
+  padding: var(--base-size-6) var(--base-size-8);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--base-text-lineHeight-normal);
+}
+
+@media (pointer: coarse) {
+  .item {
+    min-height: var(--control-large-size);
+  }
+}

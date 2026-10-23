@@ -1,0 +1,92 @@
+/* Primer Dialog：12px 圆角、floating large 阴影、半透明背板；标题栏、正文、底部按钮三段 */
+.dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(var(--overlay-width-medium), calc(100% - var(--base-size-32)));
+  max-width: none;
+  max-height: min(var(--overlay-height-xlarge), calc(100% - var(--base-size-32)));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--borderRadius-large);
+  background: var(--overlay-bgColor);
+  box-shadow: var(--shadow-floating-large);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+}
+
+.dialog:not([open]) {
+  display: none;
+}
+
+.dialog::backdrop {
+  background: var(--overlay-backdrop-bgColor);
+}
+
+.dialog[open] {
+  animation: enter var(--motion-duration-short) var(--motion-easing-enter);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open] {
+    animation: none;
+  }
+}
+
+.header {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+.titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--base-size-6) var(--base-size-8);
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: var(--base-text-lineHeight-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: var(--base-size-16);
+  overflow: auto;
+}
+
+.footer {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--base-size-8);
+  padding: var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
+}

@@ -1,93 +1,58 @@
 .ring {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
+  color: var(--fgColor-muted);
 }
 
 .ring svg {
   transform: rotate(-90deg);
 }
 
-@media (hover: hover) {
-  .ring:hover {
-    background: var(--color-hover);
-  }
-}
-
 .ring[data-level='warning'] {
-  color: var(--color-accent);
+  color: var(--fgColor-attention);
 }
 
 .ring[data-level='danger'] {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .panel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  width: 300px;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
+  width: var(--overlay-width-small);
   font-variant-numeric: tabular-nums;
   cursor: default;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  padding: var(--base-size-12) var(--base-size-16) var(--base-size-16);
 }
 
 .line {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--base-size-12);
 }
 
 .label {
-  font-weight: var(--font-weight-medium);
+  color: var(--fgColor-muted);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
-}
-
-.bar {
-  height: 6px;
-  margin-top: calc(-1 * var(--space-0-5));
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  overflow: hidden;
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-text-secondary);
-}
-
-.bar[data-level='warning'] span {
-  background: var(--color-accent);
-}
-
-.bar[data-level='danger'] span {
-  background: var(--color-danger);
+  color: var(--fgColor-muted);
 }
 
 .parts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-0-5) var(--space-3);
-  margin-top: calc(-1 * var(--space-1));
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--base-size-2) var(--base-size-12);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .note {
-  margin: 0;
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  margin: var(--base-size-4) 0 0;
+  padding-top: var(--base-size-8);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }

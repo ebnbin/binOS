@@ -1,6 +1,9 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
-import { ArrowUpRight, MessageSquare, Search, UserRound } from 'lucide-react'
+import { AlertIcon, ArrowUpRightIcon, CommentIcon, PersonIcon, SearchIcon } from '@primer/octicons-react'
 import type { searchContent } from '../api.ts'
+import { Blankslate } from '../../../ui/Blankslate.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { CounterLabel } from '../../../ui/Label.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import styles from './SearchResults.module.css'
 
@@ -26,12 +29,8 @@ export function SearchResults({
 }) {
   if (failed)
     return (
-      <div className={styles.state} role="alert">
-        <span>搜索失败</span>
-        <p>未能加载结果，请重试。</p>
-        <button type="button" onClick={onRetry}>
-          重新搜索
-        </button>
+      <div role="alert">
+        <Blankslate size="narrow" icon={AlertIcon} heading="搜索失败" description="未能加载结果，请重试。" actions={<Button size="small" onClick={onRetry}>重新搜索</Button>} />
       </div>
     )
   if (!data)
@@ -43,10 +42,8 @@ export function SearchResults({
     )
   if (!data.results.length)
     return (
-      <div className={styles.state} role="status">
-        <Search size={24} strokeWidth={1.5} />
-        <span>没有找到相关内容</span>
-        <p>试试更短的关键词，或换个说法。</p>
+      <div role="status">
+        <Blankslate size="narrow" icon={SearchIcon} heading="没有找到相关内容" description="试试更短的关键词，或换个说法。" />
       </div>
     )
   const groups = new Map<number, Match[]>()
@@ -58,7 +55,7 @@ export function SearchResults({
   return (
     <div className={styles.results}>
       <div className={styles.summary} role="status">
-        <span>搜索结果</span>
+        <span className={styles.summaryTitle}>搜索结果</span>
         <span>{data.total} 处匹配</span>
       </div>
       {data.total > data.results.length && (
@@ -79,18 +76,19 @@ export function SearchResults({
                 {titleMatch ? <HighlightedTitle title={result.title} query={query} /> : result.title || '无标题对话'}
               </span>
               <span className={styles.count}>
-                {matches.length} 处匹配
-                <ArrowUpRight size={13} />
+                <CounterLabel>{matches.length}</CounterLabel>
+                处匹配
+                <ArrowUpRightIcon size={16} />
               </span>
             </button>
             {matches
               .filter((match) => match.kind !== 'title')
               .map((match) => {
-                const Icon = match.kind === 'input' ? UserRound : MessageSquare
+                const Icon = match.kind === 'input' ? PersonIcon : CommentIcon
                 return (
                   <button type="button" className={styles.match} key={match.item} onClick={() => onNavigate(`/${id}?item=${match.item}`)}>
                     <span className={styles.kind}>
-                      <Icon size={12} />
+                      <Icon size={16} />
                       {match.kind === 'input' ? '你' : '回复'}
                     </span>
                     <span className={styles.snippet}>

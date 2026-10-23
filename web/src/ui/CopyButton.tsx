@@ -1,11 +1,12 @@
-import { Check, Copy, CircleAlert } from 'lucide-react'
+import { AlertIcon, CheckIcon, CopyIcon } from '@primer/octicons-react'
 import { useEffect, useState } from 'react'
+import { IconButton } from './IconButton.tsx'
 import styles from './CopyButton.module.css'
 
+// Primer ClipboardCopy：复制后短暂显示绿色对勾
 export function CopyButton({ text, label = '复制' }: { text: string; label?: string }) {
   const [state, setState] = useState<'ready' | 'copied' | 'failed'>('ready')
-  const copied = state === 'copied'
-  const title = copied ? '已复制' : state === 'failed' ? '复制失败，点击重试' : label
+  const title = state === 'copied' ? '已复制' : state === 'failed' ? '复制失败，点击重试' : label
   useEffect(() => {
     if (state === 'ready') {
       return
@@ -14,11 +15,12 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
     return () => window.clearTimeout(timer)
   }, [state])
   return (
-    <button
-      type="button"
+    <IconButton
+      icon={state === 'copied' ? CheckIcon : state === 'failed' ? AlertIcon : CopyIcon}
+      label={title}
+      size="small"
       className={styles.button}
-      title={title}
-      aria-label={title}
+      data-state={state}
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text)
@@ -27,14 +29,6 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
           setState('failed')
         }
       }}
-    >
-      {copied ? (
-        <Check size={13} strokeWidth={2} />
-      ) : state === 'failed' ? (
-        <CircleAlert size={13} />
-      ) : (
-        <Copy size={13} strokeWidth={1.75} />
-      )}
-    </button>
+    />
   )
 }

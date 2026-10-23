@@ -1,0 +1,249 @@
+/* 构建页按 GitHub Actions 的运行列表排版：Subhead、设置和手动构建表单，下面是一个 Box，每次构建一行 */
+.page {
+  height: 100%;
+  overflow: auto;
+  padding: var(--base-size-24);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
+}
+
+.subhead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  margin-bottom: var(--base-size-16);
+  padding-bottom: var(--base-size-8);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.subhead h2 {
+  margin: 0;
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-normal);
+  line-height: var(--text-title-lineHeight-medium);
+}
+
+.subhead p {
+  margin: var(--base-size-4) 0 0;
+  color: var(--fgColor-muted);
+}
+
+.banner {
+  margin-bottom: var(--base-size-16);
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-12);
+  margin-bottom: var(--base-size-16);
+}
+
+.enqueue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--base-size-12);
+  margin-bottom: var(--base-size-24);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+}
+
+.field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--base-size-4);
+  min-width: 160px;
+}
+
+.field > span:first-child {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.toolbar {
+  display: flex;
+  margin-bottom: var(--base-size-12);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  color: var(--fgColor-muted);
+}
+
+.box {
+  overflow: hidden;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+}
+
+.run {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--base-size-12);
+  padding: var(--base-size-12) var(--base-size-16);
+}
+
+.run + .run {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.status {
+  display: flex;
+  flex: none;
+  margin-top: var(--base-size-2);
+  color: var(--fgColor-muted);
+}
+
+.status[data-status='success'] { color: var(--fgColor-success); }
+.status[data-status='failed'] { color: var(--fgColor-danger); }
+.status[data-status='running'],
+.status[data-status='queued'] { color: var(--fgColor-attention); }
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--base-size-4);
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+}
+
+.title strong {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-4) var(--base-size-8);
+  margin: 0;
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+.meta code {
+  padding: 0 var(--base-size-4);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-neutral-muted);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-small);
+}
+
+.error {
+  margin: 0;
+  color: var(--fgColor-danger);
+  font-size: var(--text-body-size-small);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.install {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+  margin-top: var(--base-size-4);
+}
+
+.install small {
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+}
+
+.artifacts {
+  margin: var(--base-size-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.artifacts a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-6);
+  padding: var(--base-size-2) 0;
+  font-size: var(--text-body-size-small);
+  overflow-wrap: anywhere;
+}
+
+.artifacts small {
+  color: var(--fgColor-muted);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--base-size-8);
+}
+
+/* 日志盖住整个构建页，和 Actions 的日志面板一样用凹陷底色和等宽字 */
+.log {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--bgColor-default);
+}
+
+.log header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8);
+  min-height: var(--base-size-48);
+  padding: var(--base-size-8) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+.log header strong {
+  flex: 1;
+  min-width: 0;
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.log header code {
+  font-size: var(--text-body-size-small);
+}
+
+.log pre {
+  flex: 1;
+  margin: 0;
+  padding: var(--base-size-16);
+  overflow: auto;
+  background: var(--bgColor-inset);
+  font-size: var(--text-codeBlock-size);
+  line-height: var(--text-codeBlock-lineHeight);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--base-size-16);
+  }
+
+  .run {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    justify-content: flex-start;
+    width: 100%;
+    padding-left: var(--base-size-28);
+  }
+}

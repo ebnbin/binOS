@@ -1,0 +1,26 @@
+/* Primer Tooltip：深色底、白字、12px，带 6px 圆角 */
+.tooltip {
+  z-index: var(--zIndex-popover);
+  max-width: var(--overlay-width-xsmall);
+  padding: var(--base-size-4) var(--base-size-8);
+  border-radius: var(--borderRadius-medium);
+  background: var(--tooltip-bgColor);
+  color: var(--tooltip-fgColor);
+  font: var(--text-body-shorthand-small);
+  line-height: var(--base-text-lineHeight-normal);
+  text-align: center;
+  overflow-wrap: break-word;
+  animation: appear var(--motion-duration-short) var(--motion-easing-enter);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    animation: none;
+  }
+}

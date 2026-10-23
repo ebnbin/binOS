@@ -1,279 +1,317 @@
 .app {
   container: files / inline-size;
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
-  position: relative;
-  font-size: var(--font-size-sm);
+  background: var(--bgColor-default);
 }
+
+/* 侧栏是 Primer NavList：分组标题、当前位置带左侧强调色竖条 */
 .sidebar {
-  width: 170px;
-  flex-shrink: 0;
-  padding: var(--space-5) var(--space-3);
-  background: var(--color-bg-subtle);
-  border-right: 1px solid var(--color-border);
+  flex: none;
+  width: 200px;
   overflow: auto;
+  border-right: var(--borderWidth-thin) solid var(--borderColor-default);
 }
-.caption {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-4) var(--space-3) var(--space-2);
-}
-.sidebar button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  width: 100%;
-  border-radius: var(--radius-item);
-  text-align: left;
-}
-.sidebar button:hover,
-.entry:hover {
-  background: var(--color-hover);
-}
-.sidebar .active {
-  background: var(--color-fill);
-}
+
 .main {
-  flex: 1;
-  min-width: 0;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-width: 0;
 }
+
 .toolbar {
   display: flex;
+  flex: none;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--base-size-4);
+  padding: var(--base-size-8) var(--base-size-12);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
 }
-.toolbar button {
-  display: flex;
-  padding: var(--space-1-5);
-  border-radius: var(--radius-control);
-}
-.app button:disabled,
-.dialog button:disabled {
-  opacity: var(--opacity-disabled);
-}
-.app input,
-.dialog input {
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  font: inherit;
-  padding: var(--space-1-5) var(--space-2);
-  min-width: 0;
-}
+
 .path {
   flex: 1;
   min-width: 0;
+  margin: 0 var(--base-size-4);
 }
-.path input {
-  width: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+
+.pathInput input {
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
 }
+
 .controls {
   display: flex;
-  align-items: center;
+  flex: none;
   flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-}
-.controls label {
-  display: flex;
   align-items: center;
-  gap: var(--space-1-5);
-  white-space: nowrap;
+  gap: var(--base-size-8) var(--base-size-12);
+  padding: var(--base-size-12) var(--base-size-16) var(--base-size-8);
 }
+
 .search {
   flex: 1;
-  min-width: 120px;
+  min-width: 140px;
 }
-.search input {
-  width: 100%;
-  border: 0;
-  background: transparent;
-}
+
 .actions {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
-  gap: var(--space-1-5);
-  padding: 0 var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-}
-.actions button,
-.actions a {
-  display: flex;
-  gap: var(--space-1);
   align-items: center;
-  border: 1px solid var(--color-border);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-control);
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: var(--font-size-xs);
+  gap: var(--base-size-8);
+  padding: 0 var(--base-size-16) var(--base-size-12);
 }
+
+.divider {
+  width: var(--borderWidth-thin);
+  height: var(--base-size-20);
+  background: var(--borderColor-default);
+}
+
+.error {
+  flex: none;
+  margin: 0 var(--base-size-16) var(--base-size-12);
+}
+
 .content {
   flex: 1;
-  overflow: auto;
   min-height: 0;
+  overflow: auto;
+  padding: 0 var(--base-size-16) var(--base-size-16);
 }
+
+/* 文件列表：GitHub 仓库文件浏览器的 Box，上面一行是路径 */
+.box {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+}
+
+.boxHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  min-height: var(--base-size-48);
+  padding: var(--base-size-8) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium) var(--borderRadius-medium) 0 0;
+  background: var(--bgColor-muted);
+}
+
+.breadcrumbs {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  font-size: var(--text-body-size-medium);
+}
+
+.breadcrumbs > span {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* 路径只用来显示所在位置，上级目录用左侧和工具栏的按钮去 */
+.breadcrumbs > span {
+  color: var(--fgColor-muted);
+}
+
+.breadcrumbs span > span {
+  padding: 0 var(--base-size-6);
+  color: var(--fgColor-muted);
+}
+
+.breadcrumbs strong {
+  font-weight: var(--base-text-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
 .columns,
 .entry {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) 150px 80px;
-  gap: var(--space-3);
+  gap: var(--base-size-16);
   align-items: center;
   width: 100%;
-  padding: var(--space-2) var(--space-5);
+  padding: var(--base-size-8) var(--base-size-16);
   text-align: left;
 }
+
 .columns {
   position: sticky;
   top: 0;
-  background: var(--color-surface);
-  color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--font-size-2xs);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+  background: var(--bgColor-default);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
 }
+
+.columns > span:not(:first-child),
+.list .meta {
+  text-align: right;
+}
+
+.list .entry + .entry {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.list .entry:last-child {
+  border-radius: 0 0 var(--borderRadius-medium) var(--borderRadius-medium);
+}
+
+.entry {
+  font-size: var(--text-body-size-medium);
+  transition: background-color var(--motion-transition-hover);
+}
+
+.entry:disabled {
+  cursor: not-allowed;
+}
+
 .name {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
   min-width: 0;
 }
-.name span {
+
+.name > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .name svg {
-  flex-shrink: 0;
+  flex: none;
 }
+
 .folder {
-  color: var(--color-info);
-  fill: color-mix(in srgb, var(--color-info) 18%, transparent);
+  color: var(--treeViewItem-leadingVisual-iconColor-rest);
 }
+
+.file {
+  color: var(--fgColor-muted);
+}
+
 .meta {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  white-space: nowrap;
 }
-.entry.selected {
-  background: color-mix(in srgb, var(--color-info) 18%, var(--color-surface));
+
+@media (hover: hover) {
+  .entry:hover:not(:disabled) {
+    background: var(--bgColor-muted);
+  }
+
+  .entry:hover:not(:disabled) .name > span {
+    color: var(--fgColor-accent);
+    text-decoration: underline;
+  }
 }
+
+.entry.selected,
+.entry.selected:hover {
+  background: var(--bgColor-accent-muted);
+}
+
+/* 图标视图：带边框的方块 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  padding: var(--space-5);
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--base-size-8);
+  padding: var(--base-size-12);
 }
+
 .grid .entry {
   display: flex;
-  padding: var(--space-3) var(--space-1-5);
   justify-content: center;
-  border-radius: var(--radius-item);
+  padding: var(--base-size-16) var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  border-radius: var(--borderRadius-medium);
 }
+
+.grid .entry.selected {
+  border-color: var(--borderColor-accent-emphasis);
+}
+
 .grid .name {
   flex-direction: column;
   width: 100%;
 }
-.grid .name span {
+
+.grid .name > span {
   max-width: 100%;
+  font-size: var(--text-body-size-small);
 }
-.empty {
-  color: var(--color-text-tertiary);
-  padding: var(--space-10);
-  text-align: center;
-}
+
 .status {
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
   display: flex;
-  gap: var(--space-5);
+  flex: none;
+  gap: var(--base-size-16);
+  padding: var(--base-size-8) var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
+
 .status span {
   margin-left: auto;
   overflow: hidden;
-  white-space: nowrap;
+  font-family: var(--fontStack-monospace);
   text-overflow: ellipsis;
-}
-.error {
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
-}
-.modal {
-  width: min(388px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-overlay);
-  color: var(--color-text);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  font: inherit;
+  white-space: nowrap;
 }
 
-.modal::backdrop {
-  background: var(--color-scrim);
-}
-
-.dialog {
+.dialogForm {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  width: 100%;
+  min-height: 0;
 }
-.dialog p {
+
+.dialogText {
   margin: 0;
-  color: var(--color-text-secondary);
+  color: var(--fgColor-muted);
 }
-.dialog > div {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: flex-end;
-}
-.dialog button {
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-}
+
 @container files (width < 650px) {
   .sidebar {
-    width: 120px;
-    padding: var(--space-2) var(--space-1);
+    width: 160px;
   }
+
   .columns,
   .entry {
-    grid-template-columns: minmax(100px, 1fr) 65px;
-    padding: var(--space-2) var(--space-3);
+    grid-template-columns: minmax(100px, 1fr) 72px;
+    padding: var(--base-size-8) var(--base-size-12);
   }
+
   .columns > span:nth-child(2),
   .entry > .meta:nth-child(2) {
     display: none;
   }
-  .controls {
-    gap: var(--space-1-5);
-  }
+
   .status span {
     display: none;
   }
 }
-@container files (width < 400px) {
+
+@container files (width < 480px) {
   .sidebar {
     display: none;
+  }
+
+  .content {
+    padding: 0 var(--base-size-12) var(--base-size-12);
+  }
+
+  .controls,
+  .actions {
+    padding-inline: var(--base-size-12);
   }
 }

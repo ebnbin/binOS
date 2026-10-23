@@ -1,4 +1,4 @@
-/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
+/* 最长的窗口（最外圈）是强调色，其余是成功色，快满了是危险色，和 ProgressBar 的色调一致 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-success);
+  --window: var(--progressBar-bgColor-success);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--progressBar-bgColor-accent);
 }
 
 .ring g {
@@ -19,36 +19,28 @@
 }
 
 .ring [data-full] {
-  color: var(--color-danger);
+  color: var(--progressBar-bgColor-danger);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
+  gap: var(--base-size-16);
+  font-size: var(--text-body-size-small);
   font-variant-numeric: tabular-nums;
-}
-
-.limited {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--base-size-6);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  gap: var(--base-size-8);
+  font-size: var(--text-body-size-small);
 }
 
 .windowLine > :last-child {
@@ -58,51 +50,43 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  gap: var(--base-size-6);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.percent {
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .swatch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: var(--base-size-8);
+  height: var(--base-size-8);
+  border-radius: var(--borderRadius-full);
   background: var(--window);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
 }
 
 .danger {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-}
-
-.bar span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: inherit;
-  background: var(--window);
-}
-
-.bar[data-full] span {
-  background: var(--color-danger);
+  display: flex;
+  flex-direction: column;
 }
 
 /* 匀速线 */
 .bar i {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
-  margin-left: -1px;
-  border-radius: var(--radius-full);
-  background: var(--color-text-secondary);
+  top: calc(-1 * var(--base-size-4));
+  bottom: calc(-1 * var(--base-size-4));
+  width: var(--borderWidth-thick);
+  margin-left: calc(-1 * var(--borderWidth-thin));
+  border-radius: var(--borderRadius-full);
+  background: var(--fgColor-default);
 }

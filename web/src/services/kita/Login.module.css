@@ -1,120 +1,132 @@
+/* 重新登录：Primer Box。标题栏、按步骤编号的正文、底部右对齐的按钮 */
 .flow {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  font-size: var(--font-size-sm);
+  overflow: hidden;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-default);
+  color: var(--fgColor-default);
+  font-size: var(--text-body-size-medium);
   text-align: left;
 }
 
 .title {
-  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  padding: var(--base-size-12) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  padding: var(--base-size-16);
 }
 
 .waiting {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--base-size-8);
   margin: 0;
-  color: var(--color-text-tertiary);
+  color: var(--fgColor-muted);
+}
+
+.waiting > svg {
+  color: var(--fgColor-accent);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--base-size-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+/* 每一步前面是圆形的序号 */
+.step {
+  display: grid;
+  grid-template-columns: var(--base-size-24) 1fr;
+  gap: var(--base-size-8) var(--base-size-12);
+  counter-increment: step;
+}
+
+.step::before {
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: var(--base-size-24);
+  height: var(--base-size-24);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  min-width: 0;
+  padding-top: var(--base-size-2);
+}
+
+.stepTitle {
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .link {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  color: var(--color-text);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  gap: var(--base-size-4);
+  color: var(--fgColor-accent);
 }
 
-.codeLabel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1-5);
-  color: var(--color-text-secondary);
+.code {
+  font-family: var(--fontStack-monospace);
 }
 
-.codeLabel input {
-  height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-sm);
-}
-
-.codeLabel input:focus {
-  border-color: var(--color-text-secondary);
+/* 一次性的码：等宽大字，旁边是复制按钮 */
+.deviceCode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-4) var(--base-size-4) var(--base-size-4) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background: var(--bgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-title-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  user-select: all;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--space-2);
-}
-
-.primary,
-.secondary {
-  display: grid;
-  place-items: center;
-  min-width: 64px;
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border-radius: var(--radius-full);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.primary {
-  border: 0;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-
-.secondary {
-  border: 1px solid var(--color-border);
-  background: none;
-  color: var(--color-text-secondary);
+  gap: var(--base-size-8);
+  padding: var(--base-size-12) var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
 }
 
 .done {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
   margin: 0;
-  color: var(--color-success);
 }
 
-.error {
-  margin: 0;
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
-}
-
-.deviceCode {
-  align-self: flex-start;
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-wide);
-  user-select: all;
+.done > svg {
+  flex: none;
+  color: var(--fgColor-success);
 }

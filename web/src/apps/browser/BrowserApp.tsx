@@ -1,8 +1,17 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from 'lucide-react'
+import { ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon, GlobeIcon, HomeIcon, InfoIcon, SyncIcon, UnlockIcon } from '@primer/octicons-react'
 import { useEffect, useRef, useState } from 'react'
+import { Alert } from '../../ui/Alert.tsx'
+import { Blankslate } from '../../ui/Blankslate.tsx'
+import { Button } from '../../ui/Button.tsx'
+import button from '../../ui/Button.module.css'
+import { buttonProps } from '../../ui/button-props.ts'
 import { IconButton } from '../../ui/IconButton.tsx'
+import { SegmentedControl } from '../../ui/SegmentedControl.tsx'
+import { TextInput } from '../../ui/TextInput.tsx'
+import { Tooltip } from '../../ui/Tooltip.tsx'
 import type { WindowContext } from '../types.ts'
 import { addressRoute, browserAddress, isLoopback, routeAddress } from './address.ts'
+import { addressIcon } from './address-icon.ts'
 import { RemoteBrowser } from './RemoteBrowser.tsx'
 import styles from './BrowserApp.module.css'
 
@@ -50,10 +59,10 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
     <div className={styles.app}>
       <div className={styles.toolbar}>
         <div className={styles.navigation}>
-          <IconButton icon={ArrowLeft} label="上一个输入的网址" disabled={history.index === 0} onClick={() => move(-1)} />
-          <IconButton icon={ArrowRight} label="下一个输入的网址" disabled={history.index === history.entries.length - 1} onClick={() => move(1)} />
-          <IconButton icon={RotateCw} label="重新打开输入的网址" disabled={!url} onClick={() => setRevision((value) => value + 1)} />
-          <IconButton icon={House} label="浏览器首页" onClick={() => visit('')} />
+          <IconButton icon={ArrowLeftIcon} label="上一个输入的网址" disabled={history.index === 0} onClick={() => move(-1)} />
+          <IconButton icon={ArrowRightIcon} label="下一个输入的网址" disabled={history.index === history.entries.length - 1} onClick={() => move(1)} />
+          <IconButton icon={SyncIcon} label="重新打开输入的网址" disabled={!url} onClick={() => setRevision((value) => value + 1)} />
+          <IconButton icon={HomeIcon} label="浏览器首页" onClick={() => visit('')} />
         </div>
         <form className={styles.address} onSubmit={(event) => {
           event.preventDefault()
@@ -65,7 +74,9 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
             setError(reason instanceof Error ? reason.message : '网址格式不正确')
           }
         }}>
-          <input
+          <TextInput
+            block
+            leadingVisual={addressIcon(url)}
             aria-label="网址"
             placeholder="输入网址"
             value={address}
@@ -77,21 +88,26 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
             autoCorrect="off"
             spellCheck={false}
           />
-          <button type="submit">前往</button>
+          <Button type="submit">前往</Button>
         </form>
-        {url && <a className={styles.external} href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址" title="在新标签页打开输入的网址"><ArrowUpRight size={19} /></a>}
+        {url && (
+          <Tooltip text="在新标签页打开输入的网址">
+            <a {...buttonProps({ variant: 'invisible' }, styles.external)} data-icon-only="" href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址">
+              <span className={button.visual}><ArrowUpRightIcon size={16} /></span>
+            </a>
+          </Tooltip>
+        )}
       </div>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {error && <Alert className={styles.error}>{error}</Alert>}
       {insecure ? (
         <div className={styles.home}>
-          <Globe size={44} strokeWidth={1.25} />
-          <h1>无法嵌入 HTTP 网页</h1>
-          <p>浏览器会拦截 HTTPS 页面中嵌入的 HTTP 网页。请切换到远程模式，或在新标签页打开。</p>
+          <Blankslate icon={UnlockIcon} heading="无法嵌入 HTTP 网页" description="浏览器会拦截 HTTPS 页面中嵌入的 HTTP 网页。请切换到远程模式，或在新标签页打开。" />
         </div>
       ) : url ? (
         <>
           <div className={styles.notice}>
-            地址栏和前后退仅记录输入的网址，网页内跳转不会同步。若网站拒绝嵌入或无法登录，可在新标签页打开。
+            <InfoIcon size={16} />
+            <span>地址栏和前后退仅记录输入的网址，网页内跳转不会同步。若网站拒绝嵌入或无法登录，可在新标签页打开。</span>
           </div>
           <iframe
             key={`${url}:${revision}`}
@@ -105,10 +121,14 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
         </>
       ) : (
         <div className={styles.home}>
-          <Globe size={44} strokeWidth={1.25} />
-          <h1>浏览器</h1>
-          <p>在上方输入网址，直接在 binOS 中浏览网页。</p>
-          <p>省略协议时使用 HTTPS，本机地址使用 HTTP。嵌入模式只能加载 HTTPS 和本机网址，部分网站也不允许嵌入，可切换到远程模式或在新标签页打开。</p>
+          <Blankslate
+            icon={GlobeIcon}
+            heading="浏览器"
+            description={<>
+              <span className={styles.lead}>在上方输入网址，直接在 binOS 中浏览网页。</span>
+              <span className={styles.hint}>省略协议时使用 HTTPS，本机地址使用 HTTP。嵌入模式只能加载 HTTPS 和本机网址，部分网站也不允许嵌入，可切换到远程模式或在新标签页打开。</span>
+            </>}
+          />
         </div>
       )}
     </div>
@@ -119,9 +139,14 @@ export function BrowserApp({ ctx }: { ctx: WindowContext }) {
   const [remote, setRemote] = useState(false)
   const remoteSession = useRef<string | undefined>(undefined)
   return <div className={styles.app}>
-    <div className={styles.modeBar} role="group" aria-label="浏览模式">
-      <button type="button" aria-pressed={!remote} onClick={() => setRemote(false)}>嵌入模式</button>
-      <button type="button" aria-pressed={remote} onClick={() => setRemote(true)}>远程模式</button>
+    <div className={styles.modeBar}>
+      <SegmentedControl
+        label="浏览模式"
+        size="small"
+        value={remote ? 'remote' : 'embed'}
+        onChange={(mode) => setRemote(mode === 'remote')}
+        segments={[{ value: 'embed', label: '嵌入模式' }, { value: 'remote', label: '远程模式' }]}
+      />
     </div>
     <div className={styles.modeContent}>
       {remote ? <RemoteBrowser ctx={ctx} session={remoteSession} /> : <IframeBrowser ctx={ctx} />}

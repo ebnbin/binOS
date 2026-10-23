@@ -1,29 +1,46 @@
+/* 每个 agent 一个 Primer Box：标题行放名字、登录状态和版本，下面是键值行 */
 .page {
-  height: 100%;
-  overflow-y: auto;
-  font-size: var(--font-size-md);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--base-size-24);
+  font-size: var(--text-body-size-medium);
 }
 
 .bar {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-bg);
+  align-items: flex-start;
+  gap: var(--base-size-8);
+  margin-bottom: var(--base-size-16);
+  padding-bottom: var(--base-size-8);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
-.bar h1 {
+.titles {
   flex: 1;
+  min-width: 0;
+}
+
+.titles h2 {
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-normal);
+  line-height: var(--text-title-lineHeight-medium);
+}
+
+.titles p {
+  margin: var(--base-size-4) 0 0;
+  color: var(--fgColor-muted);
+}
+
+/* 宽屏时左侧导航已经能回到宿主页 */
+@container system (min-width: 768px) {
+  .back {
+    display: none;
+  }
 }
 
 .spinning svg {
-  animation: spin 1s linear infinite;
+  animation: spin var(--base-duration-1000) linear infinite;
 }
 
 @keyframes spin {
@@ -35,61 +52,66 @@
 .loading {
   display: flex;
   justify-content: center;
-  padding: var(--space-10);
-}
-
-.failed {
-  padding: var(--space-5);
-  color: var(--color-danger);
+  padding: var(--base-size-40);
 }
 
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-5);
+  overflow: hidden;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+}
+
+.section + .section {
+  margin-top: var(--base-size-16);
 }
 
 .header {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-12) var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  background: var(--bgColor-muted);
 }
 
-.header h2 {
+.header h3 {
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-}
-
-.status {
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
-}
-
-.status[data-ok='true'] {
-  color: var(--color-success);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .version {
   margin-left: auto;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  color: var(--fgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
 }
 
 .list {
-  margin: var(--space-1) 0 0;
+  margin: 0;
+}
+
+.row,
+.quotaWindows,
+.attention,
+.loginActions,
+.login {
+  padding: var(--base-size-12) var(--base-size-16);
+}
+
+.list > * + * {
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
 }
 
 .row {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+  gap: var(--base-size-16);
 }
 
 .row dt {
   flex-shrink: 0;
-  color: var(--color-text-secondary);
+  color: var(--fgColor-muted);
 }
 
 .row dd {
@@ -103,60 +125,31 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: var(--space-0-5);
+  gap: var(--base-size-2);
 }
 
 [data-expired='true'] {
-  color: var(--color-danger);
+  color: var(--fgColor-danger);
 }
 
 .note {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small);
 }
 
 .mono {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.attention {
-  margin: var(--space-3) 0 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-}
-
-.attention[data-tone='bad'] {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-small);
 }
 
 .loginActions {
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-3) 0 var(--space-0-5);
+  flex-wrap: wrap;
+  gap: var(--base-size-8);
 }
 
-.loginActions button {
-  height: var(--size-control-md);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.login {
-  padding: var(--space-3) 0 var(--space-0-5);
-}
-
-.quotaWindows {
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--color-separator);
+@container system (max-width: 767px) {
+  .page {
+    padding: var(--base-size-16);
+  }
 }

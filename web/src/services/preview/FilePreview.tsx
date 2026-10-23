@@ -1,11 +1,16 @@
-import { Download, File, Info, X } from 'lucide-react'
+import { DownloadIcon, FileIcon, InfoIcon, XIcon } from '@primer/octicons-react'
 import { useEffect, useState } from 'react'
 import { ModalHost } from '../../shell/hosts/ModalHost.tsx'
+import { Blankslate } from '../../ui/Blankslate.tsx'
+import { LinkButton } from '../../ui/Button.tsx'
 import { CodeBlock } from '../../ui/content/CodeBlock.tsx'
 import { Markdown } from '../../ui/content/Markdown.tsx'
 import { languageOf } from '../../ui/content/highlight.ts'
-import styles from './FileBlock.module.css'
-
+import dialog from '../../ui/Dialog.module.css'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { SegmentedControl } from '../../ui/SegmentedControl.tsx'
+import { Spinner } from '../../ui/Spinner.tsx'
+import styles from './FilePreview.module.css'
 import { extension, kind } from './kind.ts'
 import type { PreviewFile } from './types.ts'
 type Metadata = { size: number; modified: string; type: string }
@@ -35,13 +40,13 @@ function Preview({ item, type, source }: { item: PreviewFile; type: string; sour
     })()
     return () => controller.abort()
   }, [url, type])
-  if (error) return <div className={styles.status}>{error}</div>
+  if (error) return <Blankslate icon={FileIcon} heading="无法预览" description={error} />
   if (type === 'image') return <img className={styles.image} src={url} alt={item.name} onError={() => setError('此图片无法预览，请下载查看')} />
   if (type === 'video') return <video className={styles.media} controls src={url} onError={() => setError('此视频无法在浏览器中播放，请下载查看')} />
   if (type === 'audio') return <audio className={styles.media} controls src={url} onError={() => setError('此音频无法在浏览器中播放，请下载查看')} />
   if (type === 'pdf') return <iframe className={styles.document} title={item.name} src={url} />
-  if (type === 'binary') return <div className={styles.status}><File size={48} strokeWidth={1} /><strong>{item.name}</strong><span>此文件暂不支持预览</span><span>可以下载原文件或查看文件信息</span></div>
-  if (text === undefined) return <div className={styles.status}>加载中…</div>
+  if (type === 'binary') return <Blankslate icon={FileIcon} heading="此文件暂不支持预览" description="可以下载原文件或查看文件信息" />
+  if (text === undefined) return <div className={styles.loading}><Spinner size="medium" /></div>
   if (type === 'html' && !source) return <iframe className={styles.document} title={item.name} sandbox="allow-scripts" srcDoc={text} />
   if (type === 'markdown' && !source) return <div className={styles.prose}><Markdown text={text} /></div>
   return <div className={styles.code}><CodeBlock code={text} lang={languageOf(item.name)} startLine={1} label={item.name} /></div>
@@ -66,26 +71,38 @@ function PreviewDialog({ item, close }: { item: PreviewFile; close: () => void }
     return () => controller.abort()
   }, [item.infoUrl])
   return (
-    <ModalHost className={styles.dialog} onClose={close} label={item.name}>
-      <div className={styles.window}>
-        <header className={styles.toolbar}>
-          <File size={18} /><strong className={styles.title}>{item.name}</strong>
-          {['markdown', 'html'].includes(type) && <button type="button" onClick={() => setSource(!source)}>{source ? '预览' : '源码'}</button>}
-          <a href={item.downloadUrl ?? item.url} download={item.name} title="下载"><Download size={17} /><span>下载</span></a>
-          <button type="button" onClick={() => setInfo(!info)} aria-label="文件信息" aria-pressed={info}><Info size={17} /></button>
-          <button type="button" onClick={close} aria-label="关闭预览" autoFocus><X size={19} /></button>
-        </header>
-        <div className={styles.body}>
-          <main className={styles.preview}><Preview item={item} type={type} source={source} /></main>
-          {info && <aside className={styles.info}><h3>文件信息</h3><dl>
-            <dt>名称</dt><dd>{item.name}</dd>
-            <dt>类型</dt><dd>{extension(item.name).toUpperCase() || '文件'}{metadata && <small>{metadata.type}</small>}</dd>
-            <dt>大小</dt><dd>{metadata ? `${sizeLabel(metadata.size)}（${metadata.size.toLocaleString()} 字节）` : !item.infoUrl ? '—' : error ? '读取失败' : '加载中…'}</dd>
-            <dt>修改时间</dt><dd>{metadata ? new Date(metadata.modified).toLocaleString() : '—'}</dd>
-            <dt>来源</dt><dd>{item.source ?? '—'}</dd>
-            {item.path && <><dt>原始路径</dt><dd>{item.path}</dd></>}
-          </dl></aside>}
+    <ModalHost className={`${dialog.dialog} ${styles.dialog}`} onClose={close} label={item.name}>
+      <header className={dialog.header}>
+        <span className={styles.fileIcon}><FileIcon size={16} /></span>
+        <div className={dialog.titles}>
+          <h2 className={dialog.title}>{item.name}</h2>
+          {item.source && <p className={dialog.subtitle}>{item.source}</p>}
         </div>
+        <div className={styles.actions}>
+          {['markdown', 'html'].includes(type) && (
+            <SegmentedControl
+              label="显示方式"
+              size="small"
+              value={source ? 'source' : 'preview'}
+              onChange={(value) => setSource(value === 'source')}
+              segments={[{ value: 'preview', label: '预览' }, { value: 'source', label: '源码' }]}
+            />
+          )}
+          <LinkButton href={item.downloadUrl ?? item.url} download={item.name} size="small" leadingVisual={DownloadIcon} className={styles.download}>下载</LinkButton>
+          <IconButton icon={InfoIcon} label="文件信息" aria-pressed={info} onClick={() => setInfo(!info)} />
+          <IconButton icon={XIcon} label="关闭预览" onClick={close} autoFocus />
+        </div>
+      </header>
+      <div className={styles.body}>
+        <main className={styles.preview}><Preview item={item} type={type} source={source} /></main>
+        {info && <aside className={styles.info}><h3>文件信息</h3><dl>
+          <dt>名称</dt><dd>{item.name}</dd>
+          <dt>类型</dt><dd>{extension(item.name).toUpperCase() || '文件'}{metadata && <small>{metadata.type}</small>}</dd>
+          <dt>大小</dt><dd>{metadata ? `${sizeLabel(metadata.size)}（${metadata.size.toLocaleString()} 字节）` : !item.infoUrl ? '—' : error ? '读取失败' : '加载中…'}</dd>
+          <dt>修改时间</dt><dd>{metadata ? new Date(metadata.modified).toLocaleString() : '—'}</dd>
+          <dt>来源</dt><dd>{item.source ?? '—'}</dd>
+          {item.path && <><dt>原始路径</dt><dd>{item.path}</dd></>}
+        </dl></aside>}
       </div>
     </ModalHost>
   )
