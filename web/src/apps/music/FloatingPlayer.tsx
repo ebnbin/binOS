@@ -1,6 +1,7 @@
-import { Disc3, GripHorizontal, Minus, Music2, Square } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { PointerEvent } from 'react'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { GripHorizontal, Minus, MusicNote, Stop } from '../../ui/icons.tsx'
 import { useElementSize } from '../../ui/useElementSize.ts'
 import { Transport } from './Controls.tsx'
 import { floatingBounds, floatingOffset, moveFloating, restorePosition } from './floatingPosition.ts'
@@ -24,7 +25,7 @@ export function MusicStatusButton({ collapsed, onToggle }: { collapsed: boolean;
   if (!track || state.status === 'idle') return null
   return (
     <button type="button" className={styles.statusButton} aria-label={collapsed ? '显示音乐播放器' : '收起音乐播放器'} aria-expanded={!collapsed} title={`${track.title} · ${labels[state.status]}`} onClick={onToggle}>
-      <Music2 size={21} strokeWidth={1.75} />
+      <MusicNote />
       {(state.status === 'playing' || state.status === 'loading') && <span className={styles.playingDot} />}
     </button>
   )
@@ -73,13 +74,13 @@ function PlayerPanel({ screen, onCollapse, onOpen, locked }: { screen: Dimension
             update(next)
             savePosition(next)
           }}
-        ><GripHorizontal size={15} /><span>{labels[state.status]}</span></button>
-        <button type="button" className={styles.iconButton} aria-label="停止播放" title="停止播放" onClick={() => music.stop()}><Square size={13} /></button>
-        <button type="button" className={styles.iconButton} aria-label="收起音乐播放器" title="收起，音乐继续播放" onClick={onCollapse}><Minus size={16} /></button>
+        ><GripHorizontal size="S" /><span>{labels[state.status]}</span></button>
+        <IconButton icon={Stop} label="停止播放" size="S" onClick={() => music.stop()} />
+        <IconButton icon={Minus} label="收起音乐播放器" title="收起，音乐继续播放" size="S" onClick={onCollapse} />
       </header>
       <button type="button" className={styles.info} aria-label="打开音乐 App" onClick={onOpen}>
-        <span className={styles.artwork}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <Disc3 size={28} strokeWidth={1.5} />}</span>
-        <span className={styles.text}><strong>{track.title}</strong><span>{track.artists.join(' / ') || '未知艺人'}</span></span>
+        <span className={styles.artwork}>{track.artworkUrl ? <img src={track.artworkUrl} alt="" referrerPolicy="no-referrer" /> : <MusicNote />}</span>
+        <span className={styles.text}><span className={styles.title}>{track.title}</span><span className={styles.artists}>{track.artists.join(' / ') || '未知艺人'}</span></span>
       </button>
       {state.error && <p className={styles.error} role="alert">{state.error}</p>}
       <div className={styles.transport}><Transport compact /></div>

@@ -1,0 +1,172 @@
+/* Spectrum 2 的输入框（field group）：2px 边框，默认 gray-300，悬停 gray-400，聚焦时 gray-900；底色是 base 层。
+   用法：<input className={field.textField}>，或者带图标、按钮时把 .group 套在外层、里面的 input 用 .groupInput */
+.textField,
+.group {
+  --height: var(--component-height-100);
+  --border: var(--field-border-color);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-width: var(--height);
+  height: var(--height);
+  padding: 0 calc(var(--height) * 3 / 8);
+  border: var(--border-width-200) solid var(--border);
+  border-radius: var(--corner-radius-medium);
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  cursor: text;
+  transition-property: color, border-color;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.textField {
+  width: 100%;
+  outline-offset: var(--focus-indicator-gap);
+}
+
+.textField[data-size='S'],
+.group[data-size='S'] {
+  --height: var(--component-height-75);
+  border-radius: var(--corner-radius-medium-size-small);
+  font-size: var(--font-size-75);
+}
+
+.textField[data-size='L'],
+.group[data-size='L'] {
+  --height: var(--component-height-200);
+  border-radius: var(--corner-radius-medium-size-large);
+  font-size: var(--font-size-200);
+}
+
+@media (hover: hover) {
+  .textField:hover:not(:disabled, :focus),
+  .group:hover:not(:has(:disabled), :focus-within) {
+    --border: var(--field-border-color-hover);
+  }
+}
+
+.textField:focus,
+.group:focus-within {
+  --border: var(--field-border-color-focus);
+  outline: none;
+}
+
+.textField:focus-visible,
+.group:has(:focus-visible) {
+  outline: var(--focus-indicator-thickness) solid var(--focus-indicator-color);
+  outline-offset: var(--focus-indicator-gap);
+}
+
+.textField[aria-invalid='true'],
+.group:has([aria-invalid='true']) {
+  --border: var(--negative-border-color-default);
+}
+
+.textField:disabled,
+.group:has(:disabled) {
+  --border: var(--disabled-border-color);
+  color: var(--disabled-content-color);
+  cursor: default;
+}
+
+.textField::placeholder,
+.groupInput::placeholder {
+  color: var(--gray-600);
+  opacity: 1;
+}
+
+.groupInput {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-overflow: ellipsis;
+}
+
+.groupInput::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+/* 前缀图标：gray-600，和文字隔 6px */
+.prefix {
+  flex: none;
+  margin-inline: -2px var(--spacing-85);
+  color: var(--gray-600);
+}
+
+/* search field：胶囊形，左边是搜索图标，右边是圆形的清除按钮 */
+.search {
+  padding-inline: calc(var(--height) / 2) 0;
+  border-radius: var(--corner-radius-full);
+}
+
+.search .prefix {
+  color: inherit;
+}
+
+.clear {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--height);
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-radius-full);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.clear:focus-visible {
+  outline-offset: -4px;
+}
+
+.clear svg {
+  width: calc(var(--ui-icon-size) * 0.8);
+  height: calc(var(--ui-icon-size) * 0.8);
+}
+
+/* text area：高度随内容增长，上下留出和单行输入框一样的位置 */
+.textArea {
+  display: block;
+  width: 100%;
+  min-height: var(--component-height-100);
+  height: auto;
+  padding: 7px calc(var(--component-height-100) * 3 / 8);
+  resize: none;
+  line-height: var(--line-height-ui);
+}
+
+.label {
+  display: block;
+  padding-bottom: var(--spacing-85);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  cursor: default;
+}
+
+.helpText {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-85);
+  padding-top: var(--spacing-85);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
+}
+
+.errorText {
+  composes: helpText;
+  color: var(--negative-content-color-default);
+}

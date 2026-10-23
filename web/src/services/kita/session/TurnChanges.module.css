@@ -1,57 +1,73 @@
+/* 这一轮改过的文件：Spectrum 2 的 list view，1px gray-300 边框、圆角 8，行之间 1px 分隔线 */
 .card {
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  border: var(--border-width-100) solid var(--border-color);
+  border-radius: var(--corner-radius-medium);
+  background: var(--background-base-color);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-85);
+  min-height: var(--component-height-200);
+  padding: 0 var(--spacing-300);
+  border-bottom: var(--border-width-100) solid var(--border-color);
+  background: var(--gray-75);
+  color: var(--neutral-content-color-default);
+}
+
+.title {
+  font-weight: var(--emphasized-font-weight);
 }
 
 .files {
   margin: 0;
-  padding: var(--space-1);
+  padding: 0;
   list-style: none;
 }
 
+.files > li + li {
+  border-top: var(--border-width-100) solid var(--border-color);
+}
+
 .row {
+  --row-bg: transparent;
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--spacing-85);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0 var(--space-2);
+  min-height: var(--component-height-200);
+  padding: var(--spacing-100) var(--spacing-300);
   border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  text-align: left;
+  background: var(--row-bg);
+  color: var(--neutral-subdued-content-color-default);
+  text-align: start;
   cursor: pointer;
+  transition-property: color, background-color;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
 }
 
 @media (hover: hover) {
   .row:hover {
-    background: var(--color-hover);
+    --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 7%);
+    color: var(--neutral-content-color-default);
   }
 }
 
-.chevron {
-  flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+.row:active {
+  --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 10%);
 }
 
-[data-open] > .row .chevron {
-  transform: rotate(90deg);
+.chevron {
+  color: var(--neutral-content-color-default);
 }
 
 .name {
@@ -60,8 +76,7 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  color: var(--neutral-content-color-default);
 }
 
 .dir {
@@ -70,41 +85,31 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.kind {
-  flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
 }
 
 .counts {
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--spacing-85);
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-75);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  color: var(--color-success);
+  color: var(--positive-content-color-default);
 }
 
 .removed {
-  color: var(--color-danger);
+  color: var(--negative-content-color-default);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  gap: var(--spacing-100);
+  padding: 0 var(--spacing-300) var(--spacing-300) calc(var(--spacing-300) + var(--ui-icon-size) + var(--spacing-85));
 }

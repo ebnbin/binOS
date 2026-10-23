@@ -1,0 +1,50 @@
+.light {
+  --dot: calc(var(--component-height-100) * 10 / 32);
+  --visual: var(--neutral-visual-color);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  min-width: 0;
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+}
+
+.light[data-size='S'] {
+  --dot: calc(var(--component-height-100) / 4);
+  gap: 5px;
+  font-size: var(--font-size-75);
+}
+
+.light::before {
+  content: '';
+  flex: none;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: var(--corner-radius-full);
+  background: var(--visual);
+}
+
+.light[data-variant='neutral'] {
+  color: var(--detail-color);
+}
+
+.light[data-variant='informative'] {
+  --visual: var(--informative-visual-color);
+}
+
+.light[data-variant='positive'] {
+  --visual: var(--positive-visual-color);
+}
+
+.light[data-variant='notice'] {
+  --visual: var(--notice-visual-color);
+}
+
+.light[data-variant='negative'] {
+  --visual: var(--negative-visual-color);
+}
+
+.light[data-variant='purple'] {
+  --visual: var(--purple-visual-color);
+}

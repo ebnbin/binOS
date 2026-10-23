@@ -1,0 +1,96 @@
+/* Spectrum 2 的对话框，用在 <dialog> 上：layer-2 底色，圆角 16，没有阴影，遮罩是 44% 的黑色；
+   标题 22px，内容是 16px 的正文，四周留 32，按钮组靠右 */
+.dialog {
+  box-sizing: border-box;
+  width: min(480px, 90vw);
+  max-width: 90vw;
+  max-height: 90%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-radius-dialog);
+  outline: var(--border-width-100) solid transparent;
+  background: var(--background-layer-2-color);
+  color: var(--body-color);
+  font-size: var(--font-size-200);
+  line-height: var(--line-height-body);
+}
+
+.dialog[open] {
+  animation: enter var(--animation-duration-500) var(--animation-ease-in-out) var(--animation-duration-200) backwards;
+}
+
+.dialog::backdrop {
+  background: var(--transparent-black-500);
+  animation: fade var(--animation-duration-500) var(--animation-ease-in-out);
+}
+
+.dialog[data-size='S'] {
+  width: min(400px, 90vw);
+}
+
+.dialog[data-size='L'] {
+  width: min(640px, 90vw);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-200);
+  padding: var(--spacing-500) var(--spacing-500) var(--spacing-300);
+}
+
+.header:has(.close) {
+  padding-inline-end: var(--spacing-200);
+  padding-top: var(--spacing-200);
+}
+
+.header:has(.close) .heading {
+  margin-top: var(--spacing-350);
+}
+
+.heading {
+  flex: 1;
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-500);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.close {
+  flex: none;
+}
+
+.content {
+  padding: 0 var(--spacing-500);
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-200);
+  padding: var(--spacing-500);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--spacing-350);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog[open],
+  .dialog::backdrop {
+    animation: none;
+  }
+}

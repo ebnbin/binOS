@@ -1,47 +1,51 @@
+/* 搜索结果按对话分组，每组是一个带边框的 Spectrum 2 list view：第一行是对话，下面每行是一处匹配 */
 .results {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-1);
+  gap: var(--spacing-200);
+  padding: var(--spacing-100) var(--spacing-75);
 }
 
 .summary {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-1-5);
-  padding: 0 var(--space-1);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  gap: var(--spacing-85);
+  padding: 0 var(--spacing-75);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-weight: var(--detail-font-weight);
+  line-height: var(--line-height-100);
 }
 
 .group {
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+  composes: listView from '../../../ui/List.module.css';
 }
 
-.heading,
+.heading {
+  composes: row from '../../../ui/List.module.css';
+}
+
 .match {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1-5);
-  width: 100%;
-  padding: var(--space-3) var(--space-3);
-  text-align: left;
+  composes: row from '../../../ui/List.module.css';
 }
 
-.heading:focus-visible,
-.match:focus-visible {
-  outline-offset: -3px;
+.group .heading,
+.group .match {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-75);
+  width: 100%;
+  padding: var(--spacing-200);
+  cursor: pointer;
 }
 
 .context,
 .count,
 .kind {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-100);
 }
 
 .context {
@@ -53,9 +57,10 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-snug);
+  color: var(--title-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
   overflow-wrap: anywhere;
 }
 
@@ -63,11 +68,7 @@
 .kind {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-}
-
-.match {
-  border-top: 1px solid var(--color-separator);
+  gap: var(--spacing-75);
 }
 
 .snippet {
@@ -75,17 +76,18 @@
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
   overflow-wrap: anywhere;
 }
 
+/* 命中的文字：accent 的浅底，和 Spectrum 的选中高亮一致 */
 .results mark {
-  padding: 0 1px;
-  border-radius: var(--radius-xs);
-  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
-  color: var(--color-text);
+  padding: 0 var(--spacing-25);
+  border-radius: var(--corner-radius-small-size-small);
+  background: var(--accent-subtle-background-color-default);
+  color: var(--accent-content-color-default);
   font-weight: var(--font-weight-medium);
 }
 
@@ -93,49 +95,44 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-12) var(--space-4);
-  color: var(--color-text-secondary);
+  gap: var(--spacing-100);
+  padding: var(--spacing-700) var(--spacing-300);
   text-align: center;
-  font-size: var(--font-size-md);
 }
 
-.state svg {
-  color: var(--color-text-tertiary);
+.stateIcon {
+  color: var(--neutral-subdued-content-color-default);
+}
+
+.stateTitle {
+  color: var(--title-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
 
 .state p,
 .limit {
   margin: 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
+}
+
+.state p {
+  margin-bottom: var(--spacing-100);
 }
 
 .limit {
-  padding: 0 var(--space-1);
-}
-
-.state button {
-  padding: var(--space-1-5) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text);
-  background: var(--color-surface);
+  padding: 0 var(--spacing-75);
 }
 
 .loading {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-10) var(--space-3);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-@media (hover: hover) {
-  .heading:hover,
-  .match:hover {
-    background: var(--color-hover);
-  }
+  gap: var(--spacing-100);
+  padding: var(--spacing-600) var(--spacing-200);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
 }

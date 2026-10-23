@@ -1,8 +1,11 @@
-/* 一轮：用户的话和这一轮的回答。轮与轮之间间距大，轮里面紧凑 */
+/* 一轮：用户的话和这一轮的回答，正文按 Spectrum 2 的 body（16px）排。轮与轮之间间距大，轮里面紧凑 */
 .turn {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--spacing-200);
+  color: var(--body-color);
+  font-size: var(--font-size-200);
+  line-height: var(--line-height-body);
 }
 
 .user {
@@ -12,35 +15,36 @@
   align-self: flex-end;
   max-width: 100%;
   min-width: 0;
-  gap: var(--space-1);
+  gap: var(--spacing-75);
 }
 
+/* 用户的话：gray-100 的面，圆角 large */
 .userText {
   max-width: 100%;
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
+  padding: var(--spacing-200) var(--spacing-300);
+  border-radius: var(--corner-radius-large);
+  background: var(--gray-100);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .turn > .user:not(:first-child) {
-  margin-top: var(--space-1);
+  margin-top: var(--spacing-75);
 }
 
 .userMeta {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--size-control-xs);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-75);
+  min-height: var(--component-height-75);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast);
+  transition: opacity var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
 .user:hover .userMeta,
@@ -49,130 +53,128 @@
   pointer-events: auto;
 }
 
-@media (hover: none) {
+@media not ((hover: hover) and (pointer: fine)) {
   .userMeta {
     opacity: 1;
     pointer-events: auto;
   }
 }
 
-/* 收起的几步：一行「已工作 …」，后面一条细线，像一节的标题 */
+/* 收起的几步：一行 quiet 的 disclosure「已工作 …」，后面接一条 S 号的 divider */
 .worked {
   display: flex;
   flex-direction: column;
 }
 
 .workedRow {
+  --row-bg: transparent;
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
-  width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0;
+  gap: var(--spacing-85);
+  width: calc(100% + 2 * var(--spacing-100));
+  min-height: var(--component-height-100);
+  margin-inline: calc(-1 * var(--spacing-100));
+  padding: var(--spacing-75) var(--spacing-100);
   border: 0;
-  background: none;
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  text-align: left;
+  border-radius: var(--corner-radius-medium);
+  background: var(--row-bg);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  text-align: start;
   cursor: pointer;
+  transition-property: color, background-color;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
 }
 
 .workedRow::after {
   content: '';
   flex: 1;
-  height: 1px;
-  margin-left: var(--space-1-5);
-  background: var(--color-separator);
+  min-width: var(--spacing-300);
+  height: var(--border-width-100);
+  border-radius: var(--corner-radius-full);
+  background: var(--divider-color);
 }
 
-.workedRow > span {
+.workedRow:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+}
+
+@media (hover: hover) {
+  .workedRow:hover {
+    --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 7%);
+    color: var(--neutral-content-color-default);
+  }
+}
+
+.workedRow:active {
+  --row-bg: color-mix(in srgb, var(--background-base-color), var(--gray-900) 10%);
+}
+
+.workedChevron {
+  color: var(--neutral-content-color-default);
+}
+
+.workedText {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-@media (hover: hover) {
-  .workedRow:hover {
-    color: var(--color-text-secondary);
-  }
+.steps {
+  display: flex;
+  flex-direction: column;
 }
 
-.workedChevron {
-  flex: none;
-  transition: transform var(--duration-normal) var(--ease-standard);
-}
-
-.worked[data-open] .workedChevron {
-  transform: rotate(90deg);
-}
-
-.errors {
-  color: var(--color-danger);
-}
-
+/* 打断、压缩、停止：文字两边各一条 S 号的 divider */
 .divider {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-200);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-weight: var(--detail-font-weight);
+  line-height: var(--line-height-100);
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  height: 1px;
-  background: var(--color-separator);
-}
-
-.steps {
-  display: flex;
-  flex-direction: column;
-  padding-top: var(--space-1);
+  height: var(--border-width-100);
+  border-radius: var(--corner-radius-full);
+  background: var(--divider-color);
 }
 
 .time {
   align-self: center;
-  margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  margin-top: var(--spacing-100);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-weight: var(--detail-font-weight);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-75);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
 }
 
+/* 进行中：转圈加状态文字 */
 .status {
-  width: fit-content;
-  font-size: var(--font-size-md);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-100);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--color-text-tertiary) 35%, var(--color-text) 50%, var(--color-text-tertiary) 65%) 0 0 / 300% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 2.2s linear infinite;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .status {
-    animation: none;
-  }
 }

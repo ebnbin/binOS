@@ -1,5 +1,7 @@
-import { SquarePen } from 'lucide-react'
 import type { WidgetContext } from '../types.ts'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { New } from '../../ui/icons.tsx'
+import { StatusLight } from '../../ui/StatusLight.tsx'
 import styles from './CodeWidget.module.css'
 import { formatTime } from '../../ui/time.ts'
 import { useSessions } from './useSessions.ts'
@@ -14,19 +16,21 @@ export function CodeWidget({ size, open }: WidgetContext) {
     <div className={styles.widget}>
       <header className={styles.header}>
         <span className={styles.name}>Code</span>
-        {running > 0 && <span className={styles.running}>{running} 个进行中</span>}
-        <button
-          type="button"
+        {running > 0 && (
+          <StatusLight variant="informative" size="S">
+            {running} 个进行中
+          </StatusLight>
+        )}
+        <IconButton
+          icon={New}
+          size="S"
+          label="新对话"
           className={styles.new}
-          aria-label="新对话"
-          title="新对话"
           onClick={(event) => {
             event.stopPropagation()
             open('/new')
           }}
-        >
-          <SquarePen size={15} strokeWidth={1.75} />
-        </button>
+        />
       </header>
       {size === '2x2' ? (
         <div className={styles.summary}>

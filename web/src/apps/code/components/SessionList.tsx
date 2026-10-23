@@ -1,20 +1,25 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/kita/types'
+import { ActionButton } from '../../../ui/ActionButton.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { IconButton } from '../../../ui/IconButton.tsx'
+import { ProgressCircle } from '../../../ui/ProgressCircle.tsx'
+import { UiIcon } from '../../../ui/UiIcon.tsx'
 import {
-  ChevronRight,
-  CircleAlert,
-  CircleStop,
+  Add,
+  AlertTriangle,
+  Cancel,
   Clock,
-  Gauge,
+  DevicePhone,
   GitPullRequest,
-  Hourglass,
   Hammer,
-  Smartphone,
-  MoreHorizontal,
+  Hourglass,
+  More,
+  New,
   Search,
-  SquarePen,
-  X,
-} from 'lucide-react'
+  SpeedFast,
+} from '../../../ui/icons.tsx'
+import field from '../../../ui/Field.module.css'
 import { Select } from '../../../ui/Select.tsx'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
@@ -57,17 +62,18 @@ export function SessionList({
   return (
     <div className={styles.pane}>
       <header className={styles.brand}>
-        <span className={styles.wordmark}>Code</span>
+        <h1 className={styles.wordmark}>Code</h1>
         <Quota />
       </header>
       <AuthBanner />
-      <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
-        <SquarePen size={16} strokeWidth={1.75} />
-        新对话
-      </button>
-      <button type="button" className={styles.projectButton} disabled={saving} onClick={() => { setCreating(!creating); setConnecting(undefined); setMode('existing'); setName(''); setRepository(''); setError('') }}>
-        创建项目
-      </button>
+      <div className={styles.actions}>
+        <Button variant="accent" icon={New} className={styles.newButton} onClick={() => onNavigate('/new')}>
+          新对话
+        </Button>
+        <ActionButton quiet icon={Add} aria-expanded={creating} disabled={saving} onClick={() => { setCreating(!creating); setConnecting(undefined); setMode('existing'); setName(''); setRepository(''); setError('') }}>
+          创建项目
+        </ActionButton>
+      </div>
       {creating && (
         <form
           className={styles.projectForm}
@@ -89,6 +95,7 @@ export function SessionList({
           }}
         >
           <input
+            className={field.textField}
             autoFocus
             disabled={saving || !!connecting}
             aria-label="项目名称"
@@ -105,21 +112,23 @@ export function SessionList({
             options={[{ value: 'existing', label: '关联已有仓库' }, { value: 'new', label: '创建私有 GitHub 仓库' }]}
           />
           <input
+            className={field.textField}
             aria-label="GitHub 仓库"
             placeholder="owner/repository"
             value={repository}
             disabled={saving}
             onChange={(event) => setRepository(event.target.value)}
           />
-          <button type="submit" disabled={!name.trim() || !repository.trim() || saving}>
+          <Button type="submit" className={styles.submit} disabled={!name.trim() || !repository.trim() || saving}>
             {saving ? '准备仓库中…' : connecting ? '关联' : '创建'}
-          </button>
-          {error && <p role="alert">{error}</p>}
+          </Button>
+          {error && <p className={field.errorText} role="alert">{error}</p>}
         </form>
       )}
-      <label className={styles.search}>
-        <Search size={14} strokeWidth={1.75} />
+      <label className={`${field.group} ${field.search} ${styles.search}`}>
+        <Search size="M" className={field.prefix} />
         <input
+          className={field.groupInput}
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -132,17 +141,18 @@ export function SessionList({
           }}
         />
         {query && (
-          <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
-            <X size={13} strokeWidth={2} />
+          <button type="button" className={field.clear} onClick={() => setQuery('')} aria-label="清除搜索">
+            <UiIcon glyph="cross" />
           </button>
         )}
       </label>
       <nav className={styles.list}>
         <ul>
-          {([['builds', 'binOS 构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
+          {([['builds', 'binOS 构建', Hammer], ['devices', '设备', DevicePhone]] as const).map(([name, label, Icon]) => (
             <li key={name}>
-              <button type="button" className={styles.item} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
-                <span className={styles.line}><Icon size={16} strokeWidth={1.75} /><span className={styles.title}>{label}</span></span>
+              <button type="button" className={styles.tool} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
+                <Icon size="M" />
+                <span className={styles.title}>{label}</span>
               </button>
             </li>
           ))}
@@ -163,23 +173,21 @@ export function SessionList({
           projects.map((project) => (
             <section key={project.id}>
               <div className={styles.projectHeader}>
-                <span>
-                  {project.name}
+                <span className={styles.projectName}>
+                  <h2>{project.name}</h2>
                   {project.repository && <a className={styles.repository} href={`https://github.com/${project.repository}`} target="_blank" rel="noreferrer">{project.repository}</a>}
                 </span>
                 {project.id !== 'binos' && !project.repository && (
-                  <button type="button" disabled={saving} onClick={() => {
+                  <ActionButton quiet size="S" disabled={saving} onClick={() => {
                     setMode('existing')
                     setConnecting(project.id)
                     setName(project.name)
                     setRepository('')
                     setError('')
                     setCreating(true)
-                  }}>关联仓库</button>
+                  }}>关联仓库</ActionButton>
                 )}
-                <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
-                  <SquarePen size={14} />
-                </button>
+                <IconButton icon={New} size="S" label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)} />
               </div>
               <Sections
                 sessions={sessions.filter((session) => session.project === project.id)}
@@ -263,7 +271,7 @@ function Sections({
     <>
       {pinned.length > 0 && (
         <>
-          <div className={styles.label}>置顶</div>
+          <h3 className={styles.label}>置顶</h3>
           {items(pinned)}
         </>
       )}
@@ -276,7 +284,7 @@ function Sections({
             onClick={() => setShowArchived(!showArchived)}
             aria-expanded={showArchived}
           >
-            <ChevronRight size={13} strokeWidth={2} className={styles.toggleChevron} />
+            <UiIcon glyph="chevron" className={styles.toggleChevron} />
             已归档 {archived.length}
           </button>
           {(showArchived || searching) && items(archived)}
@@ -312,7 +320,9 @@ function SessionItem({
         >
           <span className={styles.line}>
             {session.running ? (
-              <span className={styles.live} aria-label="正在回答" />
+              <span className={styles.live}>
+                <ProgressCircle label="正在回答" />
+              </span>
             ) : (
               session.unread && <span className={styles.unread} aria-label="有新回复" />
             )}
@@ -325,9 +335,7 @@ function SessionItem({
       )}
       {!renaming && (
         <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-          <button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
-            <MoreHorizontal size={15} strokeWidth={1.75} />
-          </button>
+          <IconButton icon={More} size="S" label="更多操作" className={styles.more} aria-expanded={menuOpen} />
         </SessionActions>
       )}
     </li>
@@ -346,25 +354,25 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
         {session.turns > 1 && <span>{session.turns} 轮</span>}
         {session.quota !== undefined && session.quota >= 0.005 && (
           <span title="大约占订阅周额度">
-            <Gauge size={12} strokeWidth={2} />
+            <SpeedFast size="XS" />
             {formatQuota(session.quota)}
           </span>
         )}
         {openPrs.length > 0 && (
           <span className={styles.openPr} title="开着的 PR">
-            <GitPullRequest size={12} strokeWidth={2} />
+            <GitPullRequest size="XS" />
             {openPrs.map((pr) => `#${pr.number}`).join(' ')}
           </span>
         )}
         {session.queue.length > 0 && (
           <span title="排队的消息">
-            <Clock size={12} strokeWidth={2} />
+            <Clock size="XS" />
             {session.queue.length}
           </span>
         )}
         {session.outcome && !session.running && !session.waiting && (
           <span className={session.outcome === 'error' ? styles.error : undefined}>
-            {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+            {session.outcome === 'error' ? <AlertTriangle size="XS" /> : <Cancel size="XS" />}
             {session.outcome === 'error' ? '出错' : '已停止'}
           </span>
         )}
@@ -374,7 +382,7 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
           <span className={styles.busy}>回答中</span>
         ) : session.waiting ? (
           <span className={styles.busy} title="答完了，在等后台任务">
-            <Hourglass size={12} strokeWidth={2} />
+            <Hourglass size="XS" />
             后台任务
           </span>
         ) : (

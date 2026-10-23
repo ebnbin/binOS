@@ -1,42 +1,48 @@
+/* 登录提醒是 subtle 填充的 in-line alert：warn 是 informative 的浅蓝底，bad 是 negative 的浅红底；整条可以点 */
 .banner {
-  margin: 0 var(--space-3) var(--space-3);
+  margin: 0 var(--spacing-300) var(--spacing-300);
 }
 
 .row {
+  --visual: var(--informative-visual-color);
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: var(--spacing-100);
+  box-sizing: border-box;
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-200);
   border: 0;
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-sm);
-  text-align: left;
+  border-radius: var(--corner-radius-large);
+  background: var(--informative-subtle-background-color-default);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  text-align: start;
   cursor: pointer;
+  transition: transform var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
-.row > svg {
-  flex: none;
-  color: var(--color-accent);
+.row:active {
+  transform: perspective(var(--component-height-200)) translate3d(0, 0, -2px);
 }
 
 .banner[data-tone='bad'] .row {
-  background: var(--color-danger-subtle);
+  --visual: var(--negative-visual-color);
+  background: var(--negative-subtle-background-color-default);
 }
 
-.banner[data-tone='bad'] .row > svg {
-  color: var(--color-danger);
+.icon {
+  color: var(--visual);
 }
 
-.row > span:first-of-type {
+.text {
   flex: 1;
   min-width: 0;
 }
 
 .action {
   flex: none;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--emphasized-font-weight);
+  text-decoration: underline 1px;
+  text-underline-offset: 1px;
 }

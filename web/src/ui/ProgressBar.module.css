@@ -1,0 +1,71 @@
+.bar {
+  --thickness: var(--progress-bar-thickness);
+  --fill: var(--accent-background-color-default);
+  display: grid;
+  gap: 9px;
+  min-width: var(--spacing-700);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+}
+
+.bar[data-size='S'] {
+  --thickness: calc(var(--progress-bar-thickness) * 2 / 3);
+  gap: var(--spacing-85);
+  font-size: var(--font-size-75);
+}
+
+.bar[data-variant='informative'] {
+  --fill: var(--informative-visual-color);
+}
+
+.bar[data-variant='positive'] {
+  --fill: var(--positive-visual-color);
+}
+
+.bar[data-variant='notice'] {
+  --fill: var(--notice-visual-color);
+}
+
+.bar[data-variant='negative'] {
+  --fill: var(--negative-visual-color);
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-200);
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.track {
+  height: var(--thickness);
+  overflow: hidden;
+  border-radius: var(--corner-radius-full);
+  background: var(--track-color);
+}
+
+.fill {
+  height: 100%;
+  border-radius: var(--corner-radius-full);
+  background: var(--fill);
+}
+
+.fill[data-indeterminate] {
+  width: 100%;
+  transform-origin: left;
+  animation: indeterminate var(--animation-duration-2000) var(--animation-ease-in-out) infinite;
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-70%) scaleX(0.7);
+  }
+
+  to {
+    transform: translateX(100%) scaleX(0.7);
+  }
+}

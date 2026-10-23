@@ -1,8 +1,10 @@
 :root {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-normal);
+  font-family: var(--font-family-sans);
+  font-size: 100%;
+  line-height: var(--line-height-ui);
+  font-synthesis-weight: none;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -21,20 +23,22 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: var(--color-chrome);
+  background: var(--frame-background-color);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--color-chrome);
-  color: var(--color-text);
+  background: var(--frame-background-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
   color: inherit;
 }
@@ -56,11 +60,27 @@ button:disabled {
   cursor: default;
 }
 
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-family-code);
+}
+
+/* Spectrum 2 的焦点环：只在键盘聚焦时出现，2px，和控件隔 2px */
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: var(--focus-indicator-thickness) solid var(--focus-indicator-color);
+  outline-offset: var(--focus-indicator-gap);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  background: var(--selection-background-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
 }

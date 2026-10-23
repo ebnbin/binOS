@@ -1,227 +1,255 @@
 .app {
-  height: 100%;
-  min-height: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background: var(--color-surface);
+  height: 100%;
+  min-height: 0;
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
 }
+
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--spacing-200);
+  padding: var(--spacing-100) var(--spacing-200) var(--spacing-100) var(--spacing-300);
 }
-.toolbar strong,
-.actions,
-.app button {
+
+.title {
+  composes: titleS from '../../ui/Typography.module.css';
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-}
-.toolbar strong {
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-85);
   white-space: nowrap;
 }
+
 .actions {
-  gap: var(--space-2);
-}
-.app button {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-control);
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-.app button:hover {
-  background: var(--color-hover);
-}
-.app button:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
-}
-.tabs {
   display: flex;
-  gap: var(--space-1-5);
-  padding: var(--space-2) var(--space-3);
-  overflow-x: auto;
+  align-items: center;
+  gap: var(--spacing-100);
+  min-width: 0;
+}
+
+.error {
+  margin: 0 var(--spacing-300) var(--spacing-200);
+}
+
+/* 会话是 compact 的 Spectrum tabs */
+.tabs {
   flex-shrink: 0;
-  background: var(--color-bg-subtle);
+  padding: 0 var(--spacing-300);
+  overflow-x: auto;
+  border-bottom: var(--border-width-100) solid var(--divider-color);
 }
-.tabs button {
-  white-space: nowrap;
-  color: var(--color-text-secondary);
-}
-.tabs button[aria-current] {
-  color: var(--color-text);
-  border-color: var(--color-text-secondary);
-  background: var(--color-surface);
-}
+
+/* 终端区域始终是深色，里面的 Spectrum 组件按深色主题取值 */
 .pane {
-  flex: 1;
-  min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: var(--color-terminal-bg);
-  color: var(--color-terminal-text);
+  flex: 1;
+  min-height: 100px;
   overflow: hidden;
+  background: var(--terminal-background-color);
+  color: var(--terminal-content-color);
+  color-scheme: dark;
 }
+
 .status {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-2xs);
-  color: color-mix(in srgb, var(--color-terminal-text) 65%, var(--color-terminal-bg));
-  padding: var(--space-2) var(--space-4);
+  justify-content: space-between;
+  gap: var(--spacing-100);
   flex-shrink: 0;
+  min-height: var(--component-height-100);
+  padding: 0 var(--spacing-200) 0 var(--spacing-300);
 }
-.status > span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
-}
-.status > span[data-connected='true'] {
-  background: color-mix(in srgb, var(--color-success) 60%, var(--color-terminal-text));
-}
-.status button {
-  margin-left: auto;
-  color: var(--color-terminal-text);
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
-}
+
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-4);
+  padding: var(--spacing-75) var(--spacing-200) var(--spacing-100) var(--spacing-300);
 }
+
 .terminal :global(.xterm) {
   height: 100%;
 }
+
 .terminal :global(.xterm-screen) {
   user-select: none;
 }
+
 .footer {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-2xs);
-  border-top: 1px solid var(--color-border);
+  gap: var(--spacing-200);
+  padding: var(--spacing-75) var(--spacing-200) var(--spacing-75) var(--spacing-300);
+  border-top: var(--border-width-100) solid var(--divider-color);
 }
+
 .footer > span {
   overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--detail-color);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-75);
   white-space: nowrap;
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
 }
-.footer button {
-  flex-shrink: 0;
-}
+
+/* 连接命令是 quiet 的 disclosure：标题加粗，展开后是说明文字 */
 .connection {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-secondary);
-  max-height: 140px;
+  max-height: 160px;
+  padding: 0 var(--spacing-300) var(--spacing-100);
   overflow: auto;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }
+
 .connection summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  min-height: var(--component-height-75);
+  border-radius: var(--corner-radius-medium);
+  color: var(--neutral-content-color-default);
+  font-weight: var(--emphasized-font-weight);
+  list-style: none;
   cursor: pointer;
 }
+
+.connection summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure {
+  transition: rotate var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+.connection[open] .disclosure {
+  rotate: 90deg;
+}
+
 .connection code {
   display: block;
-  user-select: text;
+  padding: var(--spacing-100) var(--spacing-200);
+  border-radius: var(--corner-radius-medium);
+  background: var(--background-layer-1-color);
+  color: var(--code-color);
+  font-family: var(--font-family-code);
   overflow-wrap: anywhere;
-  padding: var(--space-2) 0;
+  user-select: text;
 }
+
 .connection p {
-  margin: 0 0 var(--space-1-5);
+  margin: var(--spacing-100) 0 0;
 }
+
+/* 空状态按 illustrated message 排 */
 .empty {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8);
+  flex: 1;
+  gap: var(--spacing-75);
+  padding: var(--spacing-500);
+  color: var(--body-color);
   text-align: center;
-  color: var(--color-text-secondary);
 }
+
+.illustration {
+  width: var(--spacing-700);
+  height: var(--spacing-700);
+  margin-bottom: var(--spacing-100);
+  color: var(--neutral-content-color-default);
+}
+
 .empty h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-400);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
+
 .empty p {
-  font-size: var(--font-size-sm);
-  max-width: 360px;
+  max-width: 380px;
+  margin: 0;
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
 }
-.empty button {
-  margin-top: var(--space-4);
+
+.empty code {
+  font-family: var(--font-family-code);
 }
-.error {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+
+.empty > button {
+  margin-top: var(--spacing-300);
 }
+
+/* 确认结束会话：浮在底部的 popover 面 */
 .confirm {
   position: absolute;
-  bottom: 50px;
-  left: var(--space-3);
-  right: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-md);
+  right: var(--spacing-300);
+  bottom: var(--spacing-1000);
+  left: var(--spacing-300);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  flex-wrap: wrap;
+  gap: var(--spacing-200);
+  padding: var(--spacing-300);
+  border: var(--border-width-100) solid var(--popover-border-color);
+  border-radius: var(--corner-radius-popover);
+  background: var(--background-elevated-color);
+  box-shadow: var(--drop-shadow-elevated);
+  font-size: var(--font-size-100);
 }
-.confirm span {
+
+.confirm > span {
   flex: 1;
+  min-width: 200px;
 }
-.confirm button:last-child {
-  color: var(--color-danger);
+
+.confirmActions {
+  display: flex;
+  gap: var(--spacing-100);
+  margin-inline-start: auto;
 }
+
 .keys {
   display: none;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  overflow-x: auto;
+  gap: var(--spacing-75);
   flex-shrink: 0;
+  padding: var(--spacing-100);
+  overflow-x: auto;
 }
-.keys button {
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
-  color: var(--color-terminal-text);
-  white-space: nowrap;
-}
-@media (pointer: coarse) {
+
+@media not ((hover: hover) and (pointer: fine)) {
   .keys {
     display: flex;
   }
 }
+
 @media (max-width: 480px) {
-  .toolbar {
-    padding: var(--space-3);
+  .actions button > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
-  .actions button span {
-    display: none;
+
+  .actions button {
+    width: var(--component-height-100);
+    padding: 0;
   }
-  .confirm {
-    flex-wrap: wrap;
+
+  .actions button > svg {
+    margin: 0;
   }
 }

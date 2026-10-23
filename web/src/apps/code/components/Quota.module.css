@@ -2,48 +2,71 @@
   margin-left: auto;
 }
 
+/* 和 quiet 的 S 尺寸 action button 一致 */
 .summary {
   display: flex;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1-5);
+  align-items: center;
+  gap: var(--spacing-100);
+  box-sizing: border-box;
+  height: var(--component-height-75);
+  padding: 0 9px;
   border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
+  border-radius: var(--corner-radius-medium-size-small);
+  background: transparent;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  font-weight: var(--button-font-weight);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition-property: background-color, color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+@media (hover: hover) {
+  .summary:hover {
+    background: var(--gray-background-color-hover);
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+.summary[data-state='open'] {
+  background: var(--gray-background-color-hover);
+}
+
+.summary:active {
+  transform: perspective(var(--component-height-75)) translate3d(0, 0, -2px);
 }
 
 .agent {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacing-75);
   white-space: nowrap;
 }
 
 .agent[data-alert] {
-  color: var(--color-danger);
+  color: var(--negative-content-color-default);
 }
 
 .details {
-  width: 340px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4) var(--space-4);
-  box-shadow: var(--shadow-md);
+  gap: var(--spacing-300);
+  width: 340px;
+  padding: var(--spacing-300);
 }
 
 .details h3 {
-  margin: 0 0 var(--space-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  margin: 0 0 var(--spacing-200);
+  color: var(--title-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
 }
 
 .details section + section {
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-separator);
+  padding-top: var(--spacing-300);
+  border-top: var(--border-width-100) solid var(--divider-color);
 }

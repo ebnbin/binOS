@@ -1,4 +1,4 @@
-/* 最长的窗口（最外圈）是黄色，其余是绿色，快满了是红色 */
+/* 最长的窗口（最外圈）是 informative 蓝，其余是 positive 绿，快满了是 negative 红 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-success);
+  --window: var(--positive-visual-color);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--informative-visual-color);
 }
 
 .ring g {
@@ -19,36 +19,31 @@
 }
 
 .ring [data-full] {
-  color: var(--color-danger);
+  color: var(--negative-visual-color);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
+  gap: var(--spacing-300);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
 }
 
-.limited {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
+/* 每个窗口是一个 Spectrum 2 的 meter：上面标签和数值，中间轨道，下面说明 */
 .window {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacing-100);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  gap: var(--spacing-100);
+  font-size: var(--font-size-75);
 }
 
 .windowLine > :last-child {
@@ -58,31 +53,31 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-85);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
 }
 
 .swatch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: calc(var(--component-height-100) / 4);
+  height: calc(var(--component-height-100) / 4);
+  border-radius: var(--corner-radius-full);
   background: var(--window);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
 }
 
 .danger {
-  color: var(--color-danger);
+  color: var(--negative-content-color-default);
 }
 
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
+  height: var(--progress-bar-thickness);
+  border-radius: var(--corner-radius-full);
+  background: var(--track-color);
 }
 
 .bar span {
@@ -93,16 +88,16 @@
 }
 
 .bar[data-full] span {
-  background: var(--color-danger);
+  background: var(--negative-visual-color);
 }
 
 /* 匀速线 */
 .bar i {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
-  margin-left: -1px;
-  border-radius: var(--radius-full);
-  background: var(--color-text-secondary);
+  top: calc(-1 * var(--spacing-75));
+  bottom: calc(-1 * var(--spacing-75));
+  width: var(--border-width-200);
+  margin-left: calc(-1 * var(--border-width-100));
+  border-radius: var(--corner-radius-full);
+  background: var(--neutral-content-color-default);
 }

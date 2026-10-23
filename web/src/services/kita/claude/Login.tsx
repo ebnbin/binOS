@@ -1,6 +1,9 @@
-import { ExternalLink } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { Spinner } from '../../../ui/Spinner.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import field from '../../../ui/Field.module.css'
+import { OpenIn } from '../../../ui/icons.tsx'
+import { InlineAlert } from '../../../ui/InlineAlert.tsx'
+import { ProgressCircle } from '../../../ui/ProgressCircle.tsx'
 import { cancelClaudeLogin, finishClaudeLogin, startClaudeLogin } from './api.ts'
 import type { ClaudeLoginKind } from './api.ts'
 import styles from '../Login.module.css'
@@ -61,10 +64,10 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
 
   return (
     <div className={styles.flow}>
-      <div className={styles.title}>{titles[kind]}</div>
+      <h3 className={styles.title}>{titles[kind]}</h3>
       {step.name === 'starting' && (
         <p className={styles.waiting}>
-          <Spinner /> 正在拿授权链接
+          <ProgressCircle /> 正在拿授权链接
         </p>
       )}
       {(step.name === 'code' || step.name === 'finishing') && (
@@ -77,11 +80,15 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
         >
           <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
             1. 打开授权页面，用 Claude 账号授权
-            <ExternalLink size={14} strokeWidth={1.75} />
+            <OpenIn size="S" />
           </a>
-          <label className={styles.codeLabel}>
-            2. 把授权后页面上显示的代码贴到这里
+          <div className={styles.field}>
+            <label className={field.label} htmlFor={`claude-login-${kind}`}>
+              2. 把授权后页面上显示的代码贴到这里
+            </label>
             <input
+              id={`claude-login-${kind}`}
+              className={styles.input}
               value={code}
               onChange={(event) => setCode(event.target.value)}
               placeholder="授权代码"
@@ -89,37 +96,39 @@ export function ClaudeLogin({ kind, onClose }: { kind: ClaudeLoginKind; onClose:
               spellCheck={false}
               disabled={step.name === 'finishing'}
             />
-          </label>
+          </div>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button variant="secondary" fillStyle="outline" onClick={onClose}>
               取消
-            </button>
-            <button type="submit" className={styles.primary} disabled={!code.trim() || step.name === 'finishing'}>
-              {step.name === 'finishing' ? <Spinner /> : '完成'}
-            </button>
+            </Button>
+            <Button type="submit" variant="accent" disabled={!code.trim()} pending={step.name === 'finishing'}>
+              完成
+            </Button>
           </div>
         </form>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>{kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}</p>
+          <InlineAlert variant="positive" fillStyle="subtleFill">
+            {kind === 'login' ? '登录好了，下一轮回答起用新的登录' : '备用 token 存好了'}
+          </InlineAlert>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button variant="accent" onClick={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <InlineAlert>{step.error}</InlineAlert>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button variant="secondary" fillStyle="outline" onClick={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={restart}>
+            </Button>
+            <Button variant="accent" onClick={restart}>
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}

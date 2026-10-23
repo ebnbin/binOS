@@ -1,20 +1,64 @@
+/* Spectrum 2 picker：高度 32，圆角 8，没有边框，底色 gray-100，悬停和展开时 gray-200 */
 .trigger {
+  --height: var(--component-height-100);
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-1-5);
-  min-width: 0;
-  height: var(--size-control-sm);
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  text-align: left;
+  gap: var(--spacing-85);
+  box-sizing: border-box;
+  min-width: var(--height);
+  height: var(--height);
+  padding: 0 calc(var(--height) * 3 / 8);
+  border: 0;
+  border-radius: var(--corner-radius-medium);
+  background: var(--gray-background-color-default);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+  text-align: start;
+  cursor: pointer;
+  transition-property: color, background-color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.trigger[data-size='S'] {
+  --height: var(--component-height-75);
+  border-radius: var(--corner-radius-medium-size-small);
+  font-size: var(--font-size-75);
+}
+
+@media (hover: hover) {
+  .trigger:hover:not(:disabled) {
+    background: var(--gray-background-color-hover);
+    color: var(--neutral-content-color-hover);
+  }
+}
+
+.trigger[data-state='open'],
+.trigger:focus-visible {
+  background: var(--gray-background-color-hover);
+  color: var(--neutral-content-color-hover);
+}
+
+.trigger:active:not(:disabled) {
+  transform: perspective(var(--height)) translate3d(0, 0, -2px);
+}
+
+.trigger:disabled {
+  color: var(--disabled-content-color);
+  cursor: default;
+}
+
+/* quiet：没有底色，紧贴文字 */
+.trigger[data-quiet] {
+  padding: 0;
+  background: transparent;
 }
 
 .value {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -23,83 +67,17 @@
 .icon {
   display: flex;
   flex: none;
-  color: var(--color-text-tertiary);
-}
-
-.trigger[data-state='open'] {
-  background: var(--color-hover);
-}
-
-.trigger:disabled {
-  opacity: var(--opacity-disabled);
 }
 
 .content {
-  z-index: var(--z-overlay);
   min-width: var(--radix-select-trigger-width);
   max-width: min(360px, var(--radix-select-content-available-width));
   max-height: min(320px, var(--radix-select-content-available-height));
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
-  font-size: var(--font-size-sm);
-}
-
-.viewport {
-  padding: var(--space-1);
-}
-
-.item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-height: var(--size-control-md);
-  padding: var(--space-1-5) var(--space-8) var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-item);
-  outline: none;
-  cursor: pointer;
-  user-select: none;
-  overflow-wrap: anywhere;
-}
-
-.item[data-highlighted] {
-  background: var(--color-hover);
-}
-
-.item[data-state='checked'] {
-  font-weight: var(--font-weight-medium);
-}
-
-.item[data-disabled] {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-
-.indicator {
-  position: absolute;
-  right: var(--space-2);
-  display: flex;
 }
 
 .scroll {
   display: flex;
   justify-content: center;
-  padding: var(--space-1);
-  color: var(--color-text-tertiary);
-}
-
-@media (hover: hover) {
-  .trigger:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
-@media (pointer: coarse) {
-  .trigger,
-  .item {
-    min-height: var(--size-control-lg);
-  }
+  padding: var(--spacing-75);
+  color: var(--neutral-subdued-content-color-default);
 }

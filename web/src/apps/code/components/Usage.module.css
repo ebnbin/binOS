@@ -1,93 +1,102 @@
+/* 上下文圆环：quiet 的 action button，圈的颜色和 meter 一致，快满时是 notice，满了是 negative */
 .ring {
   display: grid;
   place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
+  flex: none;
+  width: var(--component-height-100);
+  height: var(--component-height-100);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text-tertiary);
+  border-radius: var(--corner-radius-medium);
+  background: transparent;
+  color: var(--neutral-subdued-content-color-default);
   cursor: pointer;
+  transition-property: background-color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
 }
 
 .ring svg {
-  transform: rotate(-90deg);
+  width: var(--icon-size-m);
+  height: var(--icon-size-m);
+  rotate: -90deg;
+}
+
+.track {
+  stroke: var(--track-color);
+}
+
+.fill {
+  stroke: var(--informative-visual-color);
+}
+
+.ring[data-level='notice'] .fill {
+  stroke: var(--notice-visual-color);
+}
+
+.ring[data-level='negative'] .fill {
+  stroke: var(--negative-visual-color);
 }
 
 @media (hover: hover) {
   .ring:hover {
-    background: var(--color-hover);
+    background: var(--gray-background-color-hover);
   }
 }
 
-.ring[data-level='warning'] {
-  color: var(--color-accent);
+.ring[aria-expanded='true'] {
+  background: var(--gray-background-color-hover);
 }
 
-.ring[data-level='danger'] {
-  color: var(--color-danger);
+.ring:active {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--spacing-200);
   width: 300px;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
+  padding: var(--spacing-300);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
   font-variant-numeric: tabular-nums;
   cursor: default;
+}
+
+.meter {
+  margin-bottom: var(--spacing-75);
 }
 
 .line {
   display: flex;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--spacing-200);
 }
 
 .label {
-  font-weight: var(--font-weight-medium);
+  color: var(--neutral-subdued-content-color-default);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
-}
-
-.bar {
-  height: 6px;
-  margin-top: calc(-1 * var(--space-0-5));
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  overflow: hidden;
-}
-
-.bar span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--color-text-secondary);
-}
-
-.bar[data-level='warning'] span {
-  background: var(--color-accent);
-}
-
-.bar[data-level='danger'] span {
-  background: var(--color-danger);
+  color: var(--detail-color);
 }
 
 .parts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-0-5) var(--space-3);
-  margin-top: calc(-1 * var(--space-1));
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-50) var(--spacing-200);
+  margin-top: calc(-1 * var(--spacing-100));
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  padding-top: var(--spacing-200);
+  border-top: var(--border-width-100) solid var(--divider-color);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }

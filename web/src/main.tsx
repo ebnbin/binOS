@@ -1,5 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/source-sans-3'
+import '@fontsource-variable/source-code-pro'
 import './tokens.css'
 import './index.css'
 import { Shell } from './shell/Shell.tsx'

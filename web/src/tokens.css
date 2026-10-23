@@ -1,161 +1,342 @@
-/* binOS 的设计 token。界面上的颜色、字号、间距、圆角、阴影和动效都只取这里的变量，
-   换一套设计只需要改写这个文件的取值；组件之间的差异用语义 token（如 --radius-control）表达，
-   不直接引用基础阶梯。 */
+/* binOS 的设计 token，按 Adobe Spectrum 2 的三层体系组织，名称和取值来自 @adobe/spectrum-tokens：
+   全局 token（色板、字号、间距、控件高度、圆角）→ 别名 token（背景层级、内容色、语义色）→ 组件 token。
+   样式只引用别名和组件 token；颜色用 light-dark() 跟随深浅色，触屏上按 Spectrum 的 mobile 尺度放大。 */
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
 
-  /* 颜色：页面底色 → 表面 → 填充，文字分三级，边框分两级 */
-  --color-bg: #f8f7f4;
-  --color-bg-subtle: #f1efeb;
-  --color-surface: #ffffff;
-  --color-surface-sunken: #f6f5f2;
-  --color-fill: #edebe6;
-  --color-hover: rgb(36 34 30 / 5%);
-  --color-text: #24221e;
-  --color-text-secondary: #5f5b54;
-  --color-text-tertiary: #959087;
-  --color-border: #e7e4de;
-  --color-separator: rgb(36 34 30 / 7%);
-  --color-primary: #24221e;
-  --color-on-primary: #ffffff;
-  --color-accent: #d4862b;
-  --color-danger: #c8442f;
-  --color-danger-subtle: #fbefec;
-  --color-success: #1a7f37;
-  --color-info: #276aca;
-  --color-done: #8250df;
-  --color-scrim: rgb(20 18 15 / 32%);
-  --color-focus: rgb(36 34 30 / 40%);
-  --color-shadow: rgb(36 34 30 / 10%);
+  /* 全局：灰阶 */
+  --gray-25: light-dark(rgb(255 255 255), rgb(17 17 17));
+  --gray-50: light-dark(rgb(248 248 248), rgb(27 27 27));
+  --gray-75: light-dark(rgb(243 243 243), rgb(34 34 34));
+  --gray-100: light-dark(rgb(233 233 233), rgb(44 44 44));
+  --gray-200: light-dark(rgb(225 225 225), rgb(50 50 50));
+  --gray-300: light-dark(rgb(218 218 218), rgb(57 57 57));
+  --gray-400: light-dark(rgb(198 198 198), rgb(68 68 68));
+  --gray-500: light-dark(rgb(143 143 143), rgb(109 109 109));
+  --gray-600: light-dark(rgb(113 113 113), rgb(138 138 138));
+  --gray-700: light-dark(rgb(80 80 80), rgb(175 175 175));
+  --gray-800: light-dark(rgb(41 41 41), rgb(219 219 219));
+  --gray-900: light-dark(rgb(19 19 19), rgb(242 242 242));
+  --gray-1000: light-dark(rgb(0 0 0), rgb(255 255 255));
+
+  /* 全局：色相，只列用到的色阶 */
+  --blue-100: light-dark(rgb(245 249 255), rgb(14 23 63));
+  --blue-200: light-dark(rgb(229 240 254), rgb(15 28 82));
+  --blue-300: light-dark(rgb(203 226 254), rgb(12 33 117));
+  --blue-400: light-dark(rgb(172 207 253), rgb(18 45 154));
+  --blue-800: light-dark(rgb(75 117 255), rgb(64 105 253));
+  --blue-900: light-dark(rgb(59 99 251), rgb(86 129 255));
+  --blue-1000: light-dark(rgb(39 77 234), rgb(105 149 254));
+  --blue-1100: light-dark(rgb(29 62 207), rgb(124 169 252));
+  --red-200: light-dark(rgb(255 235 232), rgb(68 13 5));
+  --red-300: light-dark(rgb(255 214 209), rgb(87 17 7));
+  --red-800: light-dark(rgb(240 56 35), rgb(223 52 34));
+  --red-900: light-dark(rgb(215 50 32), rgb(252 67 46));
+  --red-1000: light-dark(rgb(183 40 24), rgb(255 103 86));
+  --green-200: light-dark(rgb(215 247 225), rgb(0 38 29));
+  --green-800: light-dark(rgb(7 147 85), rgb(6 136 80));
+  --green-900: light-dark(rgb(5 131 78), rgb(9 157 89));
+  --green-1000: light-dark(rgb(3 110 69), rgb(14 175 98));
+  --orange-200: light-dark(rgb(255 236 207), rgb(61 21 0));
+  --orange-600: light-dark(rgb(252 125 0), rgb(162 59 0));
+  --orange-800: light-dark(rgb(212 91 0), rgb(199 82 0));
+  --orange-900: light-dark(rgb(194 78 0), rgb(224 100 0));
+  --orange-1000: light-dark(rgb(167 62 0), rgb(243 117 0));
+  --purple-200: light-dark(rgb(244 235 252), rgb(50 0 96));
+  --purple-800: light-dark(rgb(166 92 231), rgb(157 78 228));
+  --purple-900: light-dark(rgb(154 71 226), rgb(173 105 233));
+  --purple-1000: light-dark(rgb(134 40 217), rgb(186 127 237));
+  --seafoam-900: light-dark(rgb(7 129 109), rgb(10 154 128));
+  --magenta-900: light-dark(rgb(217 35 97), rgb(255 51 119));
+  --yellow-900: light-dark(rgb(158 102 0), rgb(186 124 0));
+  --white: rgb(255 255 255);
+  --black: rgb(0 0 0);
+
+  /* 全局：透明色，叠在任意底色上 */
+  --transparent-black-50: rgb(0 0 0 / 3%);
+  --transparent-black-75: rgb(0 0 0 / 5%);
+  --transparent-black-100: rgb(0 0 0 / 9%);
+  --transparent-black-300: rgb(0 0 0 / 15%);
+  --transparent-black-500: rgb(0 0 0 / 44%);
+  --transparent-black-800: rgb(0 0 0 / 84%);
+  --transparent-white-50: rgb(255 255 255 / 4%);
+  --transparent-white-75: rgb(255 255 255 / 7%);
+  --transparent-white-100: rgb(255 255 255 / 11%);
+  --transparent-white-200: rgb(255 255 255 / 14%);
+  --transparent-white-300: rgb(255 255 255 / 17%);
+  --transparent-white-400: rgb(255 255 255 / 21%);
+  --transparent-white-600: rgb(255 255 255 / 51%);
+  --transparent-white-700: rgb(255 255 255 / 66%);
+  --transparent-white-800: rgb(255 255 255 / 85%);
+  --transparent-white-900: rgb(255 255 255 / 94%);
+
+  /* 别名：背景层级。base 是最外层，layer-1 是其上的区域，layer-2 是区域里的内容面，elevated 是浮层 */
+  --background-base-color: var(--gray-25);
+  --background-layer-1-color: var(--gray-50);
+  --background-layer-2-color: light-dark(rgb(255 255 255), rgb(34 34 34));
+  --background-elevated-color: light-dark(rgb(255 255 255), rgb(34 34 34));
+  --background-pasteboard-color: light-dark(rgb(233 233 233), rgb(17 17 17));
+
+  /* 别名：内容色。neutral 是正文和图标，subdued 是次要文字，disabled 是不可用 */
+  --neutral-content-color-default: var(--gray-800);
+  --neutral-content-color-hover: var(--gray-900);
+  --neutral-content-color-down: var(--gray-900);
+  --neutral-subdued-content-color-default: var(--gray-700);
+  --neutral-subdued-content-color-hover: var(--gray-800);
+  --heading-color: var(--gray-900);
+  --title-color: var(--gray-900);
+  --body-color: var(--gray-800);
+  --detail-color: var(--gray-600);
+  --code-color: var(--gray-800);
+  --disabled-content-color: light-dark(rgb(198 198 198), rgb(68 68 68));
+  --disabled-background-color: light-dark(rgb(233 233 233), rgb(44 44 44));
+  --disabled-border-color: light-dark(rgb(218 218 218), rgb(57 57 57));
+
+  /* 别名：填充。neutral 是深色强调，gray 是浅灰按钮和选中底，subtle 是标签和徽标的浅底 */
+  --neutral-background-color-default: var(--gray-800);
+  --neutral-background-color-hover: var(--gray-900);
+  --neutral-subdued-background-color-default: var(--gray-700);
+  --neutral-subtle-background-color-default: light-dark(rgb(233 233 233), rgb(57 57 57));
+  --neutral-visual-color: light-dark(rgb(143 143 143), rgb(138 138 138));
+  --gray-background-color-default: var(--gray-100);
+  --gray-background-color-hover: var(--gray-200);
+  --gray-background-color-down: var(--gray-300);
+
+  /* 别名：强调色和语义色 */
+  --accent-background-color-default: light-dark(rgb(59 99 251), rgb(64 105 253));
+  --accent-background-color-hover: light-dark(rgb(39 77 234), rgb(52 91 248));
+  --accent-background-color-down: light-dark(rgb(39 77 234), rgb(52 91 248));
+  --accent-content-color-default: var(--blue-900);
+  --accent-content-color-hover: var(--blue-1000);
+  --accent-visual-color: light-dark(rgb(75 117 255), rgb(86 129 255));
+  --accent-subtle-background-color-default: light-dark(rgb(229 240 254), rgb(12 33 117));
+  --informative-visual-color: var(--accent-visual-color);
+  --informative-subtle-background-color-default: var(--accent-subtle-background-color-default);
+  --negative-background-color-default: light-dark(rgb(215 50 32), rgb(223 52 34));
+  --negative-background-color-hover: light-dark(rgb(183 40 24), rgb(205 46 29));
+  --negative-content-color-default: light-dark(rgb(215 50 32), rgb(252 67 46));
+  --negative-border-color-default: light-dark(rgb(215 50 32), rgb(252 67 46));
+  --negative-visual-color: light-dark(rgb(240 56 35), rgb(252 67 46));
+  --negative-subtle-background-color-default: light-dark(rgb(255 235 232), rgb(87 17 7));
+  --positive-background-color-default: light-dark(rgb(5 131 78), rgb(6 136 80));
+  --positive-content-color-default: var(--green-900);
+  --positive-visual-color: light-dark(rgb(7 147 85), rgb(9 157 89));
+  --positive-subtle-background-color-default: light-dark(rgb(215 247 225), rgb(0 51 38));
+  --notice-background-color-default: light-dark(rgb(252 125 0), rgb(224 100 0));
+  --notice-content-color-default: var(--orange-900);
+  --notice-visual-color: light-dark(rgb(212 91 0), rgb(224 100 0));
+  --notice-subtle-background-color-default: light-dark(rgb(255 236 207), rgb(80 27 0));
+  --purple-visual-color: light-dark(rgb(166 92 231), rgb(173 105 233));
+  --purple-content-color-default: var(--purple-900);
+  --purple-subtle-background-color-default: light-dark(rgb(244 235 252), rgb(64 0 122));
+
+  /* 组件：accent 和 negative 按钮在深色下比语义色暗一级 */
+  --button-accent-background-color-default: light-dark(rgb(59 99 251), rgb(52 91 248));
+  --button-accent-background-color-hover: light-dark(rgb(39 77 234), rgb(37 73 229));
+  --button-negative-background-color-default: light-dark(rgb(215 50 32), rgb(205 46 29));
+  --button-negative-background-color-hover: light-dark(rgb(183 40 24), rgb(177 38 23));
+
+  /* 别名：边框、分隔线、轨道、焦点和遮罩 */
+  --border-color: var(--gray-300);
+  --border-color-hover: var(--gray-400);
+  --field-border-color: var(--gray-300);
+  --field-border-color-hover: var(--gray-400);
+  --field-border-color-focus: var(--gray-800);
+  --divider-color: var(--gray-200);
+  --track-color: var(--gray-300);
+  --focus-indicator-color: light-dark(rgb(75 117 255), rgb(64 105 253));
+  --focus-indicator-thickness: 2px;
+  --focus-indicator-gap: 2px;
+  --overlay-color: light-dark(rgb(0 0 0 / 40%), rgb(0 0 0 / 60%));
+  --popover-border-color: light-dark(rgb(255 255 255 / 0%), rgb(68 68 68));
+  --selection-background-color: light-dark(rgb(75 117 255 / 24%), rgb(86 129 255 / 36%));
   /* 网页和文档预览的底色，和网页自己的默认一致，不跟随深浅色 */
-  --color-document: #ffffff;
+  --document-background-color: var(--white);
 
-  /* 外框：屏幕四周和任务栏，不跟随深浅色 */
-  --color-chrome: #000000;
-  --color-on-chrome: #ffffff;
-  --color-on-chrome-secondary: rgb(255 255 255 / 65%);
-  --color-chrome-hover: rgb(255 255 255 / 8%);
-  --color-chrome-selected: rgb(255 255 255 / 16%);
-  --color-chrome-border: rgb(255 255 255 / 20%);
+  /* binOS 外框：屏幕四周和任务栏是纯黑，不跟随深浅色，和系统状态栏连在一起；上面的控件用 static white */
+  --frame-background-color: var(--black);
+  --frame-content-color: var(--transparent-white-800);
+  --frame-content-color-strong: var(--white);
+  --frame-hover-color: var(--transparent-white-100);
+  --frame-selected-color: var(--transparent-white-200);
+  --frame-border-color: var(--transparent-white-300);
 
-  /* 终端始终是深色 */
-  --color-terminal-bg: #161513;
-  --color-terminal-text: #ecebe7;
-  --color-terminal-selection: #55514a;
+  /* 终端始终是 Spectrum 深色 */
+  --terminal-background-color: rgb(17 17 17);
+  --terminal-content-color: rgb(219 219 219);
+  --terminal-selection-color: rgb(68 68 68);
 
-  /* 字体 */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  /* 字体：Adobe Clean 只随 Adobe Fonts 授权提供，用 Adobe 开源的 Source Sans 3 和 Source Code Pro 代替；中文用系统黑体 */
+  --font-family-sans: 'Source Sans 3 Variable', 'Source Han Sans SC', 'PingFang SC', ui-sans-serif, system-ui, sans-serif;
+  --font-family-code: 'Source Code Pro Variable', 'Source Han Sans SC', 'PingFang SC', ui-monospace, Menlo, monospace;
 
-  --font-size-2xs: 11px;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-md: 14px;
-  --font-size-lg: 15px;
-  --font-size-xl: 17px;
-  --font-size-2xl: 22px;
-  --font-size-3xl: 28px;
-  --font-size-4xl: 34px;
-  --font-size-body: var(--font-size-lg);
+  /* 字号阶梯（desktop），触屏见下方 mobile 尺度 */
+  --font-size-50: 11px;
+  --font-size-75: 12px;
+  --font-size-100: 14px;
+  --font-size-200: 16px;
+  --font-size-300: 18px;
+  --font-size-400: 20px;
+  --font-size-500: 22px;
+  --font-size-600: 25px;
+  --font-size-700: 28px;
+  --font-size-800: 32px;
+  --font-size-900: 36px;
 
+  --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
-  --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-extra-bold: 800;
+  --font-weight-black: 900;
 
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.4;
-  --line-height-normal: 1.6;
-  --line-height-relaxed: 1.8;
+  /* 字体角色。页面语言是中文，按 Spectrum 的 CJK 规则取字重：heading 的 extra-bold 是 700，
+     title、detail 和按钮的 bold 是 500，action button 和菜单项的 medium 也是 500 */
+  --heading-font-weight: var(--font-weight-bold);
+  --title-font-weight: var(--font-weight-medium);
+  --detail-font-weight: var(--font-weight-medium);
+  --body-font-weight: var(--font-weight-regular);
+  --button-font-weight: var(--font-weight-medium);
+  --emphasized-font-weight: var(--font-weight-bold);
 
-  --letter-spacing-tight: -0.02em;
-  --letter-spacing-wide: 0.06em;
+  /* 行高：按 Spectrum 的 CJK 规则，界面文字和标题 1.5，正文和代码 1.7；固定高度的控件内用 1.3 */
+  --line-height-100: 1.3;
+  --line-height-200: 1.5;
+  --line-height-ui: var(--line-height-200);
+  --line-height-heading: var(--line-height-200);
+  --line-height-body: 1.7;
+  --line-height-code: 1.7;
 
-  /* 间距：4px 网格，后缀是 4px 的倍数 */
-  --space-0-5: 2px;
-  --space-1: 4px;
-  --space-1-5: 6px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
+  /* 间距 */
+  --spacing-25: 1px;
+  --spacing-50: 2px;
+  --spacing-75: 4px;
+  --spacing-85: 6px;
+  --spacing-100: 8px;
+  --spacing-200: 12px;
+  --spacing-300: 16px;
+  --spacing-350: 20px;
+  --spacing-400: 24px;
+  --spacing-500: 32px;
+  --spacing-600: 40px;
+  --spacing-700: 48px;
+  --spacing-800: 64px;
+  --spacing-900: 80px;
+  --spacing-1000: 96px;
 
-  /* 控件高度，按钮、输入框、列表项都从这里取 */
-  --size-control-xs: 24px;
-  --size-control-sm: 28px;
-  --size-control-md: 32px;
-  --size-control-lg: 36px;
-  --size-control-xl: 40px;
-  --size-touch-target: 44px;
+  /* 控件高度：75 是 S，100 是 M，200 是 L，300 是 XL */
+  --component-height-50: 20px;
+  --component-height-75: 24px;
+  --component-height-100: 32px;
+  --component-height-200: 40px;
+  --component-height-300: 48px;
+  --component-height-400: 56px;
+  --component-height-500: 64px;
 
-  /* 圆角 */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 999px;
-  --radius-item: var(--radius-sm);
-  --radius-control: var(--radius-md);
-  --radius-card: var(--radius-lg);
-  --radius-overlay: var(--radius-lg);
-  --radius-window: 12px;
+  /* 图标：独立的图标 20；控件里的图标和文字行高一致，XS 14、S 16、M 18、L 20、XL 22 */
+  --icon-size: 20px;
+  --icon-size-xs: 14px;
+  --icon-size-s: 16px;
+  --icon-size-m: 18px;
+  --icon-size-l: 20px;
+  --icon-size-xl: 22px;
+  /* 控件里的 UI 图标（下拉箭头、勾、叉）：M 10 */
+  --ui-icon-size: 10px;
+  --checkbox-control-size: 16px;
+  --switch-control-width: 26px;
+  --switch-control-height: 16px;
+  --progress-bar-thickness: 6px;
+  --side-navigation-width: 240px;
 
-  /* 阴影：sm 贴着表面，md 浮起的菜单和卡片，lg 悬浮的窗口 */
-  --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(36 34 30 / 4%);
-  --shadow-md: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px var(--color-shadow);
-  --shadow-lg: 0 2px 6px rgb(36 34 30 / 6%), 0 12px 40px -8px rgb(36 34 30 / 20%);
+  /* 边框 */
+  --border-width-100: 1px;
+  --border-width-200: 2px;
+  --border-width-400: 4px;
+
+  /* 圆角：按钮是胶囊形，输入框和 action button 用 medium，菜单项用 medium，卡片和浮层用 large，对话框用 extra-large */
+  --corner-radius-none: 0;
+  --corner-radius-small: 4px;
+  --corner-radius-medium: 8px;
+  --corner-radius-large: 10px;
+  --corner-radius-extra-large: 16px;
+  --corner-radius-full: 9999px;
+  /* 控件的圆角随尺寸变化：XS 6、S 7、M 8、L 9、XL 10；小号的 small 圆角 3 */
+  --corner-radius-medium-size-extra-small: 6px;
+  --corner-radius-medium-size-small: 7px;
+  --corner-radius-medium-size-medium: 8px;
+  --corner-radius-medium-size-large: 9px;
+  --corner-radius-medium-size-extra-large: 10px;
+  --corner-radius-small-size-small: 3px;
+  --corner-radius-control: var(--corner-radius-medium);
+  --corner-radius-item: var(--corner-radius-medium);
+  --corner-radius-card: var(--corner-radius-large);
+  --corner-radius-popover: var(--corner-radius-large);
+  --corner-radius-dialog: var(--corner-radius-extra-large);
+  --corner-radius-window: var(--corner-radius-extra-large);
+
+  /* 阴影：emphasized 贴着表面的卡片，elevated 是菜单、弹层和对话框，dragged 是拖动中 */
+  --drop-shadow-emphasized: 0 2px 8px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 24%)), 0 1px 4px light-dark(rgb(0 0 0 / 4%), rgb(0 0 0 / 12%)),
+    0 0 1px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 24%));
+  --drop-shadow-emphasized-hover: 0 4px 12px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 24%)), 0 2px 6px light-dark(rgb(0 0 0 / 4%), rgb(0 0 0 / 12%)),
+    0 0 2px light-dark(rgb(0 0 0 / 12%), rgb(0 0 0 / 36%));
+  --drop-shadow-elevated: 0 4px 12px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 24%)), 0 2px 6px light-dark(rgb(0 0 0 / 4%), rgb(0 0 0 / 12%)),
+    0 0 2px light-dark(rgb(0 0 0 / 12%), rgb(0 0 0 / 36%));
+  --drop-shadow-dragged: 0 12px 16px light-dark(rgb(0 0 0 / 8%), rgb(0 0 0 / 24%)), 0 6px 8px light-dark(rgb(0 0 0 / 4%), rgb(0 0 0 / 12%)),
+    0 0 6px light-dark(rgb(0 0 0 / 16%), rgb(0 0 0 / 48%));
 
   /* 动效 */
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
+  --animation-duration-100: 130ms;
+  --animation-duration-200: 160ms;
+  --animation-duration-300: 190ms;
+  --animation-duration-500: 250ms;
+  --animation-duration-1000: 500ms;
+  --animation-duration-2000: 1000ms;
+  --animation-ease-in-out: cubic-bezier(0.45, 0, 0.4, 1);
+  --animation-ease-in: cubic-bezier(0.5, 0, 1, 1);
+  --animation-ease-out: cubic-bezier(0, 0, 0.4, 1);
+  --animation-linear: linear;
 
-  --opacity-disabled: 0.4;
+  --opacity-disabled: 0.3;
   --z-overlay: 1000;
 }
 
-@media (prefers-color-scheme: dark) {
+/* Spectrum 的 mobile 尺度：没有精确指针和悬停的设备上，字号、控件和图标整体放大 */
+@media not ((hover: hover) and (pointer: fine)) {
   :root {
-    color-scheme: dark;
-    --color-bg: #1b1a18;
-    --color-bg-subtle: #161513;
-    --color-surface: #23221f;
-    --color-surface-sunken: #1f1e1b;
-    --color-fill: #2c2a27;
-    --color-hover: rgb(255 255 255 / 5%);
-    --color-text: #ecebe7;
-    --color-text-secondary: #b6b2aa;
-    --color-text-tertiary: #7f7a71;
-    --color-border: #33312d;
-    --color-separator: rgb(255 255 255 / 6%);
-    --color-primary: #ecebe7;
-    --color-on-primary: #1b1a18;
-    --color-accent: #e8a24f;
-    --color-danger: #f0806b;
-    --color-danger-subtle: #33201b;
-    --color-success: #4fb76a;
-    --color-info: #5b9cf0;
-    --color-done: #a57ff0;
-    --color-scrim: rgb(0 0 0 / 50%);
-    --color-focus: rgb(236 235 231 / 40%);
-    --color-shadow: rgb(0 0 0 / 50%);
+    --font-size-50: 13px;
+    --font-size-75: 15px;
+    --font-size-100: 17px;
+    --font-size-200: 19px;
+    --font-size-300: 22px;
+    --font-size-400: 24px;
+    --font-size-500: 27px;
+    --font-size-600: 31px;
+    --font-size-700: 34px;
+    --font-size-800: 39px;
+    --font-size-900: 44px;
 
-    --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(0 0 0 / 30%);
-    --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px var(--color-shadow);
-    --shadow-lg: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 40px -8px rgb(0 0 0 / 60%);
-  }
-}
+    --component-height-50: 26px;
+    --component-height-75: 30px;
+    --component-height-100: 40px;
+    --component-height-200: 50px;
+    --component-height-300: 60px;
+    --component-height-400: 70px;
+    --component-height-500: 80px;
 
-/* 触屏上屏幕圆角跟随设备；输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  :root {
-    --radius-window: 22px;
-    --font-size-body: 16px;
+    --icon-size: 25px;
+    --icon-size-xs: 17.5px;
+    --icon-size-s: 20px;
+    --icon-size-m: 22.5px;
+    --icon-size-l: 25px;
+    --icon-size-xl: 27.5px;
+    --ui-icon-size: 12.5px;
+    --checkbox-control-size: 20px;
+    --switch-control-width: 34px;
+    --switch-control-height: 20px;
+    --progress-bar-thickness: 8px;
+    --side-navigation-width: 300px;
+
+    /* 屏幕圆角跟随设备 */
+    --corner-radius-window: 22px;
   }
 }

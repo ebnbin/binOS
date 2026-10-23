@@ -1,4 +1,8 @@
 .text {
-  font-size: var(--font-size-md);
-  color: var(--color-text-secondary);
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+}
+
+.text > * {
+  color: inherit;
 }

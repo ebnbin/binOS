@@ -1,0 +1,157 @@
+/* Spectrum 2 button：最小高度 S 24、M 32、L 40，胶囊形，字重 bold；按下时向里压 2px */
+.button {
+  --height: var(--component-height-100);
+  --bg: var(--neutral-background-color-default);
+  --bg-hover: var(--neutral-background-color-hover);
+  --fg: var(--gray-25);
+  --fg-hover: var(--fg);
+  --border: transparent;
+  --border-hover: var(--border);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-85);
+  flex: none;
+  box-sizing: border-box;
+  min-width: var(--height);
+  min-height: var(--height);
+  padding: 0 calc(var(--height) / 2);
+  border: var(--border-width-200) solid var(--border);
+  border-radius: var(--corner-radius-full);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: var(--font-size-100);
+  font-weight: var(--button-font-weight);
+  line-height: var(--line-height-100);
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.button[data-size='S'] {
+  --height: var(--component-height-75);
+  font-size: var(--font-size-75);
+}
+
+.button[data-size='L'] {
+  --height: var(--component-height-200);
+  font-size: var(--font-size-200);
+}
+
+.button > svg {
+  margin-inline-start: -2px;
+}
+
+.button:has(> svg):not(:has(.label)) {
+  padding: 0;
+}
+
+.button[data-variant='secondary'] {
+  --bg: var(--gray-background-color-default);
+  --bg-hover: var(--gray-background-color-hover);
+  --fg: var(--neutral-content-color-default);
+  --fg-hover: var(--neutral-content-color-hover);
+}
+
+.button[data-variant='accent'] {
+  --bg: var(--button-accent-background-color-default);
+  --bg-hover: var(--button-accent-background-color-hover);
+  --fg: var(--white);
+}
+
+.button[data-variant='negative'] {
+  --bg: var(--button-negative-background-color-default);
+  --bg-hover: var(--button-negative-background-color-hover);
+  --fg: var(--white);
+}
+
+.button[data-fill='outline'] {
+  --bg: transparent;
+  --bg-hover: var(--gray-background-color-default);
+  --fg: var(--neutral-content-color-default);
+  --fg-hover: var(--neutral-content-color-hover);
+  --border: var(--gray-800);
+  --border-hover: var(--gray-900);
+}
+
+.button[data-fill='outline'][data-variant='secondary'] {
+  --border: var(--gray-300);
+  --border-hover: var(--gray-400);
+}
+
+.button[data-static='white'] {
+  --bg: var(--transparent-white-800);
+  --bg-hover: var(--transparent-white-900);
+  --fg: var(--black);
+}
+
+.button[data-static='white'][data-variant='secondary'] {
+  --bg: var(--transparent-white-100);
+  --bg-hover: var(--transparent-white-200);
+  --fg: var(--white);
+}
+
+.button[data-static='white'][data-fill='outline'] {
+  --bg: transparent;
+  --bg-hover: var(--transparent-white-100);
+  --fg: var(--white);
+  --border: var(--transparent-white-800);
+  --border-hover: var(--transparent-white-900);
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    --bg: var(--bg-hover);
+    --fg: var(--fg-hover);
+    --border: var(--border-hover);
+  }
+}
+
+.button:focus-visible {
+  --bg: var(--bg-hover);
+  --fg: var(--fg-hover);
+  --border: var(--border-hover);
+}
+
+.button:active:not(:disabled) {
+  --bg: var(--bg-hover);
+  transform: perspective(max(var(--height), 24px)) translate3d(0, 0, -2px);
+}
+
+.button:disabled {
+  --bg: var(--disabled-background-color);
+  --fg: var(--disabled-content-color);
+  cursor: default;
+}
+
+.button[data-fill='outline']:disabled {
+  --bg: transparent;
+  --border: var(--disabled-border-color);
+}
+
+.button[data-static='white']:disabled {
+  --bg: var(--transparent-white-100);
+  --fg: var(--transparent-white-400);
+  --border: var(--transparent-white-300);
+}
+
+.button[data-pending] > :not(.pending) {
+  visibility: hidden;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}

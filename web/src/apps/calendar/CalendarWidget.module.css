@@ -1,49 +1,34 @@
+/* Spectrum 2 calendar：月份标题 title-lg，星期是 title-sm，日期是 32 的圆形单元格（body-sm），
+   今天是 accent 填充、下面有个点；不属于本月的日期不显示 */
 .calendar {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--space-3);
-  color: var(--color-text);
+  gap: var(--spacing-200);
+  color: var(--neutral-content-color-default);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--spacing-100);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  padding-inline-start: var(--spacing-75);
+  color: var(--title-color);
+  font-size: var(--font-size-300);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-100);
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-0-5);
-}
-
-.actions button {
-  display: grid;
-  place-items: center;
-  min-width: var(--size-control-sm);
-  height: var(--size-control-md);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--color-bg-subtle);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+  gap: var(--spacing-50);
 }
 
 .month {
@@ -56,36 +41,46 @@
 }
 
 .month th {
-  height: 28px;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  padding-bottom: var(--spacing-100);
+  color: var(--title-color);
+  font-size: var(--font-size-100);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-100);
 }
 
 .month td {
-  padding: 0;
-  font-size: var(--font-size-sm);
-}
-
-.month td:nth-child(n + 6) {
-  color: var(--color-text-secondary);
+  padding: var(--spacing-50) 0;
 }
 
 .month td[data-outside='true'] {
-  color: var(--color-text-tertiary);
-  opacity: var(--opacity-disabled);
+  visibility: hidden;
 }
 
 .month td span {
+  position: relative;
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  width: min(var(--component-height-100), 100%);
+  aspect-ratio: 1;
+  border-radius: var(--corner-radius-full);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
 }
 
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-semibold);
+  background: var(--button-accent-background-color-default);
+  color: var(--white);
+}
+
+.month td span[aria-current='date']::after {
+  content: '';
+  position: absolute;
+  bottom: 12.5%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--corner-radius-full);
+  background: currentColor;
+  translate: -50% 0;
 }

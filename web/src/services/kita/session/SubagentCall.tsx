@@ -1,6 +1,7 @@
 import type { TaskProgress } from '@binos/server/services/kita/types'
 import type { ReactNode } from 'react'
 import { formatDuration, formatTokens } from '../../../ui/format.ts'
+import { AIMark, FileText } from '../../../ui/icons.tsx'
 import { Activity } from './Activity.tsx'
 import { Markdown } from './Markdown.tsx'
 import styles from './SubagentCall.module.css'
@@ -38,13 +39,14 @@ export function SubagentCall({
     .join(' · ')
   return (
     <Activity
+      icon={AIMark}
       label={type ? `子 agent（${type}）` : '子 agent'}
       detail={running && progress.activity ? `${description} · ${progress.activity}` : description}
       meta={meta}
       status={status}
       body={() => (
         <>
-          {prompt && <Activity label="任务说明" body={() => <pre className={styles.prompt}>{prompt}</pre>} />}
+          {prompt && <Activity icon={FileText} label="任务说明" body={() => <pre className={styles.prompt}>{prompt}</pre>} />}
           {timeline}
           {!timeline && result?.output && <Markdown thread={thread} text={result.output} />}
         </>

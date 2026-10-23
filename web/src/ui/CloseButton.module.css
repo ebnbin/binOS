@@ -1,0 +1,64 @@
+.button {
+  --height: var(--component-height-100);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--height);
+  height: var(--height);
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-radius-full);
+  background: transparent;
+  color: var(--neutral-content-color-default);
+  cursor: pointer;
+  transition-property: color, background-color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.button svg {
+  width: calc(var(--ui-icon-size) * 1.2);
+  height: calc(var(--ui-icon-size) * 1.2);
+}
+
+.button[data-size='S'] {
+  --height: var(--component-height-75);
+}
+
+.button[data-size='S'] svg {
+  width: var(--ui-icon-size);
+  height: var(--ui-icon-size);
+}
+
+.button[data-size='L'] {
+  --height: var(--component-height-200);
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    background: var(--gray-200);
+    color: var(--neutral-content-color-hover);
+  }
+
+  .button[data-static='white']:hover:not(:disabled) {
+    background: var(--transparent-white-200);
+  }
+}
+
+.button:focus-visible {
+  background: var(--gray-200);
+}
+
+.button:active:not(:disabled) {
+  background: var(--gray-200);
+  transform: perspective(max(var(--height), 24px)) translate3d(0, 0, -2px);
+}
+
+.button[data-static='white'] {
+  color: var(--white);
+}
+
+.button:disabled {
+  color: var(--disabled-content-color);
+  cursor: default;
+}

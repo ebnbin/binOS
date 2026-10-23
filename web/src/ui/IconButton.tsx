@@ -1,16 +1,10 @@
-import type { LucideIcon } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import styles from './IconButton.module.css'
+import { forwardRef } from 'react'
+import { ActionButton } from './ActionButton.tsx'
+import type { ActionButtonProps } from './ActionButton.tsx'
 
-export function IconButton({
-  icon: Icon,
-  label,
-  className,
-  ...props
-}: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
-    </button>
-  )
-}
+// 只有图标的 quiet action button，label 是无障碍名称和提示
+export const IconButton = forwardRef<HTMLButtonElement, Omit<ActionButtonProps, 'children'> & { icon: NonNullable<ActionButtonProps['icon']>; label: string }>(
+  function IconButton(props, ref) {
+    return <ActionButton ref={ref} quiet {...props} />
+  },
+)

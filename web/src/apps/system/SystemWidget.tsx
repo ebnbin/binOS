@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useConnected } from '../../events.ts'
+import { StatusLight } from '../../ui/StatusLight.tsx'
 import type { WidgetContext } from '../types.ts'
 import { useMonitor } from './monitor.ts'
 import styles from './SystemWidget.module.css'
@@ -45,8 +46,9 @@ export function SystemWidget({ size, open }: WidgetContext) {
         </span>
       )}
       <span className={styles.status}>
-        <span className={styles.dot} data-connected={!!fresh && connected} />
-        {!fresh ? '状态待更新' : '已连接'}
+        <StatusLight size="S" variant={fresh && connected ? 'positive' : 'negative'}>
+          {!fresh ? '状态待更新' : '已连接'}
+        </StatusLight>
         {version && <span className={styles.version}>{version.slice(0, 7)}</span>}
       </span>
     </button>

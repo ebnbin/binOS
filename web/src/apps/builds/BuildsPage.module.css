@@ -1,0 +1,200 @@
+.page {
+  box-sizing: border-box;
+  height: 100%;
+  overflow: auto;
+  padding: var(--spacing-400);
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-100);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-300);
+}
+
+.heading {
+  composes: heading from '../../ui/Typography.module.css';
+}
+
+.description {
+  margin: var(--spacing-75) 0 0;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
+}
+
+/* 预览模式的说明：informative 的 subtle 填充 */
+.notice {
+  margin: var(--spacing-300) 0 0;
+  padding: var(--spacing-200) var(--spacing-300);
+  border-radius: var(--corner-radius-large);
+  background: var(--informative-subtle-background-color-default);
+  color: var(--neutral-content-color-default);
+}
+
+.alert {
+  margin-top: var(--spacing-300);
+}
+
+.pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-100);
+  padding: var(--spacing-300) 0;
+  border-bottom: var(--border-width-100) solid var(--divider-color);
+}
+
+.meta {
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacing-300);
+  padding: var(--spacing-300) 0 var(--spacing-400);
+}
+
+.field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 160px;
+}
+
+.field > button {
+  width: 100%;
+}
+
+.filter {
+  margin-bottom: var(--spacing-300);
+}
+
+.empty {
+  margin: 0;
+  padding: var(--spacing-400) 0;
+  color: var(--neutral-subdued-content-color-default);
+  line-height: var(--line-height-ui);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-300);
+}
+
+.card {
+  composes: card from '../../ui/Card.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-100);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-200);
+}
+
+.title {
+  margin: 0;
+  color: var(--title-color);
+  font-size: var(--font-size-200);
+  font-weight: var(--title-font-weight);
+  line-height: var(--line-height-heading);
+}
+
+.commit {
+  color: var(--code-color);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-75);
+}
+
+.trigger {
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+}
+
+.error {
+  margin: 0;
+  color: var(--negative-content-color-default);
+  line-height: var(--line-height-ui);
+}
+
+.link,
+.artifact {
+  border-radius: var(--corner-radius-small);
+  color: var(--accent-content-color-default);
+  text-decoration: underline 1px;
+  text-underline-offset: 1px;
+  transition: color var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
+@media (hover: hover) {
+  .link:hover,
+  .artifact:hover {
+    color: var(--accent-content-color-hover);
+  }
+}
+
+.artifact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  padding: var(--spacing-75) 0;
+  overflow-wrap: anywhere;
+}
+
+/* 日志盖在整个页面上：base 底色，代码区是 layer-1 */
+.log {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-200);
+  padding: var(--spacing-300);
+  background: var(--background-base-color);
+}
+
+.logHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-300);
+}
+
+.logHeader .title {
+  flex: 1;
+  min-width: 0;
+}
+
+.logText {
+  flex: 1;
+  margin: 0;
+  overflow: auto;
+  padding: var(--spacing-200);
+  border-radius: var(--corner-radius-medium);
+  background: var(--background-layer-1-color);
+  color: var(--code-color);
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-code);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -1,5 +1,7 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { ActionButton } from '../../ui/ActionButton.tsx'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { ChevronLeft, ChevronRight } from '../../ui/icons.tsx'
 import styles from './CalendarWidget.module.css'
 
 const monthLabel = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long' })
@@ -29,13 +31,13 @@ export function CalendarWidget() {
       <header className={styles.header}>
         <h2 aria-live="polite">{monthLabel.format(month)}</h2>
         <div className={styles.actions}>
-          <button type="button" aria-label="上一月" onClick={() => move(-1)}><ChevronLeft size={16} /></button>
-          <button type="button" onClick={() => {
+          <IconButton icon={ChevronLeft} label="上一月" onClick={() => move(-1)} />
+          <ActionButton quiet onClick={() => {
             const now = new Date()
             setToday(now)
             setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
-          }}>今天</button>
-          <button type="button" aria-label="下一月" onClick={() => move(1)}><ChevronRight size={16} /></button>
+          }}>今天</ActionButton>
+          <IconButton icon={ChevronRight} label="下一月" onClick={() => move(1)} />
         </div>
       </header>
       <table className={styles.month} aria-label={monthLabel.format(month)}>

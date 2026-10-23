@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react'
+import { Button } from '../../ui/Button.tsx'
+import { ChevronLeft } from '../../ui/icons.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { BuildsPage } from '../builds/BuildsPage.tsx'
 import { DevicesApp } from '../devices/DevicesApp.tsx'
@@ -52,7 +53,7 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
             <>
               <header className={styles.toolBar}>
                 <IconButton icon={ChevronLeft} label="返回对话列表" onClick={() => ctx.navigate('/')} />
-                <span>{title}</span>
+                <h1 className={styles.toolTitle}>{title}</h1>
               </header>
               <div className={styles.content}>
                 {tool === 'builds' ? <BuildsPage key={ctx.route} initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} /> : <DevicesApp ctx={ctx} />}
@@ -70,10 +71,10 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
               />
               {missing ? (
                 <div className={styles.missing}>
-                  <p>这个对话不存在</p>
-                  <button type="button" onClick={() => ctx.navigate('/')}>
+                  <h2 className={styles.missingTitle}>这个对话不存在</h2>
+                  <Button variant="secondary" onClick={() => ctx.navigate('/')}>
                     返回对话列表
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <Conversation

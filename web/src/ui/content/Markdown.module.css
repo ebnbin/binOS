@@ -1,5 +1,7 @@
+/* 成段的内容按 Spectrum 2 的 body 排：字号跟随外层，行高是正文的行高 */
 .markdown {
-  line-height: var(--line-height-relaxed);
+  color: var(--body-color);
+  line-height: var(--line-height-body);
   overflow-wrap: anywhere;
 }
 
@@ -12,26 +14,26 @@
 }
 
 .markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--spacing-300);
 }
 
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: var(--space-6) 0 var(--space-3);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-snug);
-  letter-spacing: var(--letter-spacing-tight);
+  margin: var(--spacing-400) 0 var(--spacing-200);
+  color: var(--heading-color);
+  font-weight: var(--heading-font-weight);
+  line-height: var(--line-height-heading);
 }
 
 .markdown h1 {
-  font-size: 1.4em;
+  font-size: 1.375em;
 }
 
 .markdown h2 {
-  font-size: 1.22em;
+  font-size: 1.25em;
 }
 
 .markdown h3 {
-  font-size: 1.08em;
+  font-size: 1.125em;
 }
 
 .markdown :is(h4, h5, h6) {
@@ -39,20 +41,21 @@
 }
 
 .markdown strong {
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--emphasized-font-weight);
 }
 
-.markdown a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
-  text-underline-offset: 3px;
-  transition: text-decoration-color var(--duration-fast);
+/* 链接：accent 色，1px 下划线 */
+.markdown a:not([class]) {
+  border-radius: var(--corner-radius-small);
+  color: var(--accent-content-color-default);
+  text-decoration: underline 1px;
+  text-underline-offset: 1px;
+  transition: color var(--animation-duration-100) var(--animation-ease-in-out);
 }
 
 @media (hover: hover) {
-  .markdown a:hover {
-    text-decoration-color: currentColor;
+  .markdown a:not([class]):hover {
+    color: var(--accent-content-color-hover);
   }
 }
 
@@ -62,7 +65,7 @@
 
 .markdown li + li,
 .markdown li > :is(ul, ol) {
-  margin-top: var(--space-1);
+  margin-top: var(--spacing-75);
 }
 
 .markdown li > :is(ul, ol) {
@@ -70,7 +73,7 @@
 }
 
 .markdown li::marker {
-  color: var(--color-text-tertiary);
+  color: var(--detail-color);
 }
 
 .markdown li > p {
@@ -78,9 +81,12 @@
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 var(--space-1-5) 0 0;
-  vertical-align: -1px;
-  accent-color: var(--color-primary);
+  width: var(--checkbox-control-size);
+  height: var(--checkbox-control-size);
+  margin: 0 var(--spacing-85) 0 0;
+  vertical-align: -0.15em;
+  appearance: auto;
+  accent-color: var(--neutral-background-color-default);
 }
 
 .markdown :global(.contains-task-list) {
@@ -88,24 +94,27 @@
   list-style: none;
 }
 
+/* 引用：左边一条 M 号的 divider，文字是 subdued */
 .markdown blockquote {
-  padding-left: var(--space-4);
-  border-left: 3px solid var(--color-border);
-  color: var(--color-text-secondary);
+  padding-left: var(--spacing-300);
+  border-left: var(--border-width-200) solid var(--divider-color);
+  color: var(--neutral-subdued-content-color-default);
 }
 
 .markdown hr {
-  height: 1px;
+  height: var(--border-width-100);
   border: 0;
-  background: var(--color-separator);
+  border-radius: var(--corner-radius-full);
+  background: var(--divider-color);
 }
 
 .markdown code {
-  padding: 1px var(--space-1-5);
-  border-radius: var(--radius-xs);
-  background: var(--color-fill);
-  font-family: var(--font-mono);
-  font-size: 0.86em;
+  padding: 0 var(--spacing-75);
+  border-radius: var(--corner-radius-small);
+  background: var(--gray-100);
+  color: var(--code-color);
+  font-family: var(--font-family-code);
+  font-size: 0.875em;
 }
 
 .markdown .codeBlock code {
@@ -116,63 +125,70 @@
 }
 
 .markdown :global(.katex-display) {
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--spacing-300);
   overflow-x: auto;
   overflow-y: hidden;
 }
 
+/* 表格按 Spectrum 2 的 table view：1px gray-300 边框，圆角 6，表头 gray-75 底、加粗 */
 .tableWrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
+  border: var(--border-width-100) solid var(--border-color);
+  border-radius: var(--corner-radius-medium-size-extra-small);
+  background: var(--background-base-color);
 }
 
 .markdown table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.93em;
-  line-height: var(--line-height-normal);
+  font-size: var(--font-size-100);
+  line-height: var(--line-height-ui);
 }
 
 .markdown :is(th, td) {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--spacing-100) var(--spacing-300);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown th {
-  background: var(--color-surface-sunken);
-  font-weight: var(--font-weight-semibold);
+  background: var(--gray-75);
+  color: var(--neutral-content-color-default);
+  font-weight: var(--emphasized-font-weight);
   white-space: nowrap;
+}
+
+.markdown td {
+  color: var(--neutral-content-color-default);
 }
 
 .markdown tr + tr td,
 .markdown thead + tbody td {
-  border-top: 1px solid var(--color-separator);
+  border-top: var(--border-width-100) solid var(--border-color);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: var(--space-1-5) 0;
+  margin: var(--spacing-85) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border-radius: var(--corner-radius-large);
+  background: var(--gray-75);
 }
 
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-0-5) var(--space-3);
-  border: 1px dashed var(--color-border);
-  border-radius: var(--radius-control);
-  color: var(--color-text-tertiary);
-  font-size: 0.9em;
+  gap: var(--spacing-85);
+  padding: var(--spacing-50) var(--spacing-200);
+  border: var(--border-width-100) dashed var(--border-color);
+  border-radius: var(--corner-radius-medium);
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
 }

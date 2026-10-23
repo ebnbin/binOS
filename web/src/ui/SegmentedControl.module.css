@@ -1,0 +1,62 @@
+/* Spectrum 2 segmented control：gray-100 的底，选中的一段是 base 底色加 2px gray-900 描边，圆角 10 */
+.control {
+  display: inline-flex;
+  gap: var(--spacing-75);
+  width: fit-content;
+  max-width: 100%;
+  border-radius: var(--corner-radius-medium);
+  background: var(--gray-background-color-default);
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-85);
+  flex: 1 1 0;
+  box-sizing: border-box;
+  min-width: var(--component-height-100);
+  height: var(--component-height-100);
+  padding: 0 var(--spacing-200);
+  border: var(--border-width-200) solid transparent;
+  border-radius: var(--corner-radius-large);
+  background: transparent;
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-100);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-100);
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: color, background-color, border-color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.item:has(> svg:only-child) {
+  padding: 0;
+}
+
+@media (hover: hover) {
+  .item:hover:not(:disabled) {
+    color: var(--neutral-content-color-default);
+  }
+}
+
+.item:active:not(:disabled) {
+  transform: perspective(var(--component-height-100)) translate3d(0, 0, -2px);
+}
+
+.item[aria-pressed='true'],
+.item[aria-checked='true'],
+.item[aria-selected='true'],
+.item[data-state='on'] {
+  border-color: var(--gray-900);
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
+}
+
+.item:disabled {
+  color: var(--disabled-content-color);
+  cursor: default;
+}

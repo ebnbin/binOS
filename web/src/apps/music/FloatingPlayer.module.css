@@ -1,41 +1,199 @@
+/* 悬浮播放器是 Spectrum 2 的浮层表面：elevated 底色和阴影，圆角 large，深色下有 1px 描边 */
 .panel {
   position: absolute;
   z-index: 10;
-  width: min(320px, calc(100% - var(--space-6)));
-  max-height: calc(100% - var(--space-6));
+  width: min(320px, calc(100% - var(--spacing-400)));
+  max-height: calc(100% - var(--spacing-400));
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
+  box-sizing: border-box;
+  border: var(--border-width-100) solid var(--popover-border-color);
+  border-radius: var(--corner-radius-popover);
+  background: var(--background-elevated-color);
+  color: var(--neutral-content-color-default);
+  box-shadow: var(--drop-shadow-elevated);
 }
-.header { display: flex; align-items: center; padding: var(--space-1) var(--space-1-5) 0; }
-.grip { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-text-tertiary); cursor: grab; touch-action: none; user-select: none; }
-.grip:active { cursor: grabbing; }
-.grip span { font-size: var(--font-size-2xs); }
-.iconButton { display: grid; place-items: center; width: var(--size-control-md); height: var(--size-control-md); flex: none; color: var(--color-text-secondary); border-radius: var(--radius-control); }
-.info { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-width: 0; padding: var(--space-2) var(--space-4); text-align: left; }
-.artwork { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-subtle); color: var(--color-accent); }
-.artwork img { width: 100%; height: 100%; object-fit: cover; }
-.text { display: flex; flex-direction: column; min-width: 0; }
-.text strong, .text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.text strong { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-.text > span { font-size: var(--font-size-2xs); color: var(--color-text-tertiary); }
-.transport { padding: var(--space-1) var(--space-4) var(--space-3); }
-.progress { height: 3px; background: var(--color-separator); }
-.progress > span { display: block; height: 100%; background: var(--color-accent); }
-.error { margin: var(--space-1) var(--space-4) var(--space-2); font-size: var(--font-size-2xs); line-height: var(--line-height-snug); color: var(--color-danger); overflow-wrap: anywhere; }
-.statusButton { position: relative; display: grid; place-items: center; flex: none; width: var(--size-control-xl); height: var(--size-control-xl); border-radius: var(--radius-lg); color: var(--color-on-chrome-secondary); }
-.statusButton[aria-expanded='true'] { background: var(--color-chrome-selected); color: var(--color-on-chrome); }
-.playingDot { position: absolute; bottom: var(--space-1); width: 4px; height: 4px; border-radius: 50%; background: var(--color-accent); }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-50);
+  padding: var(--spacing-75) var(--spacing-75) 0;
+}
+
+/* 拖动手柄：整条标题栏，显示播放状态 */
+.grip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-85);
+  flex: 1;
+  min-width: 0;
+  min-height: var(--component-height-75);
+  padding: 0 var(--spacing-100);
+  border: 0;
+  border-radius: var(--corner-radius-medium-size-small);
+  background: none;
+  color: var(--detail-color);
+  font-size: var(--font-size-75);
+  font-weight: var(--detail-font-weight);
+  line-height: var(--line-height-100);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.grip:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-200);
+  width: 100%;
+  min-width: 0;
+  padding: var(--spacing-100) var(--spacing-300);
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-100) var(--animation-ease-in-out);
+}
+
 @media (hover: hover) {
-  .iconButton:hover, .info:hover { background: var(--color-hover); }
-  .statusButton:hover { background: var(--color-chrome-hover); color: var(--color-on-chrome); }
+  .info:hover {
+    background: color-mix(in srgb, var(--background-elevated-color), var(--gray-900) 7%);
+  }
 }
-@media (pointer: coarse) {
-  .iconButton { width: var(--size-touch-target); height: var(--size-touch-target); }
-  .grip { min-height: var(--size-touch-target); }
-  .panel .transport button[type='button'] { min-width: var(--size-touch-target); min-height: var(--size-touch-target); }
+
+.info:focus-visible {
+  outline-offset: calc(-1 * var(--focus-indicator-thickness));
+}
+
+.artwork {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--component-height-200);
+  height: var(--component-height-200);
+  overflow: hidden;
+  border-radius: var(--corner-radius-small);
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-25);
+  min-width: 0;
+}
+
+.title,
+.artists {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  composes: titleS from '../../ui/Typography.module.css';
+}
+
+.artists {
+  color: var(--neutral-subdued-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-100);
+}
+
+.transport {
+  padding: var(--spacing-50) var(--spacing-300) var(--spacing-200);
+}
+
+/* 底边的播放进度，和 Spectrum 2 progress bar 一样是 gray-300 轨道上的 accent 填充 */
+.progress {
+  height: var(--border-width-200);
+  background: var(--track-color);
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--accent-visual-color);
+}
+
+.error {
+  margin: var(--spacing-75) var(--spacing-300) var(--spacing-100);
+  color: var(--negative-content-color-default);
+  font-size: var(--font-size-75);
+  line-height: var(--line-height-ui);
+  overflow-wrap: anywhere;
+}
+
+/* 任务栏里的按钮：任务栏是深色外框，按 static white 的 quiet action button（L）显示，展开播放器时是选中态 */
+.statusButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--component-height-200);
+  height: var(--component-height-200);
+  padding: 0;
+  border: 0;
+  border-radius: var(--corner-radius-medium-size-large);
+  background: transparent;
+  color: var(--frame-content-color);
+  cursor: pointer;
+  transition-property: background-color, color, transform;
+  transition-duration: var(--animation-duration-100);
+  transition-timing-function: var(--animation-ease-in-out);
+}
+
+.statusButton:focus-visible {
+  outline-color: var(--white);
+}
+
+@media (hover: hover) {
+  .statusButton:hover {
+    background: var(--frame-hover-color);
+    color: var(--frame-content-color-strong);
+  }
+}
+
+.statusButton:active {
+  background: var(--frame-hover-color);
+  transform: perspective(var(--component-height-200)) translate3d(0, 0, -2px);
+}
+
+.statusButton[aria-expanded='true'] {
+  background: var(--transparent-white-800);
+  color: var(--black);
+}
+
+@media (hover: hover) {
+  .statusButton[aria-expanded='true']:hover {
+    background: var(--transparent-white-900);
+    color: var(--black);
+  }
+}
+
+/* 正在播放时下面有个点 */
+.playingDot {
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--corner-radius-full);
+  background: currentColor;
 }

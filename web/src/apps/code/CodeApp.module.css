@@ -2,6 +2,8 @@
 .app {
   container: agent / inline-size;
   height: 100%;
+  background: var(--background-base-color);
+  color: var(--neutral-content-color-default);
 }
 
 .layout {
@@ -19,6 +21,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  background: var(--background-base-color);
 }
 
 .missing {
@@ -27,17 +30,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  gap: var(--spacing-300);
 }
 
-.missing p {
-  margin: 0;
-}
-
-.missing button {
-  color: var(--color-text);
-  text-decoration: underline;
+.missingTitle {
+  composes: title from '../../ui/Typography.module.css';
 }
 
 @container agent (width < 960px) {
@@ -61,6 +58,14 @@
   display: none;
 }
 
+.toolTitle {
+  composes: titleS from '../../ui/Typography.module.css';
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .content {
   flex: 1;
   min-height: 0;
@@ -70,8 +75,10 @@
   .toolBar {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
+    gap: var(--spacing-100);
+    flex: none;
+    height: var(--component-height-300);
+    padding: 0 var(--spacing-100);
+    border-bottom: var(--border-width-100) solid var(--divider-color);
   }
 }
