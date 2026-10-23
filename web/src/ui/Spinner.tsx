@@ -1,5 +1,5 @@
-import styles from './Spinner.module.css'
+import { Spinner as Base } from '@radix-ui/themes'
 
-export function Spinner() {
-  return <span className={styles.spinner} role="status" aria-label="进行中" />
+export function Spinner({ size = '1' }: { size?: '1' | '2' | '3' }) {
+  return <Base size={size} role="status" aria-label="进行中" />
 }

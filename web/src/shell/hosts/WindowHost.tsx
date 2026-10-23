@@ -1,3 +1,4 @@
+import { Button, Text } from '@radix-ui/themes'
 import { Suspense, useMemo } from 'react'
 import { findApplication, useApplications, windowView } from '../../apps/index.ts'
 import type { WindowContext } from '../../apps/types.ts'
@@ -14,16 +15,16 @@ export function WindowHost({ window: win, onTitle, onOpen }: { window: WindowIns
 
   const App = windowView(findApplication(apps, win.applicationId), win.viewId)?.component
   if (!App) {
-    return <div className={styles.message}>找不到 app「{win.applicationId}」</div>
+    return <div className={styles.message}><Text size="2" color="gray">找不到 app「{win.applicationId}」</Text></div>
   }
   return (
     <ErrorBoundary
       fallback={(retry) => (
         <div className={styles.message}>
-          <p>这个 app 出错了</p>
-          <button type="button" onClick={retry}>
+          <Text size="2" color="gray">这个 app 出错了</Text>
+          <Button variant="soft" color="gray" onClick={retry}>
             重新打开
-          </button>
+          </Button>
         </div>
       )}
     >

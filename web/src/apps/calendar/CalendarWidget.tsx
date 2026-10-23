@@ -1,5 +1,7 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button, Flex, Text } from '@radix-ui/themes'
 import { useEffect, useState } from 'react'
+import { IconButton } from '../../ui/IconButton.tsx'
+import { ChevronLeftIcon, ChevronRightIcon } from '../../ui/icons.ts'
 import styles from './CalendarWidget.module.css'
 
 const monthLabel = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long' })
@@ -26,18 +28,20 @@ export function CalendarWidget() {
 
   return (
     <section className={styles.calendar} aria-label="日历">
-      <header className={styles.header}>
-        <h2 aria-live="polite">{monthLabel.format(month)}</h2>
-        <div className={styles.actions}>
-          <button type="button" aria-label="上一月" onClick={() => move(-1)}><ChevronLeft size={16} /></button>
-          <button type="button" onClick={() => {
-            const now = new Date()
-            setToday(now)
-            setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
-          }}>今天</button>
-          <button type="button" aria-label="下一月" onClick={() => move(1)}><ChevronRight size={16} /></button>
-        </div>
-      </header>
+      <Flex asChild align="center" justify="between" gap="2">
+        <header>
+          <Text as="p" size="2" weight="medium" className={styles.title} aria-live="polite">{monthLabel.format(month)}</Text>
+          <Flex align="center" gap="1">
+            <IconButton icon={ChevronLeftIcon} label="上一月" size="1" onClick={() => move(-1)} />
+            <Button type="button" size="1" variant="ghost" color="gray" className={styles.today} onClick={() => {
+              const now = new Date()
+              setToday(now)
+              setMonth(new Date(now.getFullYear(), now.getMonth(), 1))
+            }}>今天</Button>
+            <IconButton icon={ChevronRightIcon} label="下一月" size="1" onClick={() => move(1)} />
+          </Flex>
+        </header>
+      </Flex>
       <table className={styles.month} aria-label={monthLabel.format(month)}>
         <thead><tr>{weekdays.map((day) => <th key={day} scope="col">{day}</th>)}</tr></thead>
         <tbody>{Array.from({ length: 6 }, (_, week) => (

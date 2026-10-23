@@ -1,16 +1,19 @@
-import type { LucideIcon } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import styles from './IconButton.module.css'
+import { IconButton as Base } from '@radix-ui/themes'
+import type { ComponentProps } from 'react'
+import type { Icon } from './icons.ts'
 
+// 只有图标的按钮。默认是 Radix Themes 的灰色 ghost 按钮，工具栏里常用；标签同时用作 tooltip
 export function IconButton({
-  icon: Icon,
+  icon: Glyph,
   label,
-  className,
+  variant = 'ghost',
+  color = 'gray',
+  size = '2',
   ...props
-}: { icon: LucideIcon; label: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
+}: { icon: Icon; label: string } & Omit<ComponentProps<typeof Base>, 'children'>) {
   return (
-    <button type="button" aria-label={label} title={label} className={`${styles.button} ${className ?? ''}`} {...props}>
-      <Icon size={19} strokeWidth={1.75} />
-    </button>
+    <Base type="button" aria-label={label} title={label} variant={variant} color={color} size={size} {...props}>
+      <Glyph />
+    </Base>
   )
 }

@@ -16,14 +16,15 @@ const sources = files(root).filter((path) => /\.(css|tsx?)$/.test(path) && !path
 const styles = sources.filter((path) => path.endsWith('.css') && !path.endsWith('tokens.css'))
 const read = (path: string) => readFileSync(path, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
-// 变量来自 tokens.css、各文件自己声明的局部变量、代码里设置的变量，以及 Radix 和 Shiki
-const declared = new Set(sources.flatMap((path) => [...read(path).matchAll(/(--[\w-]+)\s*:|['"`](--[\w-]+)['"`]/g)].map((match) => match[1] ?? match[2])))
+// 变量来自 Radix Themes 的 token、tokens.css、各文件自己声明的局部变量、代码里设置的变量，以及 Radix Primitives 和 Shiki
+const radixThemes = join(root, '../node_modules/@radix-ui/themes/tokens.css')
+const declared = new Set([...sources, radixThemes].flatMap((path) => [...read(path).matchAll(/(--[\w-]+)\s*:|['"`](--[\w-]+)['"`]/g)].map((match) => match[1] ?? match[2])))
 
 function violations(pattern: RegExp) {
   return styles.flatMap((path) => [...read(path).matchAll(pattern)].map((match) => `${relative(root, path)}: ${match[0].trim()}`))
 }
 
-describe('样式只用 tokens.css 里的设计 token', () => {
+describe('样式只用 Radix Themes 和 tokens.css 里的设计 token', () => {
   it('不写颜色字面量', () => {
     expect(violations(/#[\da-f]{3,8}\b|\b(?:rgba?|hsla?|oklch)\([^)]*\)/gi)).toEqual([])
   })

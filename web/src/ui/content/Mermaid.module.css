@@ -3,9 +3,9 @@
   justify-content: center;
   padding: var(--space-4);
   overflow-x: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+  border-radius: var(--radius-4);
+  box-shadow: 0 0 0 1px var(--gray-a5);
+  background: var(--color-panel-solid);
 }
 
 .diagram svg {

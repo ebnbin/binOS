@@ -1,6 +1,7 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
-import { ArrowUpRight, MessageSquare, Search, UserRound } from 'lucide-react'
+import { Button, Text } from '@radix-ui/themes'
 import type { searchContent } from '../api.ts'
+import { ArrowTopRightIcon, ChatBubbleIcon, MagnifyingGlassIcon, PersonIcon } from '../../../ui/icons.ts'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import styles from './SearchResults.module.css'
 
@@ -27,11 +28,11 @@ export function SearchResults({
   if (failed)
     return (
       <div className={styles.state} role="alert">
-        <span>搜索失败</span>
-        <p>未能加载结果，请重试。</p>
-        <button type="button" onClick={onRetry}>
+        <Text size="2" weight="medium">搜索失败</Text>
+        <Text as="p" size="1" color="gray">未能加载结果，请重试。</Text>
+        <Button type="button" size="1" variant="soft" color="gray" onClick={onRetry}>
           重新搜索
-        </button>
+        </Button>
       </div>
     )
   if (!data)
@@ -44,9 +45,9 @@ export function SearchResults({
   if (!data.results.length)
     return (
       <div className={styles.state} role="status">
-        <Search size={24} strokeWidth={1.5} />
-        <span>没有找到相关内容</span>
-        <p>试试更短的关键词，或换个说法。</p>
+        <MagnifyingGlassIcon width={24} height={24} className={styles.stateIcon} />
+        <Text size="2" weight="medium">没有找到相关内容</Text>
+        <Text as="p" size="1" color="gray">试试更短的关键词，或换个说法。</Text>
       </div>
     )
   const groups = new Map<number, Match[]>()
@@ -62,7 +63,7 @@ export function SearchResults({
         <span>{data.total} 处匹配</span>
       </div>
       {data.total > data.results.length && (
-        <p className={styles.limit}>仅显示前 {data.results.length} 处匹配，可使用更具体的关键词查找其他结果。</p>
+        <Text as="p" size="1" color="gray" className={styles.limit}>仅显示前 {data.results.length} 处匹配，可使用更具体的关键词查找其他结果。</Text>
       )}
       {[...groups].map(([id, matches]) => {
         const result = matches[0]
@@ -80,17 +81,17 @@ export function SearchResults({
               </span>
               <span className={styles.count}>
                 {matches.length} 处匹配
-                <ArrowUpRight size={13} />
+                <ArrowTopRightIcon width={12} height={12} />
               </span>
             </button>
             {matches
               .filter((match) => match.kind !== 'title')
               .map((match) => {
-                const Icon = match.kind === 'input' ? UserRound : MessageSquare
+                const Icon = match.kind === 'input' ? PersonIcon : ChatBubbleIcon
                 return (
                   <button type="button" className={styles.match} key={match.item} onClick={() => onNavigate(`/${id}?item=${match.item}`)}>
                     <span className={styles.kind}>
-                      <Icon size={12} />
+                      <Icon width={12} height={12} />
                       {match.kind === 'input' ? '你' : '回复'}
                     </span>
                     <span className={styles.snippet}>

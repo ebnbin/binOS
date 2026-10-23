@@ -1,10 +1,11 @@
 import type { TaskProgress } from '@binos/server/services/kita/types'
 import type { ReactNode } from 'react'
 import { formatDuration, formatTokens } from '../../../ui/format.ts'
+import { FileTextIcon } from '../../../ui/icons.ts'
 import { Activity } from './Activity.tsx'
 import { Markdown } from './Markdown.tsx'
 import styles from './SubagentCall.module.css'
-import { callDuration, callStatus } from './tools.ts'
+import { callDuration, callStatus, toolLabel } from './tools.ts'
 import type { CallState } from './tools.ts'
 
 // 子 agent：一行是任务描述，运行中带上正在做的一步；展开是任务说明和它自己的过程（timeline）。
@@ -38,15 +39,16 @@ export function SubagentCall({
     .join(' · ')
   return (
     <Activity
+      icon={toolLabel(call).icon}
       label={type ? `子 agent（${type}）` : '子 agent'}
       detail={running && progress.activity ? `${description} · ${progress.activity}` : description}
       meta={meta}
       status={status}
       body={() => (
         <>
-          {prompt && <Activity label="任务说明" body={() => <pre className={styles.prompt}>{prompt}</pre>} />}
+          {prompt && <Activity icon={FileTextIcon} label="任务说明" body={() => <pre className={styles.prompt}>{prompt}</pre>} />}
           {timeline}
-          {!timeline && result?.output && <Markdown thread={thread} text={result.output} />}
+          {!timeline && result?.output && <Markdown thread={thread} text={result.output} size="2" />}
         </>
       )}
     />

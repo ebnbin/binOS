@@ -46,7 +46,7 @@ function Content({ thread, call, result }: { thread: string; call: ToolCall; res
       return (
         <>
           {tool.prompt && <p className={styles.note}>{tool.prompt}</p>}
-          {result?.output && <Markdown thread={thread} text={result.output} />}
+          {result?.output && <Markdown thread={thread} text={result.output} size="2" />}
         </>
       )
     default:
@@ -180,7 +180,7 @@ function SearchResults({ thread, output }: { thread: string; output: string }) {
           )}
         </ul>
       )}
-      {summary && <Markdown thread={thread} text={summary} />}
+      {summary && <Markdown thread={thread} text={summary} size="2" />}
     </>
   )
 }

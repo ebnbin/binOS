@@ -1,12 +1,13 @@
+/* 桌面底色是 gray-2，上面叠两团很淡的强调色 */
 .desktop {
   position: absolute;
   inset: 0;
   overflow: hidden auto;
   overscroll-behavior: contain;
   background:
-    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 55%),
-    radial-gradient(ellipse at 85% 100%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 60%),
-    var(--color-bg-subtle);
+    radial-gradient(ellipse at 15% 0%, var(--accent-a4), transparent 55%),
+    radial-gradient(ellipse at 90% 100%, var(--accent-a3), transparent 60%),
+    var(--gray-2);
 }
 
 .columns {
@@ -25,11 +26,13 @@
   padding: var(--margin);
 }
 
+/* 图标和 widget 都是 Radix 的 classic 卡片：panel 底，shadow-2，悬停 shadow-3，按下回到 shadow-2 */
 .icon {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  outline: none;
 }
 
 .glyph {
@@ -37,11 +40,10 @@
   place-items: center;
   width: 80%;
   aspect-ratio: 1;
-  border-radius: 24%;
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--duration-fast) var(--ease-standard);
+  border-radius: var(--radius-5);
+  background: var(--color-panel-solid);
+  color: var(--accent-11);
+  box-shadow: var(--shadow-2);
 }
 
 .glyph svg {
@@ -51,8 +53,17 @@
 
 @media (hover: hover) {
   .icon:hover .glyph {
-    transform: translateY(calc(-1 * var(--space-0-5)));
+    box-shadow: var(--shadow-3);
   }
+}
+
+.icon:active .glyph {
+  box-shadow: var(--shadow-2);
+}
+
+.icon:focus-visible .glyph {
+  outline: 2px solid var(--focus-8);
+  outline-offset: 2px;
 }
 
 .label {
@@ -62,9 +73,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-tight);
+  color: var(--gray-12);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
 }
 
 .widget {
@@ -72,18 +84,23 @@
   min-height: 0;
   padding: var(--space-4);
   overflow: hidden;
-  border-radius: calc(var(--cell) * 0.3);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator), var(--shadow-md);
-  font-size: var(--font-size-md);
+  border-radius: var(--radius-5);
+  background: var(--color-panel-solid);
+  box-shadow: var(--shadow-2);
+  color: var(--gray-12);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
   cursor: default;
 }
 
-.failed {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+@media (hover: hover) {
+  .widget[data-opens-window='true']:hover {
+    box-shadow: var(--shadow-3);
+  }
 }
 
-.widget[data-opens-window='true'] {
-  cursor: pointer;
+.failed {
+  color: var(--gray-a11);
+  font-size: var(--font-size-1);
 }

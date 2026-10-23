@@ -14,7 +14,7 @@ export function QuotaRing({ limits, now, size = 16 }: { limits: Limits; now: num
         const circumference = 2 * Math.PI * radius
         return (
           <g key={key} data-longest={longest || undefined} data-full={used >= 0.95 || undefined}>
-            <circle cx="12" cy="12" r={radius} fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
+            <circle cx="12" cy="12" r={radius} fill="none" className={styles.track} strokeWidth="2.5" />
             <circle
               cx="12"
               cy="12"

@@ -7,28 +7,17 @@
 
 .header {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-2);
-  flex: none;
-}
-
-.name {
-  font-weight: var(--font-weight-semibold);
 }
 
 .running {
-  color: var(--color-accent);
-  font-size: var(--font-size-xs);
+  color: var(--accent-a11);
 }
 
-.new {
-  display: grid;
-  place-items: center;
-  width: var(--size-control-sm);
-  height: var(--size-control-sm);
-  margin: calc(-1 * var(--space-1)) calc(-1 * var(--space-1-5)) calc(-1 * var(--space-1)) auto;
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+.header .new {
+  margin-left: auto;
 }
 
 .summary {
@@ -39,40 +28,41 @@
 }
 
 .count {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-}
-
-.muted {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
 }
 
 .list {
   min-height: 0;
-  margin: var(--space-1-5) calc(-1 * var(--space-2)) 0;
+  margin: var(--space-2) calc(-1 * var(--space-2)) 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
 }
 
+/* 列表项：size 2 的高度和圆角，悬停 gray-a3 */
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   width: 100%;
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
+  height: var(--size-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
   text-align: left;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-2);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--letter-spacing-2);
 }
 
 @media (hover: hover) {
-  .new:hover,
   .row:hover {
-    background: var(--color-hover);
+    background: var(--gray-a3);
   }
+}
+
+.row:active {
+  background: var(--gray-a4);
 }
 
 .dot {
@@ -80,11 +70,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--color-border);
+  background: var(--gray-a6);
 }
 
 .dot[data-running='true'] {
-  background: var(--color-accent);
+  background: var(--accent-9);
 }
 
 .title {
@@ -97,14 +87,14 @@
 
 .time {
   flex: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--gray-a11);
+  font-size: var(--font-size-1);
+  line-height: var(--line-height-1);
+  letter-spacing: var(--letter-spacing-1);
   font-variant-numeric: tabular-nums;
 }
 
 .empty {
   margin: auto 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
   text-align: center;
 }

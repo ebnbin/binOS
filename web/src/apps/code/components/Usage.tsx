@@ -1,5 +1,6 @@
 import type { CodeUsage, SessionSummary } from '@binos/server/apps/code/types'
 import { agents } from '@binos/server/services/kita/types'
+import { IconButton, Progress, Text } from '@radix-ui/themes'
 import { useEffect, useState } from 'react'
 import { Popover } from '../../../ui/Popover.tsx'
 import { codeUsage } from '../api.ts'
@@ -28,7 +29,7 @@ export function Usage({ session }: { session: SessionSummary }) {
   }, [open])
   const { context, tokens, quota } = session
   const ratio = context ? Math.min(context.tokens / context.window, 1) : 0
-  const level = ratio >= 0.9 ? 'danger' : ratio >= 0.7 ? 'warning' : undefined
+  const color = ratio >= 0.9 ? 'red' : ratio >= 0.7 ? 'amber' : 'gray'
   const total = tokens && tokens.input + tokens.output + tokens.cacheRead + tokens.cacheWrite
   const circumference = 2 * Math.PI * 8
   return (
@@ -39,16 +40,18 @@ export function Usage({ session }: { session: SessionSummary }) {
       className={styles.panel}
       side="top"
       trigger={
-        <button
+        <IconButton
           type="button"
+          size="2"
+          variant="ghost"
+          color={color}
           className={styles.ring}
-          data-level={level}
           aria-expanded={open}
           aria-label="用量"
           title={context ? `上下文 ${Math.round(ratio * 100)}%` : '用量'}
         >
           <svg viewBox="0 0 20 20" width={18} height={18} aria-hidden>
-            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" strokeOpacity="0.2" strokeWidth="2.5" />
+            <circle cx="10" cy="10" r="8" fill="none" className={styles.track} strokeWidth="2.5" />
             <circle
               cx="10"
               cy="10"
@@ -61,7 +64,7 @@ export function Usage({ session }: { session: SessionSummary }) {
               strokeDashoffset={circumference * (1 - ratio)}
             />
           </svg>
-        </button>
+        </IconButton>
       }
     >
       <div className={styles.line}>
@@ -76,9 +79,7 @@ export function Usage({ session }: { session: SessionSummary }) {
         )}
       </div>
       {context && (
-        <div className={styles.bar} data-level={level}>
-          <span style={{ width: `${ratio * 100}%` }} />
-        </div>
+        <Progress size="1" color={color} value={ratio * 100} aria-label="上下文用量" className={styles.bar} />
       )}
       <div className={styles.line}>
         <span className={styles.label}>本会话</span>
@@ -108,11 +109,11 @@ export function Usage({ session }: { session: SessionSummary }) {
               </span>
             </div>
           )}
-          <p className={styles.note}>
+          <Text as="p" size="1" color="gray" className={styles.note}>
             {quota !== undefined
               ? `订阅是 ${agents[session.agent].name} 自己的 app、网页版和别的应用共用的，这里只算 binOS 的；按 API 价格折算估计，别处一直在用时偏高`
               : 'binOS 的用量让 7 天额度涨过 3% 后才估得出来'}
-          </p>
+          </Text>
         </>
       )}
     </Popover>

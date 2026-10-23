@@ -1,20 +1,43 @@
+/* 代码块：--gray-a2 底、--gray-a5 边的卡片，字号同 Radix 的 Code size 2 */
 .block {
+  /* 语法高亮的配色，按 GitHub 的配色习惯取 Radix 色阶的 11 级（文字级），亮暗跟随主题 */
+  --shiki-foreground: var(--gray-12);
+  --shiki-background: transparent;
+  --shiki-token-keyword: var(--crimson-11);
+  --shiki-token-function: var(--violet-11);
+  --shiki-token-string: var(--blue-11);
+  --shiki-token-string-expression: var(--grass-11);
+  --shiki-token-constant: var(--cyan-11);
+  --shiki-token-parameter: var(--orange-11);
+  --shiki-token-comment: var(--gray-a10);
+  --shiki-token-punctuation: var(--gray-a11);
+  --shiki-token-link: var(--accent-a11);
+  --shiki-token-inserted: var(--green-11);
+  --shiki-token-deleted: var(--red-11);
+  --shiki-token-changed: var(--amber-11);
+
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border: 1px solid var(--gray-a5);
+  border-radius: var(--radius-4);
+  background: var(--gray-a2);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--size-control-md);
-  padding: 0 var(--space-1-5) 0 var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--space-2);
+  height: var(--size-2);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-bottom: 1px solid var(--gray-a5);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--code-font-family);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .pre {
@@ -22,14 +45,17 @@
   margin: 0;
   padding: var(--space-3) 0;
   overflow: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
-  color: var(--color-text);
+  color: var(--shiki-foreground);
+  font-family: var(--code-font-family);
+  font-size: calc(var(--font-size-2) * var(--code-font-size-adjust) * 0.95);
+  line-height: var(--line-height-2);
+  letter-spacing: var(--code-letter-spacing);
 }
 
 .line {
   display: block;
+  width: max-content;
+  min-width: 100%;
   padding: 0 var(--space-4);
   white-space: pre;
 }
@@ -39,16 +65,6 @@
   min-width: 2.5em;
   margin-right: var(--space-4);
   text-align: right;
-  color: var(--color-text-tertiary);
+  color: var(--gray-a9);
   user-select: none;
-}
-
-.token {
-  color: var(--shiki-light);
-}
-
-@media (prefers-color-scheme: dark) {
-  .token {
-    color: var(--shiki-dark);
-  }
 }

@@ -1,12 +1,12 @@
-import { CalendarDays, CodeXml, Folder, Gauge, Globe, Music, Terminal } from 'lucide-react'
 import { lazy } from 'react'
+import { CalendarIcon, CodeIcon, FolderIcon, GearIcon, GlobeIcon, MusicIcon, TerminalIcon } from '../ui/icons.ts'
 import type { ApplicationDefinition } from './types.ts'
 
 export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'calendar',
     name: '日历',
-    icon: CalendarDays,
+    icon: CalendarIcon,
     views: {
       month: { kind: 'widget', component: lazy(() => import('./calendar/CalendarWidget.tsx').then((module) => ({ default: module.CalendarWidget }))) },
     },
@@ -15,7 +15,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'music',
     name: '音乐',
-    icon: Music,
+    icon: MusicIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: { kind: 'window', component: lazy(() => import('./music/MusicApp.tsx').then((module) => ({ default: module.MusicApp }))) },
@@ -26,7 +26,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'browser',
     name: '浏览器',
-    icon: Globe,
+    icon: GlobeIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -38,7 +38,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'terminal',
     name: '终端',
-    icon: Terminal,
+    icon: TerminalIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -50,7 +50,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'files',
     name: '文件',
-    icon: Folder,
+    icon: FolderIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -62,7 +62,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'code',
     name: 'Code',
-    icon: CodeXml,
+    icon: CodeIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: {
@@ -79,7 +79,7 @@ export const builtinApplications: ApplicationDefinition[] = [
   {
     id: 'system',
     name: '系统',
-    icon: Gauge,
+    icon: GearIcon,
     mainWindow: { viewId: 'main' },
     views: {
       main: {

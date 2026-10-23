@@ -86,7 +86,9 @@ class YouTubeMusicPlayer implements MusicPlayer {
     bar.append(title, close)
     const frame = document.createElement('div')
     host.append(bar, frame)
-    document.body.append(host)
+    // 放进 Radix 的根主题里，才能取到主题的 token 和深浅色
+    const theme = document.querySelector('.radix-themes[data-is-root-theme="true"]') ?? document.body
+    theme.append(host)
     this.host = host
     hosts.add(host)
     await new Promise<void>((resolve, reject) => {

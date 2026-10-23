@@ -1,6 +1,6 @@
 import { agents } from '@binos/server/services/kita/types'
 import type { AgentAccount, Limits } from '@binos/server/services/kita/types'
-import { ChevronLeft, RefreshCw } from 'lucide-react'
+import { Badge, Button, Callout, Card, Code, DataList, Flex, Heading, Text } from '@radix-ui/themes'
 import { useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { agentAccounts } from '../../services/kita/api.ts'
@@ -9,6 +9,7 @@ import { QuotaWindows } from '../../services/kita/QuotaWindows.tsx'
 import { useAgentStatus } from '../../services/kita/status.ts'
 import { agentView } from '../../services/kita/views.ts'
 import { IconButton } from '../../ui/IconButton.tsx'
+import { ChevronLeftIcon, ExclamationTriangleIcon, InfoCircledIcon, ReloadIcon } from '../../ui/icons.ts'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { formatMoment } from '../../ui/time.ts'
 import styles from './AgentAccounts.module.css'
@@ -36,21 +37,30 @@ export function AgentAccounts({ back }: { back: () => void }) {
   const accounts = result?.accounts
 
   return (
-    <div className={styles.page}>
+    <div>
       <header className={styles.bar}>
-        <IconButton icon={ChevronLeft} label="返回" onClick={back} />
-        <h1>Agent</h1>
-        <IconButton icon={RefreshCw} label="重新读取" onClick={refresh} disabled={loading} className={loading ? styles.spinning : undefined} />
+        <IconButton icon={ChevronLeftIcon} label="返回" onClick={back} />
+        <Heading as="h2" size="4" className={styles.title}>
+          Agent
+        </Heading>
+        <IconButton icon={ReloadIcon} label="重新读取" onClick={refresh} loading={loading} />
       </header>
-      {accounts === undefined ? (
-        <div className={styles.loading}>
-          <Spinner />
-        </div>
-      ) : accounts === null ? (
-        <p className={styles.failed}>没能读取 agent 的信息</p>
-      ) : (
-        accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
-      )}
+      <div className={styles.content}>
+        {accounts === undefined ? (
+          <Flex justify="center" p="9">
+            <Spinner size="2" />
+          </Flex>
+        ) : accounts === null ? (
+          <Callout.Root color="red" size="1" role="alert">
+            <Callout.Icon>
+              <ExclamationTriangleIcon />
+            </Callout.Icon>
+            <Callout.Text>没能读取 agent 的信息</Callout.Text>
+          </Callout.Root>
+        ) : (
+          accounts.map((account) => <Account key={account.agent} account={account} loadedAt={result!.loadedAt} />)
+        )}
+      </div>
     </div>
   )
 }
@@ -60,40 +70,50 @@ function Account({ account, loadedAt }: { account: AgentAccount; loadedAt: numbe
   const limits = status?.limits[account.agent]
   const { token } = account
   return (
-    <section className={styles.section}>
-      <header className={styles.header}>
-        <h2>{agents[account.agent].name}</h2>
-        <span className={styles.status} data-ok={account.loggedIn}>
-          {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
-        </span>
-        {account.version && <span className={styles.version}>{account.version}</span>}
-      </header>
-      <dl className={styles.list}>
-        {account.email && <Row label="账号">{account.email}</Row>}
-        {account.plan && <Row label="套餐">{planNames[account.plan] ?? account.plan}</Row>}
-        {account.details.map((detail) => (
-          <Row key={detail.label} label={detail.label}>
-            <Value value={detail.value} note={detail.note} />
+    <Card size="2" asChild>
+      <section>
+        <Flex align="center" gap="2" wrap="wrap" mb="4">
+          <Heading as="h3" size="3">
+            {agents[account.agent].name}
+          </Heading>
+          <Badge size="1" variant="soft" color={account.version === undefined ? 'gray' : account.loggedIn ? 'green' : 'red'}>
+            {account.version === undefined ? '没有安装' : account.loggedIn ? '已登录' : '没有登录'}
+          </Badge>
+          {account.version && (
+            <Code size="1" variant="ghost" color="gray" ml="auto">
+              {account.version}
+            </Code>
+          )}
+        </Flex>
+        <DataList.Root size="2">
+          {account.email && <Row label="账号">{account.email}</Row>}
+          {account.plan && <Row label="套餐">{planNames[account.plan] ?? account.plan}</Row>}
+          {account.details.map((detail) => (
+            <Row key={detail.label} label={detail.label}>
+              <Value value={detail.value} note={detail.note} />
+            </Row>
+          ))}
+          <AuthRows account={account} loadedAt={loadedAt} />
+          {token && (
+            <Row label="访问令牌">
+              <Value
+                value={token.expiresAt ? `${formatMoment(token.expiresAt, loadedAt)}过期` : '过期时间未知'}
+                expired={token.expiresAt !== undefined && Date.parse(token.expiresAt) <= loadedAt}
+                note={token.refreshable ? '有刷新令牌，到期前自动续期' : '没有刷新令牌，过期后要重新登录'}
+              />
+            </Row>
+          )}
+          {token?.refreshedAt && <Row label="上次续期">{formatMoment(token.refreshedAt, loadedAt)}</Row>}
+          {limits && <QuotaRows limits={limits} />}
+          <Row label="正在运行">{account.running} 个</Row>
+          <Row label="配置目录">
+            <Code size="1" variant="ghost" color="gray">
+              {account.configDir}
+            </Code>
           </Row>
-        ))}
-        <AuthRows account={account} loadedAt={loadedAt} />
-        {token && (
-          <Row label="访问令牌">
-            <Value
-              value={token.expiresAt ? `${formatMoment(token.expiresAt, loadedAt)}过期` : '过期时间未知'}
-              expired={token.expiresAt !== undefined && Date.parse(token.expiresAt) <= loadedAt}
-              note={token.refreshable ? '有刷新令牌，到期前自动续期' : '没有刷新令牌，过期后要重新登录'}
-            />
-          </Row>
-        )}
-        {token?.refreshedAt && <Row label="上次续期">{formatMoment(token.refreshedAt, loadedAt)}</Row>}
-        {limits && <QuotaRows limits={limits} />}
-        <Row label="正在运行">{account.running} 个</Row>
-        <Row label="配置目录">
-          <span className={styles.mono}>{account.configDir}</span>
-        </Row>
-      </dl>
-    </section>
+        </DataList.Root>
+      </section>
+    </Card>
   )
 }
 
@@ -110,20 +130,27 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
           <Value value={row.value} note={row.note} expired={row.expired} />
         </Row>
       ))}
-      {attention && <p className={styles.attention} data-tone={attention.tone}>{attention.text}</p>}
+      {attention && (
+        <div className={styles.full}>
+          <Callout.Root size="1" color={attention.tone === 'bad' ? 'red' : 'amber'}>
+            <Callout.Icon>{attention.tone === 'bad' ? <ExclamationTriangleIcon /> : <InfoCircledIcon />}</Callout.Icon>
+            <Callout.Text>{attention.text}</Callout.Text>
+          </Callout.Root>
+        </div>
+      )}
       {fix !== undefined ? (
-        <div className={styles.login}>
+        <div className={styles.full}>
           <view.Login fix={fix} onClose={() => setFix(undefined)} />
         </div>
       ) : (
         actions.length > 0 && (
-          <div className={styles.loginActions}>
+          <Flex gap="2" wrap="wrap" className={styles.full}>
             {actions.map((action) => (
-              <button key={action.fix} type="button" onClick={() => setFix(action.fix)}>
+              <Button key={action.fix} type="button" variant="soft" onClick={() => setFix(action.fix)}>
                 {action.label}
-              </button>
+              </Button>
             ))}
-          </div>
+          </Flex>
         )
       )}
     </>
@@ -132,10 +159,14 @@ function AuthRows({ account, loadedAt }: { account: AgentAccount; loadedAt: numb
 
 function Value({ value, note, expired }: { value: string; note?: string; expired?: boolean }) {
   return (
-    <span>
-      <span data-expired={expired || undefined}>{value}</span>
-      {note && <span className={styles.note}>{note}</span>}
-    </span>
+    <Flex direction="column" gap="1">
+      <Text color={expired ? 'red' : undefined}>{value}</Text>
+      {note && (
+        <Text size="1" color="gray">
+          {note}
+        </Text>
+      )}
+    </Flex>
   )
 }
 
@@ -143,7 +174,7 @@ function QuotaRows({ limits }: { limits: Limits }) {
   const now = useMinuteNow()
   return (
     <>
-      <div className={styles.quotaWindows}>
+      <div className={styles.full}>
         <QuotaWindows limits={limits} now={now} />
       </div>
       <Row label="额度更新于">{formatMoment(limits.updatedAt)}</Row>
@@ -153,9 +184,9 @@ function QuotaRows({ limits }: { limits: Limits }) {
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className={styles.row}>
-      <dt>{label}</dt>
-      <dd>{children}</dd>
-    </div>
+    <DataList.Item>
+      <DataList.Label minWidth="88px">{label}</DataList.Label>
+      <DataList.Value>{children}</DataList.Value>
+    </DataList.Item>
   )
 }

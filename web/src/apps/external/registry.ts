@@ -7,7 +7,7 @@ import type { IconName } from './icons.ts'
 
 export type ExternalAppConfig = Omit<ExternalApp, 'icon'> & { icon: IconName }
 
-// app 注册表里的外部 app，整个页面共用一份。每次连上全局通知时（包括第一次）和收到 apps 通知时重新读取。
+// app 注册表里的外部 app，整个页面共用一份。开始订阅时、每次连上全局通知时和收到 apps 通知时重新读取。
 // 改动先在页面里生效，写入失败时重新读取，恢复成后端的
 let external: ExternalAppConfig[] | undefined
 const listeners = new Set<() => void>()
@@ -30,6 +30,8 @@ function refresh() {
 function subscribe(listener: () => void) {
   if (!started) {
     started = true
+    // 全局通知可能在订阅之前就已经连上，连上时的那次通知收不到，先读一次
+    refresh()
     onChange((event) => {
       if (event === null || event.type === 'apps') {
         refresh()

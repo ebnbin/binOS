@@ -1,5 +1,7 @@
 import { agents, agentIds } from '@binos/server/services/kita/types'
 import type { Limits, AgentId } from '@binos/server/services/kita/types'
+import { Button, Heading, Separator } from '@radix-ui/themes'
+import { Fragment } from 'react'
 import { Popover } from '../../../ui/Popover.tsx'
 import { formatSpan, summary, useMinuteNow } from '../../../services/kita/quota.ts'
 import { useAgentStatus } from '../../../services/kita/status.ts'
@@ -20,37 +22,40 @@ export function Quota() {
     return null
   }
   return (
-    <div className={styles.quota}>
-      <Popover
-        label="订阅额度"
-        className={styles.details}
-        trigger={
-          <button type="button" className={styles.summary} title="订阅额度" aria-label="订阅额度">
-            {reported.map(([agent, limits]) => {
-              const { used, runsOut, limited } = summary(limits, now)
-              return (
-                <span
-                  key={agent}
-                  className={styles.agent}
-                  data-alert={limited || runsOut !== undefined || undefined}
-                  title={runsOut !== undefined && !limited ? `按现在的速度 ${formatSpan(runsOut)}后用完` : undefined}
-                >
-                  <QuotaRing limits={limits} now={now} />
-                  {reported.length > 1 && `${agents[agent].name} `}
-                  {limited ? '已限流' : `${Math.round(used * 100)}%`}
-                </span>
-              )
-            })}
-          </button>
-        }
-      >
-        {reported.map(([agent, limits]) => (
-          <section key={agent}>
-            <h3>{agents[agent].name}</h3>
+    <Popover
+      label="订阅额度"
+      className={styles.details}
+      trigger={
+        <Button type="button" size="1" variant="soft" color="gray" radius="full" title="订阅额度" aria-label="订阅额度">
+          {reported.map(([agent, limits]) => {
+            const { used, runsOut, limited } = summary(limits, now)
+            return (
+              <span
+                key={agent}
+                className={styles.agent}
+                data-alert={limited || runsOut !== undefined || undefined}
+                title={runsOut !== undefined && !limited ? `按现在的速度 ${formatSpan(runsOut)}后用完` : undefined}
+              >
+                <QuotaRing limits={limits} now={now} />
+                {reported.length > 1 && `${agents[agent].name} `}
+                {limited ? '已限流' : `${Math.round(used * 100)}%`}
+              </span>
+            )
+          })}
+        </Button>
+      }
+    >
+      {reported.map(([agent, limits], index) => (
+        <Fragment key={agent}>
+          {index > 0 && <Separator size="4" />}
+          <section>
+            <Heading as="h3" size="2" className={styles.heading}>
+              {agents[agent].name}
+            </Heading>
             <QuotaWindows limits={limits} now={now} />
           </section>
-        ))}
-      </Popover>
-    </div>
+        </Fragment>
+      ))}
+    </Popover>
   )
 }

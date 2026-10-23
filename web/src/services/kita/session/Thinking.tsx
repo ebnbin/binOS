@@ -1,4 +1,5 @@
 import { formatDuration } from '../../../ui/format.ts'
+import { BrainIcon } from '../../../ui/icons.ts'
 import { Activity } from './Activity.tsx'
 import styles from './Thinking.module.css'
 import { Markdown } from './Markdown.tsx'
@@ -7,12 +8,13 @@ import { Markdown } from './Markdown.tsx'
 export function Thinking({ thread, text, durationMs, live }: { thread: string; text: string; durationMs?: number; live?: boolean }) {
   return (
     <Activity
+      icon={BrainIcon}
       label={live ? '正在思考' : durationMs !== undefined ? `思考了 ${formatDuration(durationMs)}` : '思考'}
       quiet
       defaultOpen={live}
       body={() => (
         <div className={styles.text}>
-          <Markdown thread={thread} text={text} />
+          <Markdown thread={thread} text={text} size="2" />
         </div>
       )}
     />

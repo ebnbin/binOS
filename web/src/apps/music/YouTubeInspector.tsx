@@ -1,8 +1,8 @@
+import { Button } from '@radix-ui/themes'
 import { useSyncExternalStore } from 'react'
 import { youtubePreview } from './youtube.ts'
-import styles from './music.module.css'
 
 export function YouTubeInspector() {
   const visible = useSyncExternalStore(youtubePreview.subscribe, youtubePreview.getSnapshot)
-  return <button type="button" className={styles.textButton} onClick={() => youtubePreview.setVisible(!visible)}>{visible ? '关闭视频预览' : '视频预览'}</button>
+  return <Button type="button" size="1" variant="ghost" color="gray" onClick={() => youtubePreview.setVisible(!visible)}>{visible ? '关闭视频预览' : '视频预览'}</Button>
 }

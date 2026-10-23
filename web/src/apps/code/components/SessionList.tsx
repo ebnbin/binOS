@@ -1,21 +1,23 @@
 import type { Project, SessionSummary } from '@binos/server/apps/code/types'
 import { agents, defaultAgent } from '@binos/server/services/kita/types'
-import {
-  ChevronRight,
-  CircleAlert,
-  CircleStop,
-  Clock,
-  Gauge,
-  GitPullRequest,
-  Hourglass,
-  Hammer,
-  Smartphone,
-  MoreHorizontal,
-  Search,
-  SquarePen,
-  X,
-} from 'lucide-react'
+import { Button, IconButton, Link, Text, TextField } from '@radix-ui/themes'
 import { Select } from '../../../ui/Select.tsx'
+import {
+  ChevronRightIcon,
+  ClockIcon,
+  CountdownTimerIcon,
+  Cross2Icon,
+  DotsHorizontalIcon,
+  ExclamationTriangleIcon,
+  FolderPlusIcon,
+  GaugeIcon,
+  HammerIcon,
+  GitPullRequestIcon,
+  MagnifyingGlassIcon,
+  MobileIcon,
+  Pencil2Icon,
+  StopIcon,
+} from '../../../ui/icons.ts'
 import { useEffect, useState } from 'react'
 import { createProject, searchContent } from '../api.ts'
 import { onChange } from '../../../events.ts'
@@ -26,6 +28,7 @@ import { Quota } from './Quota.tsx'
 import { RenameInput, SessionActions } from './SessionMenu.tsx'
 import { SearchResults } from './SearchResults.tsx'
 import styles from './SessionList.module.css'
+
 
 // 输入停下这么久才去搜
 const searchDelay = 250
@@ -57,20 +60,37 @@ export function SessionList({
   return (
     <div className={styles.pane}>
       <header className={styles.brand}>
-        <span className={styles.wordmark}>Code</span>
+        <Text as="div" size="3" weight="bold" className={styles.wordmark}>
+          Code
+        </Text>
         <Quota />
+        <IconButton
+          size="2"
+          variant="ghost"
+          color="gray"
+          aria-label="创建项目"
+          title="创建项目"
+          aria-expanded={creating}
+          disabled={saving}
+          onClick={() => { setCreating(!creating); setConnecting(undefined); setMode('existing'); setName(''); setRepository(''); setError('') }}
+        >
+          <FolderPlusIcon />
+        </IconButton>
       </header>
       <AuthBanner />
-      <button type="button" className={styles.newButton} onClick={() => onNavigate('/new')}>
-        <SquarePen size={16} strokeWidth={1.75} />
+      <Button size="2" variant="soft" className={styles.newButton} onClick={() => onNavigate('/new')}>
+        <Pencil2Icon />
         新对话
-      </button>
-      <button type="button" className={styles.projectButton} disabled={saving} onClick={() => { setCreating(!creating); setConnecting(undefined); setMode('existing'); setName(''); setRepository(''); setError('') }}>
-        创建项目
-      </button>
+      </Button>
+      {/* 一列时列表是占满全屏的首页，新对话按钮浮在底部，单手也够得着 */}
+      <Button size="3" radius="full" className={styles.floatingNew} onClick={() => onNavigate('/new')}>
+        <Pencil2Icon width={18} height={18} />
+        新对话
+      </Button>
       {creating && (
         <form
           className={styles.projectForm}
+          aria-label={connecting ? '关联仓库' : '创建项目'}
           onSubmit={(event) => {
             event.preventDefault()
             if (!name.trim() || !repository.trim() || saving) return
@@ -88,7 +108,8 @@ export function SessionList({
               .finally(() => setSaving(false))
           }}
         >
-          <input
+          <TextField.Root
+            size="2"
             autoFocus
             disabled={saving || !!connecting}
             aria-label="项目名称"
@@ -104,45 +125,57 @@ export function SessionList({
             onValueChange={setMode}
             options={[{ value: 'existing', label: '关联已有仓库' }, { value: 'new', label: '创建私有 GitHub 仓库' }]}
           />
-          <input
+          <TextField.Root
+            size="2"
             aria-label="GitHub 仓库"
             placeholder="owner/repository"
             value={repository}
             disabled={saving}
             onChange={(event) => setRepository(event.target.value)}
           />
-          <button type="submit" disabled={!name.trim() || !repository.trim() || saving}>
+          <Button type="submit" size="2" disabled={!name.trim() || !repository.trim() || saving}>
             {saving ? '准备仓库中…' : connecting ? '关联' : '创建'}
-          </button>
-          {error && <p role="alert">{error}</p>}
+          </Button>
+          {error && (
+            <Text as="p" size="1" color="red" role="alert">
+              {error}
+            </Text>
+          )}
         </form>
       )}
-      <label className={styles.search}>
-        <Search size={14} strokeWidth={1.75} />
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="搜索对话与消息"
-          aria-label="搜索全部历史内容"
-          autoComplete="off"
-          spellCheck={false}
-          onKeyDown={(event) => {
-            if (event.key === 'Escape' && !event.nativeEvent.isComposing) setQuery('')
-          }}
-        />
+      <TextField.Root
+        size="2"
+        variant="surface"
+        className={styles.search}
+        type="search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="搜索对话与消息"
+        aria-label="搜索全部历史内容"
+        autoComplete="off"
+        spellCheck={false}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape' && !event.nativeEvent.isComposing) setQuery('')
+        }}
+      >
+        <TextField.Slot>
+          <MagnifyingGlassIcon />
+        </TextField.Slot>
         {query && (
-          <button type="button" className={styles.clear} onClick={() => setQuery('')} aria-label="清除搜索">
-            <X size={13} strokeWidth={2} />
-          </button>
+          <TextField.Slot>
+            <IconButton type="button" size="1" variant="ghost" color="gray" onClick={() => setQuery('')} aria-label="清除搜索">
+              <Cross2Icon />
+            </IconButton>
+          </TextField.Slot>
         )}
-      </label>
+      </TextField.Root>
       <nav className={styles.list}>
         <ul>
-          {([['builds', 'binOS 构建', Hammer], ['devices', '设备', Smartphone]] as const).map(([name, label, Icon]) => (
+          {([['builds', 'binOS 构建', HammerIcon], ['devices', '设备', MobileIcon]] as const).map(([name, label, Icon]) => (
             <li key={name}>
-              <button type="button" className={styles.item} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
-                <span className={styles.line}><Icon size={16} strokeWidth={1.75} /><span className={styles.title}>{label}</span></span>
+              <button type="button" className={styles.toolItem} aria-current={currentTool === name ? 'page' : undefined} onClick={() => onNavigate(`/${name}`)}>
+                <Icon className={styles.toolIcon} />
+                <span className={styles.title}>{label}</span>
               </button>
             </li>
           ))}
@@ -158,28 +191,40 @@ export function SessionList({
             onNavigate={onNavigate}
           />
         ) : !projects || !sessions ? (
-          failed && <p className={styles.placeholder}>读取失败</p>
+          failed && <Text as="p" size="2" color="gray" className={styles.placeholder}>读取失败</Text>
         ) : (
           projects.map((project) => (
             <section key={project.id}>
               <div className={styles.projectHeader}>
-                <span>
-                  {project.name}
-                  {project.repository && <a className={styles.repository} href={`https://github.com/${project.repository}`} target="_blank" rel="noreferrer">{project.repository}</a>}
-                </span>
+                <div className={styles.projectName}>
+                  <Text as="div" size="1" weight="medium" color="gray">{project.name}</Text>
+                  {project.repository && (
+                    <Link size="1" color="gray" className={styles.repository} href={`https://github.com/${project.repository}`} target="_blank" rel="noreferrer">
+                      {project.repository}
+                    </Link>
+                  )}
+                </div>
                 {project.id !== 'binos' && !project.repository && (
-                  <button type="button" disabled={saving} onClick={() => {
+                  <Button type="button" size="1" variant="ghost" color="gray" disabled={saving} onClick={() => {
                     setMode('existing')
                     setConnecting(project.id)
                     setName(project.name)
                     setRepository('')
                     setError('')
                     setCreating(true)
-                  }}>关联仓库</button>
+                  }}>关联仓库</Button>
                 )}
-                <button type="button" aria-label={`在 ${project.name} 中新建对话`} onClick={() => onNavigate(`/new?project=${project.id}`)}>
-                  <SquarePen size={14} />
-                </button>
+                <IconButton
+                  type="button"
+                  size="1"
+                  variant="ghost"
+                  color="gray"
+                  aria-label={`在 ${project.name} 中新建对话`}
+                  title="新对话"
+                  onClick={() => onNavigate(`/new?project=${project.id}`)}
+                >
+                  <Pencil2Icon />
+                </IconButton>
               </div>
               <Sections
                 sessions={sessions.filter((session) => session.project === project.id)}
@@ -244,10 +289,10 @@ function Sections({
 }) {
   const [showArchived, setShowArchived] = useState(false)
   if (!sessions) {
-    return failed ? <p className={styles.placeholder}>读取失败</p> : null
+    return failed ? <Text as="p" size="2" color="gray" className={styles.placeholder}>读取失败</Text> : null
   }
   if (sessions.length === 0) {
-    return <p className={styles.placeholder}>{searching ? '没有找到' : '还没有对话'}</p>
+    return <Text as="p" size="2" color="gray" className={styles.placeholder}>{searching ? '没有找到' : '还没有对话'}</Text>
   }
   const pinned = sessions.filter((session) => session.pinned && !session.archived)
   const others = sessions.filter((session) => !session.pinned && !session.archived)
@@ -263,7 +308,7 @@ function Sections({
     <>
       {pinned.length > 0 && (
         <>
-          <div className={styles.label}>置顶</div>
+          <Text as="div" size="1" color="gray" className={styles.label}>置顶</Text>
           {items(pinned)}
         </>
       )}
@@ -276,7 +321,7 @@ function Sections({
             onClick={() => setShowArchived(!showArchived)}
             aria-expanded={showArchived}
           >
-            <ChevronRight size={13} strokeWidth={2} className={styles.toggleChevron} />
+            <ChevronRightIcon className={styles.toggleChevron} />
             已归档 {archived.length}
           </button>
           {(showArchived || searching) && items(archived)}
@@ -325,9 +370,9 @@ function SessionItem({
       )}
       {!renaming && (
         <SessionActions session={session} onRename={() => setRenaming(true)} open={menuOpen} onOpenChange={setMenuOpen}>
-          <button type="button" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
-            <MoreHorizontal size={15} strokeWidth={1.75} />
-          </button>
+          <IconButton type="button" size="1" variant="ghost" color="gray" className={styles.more} aria-label="更多操作" aria-expanded={menuOpen}>
+            <DotsHorizontalIcon />
+          </IconButton>
         </SessionActions>
       )}
     </li>
@@ -346,25 +391,25 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
         {session.turns > 1 && <span>{session.turns} 轮</span>}
         {session.quota !== undefined && session.quota >= 0.005 && (
           <span title="大约占订阅周额度">
-            <Gauge size={12} strokeWidth={2} />
+            <GaugeIcon width={12} height={12} />
             {formatQuota(session.quota)}
           </span>
         )}
         {openPrs.length > 0 && (
           <span className={styles.openPr} title="开着的 PR">
-            <GitPullRequest size={12} strokeWidth={2} />
+            <GitPullRequestIcon width={12} height={12} />
             {openPrs.map((pr) => `#${pr.number}`).join(' ')}
           </span>
         )}
         {session.queue.length > 0 && (
           <span title="排队的消息">
-            <Clock size={12} strokeWidth={2} />
+            <ClockIcon width={12} height={12} />
             {session.queue.length}
           </span>
         )}
         {session.outcome && !session.running && !session.waiting && (
           <span className={session.outcome === 'error' ? styles.error : undefined}>
-            {session.outcome === 'error' ? <CircleAlert size={12} strokeWidth={2} /> : <CircleStop size={12} strokeWidth={2} />}
+            {session.outcome === 'error' ? <ExclamationTriangleIcon width={12} height={12} /> : <StopIcon width={12} height={12} />}
             {session.outcome === 'error' ? '出错' : '已停止'}
           </span>
         )}
@@ -374,7 +419,7 @@ function SessionMeta({ session, clock }: { session: SessionSummary; clock: boole
           <span className={styles.busy}>回答中</span>
         ) : session.waiting ? (
           <span className={styles.busy} title="答完了，在等后台任务">
-            <Hourglass size={12} strokeWidth={2} />
+            <CountdownTimerIcon width={12} height={12} />
             后台任务
           </span>
         ) : (
