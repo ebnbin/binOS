@@ -260,7 +260,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = binOS;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择照片作为对话附件";
-				INFOPLIST_KEY_NSCameraUsageDescription = "拍照作为对话附件";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "在日历里显示这台设备的日程";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -296,7 +296,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = binOS;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "选择照片作为对话附件";
-				INFOPLIST_KEY_NSCameraUsageDescription = "拍照作为对话附件";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "在日历里显示这台设备的日程";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

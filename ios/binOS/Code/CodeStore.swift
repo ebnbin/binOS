@@ -17,9 +17,8 @@ final class CodeStore {
         latest += 1
         let request = latest
         do {
-            async let sessions: SessionsResponse = api.get("/api/apps/code/sessions")
-            async let projects: ProjectsResponse = api.get("/api/apps/code/projects")
-            let (s, p) = try await (sessions, projects)
+            let s: SessionsResponse = try await api.get("/api/apps/code/sessions")
+            let p: ProjectsResponse = try await api.get("/api/apps/code/projects")
             guard request == latest else { return }
             self.sessions = s.sessions
             self.projects = p.projects

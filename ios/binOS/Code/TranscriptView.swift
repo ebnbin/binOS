@@ -5,10 +5,18 @@ struct TranscriptView: View {
     let stream: KitaSessionStream
     let blocks: [Block]
     let index: TranscriptIndex
+    // 长对话只排最近的这么多块，往上翻时再加
+    @Binding var limit: Int
 
     var body: some View {
-        LazyVStack(alignment: .leading, spacing: 14) {
-            ForEach(blocks) { block in
+        VStack(alignment: .leading, spacing: 14) {
+            if blocks.count > limit {
+                Button("显示更早的 \(min(blocks.count - limit, 60)) 项", systemImage: "arrow.up") { limit += 60 }
+                    .font(.footnote)
+                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.bordered)
+            }
+            ForEach(blocks.suffix(limit)) { block in
                 BlockRow(block: block, context: context, isLast: block == blocks.last)
                     .id(block.id)
             }
@@ -17,6 +25,7 @@ struct TranscriptView: View {
                     .id("live")
             }
         }
+        .scrollTargetLayout()
     }
 
     private var context: TranscriptContext {

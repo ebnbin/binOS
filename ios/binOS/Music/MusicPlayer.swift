@@ -239,41 +239,37 @@ final class MusicPlayer {
     }
 
     private func observe() {
-        observations.append(player.observe(\.timeControlStatus) { [weak self] player, _ in
-            Task { @MainActor in self?.syncStatus() }
+        observations.append(player.observe(\.timeControlStatus) { _, _ in
+            Task { @MainActor in MusicPlayer.shared.syncStatus() }
         })
-        observations.append(player.observe(\.currentItem?.status) { [weak self] player, _ in
+        observations.append(player.observe(\.currentItem?.status) { _, _ in
             Task { @MainActor in
-                guard let self, let item = player.currentItem else { return }
+                let music = MusicPlayer.shared
+                guard let item = music.player.currentItem else { return }
                 if item.status == .failed {
-                    self.status = .error
-                    self.error = item.error?.localizedDescription ?? "无法播放"
-                    self.updateNowPlaying()
+                    music.status = .error
+                    music.error = item.error?.localizedDescription ?? "无法播放"
+                    music.updateNowPlaying()
                 } else if item.status == .readyToPlay {
                     let seconds = item.duration.seconds
-                    if seconds.isFinite, seconds > 0 { self.duration = seconds }
-                    self.updateNowPlaying()
+                    if seconds.isFinite, seconds > 0 { music.duration = seconds }
+                    music.updateNowPlaying()
                 }
             }
         })
-        timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { [weak self] time in
-            Task { @MainActor in self?.position = time.seconds.isFinite ? time.seconds : 0 }
+        timeObserver = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 0.5, preferredTimescale: 600), queue: .main) { time in
+            MainActor.assumeIsolated { MusicPlayer.shared.position = time.seconds.isFinite ? time.seconds : 0 }
         }
-        NotificationCenter.default.addObserver(forName: AVPlayerItem.didPlayToEndTimeNotification, object: nil, queue: .main) { [weak self] notification in
-            Task { @MainActor in
-                guard let self, (notification.object as? AVPlayerItem) === self.player.currentItem else { return }
-                if self.repeatMode == .one, let index = self.index {
-                    self.select(index)
+        NotificationCenter.default.addObserver(forName: AVPlayerItem.didPlayToEndTimeNotification, object: nil, queue: .main) { notification in
+            let ended = notification.object as? AVPlayerItem
+            MainActor.assumeIsolated {
+                let music = MusicPlayer.shared
+                guard ended === music.player.currentItem else { return }
+                if music.repeatMode == .one, let index = music.index {
+                    music.select(index)
                 } else {
-                    self.next(auto: true)
+                    music.next(auto: true)
                 }
-            }
-        }
-        NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] notification in
-            let shouldResume = (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt).map { AVAudioSession.InterruptionOptions(rawValue: $0).contains(.shouldResume) } ?? false
-            let ended = (notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt) == AVAudioSession.InterruptionType.ended.rawValue
-            Task { @MainActor in
-                if ended && shouldResume { self?.player.play() }
             }
         }
     }

@@ -10,24 +10,24 @@ enum CodeRoute: Hashable {
 // Code app：左边是 session 列表，右边是对话；手机上收成一层层推进的导航
 struct CodeRootView: View {
     @State private var store = CodeStore()
-    @State private var route: CodeRoute?
+    @Bindable private var router = AppRouter.shared
     @State private var columns = NavigationSplitViewVisibility.automatic
     private let hub = EventHub.shared
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columns) {
-            SessionListView(store: store, route: $route)
+            SessionListView(store: store, route: $router.code)
         } detail: {
             NavigationStack {
-                switch route {
+                switch router.code {
                 case .session(let id, let item):
                     ConversationView(store: store, sessionId: id, targetItem: item)
-                        .id(route)
+                        .id(router.code)
                 case .new(let project):
                     ConversationView(store: store, sessionId: nil, project: project) { id, _ in
-                        route = .session(id)
+                        router.code = .session(id)
                     }
-                    .id(route)
+                    .id(router.code)
                 case .builds:
                     BuildsView()
                 case .devices:
@@ -194,7 +194,7 @@ struct SessionListView: View {
                                 if result.archived { Image(systemName: "archivebox").foregroundStyle(.secondary) }
                             }
                             if result.kind != "title" {
-                                (Text(result.before) + Text(result.match).bold().foregroundStyle(.tint) + Text(result.after))
+                                Text("\(result.before)\(Text(result.match).bold().foregroundStyle(.tint))\(result.after)")
                                     .font(.footnote)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(3)

@@ -35,6 +35,7 @@ struct TerminalRootView: View {
     @State private var path: [TerminalSession] = []
     @State private var error: String?
     @State private var creating = false
+    @Bindable private var router = AppRouter.shared
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -90,6 +91,7 @@ struct TerminalRootView: View {
                 }
             }
             .refreshable { await load() }
+            .onChange(of: router.terminal) { Task { await load() } }
             .task {
                 // 列表没有推送，每 5 秒读一次
                 while !Task.isCancelled {
@@ -102,8 +104,13 @@ struct TerminalRootView: View {
 
     private func load() async {
         do {
-            list = try await TerminalAPI.list()
+            let loaded = try await TerminalAPI.list()
+            list = loaded
             error = nil
+            if let target = router.terminal, let session = loaded.sessions.first(where: { $0.id == target }) {
+                router.terminal = nil
+                path = [session]
+            }
         } catch is CancellationError {
         } catch {
             self.error = error.localizedDescription

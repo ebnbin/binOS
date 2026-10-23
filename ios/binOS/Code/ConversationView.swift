@@ -32,7 +32,8 @@ struct ConversationView: View {
         Group {
             if sessionId == nil {
                 newConversation
-            } else if let stream {
+            } else if let stream, stream.loaded {
+                // 补发完了再排版，初始位置才能直接落在底部
                 TranscriptScroll(stream: stream, notice: notice, targetItem: targetItem)
             } else if store.sessions != nil, session == nil, createdThread == nil {
                 ContentUnavailableView("这个对话不存在", systemImage: "questionmark.bubble")
@@ -172,16 +173,26 @@ private struct TranscriptScroll: View {
     let stream: KitaSessionStream
     let notice: String?
     let targetItem: Int?
-    @State private var blocks: [Block] = []
-    @State private var index = TranscriptIndex([])
+    @State private var blocks: [Block]
+    @State private var index: TranscriptIndex
     @State private var position = ScrollPosition(edge: .bottom)
     @State private var atBottom = true
     @State private var located = false
+    @State private var limit = 60
+
+    init(stream: KitaSessionStream, notice: String?, targetItem: Int?) {
+        self.stream = stream
+        self.notice = notice
+        self.targetItem = targetItem
+        let index = TranscriptIndex(stream.items)
+        _index = State(initialValue: index)
+        _blocks = State(initialValue: index.blocks(index.main, live: stream.live != nil))
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                TranscriptView(stream: stream, blocks: blocks, index: index)
+                TranscriptView(stream: stream, blocks: blocks, index: index, limit: $limit)
                 if let notice {
                     Label(notice, systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
@@ -191,14 +202,14 @@ private struct TranscriptScroll: View {
             .padding(.horizontal)
             .padding(.vertical, 12)
             .frame(maxWidth: 820)
-            .frame(maxWidth: .infinity)
+            .containerRelativeFrame(.horizontal)
         }
         .scrollPosition($position)
         .defaultScrollAnchor(.bottom, for: .initialOffset)
         .defaultScrollAnchor(atBottom ? .bottom : nil, for: .sizeChanges)
         .scrollDismissesKeyboard(.interactively)
         .onScrollGeometryChange(for: Bool.self) { geometry in
-            geometry.contentOffset.y + geometry.containerSize.height >= geometry.contentSize.height - 80
+            geometry.visibleRect.maxY >= geometry.contentSize.height - 80
         } action: { _, bottom in
             atBottom = bottom
         }
@@ -217,14 +228,12 @@ private struct TranscriptScroll: View {
                 .accessibilityLabel("回到底部")
             }
         }
-        .overlay {
-            if !stream.loaded && stream.items.isEmpty { ProgressView() }
-        }
         .onChange(of: stream.revision, initial: true) {
             index = TranscriptIndex(stream.items)
             blocks = index.blocks(index.main, live: stream.live != nil)
-            if let targetItem, !located, blocks.contains(where: { $0.id == "\(targetItem)" }) {
+            if let targetItem, !located, let offset = blocks.firstIndex(where: { $0.id == "\(targetItem)" }) {
                 located = true
+                limit = max(limit, blocks.count - offset)
                 atBottom = false
                 Task {
                     try? await Task.sleep(for: .milliseconds(300))

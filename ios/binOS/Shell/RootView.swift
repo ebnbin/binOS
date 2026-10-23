@@ -6,7 +6,7 @@ enum AppTab: Hashable {
 
 // 外壳：底部标签切换各个 app，顶部显示连接状态，正式版需要时弹出登录
 struct RootView: View {
-    @State private var tab = AppTab.code
+    @Bindable private var router = AppRouter.shared
     @State private var ready = false
     @Bindable private var api = API.shared
     private let hub = EventHub.shared
@@ -29,9 +29,12 @@ struct RootView: View {
         .task {
             await LoginView.copyWebCookies(for: api.server)
             ready = true
+            // 启动参数 -openURL binos://… 直接打开某个页面
+            if let link = UserDefaults.standard.string(forKey: "openURL").flatMap(URL.init(string:)) { router.open(link) }
             hub.start()
             player.start()
         }
+        .onOpenURL { router.open($0) }
         .task(id: hub.music) { await player.refreshQueue() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { hub.reconnectIfStale() }
@@ -46,7 +49,7 @@ struct RootView: View {
     }
 
     private var tabs: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $router.tab) {
             Tab("Code", systemImage: "chevron.left.forwardslash.chevron.right", value: .code) {
                 CodeRootView()
             }
@@ -64,7 +67,7 @@ struct RootView: View {
             }
         }
         .tabViewBottomAccessory(isEnabled: player.current != nil) {
-            MiniPlayer { tab = .music }
+            MiniPlayer { router.tab = .music }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
     }

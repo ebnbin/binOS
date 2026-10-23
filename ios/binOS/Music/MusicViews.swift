@@ -9,7 +9,7 @@ struct MusicRootView: View {
     @State private var results: CatalogPage?
     @State private var searching = false
     @State private var error: String?
-    @State private var showingNowPlaying = false
+    @Bindable private var router = AppRouter.shared
     @State private var others: [PlayerSnapshot] = []
 
     var body: some View {
@@ -20,7 +20,7 @@ struct MusicRootView: View {
                 } else {
                     if let track = player.current {
                         Section {
-                            Button { showingNowPlaying = true } label: {
+                            Button { router.nowPlaying = true } label: {
                                 NowPlayingSummary(track: track)
                             }
                             .buttonStyle(.plain)
@@ -58,7 +58,7 @@ struct MusicRootView: View {
                 await player.refreshQueue()
                 await loadOthers()
             }
-            .sheet(isPresented: $showingNowPlaying) { NowPlayingView() }
+            .sheet(isPresented: $router.nowPlaying) { NowPlayingView() }
             .task { providers = (try? await MusicAPI.providers()) ?? [] }
             .task {
                 while !Task.isCancelled {

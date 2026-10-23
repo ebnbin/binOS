@@ -77,7 +77,7 @@ extension Date {
     private nonisolated(unsafe) static let iso: ISO8601DateFormatter = ISO8601DateFormatter()
 
     // 服务端的时间都是 toISOString() 的格式
-    init?(iso string: String) {
+    nonisolated init?(iso string: String) {
         guard let date = Date.isoFractional.date(from: string) ?? Date.iso.date(from: string) else { return nil }
         self = date
     }

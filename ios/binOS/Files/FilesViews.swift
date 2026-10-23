@@ -56,6 +56,7 @@ struct FilesRootView: View {
     @State private var home: String?
     // 剪切或复制的文件，到别的文件夹里粘贴
     @State private var clipboard: (paths: [String], move: Bool)?
+    @Bindable private var router = AppRouter.shared
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -63,6 +64,12 @@ struct FilesRootView: View {
                 .navigationDestination(for: String.self) { folder in
                     FolderView(path: folder, home: $home, navigate: navigate, clipboard: $clipboard.animation())
                 }
+        }
+        .onChange(of: router.files, initial: true) { _, target in
+            if let target {
+                router.files = nil
+                navigate(target)
+            }
         }
     }
 
