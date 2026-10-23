@@ -3,39 +3,39 @@
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--surface);
+  background: var(--color-surface);
   position: relative;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
 }
 .sidebar {
   width: 170px;
   flex-shrink: 0;
-  padding: 18px 10px;
-  background: var(--sidebar);
-  border-right: 1px solid var(--border);
+  padding: var(--space-5) var(--space-3);
+  background: var(--color-bg-subtle);
+  border-right: 1px solid var(--color-border);
   overflow: auto;
 }
 .caption {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  margin: 14px 10px 7px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-4) var(--space-3) var(--space-2);
 }
 .sidebar button {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 10px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   width: 100%;
-  border-radius: 6px;
+  border-radius: var(--radius-item);
   text-align: left;
 }
 .sidebar button:hover,
 .entry:hover {
-  background: var(--hover);
+  background: var(--color-hover);
 }
 .sidebar .active {
-  background: var(--bubble);
+  background: var(--color-fill);
 }
 .main {
   flex: 1;
@@ -46,27 +46,27 @@
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 .toolbar button {
   display: flex;
-  padding: 5px;
-  border-radius: 5px;
+  padding: var(--space-1-5);
+  border-radius: var(--radius-control);
 }
 .app button:disabled,
 .dialog button:disabled {
-  opacity: 0.35;
+  opacity: var(--opacity-disabled);
 }
 .app input,
 .dialog input {
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
   font: inherit;
-  padding: 6px 8px;
+  padding: var(--space-1-5) var(--space-2);
   min-width: 0;
 }
 .path {
@@ -75,20 +75,20 @@
 }
 .path input {
   width: 100%;
-  font-family: var(--mono);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
 }
 .controls {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
 }
 .controls label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-1-5);
   white-space: nowrap;
 }
 .search {
@@ -103,21 +103,21 @@
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  padding: 0 14px 10px;
-  border-bottom: 1px solid var(--border);
+  gap: var(--space-1-5);
+  padding: 0 var(--space-4) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
 }
 .actions button,
 .actions a {
   display: flex;
-  gap: 4px;
+  gap: var(--space-1);
   align-items: center;
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  border-radius: 5px;
-  color: var(--text);
+  border: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
   text-decoration: none;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
 }
 .content {
   flex: 1;
@@ -128,24 +128,24 @@
 .entry {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) 150px 80px;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
   width: 100%;
-  padding: 8px 18px;
+  padding: var(--space-2) var(--space-5);
   text-align: left;
 }
 .columns {
   position: sticky;
   top: 0;
-  background: var(--surface);
-  color: var(--muted);
-  border-bottom: 1px solid var(--border);
-  font-size: 11px;
+  background: var(--color-surface);
+  color: var(--color-text-tertiary);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--font-size-2xs);
 }
 .name {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--space-2);
   min-width: 0;
 }
 .name span {
@@ -157,27 +157,27 @@
   flex-shrink: 0;
 }
 .folder {
-  color: #5c9fcd;
-  fill: color-mix(in srgb, #5c9fcd 18%, transparent);
+  color: var(--color-info);
+  fill: color-mix(in srgb, var(--color-info) 18%, transparent);
 }
 .meta {
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-2xs);
 }
 .entry.selected {
-  background: color-mix(in srgb, #448cd4 18%, var(--surface));
+  background: color-mix(in srgb, var(--color-info) 18%, var(--color-surface));
 }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  padding: 18px;
-  gap: 12px;
+  padding: var(--space-5);
+  gap: var(--space-3);
 }
 .grid .entry {
   display: flex;
-  padding: 12px 6px;
+  padding: var(--space-3) var(--space-1-5);
   justify-content: center;
-  border-radius: 8px;
+  border-radius: var(--radius-item);
 }
 .grid .name {
   flex-direction: column;
@@ -187,17 +187,17 @@
   max-width: 100%;
 }
 .empty {
-  color: var(--muted);
-  padding: 40px;
+  color: var(--color-text-tertiary);
+  padding: var(--space-10);
   text-align: center;
 }
 .status {
-  padding: 7px 14px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-2xs);
   display: flex;
-  gap: 20px;
+  gap: var(--space-5);
 }
 .status span {
   margin-left: auto;
@@ -206,9 +206,9 @@
   text-overflow: ellipsis;
 }
 .error {
-  padding: 9px 14px;
-  background: var(--danger-bg);
-  color: var(--danger);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
   overflow-wrap: anywhere;
 }
 .modal {
@@ -216,57 +216,57 @@
   max-height: calc(100dvh - 32px);
   padding: 0;
   border: 0;
-  border-radius: 12px;
-  color: var(--text);
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-overlay);
+  color: var(--color-text);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
   font: inherit;
 }
 
 .modal::backdrop {
-  background: var(--scrim);
+  background: var(--color-scrim);
 }
 
 .dialog {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 24px;
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-radius: var(--radius-overlay);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
   width: 100%;
 }
 .dialog p {
   margin: 0;
-  color: var(--text-2);
+  color: var(--color-text-secondary);
 }
 .dialog > div {
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   justify-content: flex-end;
 }
 .dialog button {
-  padding: 5px 14px;
-  border: 1px solid var(--border);
-  border-radius: 5px;
+  padding: var(--space-1-5) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
 }
 @container files (width < 650px) {
   .sidebar {
     width: 120px;
-    padding: 8px 4px;
+    padding: var(--space-2) var(--space-1);
   }
   .columns,
   .entry {
     grid-template-columns: minmax(100px, 1fr) 65px;
-    padding: 8px 12px;
+    padding: var(--space-2) var(--space-3);
   }
   .columns > span:nth-child(2),
   .entry > .meta:nth-child(2) {
     display: none;
   }
   .controls {
-    gap: 6px;
+    gap: var(--space-1-5);
   }
   .status span {
     display: none;

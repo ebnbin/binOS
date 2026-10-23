@@ -7,44 +7,44 @@
 }
 
 .time {
-  font-size: 34px;
-  font-weight: 650;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
   font-variant-numeric: tabular-nums;
 }
 
 .widget[data-size='2x2'] .time {
-  font-size: 28px;
+  font-size: var(--font-size-3xl);
 }
 
 .date {
-  color: var(--text-2);
-  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
   margin-top: auto;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
 }
 
 .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--danger);
+  background: var(--color-danger);
 }
 
 .dot[data-connected='true'] {
-  background: #34c759;
+  background: var(--color-success);
 }
 
 .version {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
 }
 
-.metrics { margin-top: 12px; color: var(--text-2); font-size: 12px; }
+.metrics { margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--font-size-xs); }

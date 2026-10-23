@@ -1,5 +1,5 @@
 .markdown {
-  line-height: 1.75;
+  line-height: var(--line-height-relaxed);
   overflow-wrap: anywhere;
 }
 
@@ -12,14 +12,14 @@
 }
 
 .markdown :where(p, ul, ol, blockquote, .codeBlock, .tableWrap, hr) {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-4);
 }
 
 .markdown :is(h1, h2, h3, h4, h5, h6) {
-  margin: 26px 0 10px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  margin: var(--space-6) 0 var(--space-3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .markdown h1 {
@@ -39,15 +39,15 @@
 }
 
 .markdown strong {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .markdown a {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text) 30%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--color-text) 30%, transparent);
   text-underline-offset: 3px;
-  transition: text-decoration-color 0.15s;
+  transition: text-decoration-color var(--duration-fast);
 }
 
 @media (hover: hover) {
@@ -62,7 +62,7 @@
 
 .markdown li + li,
 .markdown li > :is(ul, ol) {
-  margin-top: 4px;
+  margin-top: var(--space-1);
 }
 
 .markdown li > :is(ul, ol) {
@@ -70,7 +70,7 @@
 }
 
 .markdown li::marker {
-  color: var(--muted);
+  color: var(--color-text-tertiary);
 }
 
 .markdown li > p {
@@ -78,9 +78,9 @@
 }
 
 .markdown input[type='checkbox'] {
-  margin: 0 6px 0 0;
+  margin: 0 var(--space-1-5) 0 0;
   vertical-align: -1px;
-  accent-color: var(--ink);
+  accent-color: var(--color-primary);
 }
 
 .markdown :global(.contains-task-list) {
@@ -89,22 +89,22 @@
 }
 
 .markdown blockquote {
-  padding-left: 14px;
-  border-left: 3px solid var(--border);
-  color: var(--text-2);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--color-border);
+  color: var(--color-text-secondary);
 }
 
 .markdown hr {
   height: 1px;
   border: 0;
-  background: var(--hairline);
+  background: var(--color-separator);
 }
 
 .markdown code {
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: var(--bubble);
-  font-family: var(--mono);
+  padding: 1px var(--space-1-5);
+  border-radius: var(--radius-xs);
+  background: var(--color-fill);
+  font-family: var(--font-mono);
   font-size: 0.86em;
 }
 
@@ -116,63 +116,63 @@
 }
 
 .markdown :global(.katex-display) {
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-4);
   overflow-x: auto;
   overflow-y: hidden;
 }
 
 .tableWrap {
   overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
 }
 
 .markdown table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.93em;
-  line-height: 1.55;
+  line-height: var(--line-height-normal);
 }
 
 .markdown :is(th, td) {
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   text-align: left;
   vertical-align: top;
 }
 
 .markdown th {
-  background: var(--code);
-  font-weight: 600;
+  background: var(--color-surface-sunken);
+  font-weight: var(--font-weight-semibold);
   white-space: nowrap;
 }
 
 .markdown tr + tr td,
 .markdown thead + tbody td {
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--color-separator);
 }
 
 .image {
   display: block;
   width: fit-content;
-  margin: 6px 0;
+  margin: var(--space-1-5) 0;
 }
 
 .image img {
   display: block;
   max-width: 100%;
   max-height: 480px;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--code);
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-card);
+  background: var(--color-surface-sunken);
 }
 
 .missingImage {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  color: var(--muted);
+  gap: var(--space-1-5);
+  padding: var(--space-0-5) var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-tertiary);
   font-size: 0.9em;
 }

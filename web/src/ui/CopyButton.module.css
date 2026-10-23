@@ -1,22 +1,22 @@
 .button {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--size-control-xs);
+  height: var(--size-control-xs);
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-item);
   background: none;
-  color: var(--muted);
+  color: var(--color-text-tertiary);
   cursor: pointer;
   transition:
-    background-color 0.15s,
-    color 0.15s;
+    background-color var(--duration-fast),
+    color var(--duration-fast);
 }
 
 @media (hover: hover) {
   .button:hover {
-    background: var(--hover);
-    color: var(--text);
+    background: var(--color-hover);
+    color: var(--color-text);
   }
 }

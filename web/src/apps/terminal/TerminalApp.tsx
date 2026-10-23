@@ -161,12 +161,14 @@ function TerminalPane({ id, onExit }: { id: string; onExit(): Promise<void> }) {
   const sendInput = useRef<(data: string) => void>(() => {})
   useEffect(() => {
     const element = host.current!
+    const token = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+    const text = token('--color-terminal-text')
     const terminal = new Terminal({
       cursorBlink: true,
-      fontFamily: "'SF Mono', Menlo, monospace",
+      fontFamily: token('--font-mono'),
       fontSize: 14,
       scrollback: 10000,
-      theme: { background: '#161513', foreground: '#ecebe7', cursor: '#ecebe7', selectionBackground: '#55514a' },
+      theme: { background: token('--color-terminal-bg'), foreground: text, cursor: text, selectionBackground: token('--color-terminal-selection') },
       allowProposedApi: false,
     })
     const fit = new FitAddon()

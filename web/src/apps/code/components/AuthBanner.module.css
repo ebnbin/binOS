@@ -1,34 +1,34 @@
 .banner {
-  margin: 0 12px 10px;
+  margin: 0 var(--space-3) var(--space-3);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  padding: 9px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 0;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--live) 14%, transparent);
-  color: var(--text);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  color: var(--color-text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-sm);
   text-align: left;
   cursor: pointer;
 }
 
 .row > svg {
   flex: none;
-  color: var(--live);
+  color: var(--color-accent);
 }
 
 .banner[data-tone='bad'] .row {
-  background: var(--danger-bg);
+  background: var(--color-danger-subtle);
 }
 
 .banner[data-tone='bad'] .row > svg {
-  color: var(--danger);
+  color: var(--color-danger);
 }
 
 .row > span:first-of-type {
@@ -38,5 +38,5 @@
 
 .action {
   flex: none;
-  font-weight: 550;
+  font-weight: var(--font-weight-medium);
 }
