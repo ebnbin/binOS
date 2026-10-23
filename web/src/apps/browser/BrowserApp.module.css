@@ -1,78 +1,101 @@
+/* 像 Microsoft Edge：窗口是 Mica，顶上是模式标签和工具栏，地址栏是一条圆角的填充输入框，网页在下面 */
 .app {
   container: browser / inline-size;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background: var(--colorMicaBackground);
+  color: var(--colorNeutralForeground1);
 }
+
+.modeBar {
+  flex: none;
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalS) 0;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--spacingHorizontalXS);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalS) var(--spacingVerticalS);
 }
+
 .navigation {
   display: flex;
+  gap: var(--spacingHorizontalXXS);
 }
+
 .address {
   display: flex;
   align-items: center;
+  gap: var(--spacingHorizontalXS);
   flex: 1;
   min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
 }
-.address input {
-  width: 100%;
+
+.address .addressInput {
+  flex: 1;
+  border-radius: var(--borderRadiusCircular);
+  box-shadow: var(--shadow2);
+}
+
+.address .addressInput::after {
+  right: var(--spacingHorizontalM);
+  left: var(--spacingHorizontalM);
+}
+
+.address .go {
   min-width: 0;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  font-size: var(--font-size-xl);
 }
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
-}
+
 .external {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
+  width: var(--sizeControlMedium);
+  height: var(--sizeControlMedium);
+  border-radius: var(--borderRadiusControl);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconMedium);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
+
+@media (hover: hover) {
+  .external:hover {
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2BrandHover);
+  }
 }
+
+.external:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalM);
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
+
 .error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  margin: 0 var(--spacingHorizontalS) var(--spacingVerticalS);
 }
+
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorDocumentBackground);
   color-scheme: normal;
 }
+
+/* 新标签页：Layer 上居中的图标、标题和说明 */
 .home {
   flex: 1;
   display: flex;
@@ -80,60 +103,60 @@
   align-items: center;
   justify-content: center;
   overflow: auto;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--spacingVerticalXXXL) var(--spacingHorizontalXXL);
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+  color: var(--colorNeutralForeground3);
   text-align: center;
-  color: var(--color-text-secondary);
 }
+
+.homeIcon {
+  color: var(--colorBrandForeground1);
+  font-size: calc(var(--sizeIconLarge) * 2);
+}
+
 .home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
+  font-size: var(--fontSizeBase600);
+  line-height: var(--lineHeightBase600);
+  font-weight: var(--fontWeightSemibold);
+  margin: var(--spacingVerticalL) 0 var(--spacingVerticalS);
+  color: var(--colorNeutralForeground1);
 }
+
 .home p {
-  max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+  max-width: 400px;
+  margin: var(--spacingVerticalXS) 0;
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
+
 @container browser (width < 440px) {
   .address {
     order: 1;
     flex-basis: 100%;
   }
+
   .external {
     margin-left: auto;
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
 .modeContent, .remote {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
 }
+
 .remoteImage {
   display: block;
   width: 100%;
@@ -142,15 +165,17 @@
   user-select: none;
   object-fit: contain;
 }
+
 .remoteStatus {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  background: color-mix(in srgb, var(--colorMicaBackground) 85%, transparent);
+  color: var(--colorNeutralForeground3);
   pointer-events: none;
 }
+
 .remoteInput {
   position: absolute;
   left: 0;

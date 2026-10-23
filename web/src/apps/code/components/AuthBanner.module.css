@@ -1,34 +1,39 @@
+/* Fluent 2 MessageBar（警告 / 错误），整条可以点，右边是操作 */
 .banner {
-  margin: 0 var(--space-3) var(--space-3);
+  margin: 0 var(--spacingHorizontalM) var(--spacingVerticalS);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
   width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 0;
-  border-radius: var(--radius-card);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-  color: var(--color-text);
+  min-height: 36px;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorStatusWarningBorder1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorStatusWarningBackground1);
+  color: var(--colorNeutralForeground1);
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   text-align: left;
   cursor: pointer;
 }
 
 .row > svg {
   flex: none;
-  color: var(--color-accent);
+  color: var(--colorStatusWarningForeground3);
+  font-size: var(--sizeIconMedium);
 }
 
 .banner[data-tone='bad'] .row {
-  background: var(--color-danger-subtle);
+  border-color: var(--colorStatusDangerBorder1);
+  background: var(--colorStatusDangerBackground1);
 }
 
 .banner[data-tone='bad'] .row > svg {
-  color: var(--color-danger);
+  color: var(--colorStatusDangerForeground1);
 }
 
 .row > span:first-of-type {
@@ -38,5 +43,13 @@
 
 .action {
   flex: none;
-  font-weight: var(--font-weight-medium);
+  color: var(--colorBrandForegroundLink);
+  font-weight: var(--fontWeightSemibold);
+}
+
+@media (hover: hover) {
+  .row:hover .action {
+    color: var(--colorBrandForegroundLinkHover);
+    text-decoration: underline;
+  }
 }

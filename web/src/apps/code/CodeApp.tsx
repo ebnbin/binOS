@@ -1,4 +1,5 @@
-import { ChevronLeft } from 'lucide-react'
+import { ArrowLeftRegular } from '@fluentui/react-icons/headless/svg/arrow-left'
+import { Button } from '../../ui/Button.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
 import { BuildsPage } from '../builds/BuildsPage.tsx'
 import { DevicesApp } from '../devices/DevicesApp.tsx'
@@ -51,8 +52,8 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
           {tool ? (
             <>
               <header className={styles.toolBar}>
-                <IconButton icon={ChevronLeft} label="返回对话列表" onClick={() => ctx.navigate('/')} />
-                <span>{title}</span>
+                <IconButton icon={<ArrowLeftRegular />} label="返回对话列表" onClick={() => ctx.navigate('/')} />
+                <span className={styles.toolTitle}>{title}</span>
               </header>
               <div className={styles.content}>
                 {tool === 'builds' ? <BuildsPage key={ctx.route} initialRef={new URLSearchParams(ctx.route.split('?')[1]).get('ref') ?? 'main'} /> : <DevicesApp ctx={ctx} />}
@@ -71,9 +72,9 @@ export function CodeApp({ ctx }: { ctx: WindowContext }) {
               {missing ? (
                 <div className={styles.missing}>
                   <p>这个对话不存在</p>
-                  <button type="button" onClick={() => ctx.navigate('/')}>
+                  <Button onClick={() => ctx.navigate('/')}>
                     返回对话列表
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <Conversation

@@ -1,41 +1,173 @@
+/* 悬浮播放器：Acrylic 的小浮层，圆角 8px，阴影 shadow28 */
 .panel {
   position: absolute;
   z-index: 10;
-  width: min(320px, calc(100% - var(--space-6)));
-  max-height: calc(100% - var(--space-6));
+  width: min(320px, calc(100% - var(--spacingHorizontalXXL)));
+  max-height: calc(100% - var(--spacingVerticalXXL));
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
+  border: var(--strokeWidthThin) solid var(--colorSurfaceStrokeFlyout);
+  border-radius: var(--borderRadiusOverlay);
+  background: var(--colorAcrylicBackground);
+  color: var(--colorNeutralForeground1);
+  box-shadow: var(--shadow28);
+  -webkit-backdrop-filter: var(--acrylicBackdropFilter);
+  backdrop-filter: var(--acrylicBackdropFilter);
 }
-.header { display: flex; align-items: center; padding: var(--space-1) var(--space-1-5) 0; }
-.grip { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-text-tertiary); cursor: grab; touch-action: none; user-select: none; }
-.grip:active { cursor: grabbing; }
-.grip span { font-size: var(--font-size-2xs); }
-.iconButton { display: grid; place-items: center; width: var(--size-control-md); height: var(--size-control-md); flex: none; color: var(--color-text-secondary); border-radius: var(--radius-control); }
-.info { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-width: 0; padding: var(--space-2) var(--space-4); text-align: left; }
-.artwork { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-subtle); color: var(--color-accent); }
-.artwork img { width: 100%; height: 100%; object-fit: cover; }
-.text { display: flex; flex-direction: column; min-width: 0; }
-.text strong, .text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.text strong { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-.text > span { font-size: var(--font-size-2xs); color: var(--color-text-tertiary); }
-.transport { padding: var(--space-1) var(--space-4) var(--space-3); }
-.progress { height: 3px; background: var(--color-separator); }
-.progress > span { display: block; height: 100%; background: var(--color-accent); }
-.error { margin: var(--space-1) var(--space-4) var(--space-2); font-size: var(--font-size-2xs); line-height: var(--line-height-snug); color: var(--color-danger); overflow-wrap: anywhere; }
-.statusButton { position: relative; display: grid; place-items: center; flex: none; width: var(--size-control-xl); height: var(--size-control-xl); border-radius: var(--radius-lg); color: var(--color-on-chrome-secondary); }
-.statusButton[aria-expanded='true'] { background: var(--color-chrome-selected); color: var(--color-on-chrome); }
-.playingDot { position: absolute; bottom: var(--space-1); width: 4px; height: 4px; border-radius: 50%; background: var(--color-accent); }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXXS);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalXS) 0;
+}
+
+.grip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  flex: 1;
+  min-width: 0;
+  min-height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalS);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconSmall);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.grip span {
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  width: 100%;
+  min-width: 0;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  text-align: left;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.info:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+.artwork {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorBrandBackground2);
+  color: var(--colorBrandForeground2);
+  font-size: var(--sizeIconLarge);
+}
+
+.artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.text strong, .text > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text strong {
+  font-weight: var(--fontWeightSemibold);
+}
+
+.text > span {
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.transport {
+  padding: 0 var(--spacingHorizontalM) var(--spacingVerticalS);
+}
+
+.progress {
+  padding: 0 var(--spacingHorizontalM) var(--spacingVerticalM);
+}
+
+.error {
+  margin: var(--spacingVerticalXS) var(--spacingHorizontalM) var(--spacingVerticalS);
+  color: var(--colorPaletteRedForeground1);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  overflow-wrap: anywhere;
+}
+
+/* 任务栏上的音乐按钮：和任务栏的其他按钮一样，正在播放时下面有品牌色短线 */
+.statusButton {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--sizeControlLarge);
+  height: var(--sizeControlLarge);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorChromeForeground1);
+  font-size: var(--sizeIconLarge);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.statusButton:active {
+  background: var(--colorChromeSubtleBackgroundPressed);
+}
+
+.statusButton[aria-expanded='true'] {
+  background: var(--colorChromeSubtleBackgroundSelected);
+}
+
+.statusButton:focus-visible {
+  outline-color: var(--colorChromeForeground1);
+}
+
+.playingDot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 16px;
+  height: var(--strokeWidthThicker);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorChromeBrand);
+  transform: translateX(-50%);
+}
+
 @media (hover: hover) {
-  .iconButton:hover, .info:hover { background: var(--color-hover); }
-  .statusButton:hover { background: var(--color-chrome-hover); color: var(--color-on-chrome); }
+  .info:hover {
+    background: var(--colorSubtleBackgroundHover);
+  }
+
+  .statusButton:hover {
+    background: var(--colorChromeSubtleBackgroundHover);
+  }
 }
+
 @media (pointer: coarse) {
-  .iconButton { width: var(--size-touch-target); height: var(--size-touch-target); }
-  .grip { min-height: var(--size-touch-target); }
-  .panel .transport button[type='button'] { min-width: var(--size-touch-target); min-height: var(--size-touch-target); }
+  .grip {
+    min-height: var(--sizeTouchTarget);
+  }
 }

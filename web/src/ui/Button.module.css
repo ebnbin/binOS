@@ -1,0 +1,261 @@
+/* Fluent 2 Button：small 24 / medium 32 / large 40，圆角 4px，文字是 Body 1 Strong */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingHorizontalSNudge);
+  flex: none;
+  min-width: 96px;
+  height: var(--sizeControlMedium);
+  margin: 0;
+  padding: 0 var(--spacingHorizontalM);
+  overflow: hidden;
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusControl);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyBase);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
+  white-space: nowrap;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  transition-property: background-color, border-color, color;
+  transition-duration: var(--durationFaster);
+  transition-timing-function: var(--curveEasyEase);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--sizeIconMedium);
+  height: var(--sizeIconMedium);
+  font-size: var(--sizeIconMedium);
+}
+
+.button[data-icon-position='after'] .icon {
+  order: 1;
+}
+
+.button[data-size='small'] {
+  gap: var(--spacingHorizontalXS);
+  min-width: 64px;
+  height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalS);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightRegular);
+}
+
+.button[data-size='large'] {
+  min-width: 96px;
+  height: var(--sizeControlLarge);
+  padding: 0 var(--spacingHorizontalL);
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+}
+
+.button[data-size='large'] .icon {
+  width: var(--sizeIconLarge);
+  height: var(--sizeIconLarge);
+  font-size: var(--sizeIconLarge);
+}
+
+.button[data-icon-only] {
+  min-width: 0;
+  width: var(--sizeControlMedium);
+  padding: 0;
+}
+
+.button[data-icon-only][data-size='small'] {
+  width: var(--sizeControlSmall);
+}
+
+.button[data-icon-only][data-size='large'] {
+  width: var(--sizeControlLarge);
+}
+
+.button[data-shape='circular'] {
+  border-radius: var(--borderRadiusCircular);
+}
+
+@media (hover: hover) {
+  .button:hover {
+    border-color: var(--colorNeutralStroke1Hover);
+    background: var(--colorNeutralBackground1Hover);
+    color: var(--colorNeutralForeground1Hover);
+  }
+}
+
+.button:active {
+  border-color: var(--colorNeutralStroke1Pressed);
+  background: var(--colorNeutralBackground1Pressed);
+  color: var(--colorNeutralForeground1Pressed);
+}
+
+.button[aria-pressed='true'],
+.button[aria-expanded='true'],
+.button[data-state='open'] {
+  border-color: var(--colorNeutralStroke1Selected);
+  background: var(--colorNeutralBackground1Selected);
+  color: var(--colorNeutralForeground1Selected);
+}
+
+/* primary：品牌色填充 */
+.button[data-appearance='primary'] {
+  border-color: transparent;
+  background: var(--colorBrandBackground);
+  color: var(--colorNeutralForegroundOnBrand);
+}
+
+@media (hover: hover) {
+  .button[data-appearance='primary']:hover {
+    border-color: transparent;
+    background: var(--colorBrandBackgroundHover);
+    color: var(--colorNeutralForegroundOnBrand);
+  }
+}
+
+.button[data-appearance='primary']:active {
+  border-color: transparent;
+  background: var(--colorBrandBackgroundPressed);
+  color: var(--colorNeutralForegroundOnBrand);
+}
+
+.button[data-appearance='primary'][aria-pressed='true'] {
+  background: var(--colorBrandBackgroundSelected);
+}
+
+/* outline：透明底，有描边 */
+.button[data-appearance='outline'] {
+  background: var(--colorTransparentBackground);
+}
+
+@media (hover: hover) {
+  .button[data-appearance='outline']:hover {
+    background: var(--colorTransparentBackground);
+  }
+}
+
+.button[data-appearance='outline']:active {
+  background: var(--colorTransparentBackground);
+}
+
+.button[data-appearance='outline'][aria-pressed='true'] {
+  border-width: var(--strokeWidthThicker);
+  background: var(--colorTransparentBackground);
+}
+
+/* subtle：没有底色和描边，悬停时出现浅底，图标变成品牌色 */
+.button[data-appearance='subtle'],
+.button[data-appearance='transparent'] {
+  border-color: transparent;
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground2);
+}
+
+@media (hover: hover) {
+  .button[data-appearance='subtle']:hover {
+    border-color: transparent;
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
+  }
+
+  .button[data-appearance='subtle']:hover .icon {
+    color: var(--colorNeutralForeground2BrandHover);
+  }
+}
+
+.button[data-appearance='subtle']:active {
+  border-color: transparent;
+  background: var(--colorSubtleBackgroundPressed);
+  color: var(--colorNeutralForeground2Pressed);
+}
+
+.button[data-appearance='subtle']:active .icon {
+  color: var(--colorNeutralForeground2BrandPressed);
+}
+
+.button[data-appearance='subtle']:is([aria-pressed='true'], [aria-expanded='true'], [data-state='open']) {
+  border-color: transparent;
+  background: var(--colorSubtleBackgroundSelected);
+  color: var(--colorNeutralForeground2Selected);
+}
+
+.button[data-appearance='subtle']:is([aria-pressed='true'], [aria-expanded='true'], [data-state='open']) .icon {
+  color: var(--colorNeutralForeground2BrandSelected);
+}
+
+/* transparent：只有文字颜色变化 */
+@media (hover: hover) {
+  .button[data-appearance='transparent']:hover {
+    border-color: transparent;
+    background: var(--colorTransparentBackground);
+    color: var(--colorNeutralForeground2BrandHover);
+  }
+}
+
+.button[data-appearance='transparent']:active {
+  border-color: transparent;
+  background: var(--colorTransparentBackground);
+  color: var(--colorNeutralForeground2BrandPressed);
+}
+
+.button[data-appearance='transparent']:is([aria-pressed='true'], [aria-expanded='true'], [data-state='open']) {
+  border-color: transparent;
+  background: var(--colorTransparentBackground);
+  color: var(--colorNeutralForeground2BrandSelected);
+}
+
+.button:disabled,
+.button:disabled:hover,
+.button:disabled:active {
+  border-color: var(--colorNeutralStrokeDisabled);
+  background: var(--colorNeutralBackgroundDisabled);
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.button:disabled .icon {
+  color: var(--colorNeutralForegroundDisabled);
+}
+
+.button:is([data-appearance='subtle'], [data-appearance='transparent'], [data-appearance='outline']):disabled {
+  background: var(--colorTransparentBackground);
+}
+
+.button:is([data-appearance='subtle'], [data-appearance='transparent']):disabled {
+  border-color: transparent;
+}
+
+.button[data-appearance='primary']:disabled {
+  border-color: transparent;
+}
+
+/* 焦点：描边换成 colorStrokeFocus2，向内再加 1px，合成 2px 的环；primary 内侧再加一圈白色 */
+.button:focus-visible {
+  z-index: 1;
+  outline: var(--strokeWidthThick) solid var(--colorTransparentStroke);
+  border-color: var(--colorStrokeFocus2);
+  box-shadow: inset 0 0 0 var(--strokeWidthThin) var(--colorStrokeFocus2);
+}
+
+.button[data-appearance='primary']:focus-visible {
+  border-color: var(--colorStrokeFocus2);
+  box-shadow:
+    var(--shadow2),
+    inset 0 0 0 var(--strokeWidthThin) var(--colorStrokeFocus2),
+    inset 0 0 0 var(--strokeWidthThick) var(--colorNeutralForegroundOnBrand);
+}
+
+@media (pointer: coarse) {
+  .button[data-icon-only][data-size='medium'] {
+    width: var(--sizeTouchTarget);
+    height: var(--sizeTouchTarget);
+  }
+}

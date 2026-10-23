@@ -1,45 +1,72 @@
+/* 回答过程里的一步：Fluent Tree 的一项，高 32、圆角 4px，悬停是 Subtle 的浅底。
+   左右各伸出 6px，文字和正文对齐 */
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 1px 0;
+  gap: var(--spacingHorizontalS);
+  width: calc(100% + 2 * var(--spacingHorizontalSNudge));
+  min-height: var(--sizeControlMedium);
+  margin: 0 calc(-1 * var(--spacingHorizontalSNudge));
+  padding: 0 var(--spacingHorizontalSNudge);
   border: 0;
-  background: none;
-  color: var(--color-text-tertiary);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground3);
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .row:not(:disabled):hover {
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
+  }
+}
+
+.row:not(:disabled):active {
+  background: var(--colorSubtleBackgroundPressed);
 }
 
 .row:disabled {
   cursor: default;
 }
 
-/* 灰色是完成，红色是出错，橙色闪烁是进行中 */
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+/* 状态：Fluent 的 tiny Badge，6px 的圆点。完成是中性灰，出错是红色，进行中是品牌色并闪烁 */
 .dot {
+  flex: none;
   width: 6px;
   height: 6px;
-  margin: 0 var(--space-1) 0 1px;
-  flex: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-text-tertiary) 70%, transparent);
+  margin: 0 var(--spacingHorizontalXXS);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralForeground4);
 }
 
 [data-status='error'] > .row .dot {
-  background: var(--color-danger);
+  background: var(--colorPaletteRedBackground3);
 }
 
 [data-status='running'] > .row .dot {
-  background: var(--color-accent);
-  animation: pulse 1.2s ease-in-out infinite;
+  background: var(--colorCompoundBrandBackground);
+  animation: pulse 1s var(--curveEasyEase) infinite;
 }
 
 @keyframes pulse {
   50% {
-    opacity: 0.3;
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-status='running'] > .row .dot {
+    animation: none;
   }
 }
 
@@ -49,13 +76,13 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text);
-  font-weight: var(--font-weight-medium);
+  color: var(--colorNeutralForeground1);
+  font-weight: var(--fontWeightSemibold);
 }
 
 [data-quiet] > .row .label {
-  color: var(--color-text-tertiary);
-  font-weight: var(--font-weight-regular);
+  color: var(--colorNeutralForeground3);
+  font-weight: var(--fontWeightRegular);
 }
 
 .detail {
@@ -64,25 +91,28 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
 }
 
 .meta {
   display: flex;
-  gap: var(--space-1-5);
+  gap: var(--spacingHorizontalSNudge);
   flex: none;
   margin-left: auto;
-  font-size: var(--font-size-xs);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
   font-variant-numeric: tabular-nums;
 }
 
 .chevron {
   flex: none;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconSmall);
   opacity: 0;
   transition:
-    opacity var(--duration-fast),
-    transform var(--duration-normal) var(--ease-standard);
+    opacity var(--durationFaster) var(--curveEasyEase),
+    transform var(--durationNormal) var(--curveEasyEaseMax);
 }
 
 @media (hover: hover) {
@@ -96,32 +126,38 @@
   transform: rotate(90deg);
 }
 
-/* 收起时下面的几行输出，和展开的内容一样缩进到圆点右边 */
+@media (hover: none) {
+  .chevron {
+    opacity: 1;
+  }
+}
+
+/* 收起时下面的几行输出和展开的内容，缩进到圆点右边，左边一条 Tree 的引导线 */
 .preview,
 .body {
-  margin: 0 0 var(--space-1) 5px;
-  padding-left: 13px;
-  border-left: 1px solid var(--color-separator);
+  margin: 0 0 var(--spacingVerticalXS) 5px;
+  padding-left: var(--spacingHorizontalM);
+  border-left: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
 }
 
 .preview {
   overflow: hidden;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase300);
   white-space: pre;
   text-overflow: ellipsis;
 }
 
 [data-status='error'] > .preview {
-  color: color-mix(in srgb, var(--color-danger) 80%, var(--color-text-tertiary));
+  color: var(--colorStatusDangerForeground1);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  gap: var(--spacingVerticalS);
+  padding-top: var(--spacingVerticalXS);
+  padding-bottom: var(--spacingVerticalXS);
 }

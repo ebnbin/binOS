@@ -1,0 +1,62 @@
+/* 2px（large 4px）的轨道，圆角 4px */
+.track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--strokeWidthThick);
+  overflow: hidden;
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground6);
+}
+
+.track[data-thickness='large'] {
+  height: var(--strokeWidthThickest);
+}
+
+.bar {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--colorCompoundBrandBackground);
+  transition: width 0.3s ease;
+}
+
+.track[data-intent='error'] .bar {
+  background: var(--colorPaletteRedBackground3);
+}
+
+.track[data-intent='warning'] .bar {
+  background: var(--colorPaletteDarkOrangeBackground3);
+}
+
+.track[data-intent='success'] .bar {
+  background: var(--colorPaletteGreenBackground3);
+}
+
+.bar[data-indeterminate] {
+  width: 33%;
+  background-image: linear-gradient(to right, var(--colorNeutralBackground6) 0%, transparent 50%, var(--colorNeutralBackground6) 100%);
+  animation: indeterminate 3s linear infinite;
+}
+
+@keyframes indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar[data-indeterminate] {
+    width: 100%;
+    animation: pulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.2;
+  }
+}

@@ -2,45 +2,47 @@
 .turn {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--spacingVerticalM);
 }
 
+/* 用户的话：靠右的气泡，Fluent 聊天里自己发的消息用品牌色的浅底 */
 .user {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   align-self: flex-end;
-  max-width: 100%;
+  gap: var(--spacingVerticalXXS);
   min-width: 0;
-  gap: var(--space-1);
+  max-width: 100%;
 }
 
 .userText {
-  max-width: 100%;
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
+  max-width: 100%;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border-radius: var(--borderRadiusLarge);
+  background: var(--colorBrandBackground2);
+  color: var(--colorNeutralForeground1);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .turn > .user:not(:first-child) {
-  margin-top: var(--space-1);
+  margin-top: var(--spacingVerticalXS);
 }
 
 .userMeta {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  min-height: var(--size-control-xs);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacingHorizontalXS);
+  min-height: var(--sizeControlSmall);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--duration-fast);
+  transition: opacity var(--durationFaster) var(--curveEasyEase);
 }
 
 .user:hover .userMeta,
@@ -56,7 +58,7 @@
   }
 }
 
-/* 收起的几步：一行「已工作 …」，后面一条细线，像一节的标题 */
+/* 收起的几步：Fluent Accordion 的标题，箭头在前，点开看每一步 */
 .worked {
   display: flex;
   flex-direction: column;
@@ -65,25 +67,21 @@
 .workedRow {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
-  width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0;
+  gap: var(--spacingHorizontalS);
+  width: calc(100% + 2 * var(--spacingHorizontalSNudge));
+  min-height: var(--sizeControlMedium);
+  margin: 0 calc(-1 * var(--spacingHorizontalSNudge));
+  padding: 0 var(--spacingHorizontalSNudge);
   border: 0;
-  background: none;
-  color: var(--color-text-tertiary);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground2);
   font: inherit;
-  font-size: var(--font-size-sm);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   text-align: left;
   cursor: pointer;
-}
-
-.workedRow::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  margin-left: var(--space-1-5);
-  background: var(--color-separator);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
 
 .workedRow > span {
@@ -95,13 +93,24 @@
 
 @media (hover: hover) {
   .workedRow:hover {
-    color: var(--color-text-secondary);
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
   }
+}
+
+.workedRow:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+.workedRow:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
 }
 
 .workedChevron {
   flex: none;
-  transition: transform var(--duration-normal) var(--ease-standard);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconSmall);
+  transition: transform var(--durationNormal) var(--curveEasyEaseMax);
 }
 
 .worked[data-open] .workedChevron {
@@ -109,70 +118,61 @@
 }
 
 .errors {
-  color: var(--color-danger);
+  color: var(--colorStatusDangerForeground1);
 }
 
+/* Fluent 的 Divider：中间是 Caption 1 的文字，两边是 Stroke2 的线 */
 .divider {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacingHorizontalM);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .divider::before,
 .divider::after {
   content: '';
   flex: 1;
-  height: 1px;
-  background: var(--color-separator);
+  height: var(--strokeWidthThin);
+  background: var(--colorNeutralStroke2);
 }
 
 .steps {
   display: flex;
   flex-direction: column;
-  padding-top: var(--space-1);
+  padding: var(--spacingVerticalXXS) 0 0 calc(var(--sizeIconSmall) + var(--spacingHorizontalS));
 }
 
 .time {
   align-self: center;
-  margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  margin-top: var(--spacingVerticalS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin-top: var(--space-0-5);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  gap: var(--spacingHorizontalXS);
+  margin-top: var(--spacingVerticalXXS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
 }
 
+/* 进行中：Fluent 的 Spinner 加上说明 */
 .status {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
   width: fit-content;
-  font-size: var(--font-size-md);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--color-text-tertiary) 35%, var(--color-text) 50%, var(--color-text-tertiary) 65%) 0 0 / 300% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 2.2s linear infinite;
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .status {
-    animation: none;
-  }
 }

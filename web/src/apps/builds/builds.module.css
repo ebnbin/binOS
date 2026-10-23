@@ -1,0 +1,174 @@
+/* 构建页按 Windows 11 设置页排：页面标题，设置和表单各一张卡片，每次构建一张卡片 */
+.page {
+  height: 100%;
+  overflow: auto;
+  padding: var(--spacingVerticalXL) var(--spacingHorizontalXXL) var(--spacingVerticalXXXL);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+}
+
+.header,
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacingHorizontalM);
+}
+
+.header {
+  justify-content: space-between;
+  margin-bottom: var(--spacingVerticalL);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--fontSizeHero700);
+  line-height: var(--lineHeightHero700);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.header p {
+  margin: var(--spacingVerticalXXS) 0 0;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.page small {
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.alert {
+  margin-bottom: var(--spacingVerticalM);
+}
+
+.settings {
+  composes: card from '../../ui/surfaces.module.css';
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: var(--spacingVerticalS);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalS) var(--spacingVerticalM);
+}
+
+.settings small {
+  padding: 0 var(--spacingHorizontalS);
+}
+
+.form {
+  composes: card from '../../ui/surfaces.module.css';
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--spacingHorizontalM);
+  margin-bottom: var(--spacingVerticalL);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL) var(--spacingVerticalL);
+}
+
+.field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter {
+  margin: 0 calc(-1 * var(--spacingHorizontalSNudge)) var(--spacingVerticalS);
+}
+
+.empty {
+  color: var(--colorNeutralForeground3);
+}
+
+.build {
+  composes: card from '../../ui/surfaces.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacingVerticalS);
+  margin-bottom: var(--spacingVerticalS);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL);
+}
+
+.row code {
+  color: var(--colorNeutralForeground2);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+}
+
+.row > span {
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+}
+
+.error {
+  margin: 0;
+  color: var(--colorPaletteRedForeground1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.artifact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  overflow-wrap: anywhere;
+}
+
+.artifactIcon {
+  flex: none;
+  font-size: var(--sizeIconMedium);
+}
+
+/* 日志：盖住整页，Mica 上的标题栏和等宽的日志 */
+.log {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  background: var(--colorMicaBackground);
+}
+
+.log header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex: none;
+  height: 48px;
+  padding: 0 var(--spacingHorizontalS) 0 var(--spacingHorizontalL);
+}
+
+.log header strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: var(--fontWeightSemibold);
+}
+
+.log pre {
+  flex: 1;
+  margin: 0;
+  padding: var(--spacingVerticalM) var(--spacingHorizontalL);
+  overflow: auto;
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: var(--spacingVerticalL) var(--spacingHorizontalL) var(--spacingVerticalXXL);
+  }
+
+  .header h1 {
+    font-size: var(--fontSizeBase600);
+    line-height: var(--lineHeightBase600);
+  }
+}

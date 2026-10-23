@@ -1,28 +1,75 @@
+/* Fluent 2 Checkbox：16px 的方框，圆角 2px，勾选后是品牌色 */
 .label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
 }
 
 .label .control {
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 17px;
-  height: 17px;
+  width: var(--sizeIconSmall);
+  height: var(--sizeIconSmall);
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStrokeAccessible);
+  border-radius: var(--borderRadiusSmall);
+  background: transparent;
+  color: var(--colorNeutralForegroundInverted);
+  font-size: var(--fontSizeBase200);
+}
+
+@media (hover: hover) {
+  .label:hover {
+    color: var(--colorNeutralForeground2);
+  }
+
+  .label:hover .control {
+    border-color: var(--colorNeutralStrokeAccessibleHover);
+  }
+}
+
+.label:active .control {
+  border-color: var(--colorNeutralStrokeAccessiblePressed);
+}
+
+.label:has([data-state='checked']) {
+  color: var(--colorNeutralForeground1);
 }
 
 .label .control[data-state='checked'] {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-color: var(--colorCompoundBrandBackground);
+  background: var(--colorCompoundBrandBackground);
+}
+
+@media (hover: hover) {
+  .label:hover .control[data-state='checked'] {
+    border-color: var(--colorCompoundBrandBackgroundHover);
+    background: var(--colorCompoundBrandBackgroundHover);
+  }
+}
+
+.label:active .control[data-state='checked'] {
+  border-color: var(--colorCompoundBrandBackgroundPressed);
+  background: var(--colorCompoundBrandBackgroundPressed);
+}
+
+.label[data-disabled],
+.label[data-disabled]:hover {
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.label[data-disabled] .control,
+.label[data-disabled]:hover .control {
+  border-color: var(--colorNeutralStrokeDisabled);
+  background: transparent;
+  color: var(--colorNeutralForegroundDisabled);
 }
 
 .indicator {

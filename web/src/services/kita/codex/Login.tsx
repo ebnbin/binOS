@@ -1,5 +1,7 @@
-import { ExternalLink } from 'lucide-react'
+import { OpenRegular } from '@fluentui/react-icons/headless/svg/open'
 import { useEffect, useState } from 'react'
+import { Alert } from '../../../ui/Alert.tsx'
+import { Button } from '../../../ui/Button.tsx'
 import { Spinner } from '../../../ui/Spinner.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
 import styles from '../Login.module.css'
@@ -68,7 +70,7 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
         <div className={styles.steps}>
           <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
             1. 打开登录页面，用 ChatGPT 账号登录
-            <ExternalLink size={14} strokeWidth={1.75} />
+            <OpenRegular className={styles.linkIcon} />
           </a>
           <div className={styles.codeLabel}>
             2. 输入这个一次性的码（15 分钟内有效）
@@ -78,32 +80,32 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
             <Spinner /> 等你授权，授权后这里会自动更新
           </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button onClick={onClose}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>登录好了，下一轮回答起用新的登录</p>
+          <Alert intent="success">登录好了，下一轮回答起用新的登录</Alert>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button appearance="primary" onClick={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <Alert>{step.error}</Alert>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button onClick={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
+            </Button>
+            <Button appearance="primary" onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}

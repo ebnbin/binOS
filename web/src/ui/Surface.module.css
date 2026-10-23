@@ -1,0 +1,114 @@
+/* 弹出的表面：菜单、下拉列表和弹层。Windows 11 的 Acrylic 材质，圆角 8px，描边是 SurfaceStrokeColorFlyout，阴影是 Fluent 的 shadow16 */
+.surface {
+  z-index: var(--zIndexOverlay);
+  border: var(--strokeWidthThin) solid var(--colorSurfaceStrokeFlyout);
+  border-radius: var(--borderRadiusOverlay);
+  background: var(--colorAcrylicBackground);
+  color: var(--colorNeutralForeground1);
+  box-shadow: var(--shadow16);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  -webkit-backdrop-filter: var(--acrylicBackdropFilter);
+  backdrop-filter: var(--acrylicBackdropFilter);
+  transform-origin: var(--radix-popper-transform-origin);
+}
+
+/* 出现时向弹出方向滑入 */
+.surface[data-state='open'],
+.surface[data-state='delayed-open'] {
+  animation: enter var(--durationSlower) var(--curveDecelerateMid);
+}
+
+.surface[data-side='top'] {
+  --surface-offset: var(--spacingVerticalMNudge);
+}
+
+.surface[data-side='bottom'] {
+  --surface-offset: calc(-1 * var(--spacingVerticalMNudge));
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--surface-offset, 0));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface[data-state='open'],
+  .surface[data-state='delayed-open'] {
+    animation: none;
+  }
+}
+
+/* 菜单项、选项：高 32，圆角 4px，悬停是 Background1Hover */
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  min-height: var(--sizeControlMedium);
+  padding: var(--spacingVerticalSNudge) var(--spacingHorizontalSNudge);
+  border-radius: var(--borderRadiusMedium);
+  outline: none;
+  color: var(--colorNeutralForeground2);
+  cursor: pointer;
+  user-select: none;
+  overflow-wrap: anywhere;
+}
+
+.item[data-highlighted] {
+  background: var(--colorNeutralBackground1Hover);
+  color: var(--colorNeutralForeground2Hover);
+}
+
+.item:active {
+  background: var(--colorNeutralBackground1Pressed);
+}
+
+
+.item[data-disabled] {
+  background: transparent;
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.item:focus-visible {
+  outline: var(--strokeWidthThick) solid var(--colorStrokeFocus2);
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+.itemIcon {
+  display: flex;
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconMedium);
+}
+
+.item[data-highlighted] .itemIcon {
+  color: var(--colorNeutralForeground2BrandSelected);
+}
+
+.item[data-disabled] .itemIcon {
+  color: var(--colorNeutralForegroundDisabled);
+}
+
+.divider {
+  height: var(--strokeWidthThin);
+  margin: var(--spacingVerticalXS) calc(-1 * var(--spacingHorizontalXS));
+  background: var(--colorNeutralStroke2);
+}
+
+.groupHeader {
+  padding: 0 var(--spacingHorizontalSNudge);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--sizeControlMedium);
+  font-weight: var(--fontWeightSemibold);
+}
+
+@media (pointer: coarse) {
+  .item {
+    min-height: var(--sizeTouchTarget);
+  }
+}

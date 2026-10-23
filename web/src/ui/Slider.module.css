@@ -1,0 +1,87 @@
+/* Fluent 2 Slider：4px 的轨道，20px 的圆形把手，把手中间是品牌色的圆点 */
+.slider {
+  --slider-rail: linear-gradient(to right, var(--colorCompoundBrandBackground) var(--slider-progress), var(--colorNeutralStrokeAccessible) var(--slider-progress));
+  width: 100%;
+  min-width: 0;
+  height: var(--sizeControlMedium);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: var(--strokeWidthThickest);
+  border-radius: var(--borderRadiusXLarge);
+  background: var(--slider-rail);
+}
+
+.slider::-moz-range-track {
+  height: var(--strokeWidthThickest);
+  border-radius: var(--borderRadiusXLarge);
+  background: var(--slider-rail);
+}
+
+.slider::-webkit-slider-thumb {
+  width: var(--sizeIconMedium);
+  height: var(--sizeIconMedium);
+  margin-top: -8px;
+  border: 0;
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralBackground1);
+  box-shadow:
+    0 0 0 var(--strokeWidthThin) var(--colorNeutralStroke1),
+    inset 0 0 0 5px var(--colorNeutralBackground1),
+    inset 0 0 0 20px var(--colorCompoundBrandBackground);
+  appearance: none;
+  transition: box-shadow var(--durationFaster) var(--curveEasyEase);
+}
+
+.slider::-moz-range-thumb {
+  width: var(--sizeIconMedium);
+  height: var(--sizeIconMedium);
+  border: 0;
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralBackground1);
+  box-shadow:
+    0 0 0 var(--strokeWidthThin) var(--colorNeutralStroke1),
+    inset 0 0 0 5px var(--colorNeutralBackground1),
+    inset 0 0 0 20px var(--colorCompoundBrandBackground);
+}
+
+@media (hover: hover) {
+  .slider:hover:not(:disabled)::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 var(--strokeWidthThin) var(--colorNeutralStroke1),
+      inset 0 0 0 4px var(--colorNeutralBackground1),
+      inset 0 0 0 20px var(--colorCompoundBrandBackgroundHover);
+  }
+}
+
+.slider:active:not(:disabled)::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 var(--strokeWidthThin) var(--colorNeutralStroke1),
+    inset 0 0 0 6px var(--colorNeutralBackground1),
+    inset 0 0 0 20px var(--colorCompoundBrandBackgroundPressed);
+}
+
+.slider:focus-visible {
+  outline: none;
+}
+
+.slider:focus-visible::-webkit-slider-thumb {
+  outline: var(--strokeWidthThick) solid var(--colorStrokeFocus2);
+  outline-offset: var(--strokeWidthThin);
+}
+
+.slider:disabled {
+  --slider-rail: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.slider:disabled::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 var(--strokeWidthThin) var(--colorNeutralStrokeDisabled),
+    inset 0 0 0 5px var(--colorNeutralBackground1),
+    inset 0 0 0 20px var(--colorNeutralForegroundDisabled);
+}

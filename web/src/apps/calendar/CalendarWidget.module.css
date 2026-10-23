@@ -1,49 +1,35 @@
+/* Windows 11 日历浮出面板的样子：月份标题，右边是翻页按钮；日期是圆形，今天用品牌色填充 */
 .calendar {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: var(--space-3);
-  color: var(--color-text);
+  gap: var(--spacingVerticalS);
+  color: var(--colorNeutralForeground1);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+  font-weight: var(--fontWeightSemibold);
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-0-5);
+  gap: var(--spacingHorizontalXXS);
 }
 
-.actions button {
-  display: grid;
-  place-items: center;
-  min-width: var(--size-control-sm);
-  height: var(--size-control-md);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.actions button:hover {
-  background: var(--color-bg-subtle);
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+.actions .today {
+  min-width: 0;
 }
 
 .month {
@@ -56,36 +42,32 @@
 }
 
 .month th {
-  height: 28px;
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
+  height: var(--sizeControlMedium);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightRegular);
 }
 
 .month td {
   padding: 0;
-  font-size: var(--font-size-sm);
-}
-
-.month td:nth-child(n + 6) {
-  color: var(--color-text-secondary);
+  font-size: var(--fontSizeBase300);
 }
 
 .month td[data-outside='true'] {
-  color: var(--color-text-tertiary);
-  opacity: var(--opacity-disabled);
+  color: var(--colorNeutralForeground4);
 }
 
 .month td span {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  width: var(--sizeControlMedium);
+  height: var(--sizeControlMedium);
+  border-radius: var(--borderRadiusCircular);
 }
 
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-surface);
-  font-weight: var(--font-weight-semibold);
+  background: var(--colorBrandBackground);
+  color: var(--colorNeutralForegroundOnBrand);
+  font-weight: var(--fontWeightSemibold);
 }

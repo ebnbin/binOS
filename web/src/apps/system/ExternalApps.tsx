@@ -1,8 +1,13 @@
-import { Plus } from 'lucide-react'
+import { AddRegular } from '@fluentui/react-icons/headless/svg/add'
+import { ChevronRightRegular } from '@fluentui/react-icons/headless/svg/chevron-right'
 import { useState } from 'react'
 import { icons, iconNames } from '../external/icons.ts'
 import { saveExternalApps, useExternalApps } from '../external/registry.ts'
 import type { ExternalAppConfig } from '../external/registry.ts'
+import { AppIcon as ColorIcon } from '../../ui/AppIcon.tsx'
+import { Button } from '../../ui/Button.tsx'
+import { Field } from '../../ui/Field.tsx'
+import { Input } from '../../ui/Input.tsx'
 import styles from './ExternalApps.module.css'
 
 // index 为 null 时是新加的
@@ -37,10 +42,9 @@ export function ExternalApps() {
     <section className={styles.section}>
       <header className={styles.header}>
         <h2>外部 app</h2>
-        <button type="button" className={styles.add} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
-          <Plus size={15} strokeWidth={2} />
+        <Button size="small" icon={<AddRegular />} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
           添加
-        </button>
+        </Button>
       </header>
       <p className={styles.hint}>独立部署的 web app，在窗口里打开。清单存在这台 Mac 的系统数据里，不在 binOS 的代码中；app 本身要允许被 binos.app 嵌入。</p>
       <ul className={styles.list}>
@@ -55,6 +59,7 @@ export function ExternalApps() {
                 <AppIcon name={app.icon} />
                 <span className={styles.name}>{app.name}</span>
                 <span className={styles.url}>{app.url}</span>
+                <ChevronRightRegular className={styles.chevron} />
               </button>
             </li>
           ),
@@ -70,8 +75,7 @@ export function ExternalApps() {
 }
 
 function AppIcon({ name }: { name: ExternalAppConfig['icon'] }) {
-  const Icon = icons[name]
-  return <Icon size={18} strokeWidth={1.75} />
+  return <ColorIcon icon={icons[name]} className={styles.appIcon} />
 }
 
 function Editor({
@@ -102,13 +106,11 @@ function Editor({
         }
       }}
     >
-      <label>
-        <span>名称</span>
-        <input value={draft.name} onChange={(event) => set({ name: event.target.value })} autoFocus />
-      </label>
-      <label>
-        <span>网址</span>
-        <input
+      <Field label="名称">
+        <Input value={draft.name} onChange={(event) => set({ name: event.target.value })} autoFocus />
+      </Field>
+      <Field label="网址">
+        <Input
           type="url"
           value={draft.url}
           placeholder="https://"
@@ -117,7 +119,7 @@ function Editor({
           spellCheck={false}
           onChange={(event) => set({ url: event.target.value })}
         />
-      </label>
+      </Field>
       <div className={styles.field}>
         <span>图标</span>
         <div className={styles.icons}>
@@ -131,21 +133,17 @@ function Editor({
       <div className={styles.actions}>
         {onRemove &&
           (confirming ? (
-            <button type="button" className={styles.danger} onClick={onRemove}>
+            <Button className={styles.danger} onClick={onRemove}>
               确认删除
-            </button>
+            </Button>
           ) : (
-            <button type="button" className={styles.secondary} onClick={() => setConfirming(true)}>
-              删除
-            </button>
+            <Button onClick={() => setConfirming(true)}>删除</Button>
           ))}
         <span className={styles.spacer} />
-        <button type="button" className={styles.secondary} onClick={onCancel}>
-          取消
-        </button>
-        <button type="submit" className={styles.primary} disabled={!valid}>
+        <Button onClick={onCancel}>取消</Button>
+        <Button type="submit" appearance="primary" disabled={!valid}>
           保存
-        </button>
+        </Button>
       </div>
     </form>
   )

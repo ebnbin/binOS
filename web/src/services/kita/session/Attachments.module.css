@@ -1,14 +1,14 @@
 .list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
 }
 
 .sent {
   flex-direction: column;
-  width: 420px;
-  align-self: flex-end;
   justify-content: flex-end;
+  align-self: flex-end;
+  width: 420px;
   max-width: 78%;
 }
 
@@ -17,9 +17,9 @@
   width: 64px;
   height: 64px;
   overflow: hidden;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground3);
 }
 
 .thumb img {
@@ -28,65 +28,72 @@
   object-fit: cover;
 }
 
+/* 待发的文件：Windows 11 的卡片，文件图标和文件名 */
 .card {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
   max-width: 220px;
   height: 64px;
-  padding: 0 var(--space-4) 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  padding: 0 var(--spacingHorizontalL) 0 var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
 
-.card svg {
+.cardIcon {
   flex: none;
+  font-size: var(--sizeIconMedium);
 }
 
 .name {
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-text);
-}
-
-.link {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (hover: hover) {
-  .link:hover .card {
-    background: var(--color-hover);
-  }
+  text-overflow: ellipsis;
+  color: var(--colorNeutralForeground1);
 }
 
 .pending {
   position: relative;
 }
 
+/* 移除：右上角的圆形小按钮，Fluent 的 small circular Button */
 .remove {
   position: absolute;
-  top: calc(-1 * var(--space-1-5));
-  right: calc(-1 * var(--space-1-5));
+  top: calc(-1 * var(--spacingVerticalSNudge));
+  right: calc(-1 * var(--spacingHorizontalSNudge));
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--color-surface);
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  width: var(--sizeIconMedium);
+  height: var(--sizeIconMedium);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground2);
+  box-shadow: var(--shadow4);
+  font-size: var(--fontSizeBase200);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .remove:hover {
+    background: var(--colorNeutralBackground1Hover);
+    color: var(--colorNeutralForeground1);
+  }
+}
+
+.remove:active {
+  background: var(--colorNeutralBackground1Pressed);
 }
 
 /* 触屏上按钮太小不好点，扩大可点区域 */
 .remove::after {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--space-2));
+  inset: calc(-1 * var(--spacingVerticalS));
 }
 
 @container agent (width < 600px) {

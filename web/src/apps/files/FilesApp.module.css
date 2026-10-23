@@ -1,279 +1,355 @@
+/* 像 Windows 11 的文件资源管理器：Mica 上是导航栏、地址栏和命令栏，文件列表放在 Layer 里 */
 .app {
   container: files / inline-size;
+  position: relative;
   display: flex;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
-  position: relative;
-  font-size: var(--font-size-sm);
+  background: var(--colorMicaBackground);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
+
+/* 导航栏：NavigationView 的样子，选中项左边有品牌色竖条 */
 .sidebar {
-  width: 170px;
-  flex-shrink: 0;
-  padding: var(--space-5) var(--space-3);
-  background: var(--color-bg-subtle);
-  border-right: 1px solid var(--color-border);
-  overflow: auto;
-}
-.caption {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-4) var(--space-3) var(--space-2);
-}
-.sidebar button {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  width: 100%;
-  border-radius: var(--radius-item);
-  text-align: left;
-}
-.sidebar button:hover,
-.entry:hover {
-  background: var(--color-hover);
-}
-.sidebar .active {
-  background: var(--color-fill);
-}
-.main {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: var(--spacingVerticalXXS);
+  flex-shrink: 0;
+  width: 200px;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalXS);
+  overflow: auto;
 }
+
+.caption {
+  margin: var(--spacingVerticalM) var(--spacingHorizontalM) var(--spacingVerticalXS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.place {
+  composes: listItem from '../../ui/surfaces.module.css';
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalM);
+  flex: none;
+  width: 100%;
+  height: 36px;
+  padding: 0 var(--spacingHorizontalM);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.place svg {
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconMedium);
+}
+
+.place:disabled {
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 地址栏：前后、上一级、刷新，路径和搜索 */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--spacingHorizontalXS);
+  padding: var(--spacingVerticalS) var(--spacingHorizontalS) var(--spacingVerticalXS);
 }
-.toolbar button {
-  display: flex;
-  padding: var(--space-1-5);
-  border-radius: var(--radius-control);
-}
-.app button:disabled,
-.dialog button:disabled {
-  opacity: var(--opacity-disabled);
-}
-.app input,
-.dialog input {
-  color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  font: inherit;
-  padding: var(--space-1-5) var(--space-2);
-  min-width: 0;
-}
+
 .path {
+  display: flex;
   flex: 1;
   min-width: 0;
+  margin-left: var(--spacingHorizontalXS);
 }
-.path input {
-  width: 100%;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-.controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-}
-.controls label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  white-space: nowrap;
-}
-.search {
+
+.path .pathInput {
   flex: 1;
+}
+
+.pathInput input {
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+}
+
+.toolbar .search {
+  width: 220px;
   min-width: 120px;
 }
-.search input {
-  width: 100%;
-  border: 0;
-  background: transparent;
-}
+
+/* 命令栏：Fluent Toolbar，按钮都是 subtle */
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1-5);
-  padding: 0 var(--space-4) var(--space-3);
-  border-bottom: 1px solid var(--color-border);
-}
-.actions button,
-.actions a {
-  display: flex;
-  gap: var(--space-1);
   align-items: center;
-  border: 1px solid var(--color-border);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-control);
-  color: var(--color-text);
-  text-decoration: none;
-  font-size: var(--font-size-xs);
+  gap: var(--spacingHorizontalXXS);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalS) var(--spacingVerticalS);
 }
+
+.actions .command {
+  min-width: 0;
+  padding: 0 var(--spacingHorizontalS);
+  font-weight: var(--fontWeightRegular);
+}
+
+.commandDivider {
+  width: var(--strokeWidthThin);
+  height: var(--sizeIconMedium);
+  margin: 0 var(--spacingHorizontalXS);
+  background: var(--colorNeutralStroke2);
+}
+
+.download {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacingHorizontalSNudge);
+  height: var(--sizeControlMedium);
+  padding: 0 var(--spacingHorizontalS);
+  border-radius: var(--borderRadiusControl);
+  color: var(--colorNeutralForeground2);
+  text-decoration: none;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.download svg {
+  font-size: var(--sizeIconMedium);
+}
+
+@media (hover: hover) {
+  .download:hover {
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
+    text-decoration: none;
+  }
+
+  .download:hover svg {
+    color: var(--colorNeutralForeground2BrandHover);
+  }
+}
+
+.download:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+.error {
+  margin: 0 var(--spacingHorizontalS) var(--spacingVerticalS);
+}
+
+/* 文件列表：Layer，左上角圆角接在导航栏和工具栏的拐角上 */
 .content {
   flex: 1;
-  overflow: auto;
   min-height: 0;
+  overflow: auto;
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  border-left: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  border-top-left-radius: var(--borderRadiusOverlay);
+  background: var(--colorLayerBackground);
 }
+
+.list {
+  padding: 0 var(--spacingHorizontalXS) var(--spacingVerticalS);
+}
+
 .columns,
 .entry {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) 150px 80px;
-  gap: var(--space-3);
+  gap: var(--spacingHorizontalM);
   align-items: center;
   width: 100%;
-  padding: var(--space-2) var(--space-5);
+  padding: 0 var(--spacingHorizontalM);
   text-align: left;
 }
+
+/* 详细信息视图的表头 */
 .columns {
   position: sticky;
   top: 0;
-  background: var(--color-surface);
-  color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border);
-  font-size: var(--font-size-2xs);
+  z-index: 1;
+  height: var(--sizeControlMedium);
+  margin-bottom: var(--spacingVerticalXXS);
+  border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  background: var(--colorMicaBackground);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
+
+.entry {
+  composes: listItem from '../../ui/surfaces.module.css';
+  min-height: var(--sizeControlMedium);
+}
+
+.entry:disabled {
+  cursor: default;
+}
+
 .name {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
   min-width: 0;
 }
+
 .name span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .name svg {
   flex-shrink: 0;
+  font-size: var(--sizeIconMedium);
 }
+
 .folder {
-  color: var(--color-info);
-  fill: color-mix(in srgb, var(--color-info) 18%, transparent);
+  color: var(--colorPaletteMarigoldForeground1);
 }
+
+.file {
+  color: var(--colorNeutralForeground3);
+}
+
+.chevron {
+  color: var(--colorNeutralForeground3);
+}
+
+.name .chevron {
+  font-size: var(--sizeIconSmall);
+}
+
 .meta {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
-.entry.selected {
-  background: color-mix(in srgb, var(--color-info) 18%, var(--color-surface));
-}
+
+/* 大图标视图 */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  padding: var(--space-5);
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--spacingVerticalXS) var(--spacingHorizontalXS);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalM);
 }
+
 .grid .entry {
   display: flex;
-  padding: var(--space-3) var(--space-1-5);
   justify-content: center;
-  border-radius: var(--radius-item);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalSNudge) var(--spacingVerticalS);
 }
+
+.grid .entry::before {
+  display: none;
+}
+
 .grid .name {
   flex-direction: column;
+  gap: var(--spacingVerticalXS);
   width: 100%;
 }
+
 .grid .name span {
   max-width: 100%;
-}
-.empty {
-  color: var(--color-text-tertiary);
-  padding: var(--space-10);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   text-align: center;
 }
-.status {
-  padding: var(--space-2) var(--space-4);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
-  display: flex;
-  gap: var(--space-5);
+
+.grid .name svg {
+  font-size: calc(var(--sizeIconLarge) * 2);
 }
+
+.empty {
+  margin: 0;
+  padding: var(--spacingVerticalXXXL);
+  color: var(--colorNeutralForeground3);
+  text-align: center;
+}
+
+/* 状态栏 */
+.status {
+  display: flex;
+  gap: var(--spacingHorizontalXL);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalM);
+  border-left: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
 .status span {
   margin-left: auto;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.error {
-  padding: var(--space-2) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  overflow-wrap: anywhere;
-}
-.modal {
-  width: min(388px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-overlay);
-  color: var(--color-text);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  font: inherit;
-}
 
-.modal::backdrop {
-  background: var(--color-scrim);
-}
-
-.dialog {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-6);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  width: 100%;
-}
-.dialog p {
-  margin: 0;
-  color: var(--color-text-secondary);
-}
-.dialog > div {
-  display: flex;
-  gap: var(--space-4);
-  justify-content: flex-end;
-}
-.dialog button {
-  padding: var(--space-1-5) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-}
 @container files (width < 650px) {
   .sidebar {
-    width: 120px;
-    padding: var(--space-2) var(--space-1);
+    width: 136px;
   }
+
+  .place {
+    gap: var(--spacingHorizontalS);
+    padding: 0 var(--spacingHorizontalS);
+  }
+
   .columns,
   .entry {
     grid-template-columns: minmax(100px, 1fr) 65px;
-    padding: var(--space-2) var(--space-3);
   }
+
   .columns > span:nth-child(2),
   .entry > .meta:nth-child(2) {
     display: none;
   }
-  .controls {
-    gap: var(--space-1-5);
+
+  .toolbar {
+    flex-wrap: wrap;
   }
+
+  .toolbar .search {
+    order: 1;
+    width: 100%;
+  }
+
   .status span {
     display: none;
   }
+
+  /* 窄的时候命令栏只留图标，名字留给读屏 */
+  .commandLabel {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
+
 @container files (width < 400px) {
   .sidebar {
     display: none;
+  }
+
+  .content,
+  .status {
+    border-left: 0;
+    border-top-left-radius: 0;
   }
 }

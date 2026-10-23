@@ -1,0 +1,81 @@
+/* Fluent 2 Dialog：圆角 8px，内边距 24，最宽 600，shadow64；背后是 colorBackgroundOverlay。
+   出现时从 0.85 放大并淡入（durationGentle + curveDecelerateMid） */
+.surface {
+  width: calc(100vw - 2 * var(--spacingHorizontalXXL));
+  max-width: 600px;
+  max-height: calc(100dvh - 2 * var(--spacingVerticalXXL));
+  margin: auto;
+  padding: var(--spacingVerticalXXL) var(--spacingHorizontalXXL);
+  overflow: auto;
+  border: var(--strokeWidthThin) solid var(--colorTransparentStroke);
+  border-radius: var(--borderRadiusXLarge);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground1);
+  box-shadow: var(--shadow64);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+}
+
+.surface[open] {
+  animation: enter var(--durationGentle) var(--curveDecelerateMid);
+}
+
+.surface::backdrop {
+  background: var(--colorBackgroundOverlay);
+  animation: fade var(--durationGentle) var(--curveEasyEase);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface[open],
+  .surface::backdrop {
+    animation: none;
+  }
+}
+
+/* 对话框里面：标题 Subtitle 1，正文和标题间隔 8，操作按钮靠右、间隔 8 */
+.body {
+  display: grid;
+  gap: var(--spacingVerticalS);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fontSizeBase500);
+  line-height: var(--lineHeightBase500);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.content {
+  margin: 0;
+  color: var(--colorNeutralForeground1);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacingHorizontalS);
+  margin-top: var(--spacingVerticalS);
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

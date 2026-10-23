@@ -1,0 +1,164 @@
+/* Fluent 2 Input / Textarea：圆角 4px，底边是深一级的描边；聚焦时底边从中间展开 2px 的品牌色线 */
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXXS);
+  min-width: 0;
+  height: var(--sizeControlMedium);
+  padding: 0 var(--spacingHorizontalMNudge);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-bottom-color: var(--colorNeutralStrokeAccessible);
+  border-radius: var(--borderRadiusControl);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  vertical-align: middle;
+}
+
+.root::after {
+  content: '';
+  position: absolute;
+  right: calc(-1 * var(--strokeWidthThin));
+  bottom: calc(-1 * var(--strokeWidthThin));
+  left: calc(-1 * var(--strokeWidthThin));
+  height: max(var(--strokeWidthThick), var(--borderRadiusControl));
+  border-bottom: var(--strokeWidthThick) solid var(--colorCompoundBrandStroke);
+  border-bottom-right-radius: var(--borderRadiusControl);
+  border-bottom-left-radius: var(--borderRadiusControl);
+  clip-path: inset(calc(100% - var(--strokeWidthThick)) 0 0 0);
+  transform: scaleX(0);
+  transition: transform var(--durationUltraFast) var(--curveAccelerateMid);
+  pointer-events: none;
+}
+
+.root:focus-within::after {
+  transform: scaleX(1);
+  transition: transform var(--durationNormal) var(--curveDecelerateMid);
+}
+
+.root:focus-within:active::after {
+  border-bottom-color: var(--colorCompoundBrandStrokePressed);
+}
+
+@media (hover: hover) {
+  .root:hover {
+    border-color: var(--colorNeutralStroke1Hover);
+    border-bottom-color: var(--colorNeutralStrokeAccessibleHover);
+  }
+}
+
+.root:active,
+.root:focus-within {
+  border-color: var(--colorNeutralStroke1Pressed);
+  border-bottom-color: var(--colorNeutralStrokeAccessiblePressed);
+}
+
+.root[data-size='small'] {
+  height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalSNudge);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+}
+
+.root[data-size='large'] {
+  height: var(--sizeControlLarge);
+  padding: 0 var(--spacingHorizontalM);
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+}
+
+.root[data-appearance='filled-darker'] {
+  border-color: transparent;
+  background: var(--colorNeutralBackground3);
+}
+
+.root[data-appearance='filled-lighter'] {
+  border-color: transparent;
+  background: var(--colorNeutralBackground1);
+}
+
+.root[data-appearance='underline'] {
+  border-width: 0 0 var(--strokeWidthThin);
+  border-radius: 0;
+  background: var(--colorTransparentBackground);
+}
+
+.root[data-appearance='underline']::after {
+  border-radius: 0;
+}
+
+.root[data-invalid]:not(:focus-within),
+.root[data-invalid]:hover:not(:focus-within) {
+  border-color: var(--colorPaletteRedBorder2);
+}
+
+.root[data-disabled] {
+  border-color: var(--colorNeutralStrokeDisabled);
+  background: var(--colorTransparentBackground);
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.input,
+.textarea {
+  flex: 1;
+  align-self: stretch;
+  min-width: 0;
+  margin: 0;
+  padding: 0 var(--spacingHorizontalXXS);
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--colorNeutralForeground4);
+  opacity: 1;
+}
+
+.input:disabled,
+.textarea:disabled {
+  cursor: not-allowed;
+}
+
+.input:disabled::placeholder,
+.textarea:disabled::placeholder {
+  color: var(--colorNeutralForegroundDisabled);
+}
+
+.input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconMedium);
+}
+
+.root[data-size='small'] .content {
+  font-size: var(--sizeIconSmall);
+}
+
+.root[data-size='large'] .content {
+  font-size: var(--sizeIconLarge);
+}
+
+.textareaRoot {
+  align-items: stretch;
+  height: auto;
+  padding: 0 0 var(--strokeWidthThick);
+}
+
+.textarea {
+  min-height: 52px;
+  padding: var(--spacingVerticalSNudge) calc(var(--spacingHorizontalMNudge) - var(--strokeWidthThin));
+  resize: vertical;
+}

@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRightRegular } from '@fluentui/react-icons/headless/svg/chevron-right'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import styles from './Activity.module.css'
@@ -35,7 +35,7 @@ export function Activity({
         <span className={styles.label}>{label}</span>
         {detail && <span className={styles.detail}>{detail}</span>}
         {meta && <span className={styles.meta}>{meta}</span>}
-        {body && <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />}
+        {body && <ChevronRightRegular className={styles.chevron} />}
       </button>
       {!open && preview && <pre className={styles.preview}>{preview}</pre>}
       {open && body && <div className={styles.body}>{body()}</div>}

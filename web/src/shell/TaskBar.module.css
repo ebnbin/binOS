@@ -1,4 +1,5 @@
-/* 黑底，和屏幕四周的外框连在一起，只有图标有颜色 */
+/* Windows 11 的任务栏（深色）：40 × 40 的按钮，圆角 4px，24px 的图标；
+   开着的 app 下面有一条灰色短线，当前的 app 有浅色底，短线变长、变成品牌色 */
 .bar {
   display: flex;
   align-items: center;
@@ -6,12 +7,13 @@
   flex: none;
   min-width: 0;
   min-height: 0;
-  padding: var(--space-1-5) 0;
+  padding: var(--spacingVerticalXS) 0;
+  color: var(--colorChromeForeground1);
 }
 
 .bar[data-placement='left'],
 .bar[data-placement='right'] {
-  padding: 0 var(--space-1-5);
+  padding: 0 var(--spacingHorizontalXS);
 }
 
 .bar[data-placement='left'] {
@@ -21,7 +23,7 @@
 .dock {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacingHorizontalXS);
   min-width: 0;
   min-height: 0;
   max-width: 100%;
@@ -31,7 +33,7 @@
 /* 最宽和屏幕一样：开着的 app 多了，只在这一段里滚动，桌面、分屏和关闭按钮不动 */
 .apps {
   display: flex;
-  gap: var(--space-1);
+  gap: var(--spacingHorizontalXS);
   min-width: 0;
   min-height: 0;
   overflow: auto;
@@ -40,10 +42,7 @@
 }
 
 .bar[data-placement='left'] .apps,
-.bar[data-placement='right'] .apps {
-  flex-direction: column;
-}
-
+.bar[data-placement='right'] .apps,
 .bar[data-placement='left'] .dock,
 .bar[data-placement='right'] .dock {
   flex-direction: column;
@@ -54,68 +53,109 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: var(--size-control-xl);
-  height: var(--size-control-xl);
-  border-radius: var(--radius-lg);
-  color: var(--color-on-chrome-secondary);
-  transition: background-color var(--duration-fast), color var(--duration-fast);
+  width: var(--sizeControlLarge);
+  height: var(--sizeControlLarge);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorChromeForeground1);
+  font-size: var(--sizeIconLarge);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.item svg {
+  transition: transform var(--durationFaster) var(--curveEasyEase);
 }
 
 @media (hover: hover) {
   .item:hover {
-    background: var(--color-chrome-hover);
-    color: var(--color-on-chrome);
+    background: var(--colorChromeSubtleBackgroundHover);
   }
 }
 
-.item[aria-pressed='true'] {
-  background: var(--color-chrome-selected);
-  color: var(--color-on-chrome);
+.item:active {
+  background: var(--colorChromeSubtleBackgroundPressed);
 }
 
-/* 正在显示的 app 旁边有个点 */
-.item[data-visible='true']::after {
+.item:active svg {
+  transform: scale(0.85);
+}
+
+.item[aria-pressed='true'] {
+  background: var(--colorChromeSubtleBackgroundSelected);
+}
+
+.item:focus-visible {
+  outline-color: var(--colorChromeForeground1);
+}
+
+/* 开着的 app 的指示线：在屏幕上的 6 × 3 灰线，当前的 16 × 3 品牌色 */
+.item[data-visible]::after,
+.member::after {
   content: '';
   position: absolute;
-  bottom: 3px;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome-secondary);
+  bottom: 0;
+  left: 50%;
+  width: 6px;
+  height: var(--strokeWidthThicker);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorChromeIndicator);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: width var(--durationGentle) var(--curveDecelerateMid), background-color var(--durationGentle) var(--curveDecelerateMid);
 }
 
-.bar[data-placement='left'] .item[data-visible='true']::after,
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  top: 18px;
+.item[data-visible='true']::after {
+  opacity: 1;
+}
+
+.item[aria-pressed='true']::after {
+  width: 16px;
+  background: var(--colorChromeBrand);
+}
+
+.bar[data-placement='left'] .item[data-visible]::after,
+.bar[data-placement='right'] .item[data-visible]::after {
+  top: 50%;
   bottom: auto;
+  width: var(--strokeWidthThicker);
+  height: 6px;
+  transform: translateY(-50%);
+  transition: height var(--durationGentle) var(--curveDecelerateMid), background-color var(--durationGentle) var(--curveDecelerateMid);
 }
 
-.bar[data-placement='left'] .item[data-visible='true']::after {
-  right: 2px;
+.bar[data-placement='left'] .item[aria-pressed='true']::after,
+.bar[data-placement='right'] .item[aria-pressed='true']::after {
+  width: var(--strokeWidthThicker);
+  height: 16px;
 }
 
-.bar[data-placement='right'] .item[data-visible='true']::after {
-  left: 2px;
+.bar[data-placement='left'] .item[data-visible]::after {
+  left: 0;
+}
+
+.bar[data-placement='right'] .item[data-visible]::after {
+  right: 0;
+  left: auto;
 }
 
 .separator {
   flex: none;
-  width: 1px;
-  height: 22px;
-  margin: 0 var(--space-1-5);
-  background: var(--color-chrome-border);
+  width: var(--strokeWidthThin);
+  height: var(--sizeIconLarge);
+  margin: 0 var(--spacingHorizontalXS);
+  background: var(--colorChromeStroke);
 }
 
 .bar[data-placement='left'] .separator,
 .bar[data-placement='right'] .separator {
-  width: 22px;
-  height: 1px;
-  margin: var(--space-1-5) 0;
+  width: var(--sizeIconLarge);
+  height: var(--strokeWidthThin);
+  margin: var(--spacingVerticalXS) 0;
 }
 
+/* 分屏的布局图标：Windows 11 贴靠布局的样子，当前窗口那一块是品牌色 */
 .glyph {
   display: flex;
-  gap: var(--space-0-5);
+  gap: var(--spacingHorizontalXXS);
   width: 22px;
   height: 16px;
 }
@@ -127,27 +167,25 @@
 }
 
 .glyph i {
-  border-radius: calc(var(--radius-xs) / 2);
-  background: currentColor;
-  opacity: 0.85;
-}
-
-.glyph i[data-active='false'] {
-  opacity: 0.3;
+  border: var(--strokeWidthThin) solid var(--colorChromeForeground2);
+  border-radius: var(--borderRadiusSmall);
 }
 
 .glyph i[data-active='true'] {
-  opacity: 1;
-  background: var(--color-on-chrome);
+  border-color: var(--colorChromeBrand);
+  background: var(--colorChromeBrand);
 }
 
+/* 分屏的一组：两个图标放在一个按钮里 */
 .item[data-group='true'] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1-5);
-  width: 58px;
-  box-shadow: inset 0 0 0 1px var(--color-chrome-border);
+  gap: var(--spacingHorizontalXS);
+  width: auto;
+  padding: 0 var(--spacingHorizontalS);
+  box-shadow: inset 0 0 0 var(--strokeWidthThin) var(--colorChromeStroke);
+  font-size: var(--sizeIconMedium);
 }
 
 .item[data-group='true']::after { display: none; }
@@ -160,12 +198,11 @@
 }
 
 .member[data-focused='true']::after {
-  content: '';
-  position: absolute;
-  bottom: 3px;
-  left: calc(50% - 2px);
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--color-on-chrome);
+  width: 12px;
+  background: var(--colorChromeBrand);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item, .item svg, .item::after, .member::after { transition: none; }
 }

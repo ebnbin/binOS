@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { webDarkTheme, webLightTheme } from '@fluentui/tokens'
 import { describe, expect, it } from 'vitest'
 
 const root = import.meta.dirname
@@ -22,6 +23,23 @@ const declared = new Set(sources.flatMap((path) => [...read(path).matchAll(/(--[
 function violations(pattern: RegExp) {
   return styles.flatMap((path) => [...read(path).matchAll(pattern)].map((match) => `${relative(root, path)}: ${match[0].trim()}`))
 }
+
+describe('tokens.css 和 Fluent 2 的官方 token 一致', () => {
+  const css = read(join(root, 'tokens.css'))
+  const dark = css.indexOf('@media (prefers-color-scheme: dark)')
+  const values = (block: string) => new Map([...block.matchAll(/--(\w+)\s*:\s*([^;]+);/g)].map((match) => [match[1], match[2]]))
+  const normalize = (value: string | number) => String(value).replace(/\s+/g, '').toLowerCase()
+  const compare = (block: string, theme: Record<string, string | number>) =>
+    [...values(block)].filter(([name]) => name in theme && !name.startsWith('fontFamily')).filter(([name, value]) => normalize(value) !== normalize(theme[name]))
+
+  it('浅色', () => {
+    expect(compare(css.slice(0, dark), webLightTheme)).toEqual([])
+  })
+
+  it('深色', () => {
+    expect(compare(css.slice(dark), webDarkTheme)).toEqual([])
+  })
+})
 
 describe('样式只用 tokens.css 里的设计 token', () => {
   it('不写颜色字面量', () => {

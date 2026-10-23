@@ -1,6 +1,7 @@
 import * as Primitive from '@radix-ui/react-popover'
 import type { ReactElement, ReactNode } from 'react'
 import styles from './Popover.module.css'
+import surface from './Surface.module.css'
 
 export function Popover({
   trigger,
@@ -29,9 +30,9 @@ export function Popover({
           aria-label={label}
           side={side}
           align={align}
-          sideOffset={8}
+          sideOffset={4}
           collisionPadding={12}
-          className={`${styles.content} ${className ?? ''}`}
+          className={`${surface.surface} ${styles.content} ${className ?? ''}`}
         >
           {children}
         </Primitive.Content>

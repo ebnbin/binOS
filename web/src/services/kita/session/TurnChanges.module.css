@@ -1,53 +1,72 @@
+/* 这一轮改的文件：Windows 11 的卡片，每个文件是可以展开的一行（Fluent Tree 的一项） */
 .card {
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacingHorizontalS);
+  min-height: var(--sizeControlLarge);
+  padding: 0 var(--spacingHorizontalM);
+  border-bottom: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
+  color: var(--colorNeutralForeground1);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.headerIcon {
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconMedium);
 }
 
 .files {
   margin: 0;
-  padding: var(--space-1);
+  padding: var(--spacingVerticalXS);
   list-style: none;
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--spacingHorizontalSNudge);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0 var(--space-2);
+  min-height: var(--sizeControlMedium);
+  padding: 0 var(--spacingHorizontalS);
   border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground1);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
 
 @media (hover: hover) {
   .row:hover {
-    background: var(--color-hover);
+    background: var(--colorSubtleBackgroundHover);
   }
+}
+
+.row:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
 }
 
 .chevron {
   flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconSmall);
+  transition: transform var(--durationNormal) var(--curveEasyEaseMax);
 }
 
 [data-open] > .row .chevron {
@@ -60,8 +79,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
 }
 
 .dir {
@@ -70,41 +89,32 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-}
-
-.kind {
-  flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
 }
 
 .counts {
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--spacingHorizontalSNudge);
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  color: var(--color-success);
+  color: var(--colorPaletteGreenForeground1);
 }
 
 .removed {
-  color: var(--color-danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  gap: var(--spacingVerticalS);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalXS) var(--spacingVerticalS) calc(var(--spacingHorizontalS) + var(--sizeIconSmall) + var(--spacingHorizontalSNudge));
 }

@@ -1,16 +1,17 @@
+/* Windows 11 标题栏式的工具栏：高 48，标题是 Body 1 Strong，两边是 subtle 的图标按钮 */
 .bar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--spacingHorizontalS);
   flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  height: 48px;
+  padding: 0 var(--spacingHorizontalL);
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--spacingHorizontalS);
   flex: 1;
   min-width: 0;
 }
@@ -19,8 +20,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .titleWrap {
@@ -29,47 +31,54 @@
   min-width: 0;
 }
 
+/* 标题本身是 subtle 按钮，点开会话菜单 */
 .titleButton {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--spacingHorizontalXS);
   min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
+  height: var(--sizeControlMedium);
+  margin: 0 calc(-1 * var(--spacingHorizontalS));
+  padding: 0 var(--spacingHorizontalS);
   border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorSubtleBackground);
+  color: var(--colorNeutralForeground1);
   font: inherit;
   cursor: pointer;
-  transition: background-color var(--duration-fast);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
 
 @media (hover: hover) {
   .titleButton:hover {
-    background: var(--color-hover);
+    background: var(--colorSubtleBackgroundHover);
   }
 }
 
+.titleButton:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
 .titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
+  background: var(--colorSubtleBackgroundSelected);
 }
 
 .titleChevron {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--sizeIconSmall);
 }
 
 .rename {
   align-self: center;
   max-width: 420px;
-  min-height: var(--size-control-md);
 }
 
 .id {
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,55 +86,81 @@
   position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--spacingHorizontalSNudge);
   margin-left: auto;
 }
 
+/* 收起的 PR：Fluent 的 tint Badge 样式，可以点 */
 .finished {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
+  gap: var(--spacingHorizontalXXS);
+  height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalS);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  color: var(--colorNeutralForeground2);
   font: inherit;
-  font-size: var(--font-size-2xs);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
+}
+
+.finished svg,
+.pr svg {
+  font-size: var(--sizeIconSmall);
+}
+
+@media (hover: hover) {
+  .finished:hover {
+    border-color: var(--colorNeutralStroke1Hover);
+    background: var(--colorNeutralBackground1Hover);
+  }
+}
+
+.finished:active,
+.finished[data-state='open'] {
+  background: var(--colorNeutralBackground1Pressed);
 }
 
 .prMenu {
   display: flex;
   flex-direction: column;
+  gap: var(--spacingVerticalXXS);
   width: 360px;
   max-height: min(320px, var(--radix-popover-content-available-height));
   overflow-y: auto;
-  padding: var(--space-1);
-  box-shadow: var(--shadow-md);
+  padding: var(--spacingVerticalXS);
 }
 
 .prMenu a {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  min-height: var(--sizeControlMedium);
+  padding: var(--spacingVerticalSNudge) var(--spacingHorizontalSNudge);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground2);
   text-decoration: none;
-  font-size: var(--font-size-sm);
 }
 
 @media (hover: hover) {
   .prMenu a:hover {
-    background: var(--color-hover);
+    background: var(--colorNeutralBackground1Hover);
+    color: var(--colorNeutralForeground2Hover);
+    text-decoration: none;
   }
+}
+
+.prMenu a:active {
+  background: var(--colorNeutralBackground1Pressed);
 }
 
 .prNumber {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
   font-variant-numeric: tabular-nums;
 }
 
@@ -139,64 +174,79 @@
 
 .prState {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
+  color: var(--colorStatusSuccessForeground1);
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
+  color: var(--colorPaletteBerryForeground1);
 }
 
+/* 开着的 PR：描边的小标签，编号和预览两段 */
 .pr {
   display: inline-flex;
-  align-items: center;
+  align-items: stretch;
+  height: var(--sizeControlSmall);
   overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
+  border: var(--strokeWidthThin) solid var(--colorNeutralStroke1);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground1);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   font-variant-numeric: tabular-nums;
 }
 
 .pr a {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
+  gap: var(--spacingHorizontalXXS);
+  padding: 0 var(--spacingHorizontalS);
+  color: var(--colorNeutralForeground2);
   text-decoration: none;
 }
 
-.pr[data-state='open'] a:first-child {
-  color: var(--color-success);
+@media (hover: hover) {
+  .pr a:hover {
+    background: var(--colorNeutralBackground1Hover);
+    text-decoration: none;
+  }
 }
 
-.pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
+.pr a:active {
+  background: var(--colorNeutralBackground1Pressed);
+}
+
+.pr[data-state='open'] a:first-child svg {
+  color: var(--colorStatusSuccessForeground1);
+}
+
+.pr[data-state='merged'] a:first-child svg {
+  color: var(--colorPaletteBerryForeground1);
 }
 
 .pr .preview {
-  border-left: 1px solid var(--color-separator);
+  border-left: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  color: var(--colorBrandForegroundLink);
 }
 
-/* 提高优先级，盖过 IconButton 自身的 display */
+/* 提高优先级，盖过按钮自身的 display */
 .bar .singleColumnOnly {
   display: none;
 }
 
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
+    padding: 0 var(--spacingHorizontalS);
   }
 
   .bar:has(.heading:last-child)::after {
     content: '';
-    width: var(--size-control-lg);
+    width: var(--sizeControlMedium);
     flex: none;
   }
 
@@ -205,10 +255,18 @@
   }
 
   .bar .singleColumnOnly {
-    display: grid;
+    display: inline-flex;
   }
 
   .bar span.singleColumnOnly {
     display: inline;
+  }
+}
+
+@media (pointer: coarse) {
+  @container agent (width < 960px) {
+    .bar:has(.heading:last-child)::after {
+      width: var(--sizeTouchTarget);
+    }
   }
 }

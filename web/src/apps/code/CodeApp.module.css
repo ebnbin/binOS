@@ -1,7 +1,9 @@
-/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页 */
+/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页。
+   Windows 11 的 NavigationView：左边的对话列表直接放在 Mica 上，右边的对话区是一层 Layer，左上角圆角接在列表和标题栏的拐角上 */
 .app {
   container: agent / inline-size;
   height: 100%;
+  background: var(--colorMicaBackground);
 }
 
 .layout {
@@ -19,6 +21,11 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  border-top: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  border-left: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  border-top-left-radius: var(--borderRadiusOverlay);
+  background: var(--colorLayerBackground);
+  overflow: hidden;
 }
 
 .missing {
@@ -27,17 +34,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  gap: var(--spacingVerticalM);
+  color: var(--colorNeutralForeground3);
 }
 
 .missing p {
   margin: 0;
-}
-
-.missing button {
-  color: var(--color-text);
-  text-decoration: underline;
 }
 
 @container agent (width < 960px) {
@@ -51,6 +53,13 @@
     grid-area: 1 / 1;
   }
 
+  /* 一次一页时对话区占满窗口，直接放在 Mica 上 */
+  .conversationPane {
+    border: 0;
+    border-radius: 0;
+    background: var(--colorMicaBackground);
+  }
+
   .layout[data-view='list'] .conversationPane,
   .layout[data-view='conversation'] .listPane {
     visibility: hidden;
@@ -59,6 +68,14 @@
 
 .toolBar {
   display: none;
+}
+
+.toolTitle {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: var(--fontWeightSemibold);
 }
 
 .content {
@@ -70,8 +87,9 @@
   .toolBar {
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
+    gap: var(--spacingHorizontalS);
+    flex: none;
+    height: 48px;
+    padding: 0 var(--spacingHorizontalS);
   }
 }

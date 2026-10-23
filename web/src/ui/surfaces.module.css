@@ -1,0 +1,92 @@
+/* Windows 11 的分层：窗口是 Mica，内容放在 Mica 上的 Layer 里，Layer 上再放 Card。
+   样式里用 composes 引用，例如 composes: card from '../ui/surfaces.module.css' */
+
+/* 窗口底色 */
+.mica {
+  background: var(--colorMicaBackground);
+  color: var(--colorNeutralForeground1);
+}
+
+/* 承载内容的一层，左上角圆角接在导航栏和标题栏的拐角上 */
+.layer {
+  border: var(--strokeWidthThin) solid var(--colorLayerStroke);
+  background: var(--colorLayerBackground);
+}
+
+/* 卡片：设置项、分组、信息块 */
+.card {
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+}
+
+/* 可以点的卡片 */
+.cardInteractive {
+  composes: card;
+  cursor: pointer;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .cardInteractive:hover {
+    background: var(--colorCardBackgroundHover);
+  }
+}
+
+.cardInteractive:active {
+  background: var(--colorCardBackgroundPressed);
+}
+
+/* 列表项、导航项：圆角 4px，悬停浅底；选中时浅底加左侧 3 × 16 的品牌色竖条（Windows 11 的 ListView / NavigationView） */
+.listItem {
+  position: relative;
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground1);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .listItem:hover {
+    background: var(--colorSubtleBackgroundHover);
+  }
+}
+
+.listItem:active {
+  background: var(--colorSubtleBackgroundPressed);
+}
+
+.listItem:is([aria-selected='true'], [aria-current='page'], [aria-current='true'], [data-selected='true']) {
+  background: var(--colorSubtleBackgroundSelected);
+}
+
+.listItem:is([aria-selected='true'], [aria-current='page'], [aria-current='true'], [data-selected='true'])::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: var(--strokeWidthThicker);
+  height: var(--sizeIconSmall);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorCompoundBrandBackground);
+  transform: translateY(-50%);
+}
+
+.listItem:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+/* 分组标题：Body 1 Strong */
+.sectionHeader {
+  margin: 0;
+  color: var(--colorNeutralForeground1);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
+}
+
+/* 分隔线 */
+.divider {
+  height: var(--strokeWidthThin);
+  border: 0;
+  background: var(--colorNeutralStroke2);
+}

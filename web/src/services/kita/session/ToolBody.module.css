@@ -1,87 +1,90 @@
+/* 工具的输出、命令和 diff：等宽字，Windows 11 的卡片 */
 .output,
 .terminal,
 .diffLines {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--spacingVerticalM) var(--spacingHorizontalM);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  font-family: var(--fontFamilyMonospace);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase300);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .output[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--colorStatusDangerForeground1);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
   user-select: none;
 }
 
 .terminal {
-  color: var(--color-text);
+  color: var(--colorNeutralForeground1);
 }
 
 .terminalOutput {
-  color: var(--color-text-secondary);
+  color: var(--colorNeutralForeground2);
 }
 
 .terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--colorStatusDangerForeground1);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacingVerticalSNudge);
 }
 
 .diffLines {
-  padding: var(--space-3) 0;
+  padding: var(--spacingVerticalM) 0;
   white-space: pre;
 }
 
 .diffLine {
   display: block;
-  padding: 0 var(--space-3) 0 0;
+  padding: 0 var(--spacingHorizontalM) 0 0;
 }
 
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: color-mix(in srgb, var(--colorPaletteGreenBackground3) 16%, transparent);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: color-mix(in srgb, var(--colorPaletteRedBackground3) 16%, transparent);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
 }
 
 .diffSign {
   display: inline-block;
   width: 26px;
+  color: var(--colorNeutralForeground3);
   text-align: center;
-  color: var(--color-text-tertiary);
   user-select: none;
 }
 
+/* 搜到的网页：列表项，标题是 Link 的颜色，后面是域名 */
 .links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-0-5);
+  gap: var(--spacingVerticalXXS);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -90,17 +93,20 @@
 .links a {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  color: inherit;
+  gap: var(--spacingHorizontalS);
+  padding: var(--spacingVerticalSNudge) var(--spacingHorizontalS);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorBrandForegroundLink);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
 
 @media (hover: hover) {
   .links a:hover {
-    background: var(--color-hover);
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorBrandForegroundLinkHover);
   }
 }
 
@@ -113,8 +119,8 @@
 
 .linkHost {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
 }
 
 .image {
@@ -126,6 +132,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
 }

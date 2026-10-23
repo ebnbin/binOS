@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-success);
+  --window: var(--colorPaletteGreenForeground1);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--colorPaletteMarigoldForeground1);
 }
 
 .ring g {
@@ -19,36 +19,30 @@
 }
 
 .ring [data-full] {
-  color: var(--color-danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
 .windows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  font-size: var(--font-size-sm);
+  gap: var(--spacingVerticalL);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
   font-variant-numeric: tabular-nums;
-}
-
-.limited {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-card);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
 }
 
 .window {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--spacingVerticalSNudge);
 }
 
 .windowLine {
   display: flex;
   align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  gap: var(--spacingHorizontalS);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .windowLine > :last-child {
@@ -58,31 +52,33 @@
 .windowName {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacingHorizontalSNudge);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .swatch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--borderRadiusCircular);
   background: var(--window);
 }
 
 .muted {
-  color: var(--color-text-tertiary);
+  color: var(--colorNeutralForeground3);
 }
 
 .danger {
-  color: var(--color-danger);
+  color: var(--colorPaletteRedForeground1);
 }
 
+/* Fluent 的 large ProgressBar：4px 的轨道 */
 .bar {
   position: relative;
-  height: 6px;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
+  height: var(--strokeWidthThickest);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorNeutralBackground6);
 }
 
 .bar span {
@@ -93,16 +89,16 @@
 }
 
 .bar[data-full] span {
-  background: var(--color-danger);
+  background: var(--colorPaletteRedBackground3);
 }
 
 /* 匀速线 */
 .bar i {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
-  margin-left: -1px;
-  border-radius: var(--radius-full);
-  background: var(--color-text-secondary);
+  top: calc(-1 * var(--strokeWidthThicker));
+  bottom: calc(-1 * var(--strokeWidthThicker));
+  width: var(--strokeWidthThick);
+  margin-left: calc(-1 * var(--strokeWidthThin));
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorNeutralForeground2);
 }

@@ -1,173 +1,187 @@
+/* 外部 app 的清单：分组标题、说明，下面一张卡片，每个 app 一行，点开就地编辑 */
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
+  margin-bottom: var(--spacingVerticalXL);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--spacingHorizontalM);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightSemibold);
 }
 
 .hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-.add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
+  margin: var(--spacingVerticalXS) 0 var(--spacingVerticalS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
 
 .list {
+  composes: card from '../../ui/surfaces.module.css';
   margin: 0;
   padding: 0;
+  overflow: hidden;
   list-style: none;
 }
 
-.list li {
-  border-bottom: 1px solid var(--color-separator);
+.list:empty {
+  display: none;
+}
+
+.list li + li {
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke3);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--spacingHorizontalM);
   width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
+  min-height: 56px;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalL);
+  color: var(--colorNeutralForeground1);
   text-align: left;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .row:hover:not(:disabled) {
+    background: var(--colorCardBackgroundHover);
+  }
+}
+
+.row:active:not(:disabled) {
+  background: var(--colorCardBackgroundPressed);
+}
+
+.row:disabled {
+  color: var(--colorNeutralForegroundDisabled);
+  cursor: not-allowed;
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+.appIcon {
+  flex: none;
+  font-size: var(--sizeIconLarge);
+}
+
+.row:disabled .appIcon {
+  opacity: 0.4;
 }
 
 .name {
   flex: none;
-  color: var(--color-text);
 }
 
 .url {
+  flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+}
+
+.chevron {
+  flex: none;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--sizeIconSmall);
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--spacingVerticalM);
+  padding: var(--spacingVerticalL);
+  background: var(--colorCardBackgroundHover);
 }
 
-.editor label,
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--spacingVerticalXXS);
 }
 
-.editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
+.field > span {
+  padding: var(--spacingVerticalXXS) 0;
+  color: var(--colorNeutralForeground1);
 }
 
-.editor input:focus {
-  border-color: var(--color-text-tertiary);
-}
-
+/* 图标选择：一排可以切换的方块，选中的有品牌色描边 */
 .icons {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--spacingHorizontalXS);
 }
 
 .icons button {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  width: var(--sizeControlLarge);
+  height: var(--sizeControlLarge);
+  border: var(--strokeWidthThin) solid transparent;
+  border-radius: var(--borderRadiusMedium);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+@media (hover: hover) {
+  .icons button:hover {
+    background: var(--colorSubtleBackgroundHover);
+  }
+}
+
+.icons button:active {
+  background: var(--colorSubtleBackgroundPressed);
 }
 
 .icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-color: var(--colorCompoundBrandStroke);
+  background: var(--colorBrandBackground2);
+  box-shadow: inset 0 0 0 var(--strokeWidthThin) var(--colorCompoundBrandStroke);
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  flex-wrap: wrap;
+  gap: var(--spacingHorizontalS);
+  margin-top: var(--spacingVerticalXS);
 }
 
 .spacer {
   flex: 1;
 }
 
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+/* 确认删除：危险操作用状态色填充 */
+.actions .danger {
+  border-color: transparent;
+  background: var(--colorStatusDangerBackground3);
+  color: var(--colorNeutralForegroundOnBrand);
 }
 
-.primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.secondary {
-  background: var(--color-fill);
-}
-
-.danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
-@media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
+@media (hover: hover) {
+  .actions .danger:hover {
+    border-color: transparent;
+    background: var(--colorStatusDangerBackground3Hover);
+    color: var(--colorNeutralForegroundOnBrand);
   }
+}
+
+.actions .danger:active {
+  background: var(--colorStatusDangerBackground3Pressed);
+  color: var(--colorNeutralForegroundOnBrand);
 }

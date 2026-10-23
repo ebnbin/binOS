@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApplications } from '../apps/index.ts'
 import { WindowHost } from './hosts/WindowHost.tsx'
+import { AppIcon } from '../ui/AppIcon.tsx'
+import { Button } from '../ui/Button.tsx'
 import type { OpenWindow } from './state/types.ts'
 import { allowedLayouts, minPane, paneGap, paneSizes, snapLayout } from './layout.ts'
 import type { LayoutId, Size } from './layout.ts'
 import styles from './Workspace.module.css'
-import desktopStyles from './Desktop.module.css'
 
 type Drag = { pointer: number; start: number; length: number; position: number; origin: number }
 
@@ -56,7 +57,7 @@ export function Workspace({
   const preview = (slot: number) => exiting === slot && <div className={styles.exitPreview} />
 
   return (
-    <div className={styles.workspace} hidden={hidden} data-dragging={offset !== null} data-portrait={portrait}>
+    <div className={styles.workspace} hidden={hidden} data-dragging={offset !== null} data-portrait={portrait} data-layout={layout}>
       {windows.map((item) => {
         const slot = panes.indexOf(item.id)
         return (
@@ -79,17 +80,17 @@ export function Workspace({
               else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
             }
           }}>
-            <p>选择第二个 app</p>
+            <p className={styles.pickerTitle}>选择第二个 app</p>
             <small>选择后完成分屏，也可以取消</small>
             <div className={styles.choices}>
               {apps.filter((app) => app.mainWindow && !unavailableApps.includes(app.id) && !windows.some((item) => item.window.applicationId === app.id && panes.includes(item.id))).map((app) => (
-                <button key={app.id} type="button" className={desktopStyles.icon} title={app.name} onClick={() => onPick(app.id, slot)}>
-                  <span className={desktopStyles.glyph}><app.icon strokeWidth={1.75} /></span>
-                  <span className={desktopStyles.label}>{app.name}</span>
+                <button key={app.id} type="button" className={styles.choice} title={app.name} onClick={() => onPick(app.id, slot)}>
+                  <AppIcon icon={app.icon} className={styles.choiceIcon} />
+                  <span className={styles.choiceLabel}>{app.name}</span>
                 </button>
               ))}
             </div>
-            <button type="button" onClick={onCancel}>取消分屏</button>
+            <Button onClick={onCancel}>取消分屏</Button>
           </div>
           {preview(slot)}
         </section>

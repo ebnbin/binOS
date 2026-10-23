@@ -1,15 +1,89 @@
+/* 尺寸和线宽：extra-tiny 16/2，tiny 20/2，extra-small 24/2，small 28/2，medium 32/3，large 36/3 */
 .spinner {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border: 1.75px solid color-mix(in srgb, var(--color-accent) 28%, transparent);
-  border-top-color: var(--color-accent);
-  border-radius: var(--radius-full);
-  animation: spin 0.8s linear infinite;
+  --spinner-size: var(--sizeIconSmall);
+  --spinner-stroke: var(--strokeWidthThick);
+  display: inline-block;
+  flex: none;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  vertical-align: middle;
 }
 
-@keyframes spin {
+.spinner[data-size='tiny'] {
+  --spinner-size: var(--sizeIconMedium);
+}
+
+.spinner[data-size='extra-small'] {
+  --spinner-size: var(--sizeIconLarge);
+}
+
+.spinner[data-size='small'] {
+  --spinner-size: 28px;
+}
+
+.spinner[data-size='medium'] {
+  --spinner-size: var(--sizeControlMedium);
+  --spinner-stroke: var(--strokeWidthThicker);
+}
+
+.spinner[data-size='large'] {
+  --spinner-size: 36px;
+  --spinner-stroke: var(--strokeWidthThicker);
+}
+
+.spinner svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: rotate 1.5s linear infinite;
+}
+
+.track,
+.tail {
+  fill: none;
+  stroke-width: var(--spinner-stroke);
+  vector-effect: non-scaling-stroke;
+}
+
+.track {
+  stroke: var(--colorBrandStroke2Contrast);
+}
+
+.tail {
+  stroke: var(--colorBrandStroke1);
+  stroke-linecap: round;
+  stroke-dasharray: 25 100;
+  transform-origin: center;
+  animation: tail 1.5s var(--curveEasyEase) infinite;
+}
+
+@keyframes rotate {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes tail {
+  0% {
+    stroke-dasharray: 1 100;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 60 100;
+    stroke-dashoffset: -10;
+  }
+
+  100% {
+    stroke-dasharray: 1 100;
+    stroke-dashoffset: -99;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner svg,
+  .tail {
+    animation-duration: 3s;
   }
 }

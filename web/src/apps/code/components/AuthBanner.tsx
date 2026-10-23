@@ -1,6 +1,7 @@
 import { agentIds } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { CircleAlert } from 'lucide-react'
+import { DismissCircleFilled } from '@fluentui/react-icons/headless/svg/dismiss-circle'
+import { WarningFilled } from '@fluentui/react-icons/headless/svg/warning'
 import { useState } from 'react'
 import { useHourlyNow } from '../../../services/kita/auth.ts'
 import { useAgentStatus } from '../../../services/kita/status.ts'
@@ -28,7 +29,7 @@ export function AuthBanner() {
       ) : (
         first && (
           <button type="button" className={styles.row} onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}>
-            <CircleAlert size={15} strokeWidth={1.75} />
+            {first.attention.tone === 'bad' ? <DismissCircleFilled /> : <WarningFilled />}
             <span>{first.attention.text}</span>
             <span className={styles.action}>{first.attention.action}</span>
           </button>

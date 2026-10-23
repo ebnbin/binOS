@@ -1,227 +1,319 @@
+/* 像 Windows Terminal：顶上是 Mica Alt 的标签条，选中的标签和下面的终端同色、连成一块；终端区域固定深色 */
 .app {
-  height: 100%;
-  min-height: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-  background: var(--color-surface);
+  height: 100%;
+  min-height: 0;
+  background: var(--colorMicaBackground);
+  color: var(--colorNeutralForeground1);
 }
+
 .toolbar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  align-items: flex-end;
+  gap: var(--spacingHorizontalXS);
+  min-height: 40px;
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalS) 0;
+  background: var(--colorMicaAltBackground);
 }
-.toolbar strong,
-.actions,
-.app button {
+
+.toolbar > * {
+  margin-bottom: var(--spacingVerticalXS);
+}
+
+.title {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-}
-.toolbar strong {
-  font-size: var(--font-size-sm);
+  gap: var(--spacingHorizontalS);
+  align-self: center;
+  margin: 0 var(--spacingHorizontalS) 0 var(--spacingHorizontalXS);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightRegular);
   white-space: nowrap;
 }
-.actions {
-  gap: var(--space-2);
+
+.title svg {
+  font-size: var(--sizeIconSmall);
 }
-.app button {
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-control);
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-.app button:hover {
-  background: var(--color-hover);
-}
-.app button:disabled {
-  opacity: var(--opacity-disabled);
-  cursor: default;
-}
-.app button:focus-visible {
-  outline: 2px solid var(--color-text-secondary);
-  outline-offset: 2px;
-}
+
 .tabs {
   display: flex;
-  gap: var(--space-1-5);
-  padding: var(--space-2) var(--space-3);
+  align-self: stretch;
+  align-items: flex-end;
+  gap: var(--spacingHorizontalXXS);
+  min-width: 0;
+  margin-bottom: 0;
   overflow-x: auto;
-  flex-shrink: 0;
-  background: var(--color-bg-subtle);
+  scrollbar-width: none;
 }
-.tabs button {
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalS);
+  flex: none;
+  height: 36px;
+  min-width: 120px;
+  padding: 0 var(--spacingHorizontalM);
+  border-radius: var(--borderRadiusXLarge) var(--borderRadiusXLarge) 0 0;
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
   white-space: nowrap;
-  color: var(--color-text-secondary);
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
 }
-.tabs button[aria-current] {
-  color: var(--color-text);
-  border-color: var(--color-text-secondary);
-  background: var(--color-surface);
+
+.tab svg {
+  font-size: var(--sizeIconSmall);
 }
+
+@media (hover: hover) {
+  .tab:hover {
+    background: var(--colorSubtleBackgroundHover);
+    color: var(--colorNeutralForeground2Hover);
+  }
+}
+
+.tab[aria-current] {
+  background: var(--colorTerminalBackground);
+  color: var(--colorTerminalForeground);
+}
+
+.tab:focus-visible {
+  outline-offset: calc(-1 * var(--strokeWidthThick));
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.error {
+  margin: var(--spacingVerticalS);
+}
+
 .pane {
   flex: 1;
   min-height: 100px;
   display: flex;
   flex-direction: column;
-  background: var(--color-terminal-bg);
-  color: var(--color-terminal-text);
   overflow: hidden;
+  background: var(--colorTerminalBackground);
+  color: var(--colorTerminalForeground);
 }
+
 .status {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-2xs);
-  color: color-mix(in srgb, var(--color-terminal-text) 65%, var(--color-terminal-bg));
-  padding: var(--space-2) var(--space-4);
+  gap: var(--spacingHorizontalS);
   flex-shrink: 0;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalL);
+  color: color-mix(in srgb, var(--colorTerminalForeground) 65%, var(--colorTerminalBackground));
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
+
 .status > span {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--color-accent);
+  border-radius: var(--borderRadiusCircular);
+  background: var(--colorStatusWarningBackground3);
 }
+
 .status > span[data-connected='true'] {
-  background: color-mix(in srgb, var(--color-success) 60%, var(--color-terminal-text));
+  background: var(--colorPaletteGreenBackground3);
 }
-.status button {
+
+.status .darkButton {
   margin-left: auto;
-  color: var(--color-terminal-text);
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
 }
+
+/* 终端区域里的按钮：深色底上的描边按钮 */
+.darkButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacingHorizontalXS);
+  flex: none;
+  height: var(--sizeControlSmall);
+  padding: 0 var(--spacingHorizontalS);
+  border: var(--strokeWidthThin) solid color-mix(in srgb, var(--colorTerminalForeground) 25%, transparent);
+  border-radius: var(--borderRadiusControl);
+  background: color-mix(in srgb, var(--colorTerminalForeground) 6%, var(--colorTerminalBackground));
+  color: var(--colorTerminalForeground);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  white-space: nowrap;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.darkButton svg {
+  font-size: var(--sizeIconSmall);
+}
+
+@media (hover: hover) {
+  .darkButton:hover {
+    background: color-mix(in srgb, var(--colorTerminalForeground) 14%, var(--colorTerminalBackground));
+  }
+}
+
+.darkButton:active {
+  background: color-mix(in srgb, var(--colorTerminalForeground) 4%, var(--colorTerminalBackground));
+}
+
+.darkButton:focus-visible {
+  outline-color: var(--colorTerminalForeground);
+}
+
 .terminal {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-4);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalM) var(--spacingVerticalS) var(--spacingHorizontalL);
 }
+
 .terminal :global(.xterm) {
   height: 100%;
 }
+
 .terminal :global(.xterm-screen) {
   user-select: none;
 }
+
 .footer {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-2xs);
-  border-top: 1px solid var(--color-border);
+  gap: var(--spacingHorizontalM);
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalS) var(--spacingVerticalXS) var(--spacingHorizontalM);
+  border-top: var(--strokeWidthThin) solid var(--colorNeutralStroke2);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
+
 .footer > span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-mono);
-  color: var(--color-text-secondary);
+  color: var(--colorNeutralForeground3);
+  font-family: var(--fontFamilyMonospace);
 }
-.footer button {
-  flex-shrink: 0;
-}
+
 .connection {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-secondary);
   max-height: 140px;
   overflow: auto;
+  padding: var(--spacingVerticalXS) var(--spacingHorizontalM) var(--spacingVerticalS);
+  color: var(--colorNeutralForeground3);
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
 }
+
 .connection summary {
+  color: var(--colorNeutralForeground2);
   cursor: pointer;
 }
+
 .connection code {
   display: block;
+  margin: var(--spacingVerticalS) 0;
+  padding: var(--spacingVerticalS) var(--spacingHorizontalM);
+  border: var(--strokeWidthThin) solid var(--colorCardStroke);
+  border-radius: var(--borderRadiusMedium);
+  background: var(--colorCardBackground);
+  color: var(--colorNeutralForeground1);
+  font-family: var(--fontFamilyMonospace);
   user-select: text;
   overflow-wrap: anywhere;
-  padding: var(--space-2) 0;
 }
+
 .connection p {
-  margin: 0 0 var(--space-1-5);
+  margin: 0 0 var(--spacingVerticalXS);
 }
+
 .empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8);
+  gap: var(--spacingVerticalS);
+  padding: var(--spacingVerticalXXXL);
+  background: var(--colorLayerBackground);
+  color: var(--colorNeutralForeground3);
   text-align: center;
-  color: var(--color-text-secondary);
 }
+
+.emptyIcon {
+  color: var(--colorBrandForeground1);
+  font-size: calc(var(--sizeIconLarge) * 2);
+}
+
 .empty h2 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text);
+  font-size: var(--fontSizeBase500);
+  line-height: var(--lineHeightBase500);
+  font-weight: var(--fontWeightSemibold);
+  margin: var(--spacingVerticalS) 0 0;
+  color: var(--colorNeutralForeground1);
 }
+
 .empty p {
-  font-size: var(--font-size-sm);
   max-width: 360px;
+  margin: 0;
 }
-.empty button {
-  margin-top: var(--space-4);
+
+.empty code {
+  font-family: var(--fontFamilyMonospace);
 }
-.error {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
+
+.empty > button {
+  margin-top: var(--spacingVerticalM);
 }
+
+/* 结束会话的确认：浮在终端底部的警告条 */
 .confirm {
   position: absolute;
-  bottom: 50px;
-  left: var(--space-3);
-  right: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--font-size-xs);
+  right: var(--spacingHorizontalM);
+  bottom: 56px;
+  left: var(--spacingHorizontalM);
+  border-radius: var(--borderRadiusMedium);
+  box-shadow: var(--shadow16);
 }
-.confirm span {
-  flex: 1;
-}
-.confirm button:last-child {
-  color: var(--color-danger);
-}
+
 .keys {
   display: none;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  overflow-x: auto;
+  gap: var(--spacingHorizontalSNudge);
   flex-shrink: 0;
+  padding: var(--spacingVerticalS);
+  overflow-x: auto;
 }
-.keys button {
-  background: color-mix(in srgb, var(--color-terminal-text) 6%, var(--color-terminal-bg));
-  border-color: var(--color-terminal-selection);
-  color: var(--color-terminal-text);
-  white-space: nowrap;
+
+.keys .darkButton {
+  height: var(--sizeControlMedium);
+  padding: 0 var(--spacingHorizontalM);
 }
+
 @media (pointer: coarse) {
   .keys {
     display: flex;
   }
 }
+
 @media (max-width: 480px) {
-  .toolbar {
-    padding: var(--space-3);
-  }
-  .actions button span {
+  .actionLabel {
     display: none;
   }
-  .confirm {
+
+  .title {
+    display: none;
+  }
+
+  .tab {
+    min-width: 0;
+  }
+
+  .confirm :global([role='alert']) {
     flex-wrap: wrap;
   }
 }

@@ -1,0 +1,81 @@
+/* Fluent 2 的字体阶梯，样式里用 composes 引用，例如 composes: subtitle1 from '../ui/typography.module.css' */
+.caption2 {
+  font-size: var(--fontSizeBase100);
+  line-height: var(--lineHeightBase100);
+  font-weight: var(--fontWeightRegular);
+}
+
+.caption2Strong {
+  composes: caption2;
+  font-weight: var(--fontWeightSemibold);
+}
+
+.caption1 {
+  font-size: var(--fontSizeBase200);
+  line-height: var(--lineHeightBase200);
+  font-weight: var(--fontWeightRegular);
+}
+
+.caption1Strong {
+  composes: caption1;
+  font-weight: var(--fontWeightSemibold);
+}
+
+.body1 {
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  font-weight: var(--fontWeightRegular);
+}
+
+.body1Strong {
+  composes: body1;
+  font-weight: var(--fontWeightSemibold);
+}
+
+.body2 {
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+  font-weight: var(--fontWeightRegular);
+}
+
+.subtitle2 {
+  font-size: var(--fontSizeBase400);
+  line-height: var(--lineHeightBase400);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.subtitle1 {
+  font-size: var(--fontSizeBase500);
+  line-height: var(--lineHeightBase500);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.title3 {
+  font-size: var(--fontSizeBase600);
+  line-height: var(--lineHeightBase600);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.title2 {
+  font-size: var(--fontSizeHero700);
+  line-height: var(--lineHeightHero700);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.title1 {
+  font-size: var(--fontSizeHero800);
+  line-height: var(--lineHeightHero800);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.largeTitle {
+  font-size: var(--fontSizeHero900);
+  line-height: var(--lineHeightHero900);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.display {
+  font-size: var(--fontSizeHero1000);
+  line-height: var(--lineHeightHero1000);
+  font-weight: var(--fontWeightSemibold);
+}

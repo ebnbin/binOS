@@ -1,0 +1,120 @@
+/* Fluent 2 Tab：medium 高 44，small 高 32；指示线 3px（small 2px），圆角全圆 */
+.list {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.list[data-vertical] {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacingHorizontalSNudge);
+  flex: none;
+  height: 44px;
+  padding: var(--spacingVerticalM) var(--spacingHorizontalMNudge);
+  border-radius: var(--borderRadiusMedium);
+  color: var(--colorNeutralForeground2);
+  font-size: var(--fontSizeBase300);
+  line-height: var(--lineHeightBase300);
+  white-space: nowrap;
+}
+
+.list[data-size='small'] .tab {
+  gap: var(--spacingHorizontalXXS);
+  height: var(--sizeControlMedium);
+  padding: var(--spacingVerticalSNudge) var(--spacingHorizontalSNudge);
+}
+
+.list[data-vertical] .tab {
+  justify-content: flex-start;
+  height: auto;
+  padding: var(--spacingVerticalSNudge) var(--spacingHorizontalMNudge);
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  right: var(--spacingHorizontalM);
+  bottom: 0;
+  left: var(--spacingHorizontalM);
+  height: var(--strokeWidthThicker);
+  border-radius: var(--borderRadiusCircular);
+  background: transparent;
+  transition: background-color var(--durationFaster) var(--curveEasyEase);
+}
+
+.list[data-size='small'] .tab::after {
+  right: var(--spacingHorizontalSNudge);
+  left: var(--spacingHorizontalSNudge);
+  height: var(--strokeWidthThick);
+}
+
+.list[data-vertical] .tab::after {
+  top: var(--spacingVerticalS);
+  right: auto;
+  bottom: var(--spacingVerticalS);
+  left: 0;
+  width: var(--strokeWidthThicker);
+  height: auto;
+}
+
+.icon {
+  display: flex;
+  font-size: var(--sizeIconMedium);
+}
+
+.content {
+  display: inline-grid;
+}
+
+.content::after {
+  content: attr(data-text);
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: var(--fontWeightSemibold);
+}
+
+@media (hover: hover) {
+  .tab:hover {
+    color: var(--colorNeutralForeground2Hover);
+  }
+
+  .tab:hover::after {
+    background: var(--colorNeutralStroke1Hover);
+  }
+}
+
+.tab:active {
+  color: var(--colorNeutralForeground2Pressed);
+}
+
+.tab:active::after {
+  background: var(--colorNeutralStroke1Pressed);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--colorNeutralForeground1);
+  font-weight: var(--fontWeightSemibold);
+}
+
+.tab[aria-selected='true'] .icon {
+  color: var(--colorCompoundBrandForeground1);
+}
+
+.tab[aria-selected='true']::after,
+.tab[aria-selected='true']:hover::after {
+  background: var(--colorCompoundBrandStroke);
+}
+
+.tab:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow4), 0 0 0 var(--strokeWidthThick) var(--colorStrokeFocus2);
+}

@@ -1,9 +1,10 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRightRegular } from '@fluentui/react-icons/headless/svg/chevron-right'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
+import { Spinner } from '../../../ui/Spinner.tsx'
 import { formatDuration, formatTokens, useNow } from '../../../ui/format.ts'
 import { formatClock, formatDivider, formatFull, sameDay } from '../../../ui/time.ts'
 import { modelName } from '../views.ts'
@@ -282,11 +283,11 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   return (
     <div className={styles.worked} data-open={open || undefined}>
       <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
+        <ChevronRightRegular className={styles.workedChevron} />
         <span>
           {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
           {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
         </span>
-        <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
       </button>
       {open && <div className={styles.steps}>{list}</div>}
     </div>
@@ -380,6 +381,7 @@ export function Transcript({ thread, items, live }: { thread: string; items: Ent
           {live?.text.trim() && <Markdown thread={thread} text={live.text} files={live.files} />}
           {live && (
             <div className={styles.status}>
+              <Spinner />
               {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
               {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
             </div>
