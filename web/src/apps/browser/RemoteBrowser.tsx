@@ -101,9 +101,10 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
               }
             }
             setState(message.state)
-            setAddress(message.state.url)
             ctxRef.current.setTitle(message.state.title || (message.state.url ? new URL(message.state.url).host : ''))
+            // 只在网址变化时同步地址栏，标题等其他状态变化不能覆盖正在输入的内容
             if (route.current !== message.state.url) {
+              setAddress(message.state.url)
               route.current = message.state.url
               ctxRef.current.navigate(addressRoute(message.state.url), { replace: true })
             }

@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Globe, House, RotateCw } from 'luc
 import { useEffect, useRef, useState } from 'react'
 import { IconButton } from '../../ui/IconButton.tsx'
 import type { WindowContext } from '../types.ts'
-import { addressRoute, browserAddress, routeAddress } from './address.ts'
+import { addressRoute, browserAddress, isLoopback, routeAddress } from './address.ts'
 import { RemoteBrowser } from './RemoteBrowser.tsx'
 import styles from './BrowserApp.module.css'
 
@@ -12,6 +12,8 @@ const sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-
 function IframeBrowser({ ctx }: { ctx: WindowContext }) {
   const requested = routeAddress(ctx.route)
   const url = requested && new URL(requested).origin !== window.location.origin ? requested : ''
+  // HTTPS 页面里的 HTTP iframe 会被浏览器当作混合内容拦截，只有本机地址例外
+  const insecure = !!url && window.location.protocol === 'https:' && new URL(url).protocol === 'http:' && !isLoopback(new URL(url))
   const [address, setAddress] = useState(url)
   const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
@@ -80,7 +82,13 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
         {url && <a className={styles.external} href={url} target="_blank" rel="noopener noreferrer" aria-label="在新标签页打开输入的网址" title="在新标签页打开输入的网址"><ArrowUpRight size={19} /></a>}
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
-      {url ? (
+      {insecure ? (
+        <div className={styles.home}>
+          <Globe size={44} strokeWidth={1.25} />
+          <h1>无法嵌入 HTTP 网页</h1>
+          <p>浏览器会拦截 HTTPS 页面中嵌入的 HTTP 网页。请切换到远程模式，或在新标签页打开。</p>
+        </div>
+      ) : url ? (
         <>
           <div className={styles.notice}>
             地址栏和前后退仅记录输入的网址，网页内跳转不会同步。若网站拒绝嵌入或无法登录，可在新标签页打开。
@@ -100,7 +108,7 @@ function IframeBrowser({ ctx }: { ctx: WindowContext }) {
           <Globe size={44} strokeWidth={1.25} />
           <h1>浏览器</h1>
           <p>在上方输入网址，直接在 binOS 中浏览网页。</p>
-          <p>支持 HTTP 和 HTTPS，省略协议时使用 HTTPS。部分网站不允许嵌入，需要在新标签页打开。</p>
+          <p>省略协议时使用 HTTPS，本机地址使用 HTTP。嵌入模式只能加载 HTTPS 和本机网址，部分网站也不允许嵌入，可切换到远程模式或在新标签页打开。</p>
         </div>
       )}
     </div>

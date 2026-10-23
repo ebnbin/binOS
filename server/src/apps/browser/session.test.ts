@@ -175,6 +175,35 @@ describe('remote browser reconnection', () => {
     ]))
   })
 
+  it('accepts leave-page confirmations and dismisses other dialogs', async () => {
+    const current = client()
+    await connectBrowser(undefined, current.send, current.close)
+    const dialog = (type: string) => ({ type: () => type, message: () => 'Leave?', accept: vi.fn<() => Promise<void>>(async () => {}), dismiss: vi.fn<() => Promise<void>>(async () => {}) })
+    const leave = dialog('beforeunload')
+    const confirm = dialog('confirm')
+    fixture.page.emit('dialog', leave)
+    fixture.page.emit('dialog', confirm)
+    expect(leave.accept).toHaveBeenCalledOnce()
+    expect(leave.dismiss).not.toHaveBeenCalled()
+    expect(confirm.dismiss).toHaveBeenCalledOnce()
+    expect(confirm.accept).not.toHaveBeenCalled()
+  })
+
+  it('opens new-tab links in the current page but rejects popups that keep an opener', async () => {
+    const current = client()
+    await connectBrowser(undefined, current.send, current.close)
+    const popup = (url: string, standalone: boolean) => ({ url: () => url, evaluate: async () => standalone, close: vi.fn<() => Promise<void>>(async () => {}) })
+    const link = popup('https://link.example/', true)
+    fixture.page.emit('popup', link)
+    await vi.waitFor(() => expect(fixture.page.goto).toHaveBeenCalledExactlyOnceWith('https://link.example/', expect.any(Object)))
+    expect(link.close).toHaveBeenCalledOnce()
+    const login = popup('https://login.example/', false)
+    fixture.page.emit('popup', login)
+    await vi.waitFor(() => expect(login.close).toHaveBeenCalledOnce())
+    expect(fixture.page.goto).toHaveBeenCalledOnce()
+    expect(current.messages).toContainEqual({ type: 'error', message: '当前远程模式暂不支持新窗口，请使用网页内的链接导航' })
+  })
+
   it('closes a failed metadata connection normally so the client can retry', async () => {
     const current = client()
     await connectBrowser(undefined, current.send, current.close)
