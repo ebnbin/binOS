@@ -1,11 +1,26 @@
+/* 浮层用 M3 菜单和富提示的容器：surface-container、大圆角、2 级阴影 */
 .content {
-  z-index: var(--z-overlay);
+  z-index: var(--binos-z-overlay);
   max-width: var(--radix-popover-content-available-width);
   max-height: var(--radix-popover-content-available-height);
   overflow: auto;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level2);
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: enter var(--md-sys-motion-spring-fast-spatial);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
 }

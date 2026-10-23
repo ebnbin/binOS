@@ -1,3 +1,4 @@
+/* 悬浮的迷你播放器：surface-container-high 卡片、超大圆角、level3 阴影 */
 .panel {
   position: absolute;
   z-index: 10;
@@ -5,37 +6,208 @@
   max-height: calc(100% - var(--space-6));
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-overlay);
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-lg);
+  padding-bottom: var(--space-4);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  box-shadow: var(--md-sys-elevation-level3);
 }
-.header { display: flex; align-items: center; padding: var(--space-1) var(--space-1-5) 0; }
-.grip { display: flex; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; min-height: var(--size-control-md); padding: 0 var(--space-2); color: var(--color-text-tertiary); cursor: grab; touch-action: none; user-select: none; }
-.grip:active { cursor: grabbing; }
-.grip span { font-size: var(--font-size-2xs); }
-.iconButton { display: grid; place-items: center; width: var(--size-control-md); height: var(--size-control-md); flex: none; color: var(--color-text-secondary); border-radius: var(--radius-control); }
-.info { display: flex; align-items: center; gap: var(--space-3); width: 100%; min-width: 0; padding: var(--space-2) var(--space-4); text-align: left; }
-.artwork { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--radius-md); overflow: hidden; background: var(--color-bg-subtle); color: var(--color-accent); }
-.artwork img { width: 100%; height: 100%; object-fit: cover; }
-.text { display: flex; flex-direction: column; min-width: 0; }
-.text strong, .text > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.text strong { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-.text > span { font-size: var(--font-size-2xs); color: var(--color-text-tertiary); }
-.transport { padding: var(--space-1) var(--space-4) var(--space-3); }
-.progress { height: 3px; background: var(--color-separator); }
-.progress > span { display: block; height: 100%; background: var(--color-accent); }
-.error { margin: var(--space-1) var(--space-4) var(--space-2); font-size: var(--font-size-2xs); line-height: var(--line-height-snug); color: var(--color-danger); overflow-wrap: anywhere; }
-.statusButton { position: relative; display: grid; place-items: center; flex: none; width: var(--size-control-xl); height: var(--size-control-xl); border-radius: var(--radius-lg); color: var(--color-on-chrome-secondary); }
-.statusButton[aria-expanded='true'] { background: var(--color-chrome-selected); color: var(--color-on-chrome); }
-.playingDot { position: absolute; bottom: var(--space-1); width: 4px; height: 4px; border-radius: 50%; background: var(--color-accent); }
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-2) 0;
+}
+
+.grip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.grip:active {
+  cursor: grabbing;
+  background: var(--md-sys-state-dragged);
+}
+
+.grip span {
+  overflow: hidden;
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: calc(100% - var(--space-4));
+  min-width: 0;
+  margin: var(--space-1) var(--space-2) 0;
+  padding: var(--space-2);
+  border-radius: var(--md-sys-shape-corner-large);
+  text-align: left;
+}
+
+.artwork {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.artwork img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.text strong,
+.text > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text strong {
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+}
+
+.text > span {
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.transport {
+  padding: var(--space-2) var(--space-4) var(--space-3);
+}
+
+/* M3 线性进度：primary 的已播放段，secondary-container 的轨道 */
+.progress {
+  height: 4px;
+  margin: 0 var(--space-5);
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-secondary-container);
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
+.error {
+  margin: var(--space-2) var(--space-4) 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+  overflow-wrap: anywhere;
+}
+
+/* 任务栏里的音乐按钮和任务栏的项一致：56×32 的胶囊，展开播放器时是 secondary-container */
+.statusButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 56px;
+  height: 32px;
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  transition:
+    background-color var(--md-sys-motion-spring-fast-effects),
+    color var(--md-sys-motion-spring-fast-effects);
+}
+
+/* 可点的范围补到 48 高 */
+.statusButton::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-2)) 0;
+}
+
+.statusButton[aria-expanded='true'] {
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.statusButton:active {
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+/* 正在播放时右上角是 M3 的小徽标点 */
+.playingDot {
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-3);
+  width: 6px;
+  height: 6px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
 @media (hover: hover) {
-  .iconButton:hover, .info:hover { background: var(--color-hover); }
-  .statusButton:hover { background: var(--color-chrome-hover); color: var(--color-on-chrome); }
+  .info:hover {
+    background: var(--md-sys-state-hover);
+  }
+
+  .grip:hover {
+    background: var(--md-sys-state-hover);
+  }
+
+  .statusButton:hover {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+    color: var(--md-sys-color-on-surface);
+  }
+
+  .statusButton[aria-expanded='true']:hover {
+    color: var(--md-sys-color-on-secondary-container);
+  }
 }
+
+.info:active {
+  background: var(--md-sys-state-pressed);
+}
+
 @media (pointer: coarse) {
-  .iconButton { width: var(--size-touch-target); height: var(--size-touch-target); }
-  .grip { min-height: var(--size-touch-target); }
-  .panel .transport button[type='button'] { min-width: var(--size-touch-target); min-height: var(--size-touch-target); }
+  .grip {
+    height: var(--md-sys-size-target);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusButton {
+    transition: none;
+  }
 }

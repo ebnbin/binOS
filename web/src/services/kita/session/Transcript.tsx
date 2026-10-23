@@ -1,10 +1,11 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
-import { ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
 import { formatDuration, formatTokens, useNow } from '../../../ui/format.ts'
+import { Checklist, KeyboardArrowDown } from '../../../ui/icons.tsx'
+import { CircularProgress } from '../../../ui/Progress.tsx'
 import { formatClock, formatDivider, formatFull, sameDay } from '../../../ui/time.ts'
 import { modelName } from '../views.ts'
 import { AttachmentList } from './Attachments.tsx'
@@ -255,7 +256,7 @@ function summarize(steps: Step[]) {
   return parts.length ? parts.join('，') : `思考 ${steps.length} 次`
 }
 
-// 连续的几步：最多只有一次工具调用时直接显示；多次时收成一行「已工作 …」，正在进行的那一组展开，答完了收起，点开看每一步
+// 连续的几步：最多只有一次工具调用时直接显示；多次时收进一张卡片，标题是「已工作 …」，正在进行的那一组展开，答完了收起，点开看每一步
 function Steps({ steps, context, last }: { steps: Step[]; context: Context; last: boolean }) {
   const [userOpen, setUserOpen] = useState<boolean>()
   const states = steps.flatMap((step) => (step.kind === 'thinking' ? [] : [step.state]))
@@ -282,11 +283,12 @@ function Steps({ steps, context, last }: { steps: Step[]; context: Context; last
   return (
     <div className={styles.worked} data-open={open || undefined}>
       <button type="button" className={styles.workedRow} onClick={() => setUserOpen(!open)} aria-expanded={open}>
-        <span>
+        <span className={styles.workedIcon}>{running ? <CircularProgress size={18} /> : <Checklist size={20} />}</span>
+        <span className={styles.workedText}>
           {running ? '正在工作' : '已工作'} {formatDuration(Math.max(end - start, 0))} · {summarize(steps)}
           {errors > 0 && <span className={styles.errors}> · {errors} 个出错</span>}
         </span>
-        <ChevronRight size={13} strokeWidth={2} className={styles.workedChevron} />
+        <KeyboardArrowDown size={20} className={styles.workedChevron} />
       </button>
       {open && <div className={styles.steps}>{list}</div>}
     </div>
@@ -380,8 +382,11 @@ export function Transcript({ thread, items, live }: { thread: string; items: Ent
           {live?.text.trim() && <Markdown thread={thread} text={live.text} files={live.files} />}
           {live && (
             <div className={styles.status}>
-              {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
-              {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+              <CircularProgress size={20} />
+              <span className={styles.statusText}>
+                {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
+                {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+              </span>
             </div>
           )}
         </>

@@ -1,5 +1,6 @@
 import type { MonitorStatus } from '@binos/server/apps/system/types'
 import { useConnected } from '../../events.ts'
+import { ChevronRight } from '../../ui/icons.tsx'
 import { useApplications } from '../index.ts'
 import { ExternalApps } from './ExternalApps.tsx'
 import { bytes } from './format.ts'
@@ -16,10 +17,13 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
         <p>系统状态与应用设置</p>
       </header>
       <section className={styles.section}>
-        <dl className={styles.rows}>
+        <h2>运行状态</h2>
+        <dl className={`${styles.group} ${styles.rows}`}>
           <div>
             <dt>连接状态</dt>
-            <dd>{connected ? '已连接' : '连接已断开'}</dd>
+            <dd className={styles.connection} data-connected={connected}>
+              {connected ? '已连接' : '连接已断开'}
+            </dd>
           </div>
           <div>
             <dt>版本</dt>
@@ -42,12 +46,18 @@ export function BinosMonitor({ status, navigate }: { status?: MonitorStatus; nav
       {apps.length > 0 && (
         <section className={styles.section}>
           <h2>应用设置</h2>
-          {apps.map((app) => (
-            <button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
-              {app.name}
-              <span>{app.settings!.hint}</span>
-            </button>
-          ))}
+          <div className={styles.group}>
+            {apps.map((app) => (
+              <button className={styles.settingLink} key={app.id} onClick={() => navigate(`/apps/${app.id}`)}>
+                <app.icon size={24} />
+                <span>
+                  {app.name}
+                  <small>{app.settings!.hint}</small>
+                </span>
+                <ChevronRight size={24} />
+              </button>
+            ))}
+          </div>
         </section>
       )}
       <ExternalApps />

@@ -1,10 +1,10 @@
 import { agentIds } from '@binos/server/services/kita/types'
 import type { AgentId } from '@binos/server/services/kita/types'
-import { CircleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { useHourlyNow } from '../../../services/kita/auth.ts'
 import { useAgentStatus } from '../../../services/kita/status.ts'
 import { agentView } from '../../../services/kita/views.ts'
+import { ErrorIcon, Warning } from '../../../ui/icons.tsx'
 import styles from './AuthBanner.module.css'
 
 // agent 的登录要处理时（快到期、失效了、在用备用的登录……），列表上面一条提醒，点了就地登录。几个都要处理时按 agent 的顺序先处理前面的
@@ -28,7 +28,7 @@ export function AuthBanner() {
       ) : (
         first && (
           <button type="button" className={styles.row} onClick={() => setOpen({ agent: first.agent, fix: first.attention.fix })}>
-            <CircleAlert size={15} strokeWidth={1.75} />
+            {first.attention.tone === 'bad' ? <ErrorIcon size={20} /> : <Warning size={20} />}
             <span>{first.attention.text}</span>
             <span className={styles.action}>{first.attention.action}</span>
           </button>

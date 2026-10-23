@@ -1,11 +1,12 @@
+/* 画好的图放在 M3 的描边卡片里 */
 .diagram {
   display: flex;
   justify-content: center;
   padding: var(--space-4);
   overflow-x: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
 }
 
 .diagram svg {

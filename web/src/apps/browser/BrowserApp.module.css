@@ -4,136 +4,249 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-surface);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
 }
+
+/* 嵌入、远程两种模式是 M3 Expressive 的连接按钮组：间隔 2，外侧全圆，内侧 8 圆角，选中的变全圆 */
+.modeBar {
+  display: flex;
+  gap: var(--space-0-5);
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.modeBar button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-small);
+  background-color: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects),
+    color var(--md-sys-motion-spring-fast-effects);
+}
+
+.modeBar button:first-child {
+  border-top-left-radius: var(--md-sys-shape-corner-full);
+  border-bottom-left-radius: var(--md-sys-shape-corner-full);
+}
+
+.modeBar button:last-child {
+  border-top-right-radius: var(--md-sys-shape-corner-full);
+  border-bottom-right-radius: var(--md-sys-shape-corner-full);
+}
+
+.modeBar button[aria-pressed='true'] {
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+@media (hover: hover) {
+  .modeBar button:hover {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+}
+
+.modeBar button:active {
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
+}
+
+@media (pointer: coarse) {
+  .modeBar button::before {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--space-2)) 0;
+  }
+}
+
+/* M3 小型顶部应用栏：导航图标按钮 + 搜索栏样式的地址栏 */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-1) var(--space-2);
+  min-height: 64px;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-1);
 }
+
 .navigation {
   display: flex;
+  flex: none;
 }
+
 .address {
   display: flex;
   align-items: center;
+  gap: var(--space-2);
   flex: 1;
-  min-width: 120px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
+  min-width: 160px;
+  height: 48px;
+  padding: 0 var(--space-1) 0 var(--space-4);
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  transition: box-shadow var(--md-sys-motion-spring-fast-effects);
 }
+
+.address:focus-within {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
+.addressIcon {
+  flex: none;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
 .address input {
+  flex: 1;
   width: 100%;
   min-width: 0;
-  padding: var(--space-2) var(--space-3);
+  height: 100%;
   border: 0;
-  border-radius: var(--radius-control);
+  outline: none;
   background: transparent;
-  font-size: var(--font-size-xl);
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
-.address button {
-  flex-shrink: 0;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-sm);
+
+.address input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
 }
+
 .external {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  color: var(--color-text-secondary);
-  border-radius: var(--radius-control);
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: border-radius var(--md-sys-motion-spring-fast-spatial);
 }
-.external:hover,
-.address button:hover {
-  background: var(--color-hover);
+
+@media (hover: hover) {
+  .external:hover {
+    background: var(--md-sys-state-hover);
+  }
 }
+
+.external:active {
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-state-pressed);
+}
+
+/* 说明条和错误条是贴在应用栏下的 M3 横幅 */
 .notice {
-  padding: var(--space-1-5) var(--space-3);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  margin: 0 var(--space-3) var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }
+
 .error {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-danger);
-  background: var(--color-danger-subtle);
-  font-size: var(--font-size-sm);
+  margin: 0 var(--space-3) var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+  overflow-wrap: anywhere;
 }
+
 .frame {
   flex: 1;
   width: 100%;
   min-height: 0;
   border: 0;
-  background: var(--color-surface);
+  background: var(--binos-document-background);
   color-scheme: normal;
 }
+
+/* 首页和无法嵌入时的空状态 */
 .home {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
   overflow: auto;
   padding: var(--space-8) var(--space-6);
   text-align: center;
-  color: var(--color-text-secondary);
+  color: var(--md-sys-color-on-surface-variant);
 }
+
+.homeIcon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: var(--space-2);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
 .home h1 {
-  color: var(--color-text);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-medium);
-  margin: var(--space-4) 0 var(--space-2);
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-headline-small);
+  letter-spacing: var(--md-sys-typescale-headline-small-tracking);
 }
+
 .home p {
-  max-width: 380px;
-  margin: var(--space-1) 0;
-  font-size: var(--font-size-sm);
+  max-width: 400px;
+  margin: 0;
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
-@container browser (width < 440px) {
+
+.home .homeHint {
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+@container browser (width < 480px) {
   .address {
     order: 1;
     flex-basis: 100%;
   }
+
   .external {
     margin-left: auto;
   }
 }
 
-.modeBar {
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1-5) var(--space-2);
-  border-bottom: 1px solid var(--color-border);
-}
-.modeBar button {
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-control);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-.modeBar button[aria-pressed="true"] {
-  color: var(--color-text);
-  background: var(--color-hover);
-}
-.modeContent, .remote {
+.modeContent,
+.remote {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
+
 .remoteViewport {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: var(--color-surface);
+  background: var(--md-sys-color-surface-container-lowest);
 }
+
 .remoteImage {
   display: block;
   width: 100%;
@@ -142,15 +255,22 @@
   user-select: none;
   object-fit: contain;
 }
+
 .remoteStatus {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--color-text-secondary);
-  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--md-sys-color-on-surface-variant);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 85%, transparent);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
   pointer-events: none;
 }
+
 .remoteInput {
   position: absolute;
   left: 0;
@@ -161,4 +281,12 @@
   border: 0;
   opacity: 0;
   resize: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modeBar button,
+  .external,
+  .address {
+    transition: none;
+  }
 }

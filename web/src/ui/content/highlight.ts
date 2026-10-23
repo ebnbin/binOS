@@ -4,13 +4,13 @@ import type { HighlighterCore, ThemedToken } from 'shiki/core'
 // 超过这么长的代码不高亮，直接显示
 const maxLength = 100_000
 
-// 高亮器和各语言的语法都在第一次用到时才加载
+// 高亮器和各语言的语法都在第一次用到时才加载。Catppuccin 的浅色和深色是偏紫的柔和配色，和 binOS 的 M3 配色协调
 let highlighter: Promise<HighlighterCore> | undefined
 
 function getHighlighter() {
   highlighter ??= Promise.all([import('shiki/core'), import('shiki/engine/javascript')]).then(([{ createHighlighterCore }, { createJavaScriptRegexEngine }]) =>
     createHighlighterCore({
-      themes: [import('shiki/themes/github-light.mjs'), import('shiki/themes/github-dark.mjs')],
+      themes: [import('shiki/themes/catppuccin-latte.mjs'), import('shiki/themes/catppuccin-mocha.mjs')],
       langs: [],
       engine: createJavaScriptRegexEngine(),
     }),
@@ -29,7 +29,7 @@ async function highlight(code: string, lang: string): Promise<ThemedToken[][] | 
   if (!instance.getLoadedLanguages().includes(lang)) {
     await instance.loadLanguage(loader)
   }
-  return instance.codeToTokens(code, { lang, themes: { light: 'github-light', dark: 'github-dark' }, defaultColor: false }).tokens
+  return instance.codeToTokens(code, { lang, themes: { light: 'catppuccin-latte', dark: 'catppuccin-mocha' }, defaultColor: false }).tokens
 }
 
 // 高亮好之前（以及代码变了、新的还没高亮好时）返回 undefined，先显示原样的代码

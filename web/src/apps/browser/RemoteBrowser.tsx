@@ -1,8 +1,10 @@
-import { ArrowLeft, ArrowRight, Keyboard, RotateCw, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import type { BrowserState, ClientMessage, ServerMessage } from '@binos/server/apps/browser/protocol'
+import { Button } from '../../ui/Button.tsx'
+import { ArrowBack, ArrowForward, Close, Keyboard, Language, Refresh } from '../../ui/icons.tsx'
 import { IconButton } from '../../ui/IconButton.tsx'
+import { CircularProgress } from '../../ui/Progress.tsx'
 import type { WindowContext } from '../types.ts'
 import { addressRoute, browserAddress, routeAddress } from './address.ts'
 import styles from './BrowserApp.module.css'
@@ -255,17 +257,18 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
   return <div className={styles.remote}>
     <div className={styles.toolbar}>
       <div className={styles.navigation}>
-        <IconButton icon={ArrowLeft} label="后退" disabled={closed || !state.canBack} onClick={() => send({ type: 'back' })} />
-        <IconButton icon={ArrowRight} label="前进" disabled={closed || !state.canForward} onClick={() => send({ type: 'forward' })} />
-        <IconButton icon={RotateCw} label="刷新网页" disabled={closed} onClick={() => send({ type: 'reload' })} />
+        <IconButton icon={ArrowBack} label="后退" disabled={closed || !state.canBack} onClick={() => send({ type: 'back' })} />
+        <IconButton icon={ArrowForward} label="前进" disabled={closed || !state.canForward} onClick={() => send({ type: 'forward' })} />
+        <IconButton icon={Refresh} label="刷新网页" disabled={closed} onClick={() => send({ type: 'reload' })} />
         <IconButton icon={Keyboard} label="输入文字" disabled={closed} onClick={() => input.current?.focus({ preventScroll: true })} />
-        <IconButton icon={X} label="关闭远程标签页" disabled={closed || !session.current} onClick={() => send({ type: 'close' })} />
+        <IconButton icon={Close} label="关闭远程标签页" disabled={closed || !session.current} onClick={() => send({ type: 'close' })} />
       </div>
       <form className={styles.address} onSubmit={(event) => { event.preventDefault(); visit() }}>
+        <Language size={20} className={styles.addressIcon} />
         <input aria-label="网址" value={address} onChange={(event) => setAddress(event.target.value)} onFocus={(event) => event.target.select()} placeholder="输入网址" inputMode="url" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
-        <button type="submit" disabled={closed || !!status && status !== '正在加载页面…'}>前往</button>
+        <IconButton icon={ArrowForward} label="前往" size="xs" type="submit" disabled={closed || !!status && status !== '正在加载页面…'} />
       </form>
-      <button type="button" onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</button>
+      <Button variant="tonal" size="xs" icon={closed ? Language : Refresh} onClick={() => { setClosed(false); setRetry((value) => value + 1) }}>{closed ? '打开远程标签页' : '重新连接'}</Button>
     </div>
     <div className={styles.notice}>使用 Mac 上个人 Chrome 的登录状态。当前支持页面画面与基础操作，暂不支持声音、文件传输、复制和新窗口。</div>
     {error && <p className={styles.error} role="alert">{error}</p>}
@@ -276,7 +279,10 @@ export function RemoteBrowser({ ctx, session }: { ctx: WindowContext; session: R
         onPointerUp={(event) => pointer(event, 'up')}
         onPointerCancel={(event) => pointer(event, 'up')}
         onContextMenu={(event) => event.preventDefault()} />
-      {status && <div className={styles.remoteStatus} role="status">{status}</div>}
+      {status && <div className={styles.remoteStatus} role="status">
+        {status.endsWith('…') && <CircularProgress size={40} label={status} />}
+        <span>{status}</span>
+      </div>}
       <textarea ref={input} className={styles.remoteInput} aria-label="远程网页输入" autoCapitalize="none" autoCorrect="off" spellCheck={false}
         onKeyDown={(event) => {
           if (event.nativeEvent.isComposing || event.key === 'Process' || event.key === 'Unidentified' || event.key === 'Dead') return

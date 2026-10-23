@@ -1,5 +1,6 @@
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { Button } from '../../ui/Button.tsx'
+import { Add, Edit } from '../../ui/icons.tsx'
 import { icons, iconNames } from '../external/icons.ts'
 import { saveExternalApps, useExternalApps } from '../external/registry.ts'
 import type { ExternalAppConfig } from '../external/registry.ts'
@@ -37,10 +38,9 @@ export function ExternalApps() {
     <section className={styles.section}>
       <header className={styles.header}>
         <h2>外部 app</h2>
-        <button type="button" className={styles.add} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
-          <Plus size={15} strokeWidth={2} />
+        <Button variant="tonal" size="xs" icon={Add} disabled={editing !== null} onClick={() => setEditing({ index: null, draft: newApp() })}>
           添加
-        </button>
+        </Button>
       </header>
       <p className={styles.hint}>独立部署的 web app，在窗口里打开。清单存在这台 Mac 的系统数据里，不在 binOS 的代码中；app 本身要允许被 binos.app 嵌入。</p>
       <ul className={styles.list}>
@@ -52,9 +52,14 @@ export function ExternalApps() {
           ) : (
             <li key={app.id}>
               <button type="button" className={styles.row} disabled={editing !== null} onClick={() => setEditing({ index, draft: app })}>
-                <AppIcon name={app.icon} />
-                <span className={styles.name}>{app.name}</span>
-                <span className={styles.url}>{app.url}</span>
+                <span className={styles.avatar}>
+                  <AppIcon name={app.icon} />
+                </span>
+                <span className={styles.text}>
+                  <span className={styles.name}>{app.name}</span>
+                  <span className={styles.url}>{app.url}</span>
+                </span>
+                <Edit size={24} className={styles.trailing} />
               </button>
             </li>
           ),
@@ -69,9 +74,9 @@ export function ExternalApps() {
   )
 }
 
-function AppIcon({ name }: { name: ExternalAppConfig['icon'] }) {
+function AppIcon({ name, filled }: { name: ExternalAppConfig['icon']; filled?: boolean }) {
   const Icon = icons[name]
-  return <Icon size={18} strokeWidth={1.75} />
+  return <Icon size={24} filled={filled} />
 }
 
 function Editor({
@@ -102,11 +107,11 @@ function Editor({
         }
       }}
     >
-      <label>
+      <label className={styles.textField}>
         <span>名称</span>
         <input value={draft.name} onChange={(event) => set({ name: event.target.value })} autoFocus />
       </label>
-      <label>
+      <label className={styles.textField}>
         <span>网址</span>
         <input
           type="url"
@@ -123,7 +128,7 @@ function Editor({
         <div className={styles.icons}>
           {iconNames.map((name) => (
             <button key={name} type="button" aria-label={name} aria-pressed={draft.icon === name} onClick={() => set({ icon: name })}>
-              <AppIcon name={name} />
+              <AppIcon name={name} filled={draft.icon === name} />
             </button>
           ))}
         </div>
@@ -131,21 +136,21 @@ function Editor({
       <div className={styles.actions}>
         {onRemove &&
           (confirming ? (
-            <button type="button" className={styles.danger} onClick={onRemove}>
+            <Button variant="filled" className={styles.danger} onClick={onRemove}>
               确认删除
-            </button>
+            </Button>
           ) : (
-            <button type="button" className={styles.secondary} onClick={() => setConfirming(true)}>
+            <Button variant="text" className={styles.remove} onClick={() => setConfirming(true)}>
               删除
-            </button>
+            </Button>
           ))}
         <span className={styles.spacer} />
-        <button type="button" className={styles.secondary} onClick={onCancel}>
+        <Button variant="text" onClick={onCancel}>
           取消
-        </button>
-        <button type="submit" className={styles.primary} disabled={!valid}>
+        </Button>
+        <Button type="submit" variant="filled" disabled={!valid}>
           保存
-        </button>
+        </Button>
       </div>
     </form>
   )

@@ -1,6 +1,5 @@
 .section {
-  padding: var(--space-2) var(--space-5) var(--space-6);
-  font-size: var(--font-size-md);
+  margin-bottom: var(--space-6);
 }
 
 .header {
@@ -8,131 +7,240 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  padding: 0 var(--space-2) 0 var(--space-4);
 }
 
 .header h2 {
   margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
 
 .hint {
-  margin: var(--space-1) 0 var(--space-2);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  margin: var(--space-1) 0 var(--space-3);
+  padding: 0 var(--space-4);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }
 
-.add {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.add:disabled,
-.row:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-@media (hover: hover) {
-  .add:hover:not(:disabled),
-  .row:hover:not(:disabled) {
-    background: var(--color-hover);
-  }
-}
-
+/* M3 Expressive 的分段列表：项之间留 2，组的外角 16、内角 4 */
 .list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .list li {
-  border-bottom: 1px solid var(--color-separator);
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: var(--md-sys-color-surface-container);
+}
+
+.list li:first-child {
+  border-top-left-radius: var(--md-sys-shape-corner-large);
+  border-top-right-radius: var(--md-sys-shape-corner-large);
+}
+
+.list li:last-child {
+  border-bottom-left-radius: var(--md-sys-shape-corner-large);
+  border-bottom-right-radius: var(--md-sys-shape-corner-large);
 }
 
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-4);
   width: 100%;
-  padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-item);
-  color: var(--color-text-secondary);
+  min-height: 72px;
+  padding: var(--space-2) var(--space-4);
   text-align: left;
 }
 
-.name {
+@media (hover: hover) {
+  .row:hover:not(:disabled) {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.row:active:not(:disabled) {
+  background: var(--md-sys-state-pressed);
+}
+
+.row:disabled {
+  color: var(--md-sys-state-disabled-content);
+}
+
+.row:focus-visible {
+  outline-offset: calc(-1 * var(--md-sys-state-focus-indicator-thickness));
+}
+
+.avatar {
+  display: grid;
   flex: none;
-  color: var(--color-text);
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.row:disabled .avatar {
+  background: var(--md-sys-state-disabled-container);
+  color: var(--md-sys-state-disabled-content);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
 
 .url {
-  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+.row:disabled .url {
+  color: inherit;
+}
+
+.trailing {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.row:disabled .trailing {
+  color: inherit;
 }
 
 .editor {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3) 0 var(--space-4);
+  gap: var(--space-5);
+  padding: var(--space-6) var(--space-4) var(--space-4);
 }
 
-.editor label,
+/* M3 的外框文本框，标签固定浮在边框上，底色和所在的列表项一致以截断边框 */
+.textField {
+  position: relative;
+  display: flex;
+}
+
+.textField span {
+  position: absolute;
+  top: 0;
+  left: var(--space-3);
+  padding: 0 var(--space-1);
+  transform: translateY(-50%);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+  pointer-events: none;
+}
+
+.textField:focus-within span {
+  color: var(--md-sys-color-primary);
+}
+
+.textField input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  outline: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface);
+  caret-color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  transition: box-shadow var(--md-sys-motion-spring-fast-effects);
+}
+
+.textField input::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+@media (hover: hover) {
+  .textField input:hover:not(:focus) {
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-on-surface);
+  }
+}
+
+.textField input:focus {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  gap: var(--space-2);
 }
 
-.editor input {
-  height: var(--size-control-lg);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  outline: none;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: var(--font-size-md);
+.field > span {
+  padding: 0 var(--space-1);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
 }
 
-.editor input:focus {
-  border-color: var(--color-text-tertiary);
-}
-
+/* 图标选择：一格格的开关图标按钮，选中时 secondary-container 填充、由圆变方 */
 .icons {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 40px);
   gap: var(--space-1);
 }
 
 .icons button {
   display: grid;
   place-items: center;
-  width: var(--size-control-lg);
-  height: var(--size-control-lg);
-  border-radius: var(--radius-control);
-  color: var(--color-text-secondary);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+  transition:
+    border-radius var(--md-sys-motion-spring-fast-spatial),
+    background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+@media (hover: hover) {
+  .icons button:hover {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+  }
+}
+
+.icons button:active {
+  border-radius: var(--md-sys-shape-corner-small);
+  background-image: linear-gradient(var(--md-sys-state-pressed) 0 0);
 }
 
 .icons button[aria-pressed='true'] {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background-color: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
@@ -141,33 +249,22 @@
   flex: 1;
 }
 
-.actions button {
-  padding: var(--space-1-5) var(--space-4);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
+.remove.remove[data-variant] {
+  --content: var(--md-sys-color-error);
 }
 
-.primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+.danger.danger[data-variant] {
+  --container: var(--md-sys-color-error);
+  --content: var(--md-sys-color-on-error);
 }
 
-.primary:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.secondary {
-  background: var(--color-fill);
-}
-
-.danger {
-  background: var(--color-danger-subtle);
-  color: var(--color-danger);
-}
-
-/* 触屏设备上输入框字号小于 16px 时 iOS 会自动放大页面 */
 @media (pointer: coarse) {
-  .editor input {
-    font-size: var(--font-size-body);
+  .icons {
+    grid-template-columns: repeat(auto-fill, 48px);
+  }
+
+  .icons button {
+    width: 48px;
+    height: 48px;
   }
 }

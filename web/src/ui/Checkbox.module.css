@@ -1,30 +1,64 @@
+/* M3 复选框：18 的方框、2 圆角、2 粗的边，外面是 40 的圆形状态层 */
 .label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1);
   cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
 }
 
 .label .control {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex: none;
-  width: 17px;
-  height: 17px;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xs);
-  background: var(--color-surface);
+  width: 40px;
+  height: 40px;
+  margin: calc(-1 * var(--space-2)) 0 calc(-1 * var(--space-2)) calc(-1 * var(--space-3));
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.label .control::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-radius: calc(var(--md-sys-shape-corner-extra-small) / 2);
+  transition: background-color var(--md-sys-motion-spring-fast-effects), border-color var(--md-sys-motion-spring-fast-effects);
 }
 
 .label .control[data-state='checked'] {
-  border-color: var(--color-primary);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  color: var(--md-sys-color-primary);
+}
+
+.label .control[data-state='checked']::before {
+  border-color: var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary);
+}
+
+@media (hover: hover) {
+  .label:hover .control {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.label .control:active {
+  background: var(--md-sys-state-pressed);
 }
 
 .indicator {
+  position: relative;
   display: flex;
+  color: var(--md-sys-color-on-primary);
+  animation: check var(--md-sys-motion-spring-fast-spatial);
+}
+
+@keyframes check {
+  from {
+    transform: scale(0.4);
+  }
 }

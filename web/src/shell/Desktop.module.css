@@ -1,12 +1,13 @@
+/* 桌面：M3 的动态色壁纸，主色和第三色的容器色晕开在 surface 上 */
 .desktop {
   position: absolute;
   inset: 0;
   overflow: hidden auto;
   overscroll-behavior: contain;
   background:
-    radial-gradient(ellipse at 20% 0%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 55%),
-    radial-gradient(ellipse at 85% 100%, color-mix(in srgb, var(--color-primary) 8%, transparent), transparent 60%),
-    var(--color-bg-subtle);
+    radial-gradient(ellipse at 10% 0%, var(--md-sys-color-primary-container), transparent 60%),
+    radial-gradient(ellipse at 100% 100%, var(--md-sys-color-tertiary-container), transparent 55%),
+    var(--md-sys-color-surface-container-low);
 }
 
 .columns {
@@ -25,65 +26,79 @@
   padding: var(--margin);
 }
 
+/* app 图标是 Android 的主题图标：圆形的 primary-container，图标用 on-primary-container */
 .icon {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border-radius: var(--md-sys-shape-corner-large);
 }
 
 .glyph {
+  position: relative;
   display: grid;
   place-items: center;
   width: 80%;
   aspect-ratio: 1;
-  border-radius: 24%;
-  background: var(--color-surface);
-  color: var(--color-text);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--duration-fast) var(--ease-standard);
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  transition: border-radius var(--md-sys-motion-spring-default-spatial), transform var(--md-sys-motion-spring-default-spatial);
 }
 
 .glyph svg {
-  width: 45%;
-  height: 45%;
+  width: 50%;
+  height: 50%;
 }
 
 @media (hover: hover) {
   .icon:hover .glyph {
-    transform: translateY(calc(-1 * var(--space-0-5)));
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
   }
+}
+
+/* 按下时由圆变成圆角方形，M3 Expressive 的形状反馈 */
+.icon:active .glyph {
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  transform: scale(0.94);
 }
 
 .label {
   position: absolute;
-  top: calc(80% + var(--space-1));
+  top: calc(80% + var(--space-1-5));
   max-width: calc(100% + var(--gap));
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-tight);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-medium);
+  letter-spacing: var(--md-sys-typescale-label-medium-tracking);
 }
 
+/* 小组件是 M3 的卡片：大圆角、没有阴影，靠色调和壁纸区分 */
 .widget {
   min-width: 0;
   min-height: 0;
   padding: var(--space-4);
   overflow: hidden;
-  border-radius: calc(var(--cell) * 0.3);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator), var(--shadow-md);
-  font-size: var(--font-size-md);
+  border-radius: var(--md-sys-shape-corner-extra-large);
+  background: var(--binos-widget-container);
+  color: var(--md-sys-color-on-surface);
   cursor: default;
 }
 
 .failed {
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .widget[data-opens-window='true'] {
   cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph {
+    transition: none;
+  }
 }

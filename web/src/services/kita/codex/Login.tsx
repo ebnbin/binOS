@@ -1,6 +1,8 @@
-import { ExternalLink } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Spinner } from '../../../ui/Spinner.tsx'
+import { Alert } from '../../../ui/Alert.tsx'
+import { Button } from '../../../ui/Button.tsx'
+import { CheckCircle, OpenInNew } from '../../../ui/icons.tsx'
+import { CircularProgress } from '../../../ui/Progress.tsx'
 import { cancelCodexLogin, codexLoginStatus, startCodexLogin } from './api.ts'
 import styles from '../Login.module.css'
 
@@ -58,52 +60,55 @@ export function CodexLogin({ onClose }: { onClose: () => void }) {
 
   return (
     <div className={styles.flow}>
-      <div className={styles.title}>重新登录 Codex</div>
+      <h3 className={styles.title}>重新登录 Codex</h3>
       {step.name === 'starting' && (
         <p className={styles.waiting}>
-          <Spinner /> 正在拿登录码
+          <CircularProgress /> 正在拿登录码
         </p>
       )}
       {step.name === 'waiting' && (
         <div className={styles.steps}>
           <a className={styles.link} href={step.url} target="_blank" rel="noreferrer">
             1. 打开登录页面，用 ChatGPT 账号登录
-            <ExternalLink size={14} strokeWidth={1.75} />
+            <OpenInNew size={18} />
           </a>
           <div className={styles.codeLabel}>
             2. 输入这个一次性的码（15 分钟内有效）
             <span className={styles.deviceCode}>{step.code}</span>
           </div>
           <p className={styles.waiting}>
-            <Spinner /> 等你授权，授权后这里会自动更新
+            <CircularProgress /> 等你授权，授权后这里会自动更新
           </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button variant="text" onClick={onClose}>
               取消
-            </button>
+            </Button>
           </div>
         </div>
       )}
       {step.name === 'done' && (
         <>
-          <p className={styles.done}>登录好了，下一轮回答起用新的登录</p>
+          <p className={styles.done}>
+            <CheckCircle size={20} filled />
+            登录好了，下一轮回答起用新的登录
+          </p>
           <div className={styles.actions}>
-            <button type="button" className={styles.primary} onClick={onClose}>
+            <Button variant="filled" onClick={onClose}>
               好
-            </button>
+            </Button>
           </div>
         </>
       )}
       {step.name === 'failed' && (
         <>
-          <p className={styles.error}>{step.error}</p>
+          <Alert>{step.error}</Alert>
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <Button variant="text" onClick={onClose}>
               关上
-            </button>
-            <button type="button" className={styles.primary} onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
+            </Button>
+            <Button variant="filled" onClick={() => (setStep({ name: 'starting' }), setAttempt(attempt + 1))}>
               重新开始
-            </button>
+            </Button>
           </div>
         </>
       )}

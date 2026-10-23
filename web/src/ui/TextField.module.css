@@ -1,0 +1,95 @@
+/* M3 文本框。outlined：1 粗的 outline 边、4 圆角，聚焦时 2 粗的 primary 边；
+   filled：surface-container-highest 填充、上方 4 圆角、底部激活指示线。
+   标准高度 56，dense 是工具栏里 40 高的紧凑版本。输入文字用 body-large */
+.outlined,
+.filled {
+  min-width: 0;
+  height: 56px;
+  padding: 0 var(--space-4);
+  border: 0;
+  outline: none;
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  caret-color: var(--md-sys-color-primary);
+  transition: box-shadow var(--md-sys-motion-spring-fast-effects), background-color var(--md-sys-motion-spring-fast-effects);
+}
+
+.outlined::placeholder,
+.filled::placeholder {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.outlined {
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline);
+}
+
+@media (hover: hover) {
+  .outlined:hover:not(:focus, :disabled, [readonly]) {
+    box-shadow: inset 0 0 0 1px var(--md-sys-color-on-surface);
+  }
+}
+
+.outlined:focus {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-primary);
+}
+
+.outlined[aria-invalid='true'] {
+  box-shadow: inset 0 0 0 2px var(--md-sys-color-error);
+  caret-color: var(--md-sys-color-error);
+}
+
+.filled {
+  border-radius: var(--md-sys-shape-corner-extra-small) var(--md-sys-shape-corner-extra-small) 0 0;
+  background: var(--md-sys-color-surface-container-highest);
+  box-shadow: inset 0 -1px 0 var(--md-sys-color-on-surface-variant);
+}
+
+@media (hover: hover) {
+  .filled:hover:not(:focus, :disabled) {
+    background-image: linear-gradient(var(--md-sys-state-hover) 0 0);
+    box-shadow: inset 0 -1px 0 var(--md-sys-color-on-surface);
+  }
+}
+
+.filled:focus {
+  box-shadow: inset 0 -2px 0 var(--md-sys-color-primary);
+}
+
+.filled[aria-invalid='true'] {
+  box-shadow: inset 0 -2px 0 var(--md-sys-color-error);
+}
+
+.outlined:disabled,
+.filled:disabled {
+  color: var(--md-sys-state-disabled-content);
+  box-shadow: inset 0 0 0 1px var(--md-sys-state-disabled-container);
+}
+
+.dense {
+  height: 40px;
+  padding: 0 var(--space-3);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
+}
+
+/* 触屏上输入框字号小于 16px 时 iOS 会放大页面 */
+@media (pointer: coarse) {
+  .dense {
+    font: var(--md-sys-typescale-body-large);
+  }
+}
+
+/* 文本框下方的辅助文字 */
+.supporting {
+  padding: var(--space-1) var(--space-4) 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
+}
+
+.supporting[role='alert'] {
+  color: var(--md-sys-color-error);
+}

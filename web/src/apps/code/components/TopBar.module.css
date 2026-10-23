@@ -1,15 +1,17 @@
 .bar {
   display: flex;
-  align-items: center;
-  gap: var(--space-2);
   flex: none;
-  height: 56px;
-  padding: 0 var(--space-5);
+  align-items: center;
+  gap: var(--space-1);
+  height: 64px;
+  padding: 0 var(--space-4) 0 var(--space-6);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
 }
 
 .heading {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-2);
   flex: 1;
   min-width: 0;
@@ -19,8 +21,8 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font: var(--md-sys-typescale-title-large);
+  letter-spacing: var(--md-sys-typescale-title-large-tracking);
 }
 
 .titleWrap {
@@ -29,47 +31,49 @@
   min-width: 0;
 }
 
+/* 标题本身是打开会话菜单的按钮：悬停才显出全圆角的状态层 */
 .titleButton {
   display: flex;
   align-items: center;
   gap: var(--space-1);
   min-width: 0;
-  margin: 0 calc(-1 * var(--space-2));
-  padding: var(--space-1-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  cursor: pointer;
-  transition: background-color var(--duration-fast);
+  height: 48px;
+  margin-left: calc(-1 * var(--space-3));
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-full);
+  color: var(--md-sys-color-on-surface);
+  transition: border-radius var(--md-sys-motion-spring-fast-spatial);
 }
 
 @media (hover: hover) {
   .titleButton:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
 }
 
+.titleButton:active,
 .titleButton[aria-expanded='true'] {
-  background: var(--color-hover);
+  background: var(--md-sys-state-pressed);
 }
 
 .titleChevron {
-  flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: transform var(--md-sys-motion-spring-fast-spatial);
+}
+
+.titleButton[aria-expanded='true'] .titleChevron {
+  transform: rotate(180deg);
 }
 
 .rename {
-  align-self: center;
   max-width: 420px;
-  min-height: var(--size-control-md);
 }
 
 .id {
   flex: none;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-title-medium);
+  letter-spacing: var(--md-sys-typescale-title-medium-tracking);
   font-variant-numeric: tabular-nums;
 }
 
@@ -77,55 +81,114 @@
   position: relative;
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   margin-left: auto;
 }
 
+/* PR 是 M3 的 assist chip：32 高、小圆角、outline-variant 描边；有预览时和编号连成一块 */
+.pr,
+.finished {
+  display: inline-flex;
+  align-items: stretch;
+  height: 32px;
+  overflow: hidden;
+  border-radius: var(--md-sys-shape-corner-small);
+  box-shadow: inset 0 0 0 1px var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-label-large);
+  letter-spacing: var(--md-sys-typescale-label-large-tracking);
+  font-variant-numeric: tabular-nums;
+}
+
+.pr a,
 .finished {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  border: 0;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font: inherit;
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-2);
+  color: inherit;
+  text-decoration: none;
 }
 
+.pr .preview {
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.pr svg,
+.finished svg {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.pr[data-state='open'] a:first-child svg {
+  color: var(--md-sys-color-success);
+}
+
+.pr[data-state='merged'] a:first-child svg {
+  color: var(--md-sys-color-tertiary);
+}
+
+@media (hover: hover) {
+  .pr a:hover,
+  .finished:hover {
+    background: var(--md-sys-state-hover);
+  }
+}
+
+.pr a:active,
+.finished:active,
+.finished[aria-expanded='true'] {
+  background: var(--md-sys-state-pressed);
+}
+
+/* 结束了的 PR 的列表，样式按 M3 Expressive 菜单 */
 .prMenu {
   display: flex;
   flex-direction: column;
+  gap: var(--space-0-5);
   width: 360px;
   max-height: min(320px, var(--radix-popover-content-available-height));
   overflow-y: auto;
   padding: var(--space-1);
-  box-shadow: var(--shadow-md);
+  background: var(--md-sys-color-surface-container-low);
 }
 
 .prMenu a {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-item);
-  color: var(--color-text);
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-extra-small);
+  color: var(--md-sys-color-on-surface);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+}
+
+.prMenu a:first-child {
+  border-top-left-radius: var(--md-sys-shape-corner-medium);
+  border-top-right-radius: var(--md-sys-shape-corner-medium);
+}
+
+.prMenu a:last-child {
+  border-bottom-left-radius: var(--md-sys-shape-corner-medium);
+  border-bottom-right-radius: var(--md-sys-shape-corner-medium);
 }
 
 @media (hover: hover) {
   .prMenu a:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
+}
+
+.prMenu a:active {
+  background: var(--md-sys-state-pressed);
 }
 
 .prNumber {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
   font-variant-numeric: tabular-nums;
 }
 
@@ -139,47 +202,17 @@
 
 .prState {
   flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-label-small);
+  letter-spacing: var(--md-sys-typescale-label-small-tracking);
 }
 
 .prMenu a[data-state='open'] .prState {
-  color: var(--color-success);
+  color: var(--md-sys-color-success);
 }
 
 .prMenu a[data-state='merged'] .prState {
-  color: var(--color-done);
-}
-
-.pr {
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  font-size: var(--font-size-2xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.pr a {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-0-5) var(--space-2);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-}
-
-.pr[data-state='open'] a:first-child {
-  color: var(--color-success);
-}
-
-.pr[data-state='merged'] a:first-child {
-  color: var(--color-done);
-}
-
-.pr .preview {
-  border-left: 1px solid var(--color-separator);
+  color: var(--md-sys-color-tertiary);
 }
 
 /* 提高优先级，盖过 IconButton 自身的 display */
@@ -187,28 +220,60 @@
   display: none;
 }
 
+/* 一列时按 M3 小型顶部应用栏的紧凑布局：两边各一个图标按钮，边距 4；放不下的 PR 换到标题下面一行 */
 @container agent (width < 960px) {
   .bar {
-    height: 52px;
-    padding: 0 var(--space-2);
-    border-bottom: 1px solid var(--color-separator);
-  }
-
-  .bar:has(.heading:last-child)::after {
-    content: '';
-    width: var(--size-control-lg);
-    flex: none;
+    align-items: flex-start;
+    height: auto;
+    min-height: 64px;
+    padding: var(--space-3) var(--space-1);
   }
 
   .heading {
-    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    min-height: 40px;
+    padding: 0 var(--space-1);
+  }
+
+  .prs {
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+
+  .title {
+    font: var(--md-sys-typescale-title-medium);
+    letter-spacing: var(--md-sys-typescale-title-medium-tracking);
+  }
+
+  .titleWrap,
+  .rename {
+    flex: 0 1 auto;
+  }
+
+  .titleButton {
+    height: 40px;
+    margin-left: calc(-1 * var(--space-2));
+    padding-left: var(--space-2);
+  }
+
+  .id {
+    font: var(--md-sys-typescale-body-medium);
+    letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   }
 
   .bar .singleColumnOnly {
-    display: grid;
+    display: inline-grid;
   }
 
   .bar span.singleColumnOnly {
     display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .titleChevron {
+    transition: none;
   }
 }

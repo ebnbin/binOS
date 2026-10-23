@@ -1,77 +1,162 @@
-/* binOS 的设计 token。界面上的颜色、字号、间距、圆角、阴影和动效都只取这里的变量，
-   换一套设计只需要改写这个文件的取值；组件之间的差异用语义 token（如 --radius-control）表达，
-   不直接引用基础阶梯。 */
+/* binOS 的设计 token，按 Material Design 3 的体系分层：
+   --md-ref-* 是字体等基础取值，--md-sys-* 是 M3 的系统 token（颜色角色、字阶、形状、高度、状态层、动效），
+   最后是 binOS 自己的少量语义 token。样式只引用这里的变量，组件之间的差异用 M3 的角色表达。 */
 :root {
   color-scheme: light;
 
-  /* 颜色：页面底色 → 表面 → 填充，文字分三级，边框分两级 */
-  --color-bg: #f8f7f4;
-  --color-bg-subtle: #f1efeb;
-  --color-surface: #ffffff;
-  --color-surface-sunken: #f6f5f2;
-  --color-fill: #edebe6;
-  --color-hover: rgb(36 34 30 / 5%);
-  --color-text: #24221e;
-  --color-text-secondary: #5f5b54;
-  --color-text-tertiary: #959087;
-  --color-border: #e7e4de;
-  --color-separator: rgb(36 34 30 / 7%);
-  --color-primary: #24221e;
-  --color-on-primary: #ffffff;
-  --color-accent: #d4862b;
-  --color-danger: #c8442f;
-  --color-danger-subtle: #fbefec;
-  --color-success: #1a7f37;
-  --color-info: #276aca;
-  --color-done: #8250df;
-  --color-scrim: rgb(20 18 15 / 32%);
-  --color-focus: rgb(36 34 30 / 40%);
-  --color-shadow: rgb(36 34 30 / 10%);
-  /* 网页和文档预览的底色，和网页自己的默认一致，不跟随深浅色 */
-  --color-document: #ffffff;
+  /* 颜色角色：由 @material/material-color-utilities 以 TonalSpot 方案从源色生成，见 tokens.test.ts。
+     success / info / warning 是向源色协调过的自定义颜色，和 M3 的颜色角色一样分四个 */
+  --md-sys-color-primary: #65558f;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e9ddff;
+  --md-sys-color-on-primary-container: #4d3d75;
+  --md-sys-color-inverse-primary: #cfbdfe;
+  --md-sys-color-secondary: #625b71;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #e8def8;
+  --md-sys-color-on-secondary-container: #4a4458;
+  --md-sys-color-tertiary: #7e5260;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #ffd9e3;
+  --md-sys-color-on-tertiary-container: #633b48;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+  --md-sys-color-surface: #fdf7ff;
+  --md-sys-color-surface-dim: #ded8e0;
+  --md-sys-color-surface-bright: #fdf7ff;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f8f2fa;
+  --md-sys-color-surface-container: #f2ecf4;
+  --md-sys-color-surface-container-high: #ece6ee;
+  --md-sys-color-surface-container-highest: #e6e0e9;
+  --md-sys-color-on-surface: #1d1b20;
+  --md-sys-color-on-surface-variant: #49454e;
+  --md-sys-color-surface-variant: #e7e0eb;
+  --md-sys-color-inverse-surface: #322f35;
+  --md-sys-color-inverse-on-surface: #f5eff7;
+  --md-sys-color-outline: #7a757f;
+  --md-sys-color-outline-variant: #cac4cf;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  --md-sys-color-success: #006c49;
+  --md-sys-color-on-success: #ffffff;
+  --md-sys-color-success-container: #8af8c2;
+  --md-sys-color-on-success-container: #002113;
+  --md-sys-color-info: #3e50d0;
+  --md-sys-color-on-info: #ffffff;
+  --md-sys-color-info-container: #dfe0ff;
+  --md-sys-color-on-info-container: #000b62;
+  --md-sys-color-warning: #a73a06;
+  --md-sys-color-on-warning: #ffffff;
+  --md-sys-color-warning-container: #ffdbcf;
+  --md-sys-color-on-warning-container: #380d00;
 
-  /* 外框：屏幕四周和任务栏，不跟随深浅色 */
-  --color-chrome: #000000;
-  --color-on-chrome: #ffffff;
-  --color-on-chrome-secondary: rgb(255 255 255 / 65%);
-  --color-chrome-hover: rgb(255 255 255 / 8%);
-  --color-chrome-selected: rgb(255 255 255 / 16%);
-  --color-chrome-border: rgb(255 255 255 / 20%);
+  /* 字体：M3 的基准字体是 Roboto，中文落到系统字体 */
+  --md-ref-typeface-brand: 'Roboto Variable', Roboto, 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --md-ref-typeface-plain: var(--md-ref-typeface-brand);
+  --md-ref-typeface-mono: 'Roboto Mono Variable', 'Roboto Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+  --md-ref-typeface-weight-regular: 400;
+  --md-ref-typeface-weight-medium: 500;
+  --md-ref-typeface-weight-bold: 700;
 
-  /* 终端始终是深色 */
-  --color-terminal-bg: #161513;
-  --color-terminal-text: #ecebe7;
-  --color-terminal-selection: #55514a;
+  /* 字阶：每个角色是 font 简写加字距，用法是 font: var(--md-sys-typescale-body-medium); letter-spacing: var(--md-sys-typescale-body-medium-tracking) */
+  --md-sys-typescale-display-large: 400 57px/64px var(--md-ref-typeface-brand);
+  --md-sys-typescale-display-large-tracking: -0.2px;
+  --md-sys-typescale-display-medium: 400 45px/52px var(--md-ref-typeface-brand);
+  --md-sys-typescale-display-medium-tracking: 0;
+  --md-sys-typescale-display-small: 400 36px/44px var(--md-ref-typeface-brand);
+  --md-sys-typescale-display-small-tracking: 0;
+  --md-sys-typescale-headline-large: 400 32px/40px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-large-tracking: 0;
+  --md-sys-typescale-headline-medium: 400 28px/36px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-medium-tracking: 0;
+  --md-sys-typescale-headline-small: 400 24px/32px var(--md-ref-typeface-brand);
+  --md-sys-typescale-headline-small-tracking: 0;
+  --md-sys-typescale-title-large: 400 22px/28px var(--md-ref-typeface-brand);
+  --md-sys-typescale-title-large-tracking: 0;
+  --md-sys-typescale-title-medium: 500 16px/24px var(--md-ref-typeface-plain);
+  --md-sys-typescale-title-medium-tracking: 0.2px;
+  --md-sys-typescale-title-small: 500 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-title-small-tracking: 0.1px;
+  --md-sys-typescale-body-large: 400 16px/24px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-large-tracking: 0.5px;
+  --md-sys-typescale-body-medium: 400 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-medium-tracking: 0.2px;
+  --md-sys-typescale-body-small: 400 12px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-body-small-tracking: 0.4px;
+  --md-sys-typescale-label-large: 500 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-large-tracking: 0.1px;
+  --md-sys-typescale-label-medium: 500 12px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-medium-tracking: 0.5px;
+  --md-sys-typescale-label-small: 500 11px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-label-small-tracking: 0.5px;
+  /* M3 Expressive 的强调字阶：字号行高不变，加粗一级 */
+  --md-sys-typescale-emphasized-display-large: 500 57px/64px var(--md-ref-typeface-brand);
+  --md-sys-typescale-emphasized-headline-medium: 500 28px/36px var(--md-ref-typeface-brand);
+  --md-sys-typescale-emphasized-headline-small: 500 24px/32px var(--md-ref-typeface-brand);
+  --md-sys-typescale-emphasized-title-large: 500 22px/28px var(--md-ref-typeface-brand);
+  --md-sys-typescale-emphasized-title-medium: 700 16px/24px var(--md-ref-typeface-plain);
+  --md-sys-typescale-emphasized-title-small: 700 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-emphasized-body-medium: 500 14px/20px var(--md-ref-typeface-plain);
+  --md-sys-typescale-emphasized-label-medium: 700 12px/16px var(--md-ref-typeface-plain);
+  --md-sys-typescale-emphasized-label-large: 700 14px/20px var(--md-ref-typeface-plain);
+  /* 代码：等宽字体，字号跟随 body */
+  --md-sys-typescale-code-medium: 400 13px/20px var(--md-ref-typeface-mono);
+  --md-sys-typescale-code-small: 400 12px/18px var(--md-ref-typeface-mono);
 
-  /* 字体 */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif;
-  --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+  /* 形状：M3 的圆角阶梯 */
+  --md-sys-shape-corner-none: 0;
+  --md-sys-shape-corner-extra-small: 4px;
+  --md-sys-shape-corner-small: 8px;
+  --md-sys-shape-corner-medium: 12px;
+  --md-sys-shape-corner-large: 16px;
+  --md-sys-shape-corner-large-increased: 20px;
+  --md-sys-shape-corner-extra-large: 28px;
+  --md-sys-shape-corner-extra-large-increased: 32px;
+  --md-sys-shape-corner-extra-extra-large: 48px;
+  --md-sys-shape-corner-full: 9999px;
 
-  --font-size-2xs: 11px;
-  --font-size-xs: 12px;
-  --font-size-sm: 13px;
-  --font-size-md: 14px;
-  --font-size-lg: 15px;
-  --font-size-xl: 17px;
-  --font-size-2xl: 22px;
-  --font-size-3xl: 28px;
-  --font-size-4xl: 34px;
-  --font-size-body: var(--font-size-lg);
+  /* 高度：M3 的 0～5 级阴影，表面的层次主要靠 surface-container 的色调区分 */
+  --md-sys-elevation-level0: none;
+  --md-sys-elevation-level1: 0 1px 2px 0 rgb(0 0 0 / 30%), 0 1px 3px 1px rgb(0 0 0 / 15%);
+  --md-sys-elevation-level2: 0 1px 2px 0 rgb(0 0 0 / 30%), 0 2px 6px 2px rgb(0 0 0 / 15%);
+  --md-sys-elevation-level3: 0 1px 3px 0 rgb(0 0 0 / 30%), 0 4px 8px 3px rgb(0 0 0 / 15%);
+  --md-sys-elevation-level4: 0 2px 3px 0 rgb(0 0 0 / 30%), 0 6px 10px 4px rgb(0 0 0 / 15%);
+  --md-sys-elevation-level5: 0 4px 4px 0 rgb(0 0 0 / 30%), 0 8px 12px 6px rgb(0 0 0 / 15%);
 
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+  /* 状态层：内容色按透明度叠在容器上。用法是 background-image: linear-gradient(var(--md-sys-state-hover) 0 0)，
+     容器透明时直接作背景色。currentColor 在使用处求值，所以叠的是元素自己的内容色 */
+  --md-sys-state-hover: color-mix(in srgb, currentColor 8%, transparent);
+  --md-sys-state-focus: color-mix(in srgb, currentColor 10%, transparent);
+  --md-sys-state-pressed: color-mix(in srgb, currentColor 10%, transparent);
+  --md-sys-state-dragged: color-mix(in srgb, currentColor 16%, transparent);
+  /* 禁用：容器是 12% 的 on-surface，内容是 38% 的 on-surface */
+  --md-sys-state-disabled-container: color-mix(in srgb, var(--md-sys-color-on-surface) 12%, transparent);
+  --md-sys-state-disabled-content: color-mix(in srgb, var(--md-sys-color-on-surface) 38%, transparent);
+  --md-sys-state-focus-indicator-thickness: 3px;
+  --md-sys-state-focus-indicator-outer-offset: 2px;
 
-  --line-height-tight: 1.25;
-  --line-height-snug: 1.4;
-  --line-height-normal: 1.6;
-  --line-height-relaxed: 1.8;
+  /* 动效：M3 Expressive 的弹簧。spatial 用于位置和尺寸，会稍微过冲；effects 用于颜色和透明度，不过冲。
+     CSS 没有弹簧，按阻尼比和刚度算出 linear() 曲线和停稳的时长 */
+  --md-sys-motion-spring-fast-spatial: 350ms linear(0, 0.072, 0.238, 0.44, 0.638, 0.806, 0.934, 1.021, 1.071, 1.092, 1.093, 1.081, 1.063, 1.044, 1.026, 1.012, 1.002, 0.995, 0.992, 0.991, 0.992, 0.993, 0.995, 0.997, 1);
+  --md-sys-motion-spring-default-spatial: 420ms linear(0, 0.048, 0.161, 0.301, 0.444, 0.576, 0.69, 0.784, 0.858, 0.913, 0.953, 0.98, 0.997, 1.008, 1.013, 1.015, 1.015, 1.013, 1.011, 1.009, 1.007, 1.005, 1.004, 1.003, 1);
+  --md-sys-motion-spring-slow-spatial: 570ms linear(0, 0.047, 0.157, 0.294, 0.435, 0.567, 0.681, 0.775, 0.85, 0.906, 0.947, 0.976, 0.995, 1.006, 1.012, 1.015, 1.015, 1.014, 1.012, 1.01, 1.008, 1.006, 1.004, 1.003, 1);
+  --md-sys-motion-spring-fast-effects: 140ms linear(0, 0.051, 0.162, 0.293, 0.421, 0.537, 0.635, 0.716, 0.782, 0.833, 0.874, 0.905, 0.929, 0.947, 0.961, 0.971, 0.979, 0.984, 0.988, 0.992, 0.994, 0.996, 0.997, 0.998, 1);
+  --md-sys-motion-spring-default-effects: 220ms linear(0, 0.053, 0.167, 0.301, 0.431, 0.547, 0.645, 0.726, 0.791, 0.841, 0.881, 0.911, 0.934, 0.951, 0.964, 0.973, 0.981, 0.986, 0.99, 0.992, 0.995, 0.996, 0.997, 0.998, 1);
+  --md-sys-motion-spring-slow-effects: 300ms linear(0, 0.05, 0.158, 0.287, 0.413, 0.528, 0.626, 0.708, 0.774, 0.826, 0.868, 0.9, 0.925, 0.944, 0.958, 0.969, 0.977, 0.983, 0.987, 0.991, 0.993, 0.995, 0.996, 0.997, 1);
+  /* 进出场仍用 M3 的缓动和时长：进场减速，离场加速 */
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short4: 200ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  --md-sys-motion-duration-long2: 500ms;
 
-  --letter-spacing-tight: -0.02em;
-  --letter-spacing-wide: 0.06em;
-
-  /* 间距：4px 网格，后缀是 4px 的倍数 */
+  /* 间距：M3 的 4dp 网格，后缀是 4 的倍数 */
   --space-0-5: 2px;
   --space-1: 4px;
   --space-1-5: 6px;
@@ -85,77 +170,83 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* 控件高度，按钮、输入框、列表项都从这里取 */
-  --size-control-xs: 24px;
-  --size-control-sm: 28px;
-  --size-control-md: 32px;
-  --size-control-lg: 36px;
-  --size-control-xl: 40px;
-  --size-touch-target: 44px;
+  /* 尺寸：图标 24dp，触控目标至少 48dp */
+  --md-sys-size-icon: 24px;
+  --md-sys-size-icon-small: 20px;
+  --md-sys-size-icon-large: 32px;
+  --md-sys-size-target: 48px;
 
-  /* 圆角 */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 999px;
-  --radius-item: var(--radius-sm);
-  --radius-control: var(--radius-md);
-  --radius-card: var(--radius-lg);
-  --radius-overlay: var(--radius-lg);
-  --radius-window: 12px;
-
-  /* 阴影：sm 贴着表面，md 浮起的菜单和卡片，lg 悬浮的窗口 */
-  --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(36 34 30 / 4%);
-  --shadow-md: 0 1px 2px rgb(36 34 30 / 4%), 0 6px 24px -6px var(--color-shadow);
-  --shadow-lg: 0 2px 6px rgb(36 34 30 / 6%), 0 12px 40px -8px rgb(36 34 30 / 20%);
-
-  /* 动效 */
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
-
-  --opacity-disabled: 0.4;
-  --z-overlay: 1000;
+  /* binOS 的语义 token */
+  /* 窗口（M3 的 pane）：圆角、窗口之间和四周的留白 */
+  --binos-window-shape: var(--md-sys-shape-corner-large);
+  --binos-window-spacer: var(--space-2);
+  /* 桌面小组件的卡片色：在壁纸上要比底色亮一级，暗色下 lowest 反而更暗 */
+  --binos-widget-container: var(--md-sys-color-surface-container-lowest);
+  /* 网页和文档预览的底色，和网页自己的默认一致，不跟随深浅色 */
+  --binos-document-background: #ffffff;
+  /* 终端始终用深色方案 */
+  --binos-terminal-background: #141218;
+  --binos-terminal-on-background: #e6e0e9;
+  --binos-terminal-selection: #4f378b;
+  --binos-z-overlay: 1000;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --color-bg: #1b1a18;
-    --color-bg-subtle: #161513;
-    --color-surface: #23221f;
-    --color-surface-sunken: #1f1e1b;
-    --color-fill: #2c2a27;
-    --color-hover: rgb(255 255 255 / 5%);
-    --color-text: #ecebe7;
-    --color-text-secondary: #b6b2aa;
-    --color-text-tertiary: #7f7a71;
-    --color-border: #33312d;
-    --color-separator: rgb(255 255 255 / 6%);
-    --color-primary: #ecebe7;
-    --color-on-primary: #1b1a18;
-    --color-accent: #e8a24f;
-    --color-danger: #f0806b;
-    --color-danger-subtle: #33201b;
-    --color-success: #4fb76a;
-    --color-info: #5b9cf0;
-    --color-done: #a57ff0;
-    --color-scrim: rgb(0 0 0 / 50%);
-    --color-focus: rgb(236 235 231 / 40%);
-    --color-shadow: rgb(0 0 0 / 50%);
-
-    --shadow-sm: 0 0 0 1px var(--color-separator), 0 1px 2px rgb(0 0 0 / 30%);
-    --shadow-md: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 28px -8px var(--color-shadow);
-    --shadow-lg: 0 2px 6px rgb(0 0 0 / 30%), 0 12px 40px -8px rgb(0 0 0 / 60%);
+    --binos-widget-container: var(--md-sys-color-surface-container-high);
+    --md-sys-color-primary: #cfbdfe;
+    --md-sys-color-on-primary: #36275d;
+    --md-sys-color-primary-container: #4d3d75;
+    --md-sys-color-on-primary-container: #e9ddff;
+    --md-sys-color-inverse-primary: #65558f;
+    --md-sys-color-secondary: #cbc2db;
+    --md-sys-color-on-secondary: #332d41;
+    --md-sys-color-secondary-container: #4a4458;
+    --md-sys-color-on-secondary-container: #e8def8;
+    --md-sys-color-tertiary: #efb8c8;
+    --md-sys-color-on-tertiary: #4a2532;
+    --md-sys-color-tertiary-container: #633b48;
+    --md-sys-color-on-tertiary-container: #ffd9e3;
+    --md-sys-color-error: #ffb4ab;
+    --md-sys-color-on-error: #690005;
+    --md-sys-color-error-container: #93000a;
+    --md-sys-color-on-error-container: #ffdad6;
+    --md-sys-color-surface: #141218;
+    --md-sys-color-surface-dim: #141218;
+    --md-sys-color-surface-bright: #3b383e;
+    --md-sys-color-surface-container-lowest: #0f0d13;
+    --md-sys-color-surface-container-low: #1d1b20;
+    --md-sys-color-surface-container: #211f24;
+    --md-sys-color-surface-container-high: #2b292f;
+    --md-sys-color-surface-container-highest: #36343a;
+    --md-sys-color-on-surface: #e6e0e9;
+    --md-sys-color-on-surface-variant: #cac4cf;
+    --md-sys-color-surface-variant: #49454e;
+    --md-sys-color-inverse-surface: #e6e0e9;
+    --md-sys-color-inverse-on-surface: #322f35;
+    --md-sys-color-outline: #948f99;
+    --md-sys-color-outline-variant: #49454e;
+    --md-sys-color-shadow: #000000;
+    --md-sys-color-scrim: #000000;
+    --md-sys-color-success: #6ddba7;
+    --md-sys-color-on-success: #003824;
+    --md-sys-color-success-container: #005236;
+    --md-sys-color-on-success-container: #8af8c2;
+    --md-sys-color-info: #bcc2ff;
+    --md-sys-color-on-info: #00189a;
+    --md-sys-color-info-container: #2234b7;
+    --md-sys-color-on-info-container: #dfe0ff;
+    --md-sys-color-warning: #ffb59b;
+    --md-sys-color-on-warning: #5b1b00;
+    --md-sys-color-warning-container: #812900;
+    --md-sys-color-on-warning-container: #ffdbcf;
   }
 }
 
-/* 触屏上屏幕圆角跟随设备；输入框字号小于 16px 时 iOS 会自动放大页面 */
+/* 触屏上窗口圆角跟随设备屏幕输入框字号小于 16px 时 iOS 会自动放大页面 */
 @media (pointer: coarse) {
   :root {
-    --radius-window: 22px;
-    --font-size-body: 16px;
+    --binos-window-shape: var(--md-sys-shape-corner-extra-large);
   }
 }

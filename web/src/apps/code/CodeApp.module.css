@@ -1,7 +1,9 @@
-/* 按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两列并排，否则一次只显示一页 */
+/* M3 的 list-detail 布局，按 app 自己的宽度排版，不按整个页面：宽度不小于 960（列表 320 + 对话区最小可读宽度 640）时两个窗格并排，否则按紧凑布局一次只显示一个窗格 */
 .app {
   container: agent / inline-size;
   height: 100%;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
 }
 
 .layout {
@@ -19,25 +21,26 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  background: var(--md-sys-color-surface);
 }
 
+/* 空状态 */
 .missing {
   display: flex;
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
-  color: var(--color-text-tertiary);
+  gap: var(--space-4);
+  padding: var(--space-6);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
+  text-align: center;
 }
 
 .missing p {
   margin: 0;
-}
-
-.missing button {
-  color: var(--color-text);
-  text-decoration: underline;
 }
 
 @container agent (width < 960px) {
@@ -66,12 +69,25 @@
   min-height: 0;
 }
 
+/* 一列时构建、设备页顶上是 M3 小型顶部应用栏 */
 @container agent (width < 960px) {
   .toolBar {
     display: flex;
+    flex: none;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-border);
+    gap: var(--space-1);
+    height: 64px;
+    padding: 0 var(--space-1);
+  }
+
+  .toolTitle {
+    flex: 1;
+    min-width: 0;
+    padding: 0 var(--space-1);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font: var(--md-sys-typescale-title-large);
+    letter-spacing: var(--md-sys-typescale-title-large-tracking);
   }
 }

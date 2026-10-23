@@ -1,9 +1,9 @@
 :root {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-body);
-  line-height: var(--line-height-normal);
+  font: var(--md-sys-typescale-body-medium);
+  letter-spacing: var(--md-sys-typescale-body-medium-tracking);
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
+  scrollbar-color: var(--md-sys-color-outline-variant) transparent;
 }
 
 *,
@@ -21,21 +21,23 @@ body,
 
 /* 滚动都发生在各自的区域里，整个页面不跟着回弹；只能滑动，不能双击或双指缩放 */
 html {
-  background: var(--color-chrome);
+  background: var(--md-sys-color-surface-container);
   overscroll-behavior: none;
   touch-action: pan-x pan-y;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--color-chrome);
-  color: var(--color-text);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
 }
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
+  letter-spacing: inherit;
   color: inherit;
 }
 
@@ -56,11 +58,17 @@ button:disabled {
   cursor: default;
 }
 
+/* M3 的焦点指示：3 粗的 secondary 描边，向外留 2 */
 :focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
+  outline: var(--md-sys-state-focus-indicator-thickness) solid var(--md-sys-color-secondary);
+  outline-offset: var(--md-sys-state-focus-indicator-outer-offset);
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+}
+
+/* 模态对话框的遮罩是 32% 的 scrim */
+dialog::backdrop {
+  background: color-mix(in srgb, var(--md-sys-color-scrim) 32%, transparent);
 }

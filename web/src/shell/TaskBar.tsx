@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react'
-import { ExternalLink, X } from 'lucide-react'
+import type { ReactElement, ReactNode } from 'react'
 import { findApplication, useApplications } from '../apps/index.ts'
 import { BrandMark } from '../ui/BrandMark.tsx'
+import { Close, OpenInNew } from '../ui/icons.tsx'
+import { Ripple } from '../ui/Ripple.tsx'
+import { Tooltip } from '../ui/Tooltip.tsx'
 import type { BarPlacement } from './bar-placement.ts'
 import { layouts } from './layout.ts'
 import type { LayoutId, SplitGroup } from './layout.ts'
@@ -19,7 +21,7 @@ function LayoutGlyph({ layout, portrait, active }: { layout: LayoutId; portrait:
   )
 }
 
-// 屏幕外面的控制栏：回到桌面、开着的 app、分屏布局、在新标签页打开外部 app、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
+// 屏幕外面的控制栏，M3 的导航栏（在下面）或导航轨（在侧边）：回到桌面、开着的 app、分屏布局、在新标签页打开外部 app、关闭当前窗口。分屏时，布局按钮上亮起的一块是聚焦的窗口
 export function TaskBar({
   placement,
   accessory,
@@ -59,13 +61,18 @@ export function TaskBar({
   // 外部 app 的窗口可以在新标签页打开，比如要在那里重新登录
   const focusedUrl = findApplication(apps, windows.find((item) => item.id === focused)?.window.applicationId ?? '')?.url
   const canPick = !home && !locked && !groups.some((group) => focused && group.slots.includes(focused)) && allowed.length > 1
+  const side = placement === 'bottom' ? 'top' : placement === 'left' ? 'right' : 'left'
+  const tip = (label: string, button: ReactElement, key?: string) => <Tooltip key={key} label={label} side={side}>{button}</Tooltip>
 
   return (
     <nav inert={locked} className={styles.bar} data-placement={placement}>
       <div className={styles.dock}>
-        <button type="button" className={styles.item} aria-label="桌面" title="桌面" aria-pressed={home} onClick={onHome}>
-          <BrandMark size={22} inverted />
-        </button>
+        {tip('桌面', (
+          <button type="button" className={styles.item} aria-label="桌面" aria-pressed={home} onClick={onHome}>
+            <Ripple />
+            <BrandMark size={24} />
+          </button>
+        ))}
         {accessory}
         {windows.length > 0 && <span className={styles.separator} />}
         <div className={styles.apps}>
@@ -76,52 +83,51 @@ export function TaskBar({
             const group = groups.find((group) => group.slots.includes(item.id))
             const members = group ? group.slots.map((id) => windows.find((win) => win.id === id)!).filter(Boolean) : [item]
             const title = members.map((member) => member.title).join(' + ')
-            return (
+            const pressed = !home && members.some((member) => member.id === focused)
+            return tip(title, (
               <button
-                key={group?.id ?? item.id}
                 type="button"
                 className={styles.item}
                 data-group={!!group}
                 aria-label={title}
-                title={title}
-                aria-pressed={!home && members.some((member) => member.id === focused)}
+                aria-pressed={pressed}
                 data-visible={!home && members.some((member) => panes.includes(member.id))}
                 onClick={() => onShow(members.find((member) => member.id === focused)?.id ?? item.id)}
               >
+                <Ripple />
                 {members.map((member) => {
                   const app = findApplication(apps, member.window.applicationId)
                   return app && (
                     <span key={member.id} className={styles.member} data-focused={!!group && !home && member.id === focused}>
-                      <app.icon size={group ? 18 : 21} strokeWidth={1.75} />
+                      <app.icon size={group ? 20 : 24} filled={group ? !home && member.id === focused : pressed} />
                     </span>
                   )
                 })}
               </button>
-            )
+            ), group?.id ?? item.id)
           })}
         </div>
         {!home && focused && (
           <>
             <span className={styles.separator} />
-            {canPick && (
-              <button type="button" className={styles.item} aria-label="分屏" title="分屏" onClick={onSplit}>
+            {canPick && tip('分屏', (
+              <button type="button" className={styles.item} aria-label="分屏" onClick={onSplit}>
+                <Ripple />
                 <LayoutGlyph layout={layout === '1' ? '1:1' : layout} portrait={portrait} active={layout === '1' ? undefined : focusedSlot} />
               </button>
-            )}
-            {focusedUrl && (
-              <button
-                type="button"
-                className={styles.item}
-                aria-label="在新标签页打开"
-                title="在新标签页打开"
-                onClick={() => window.open(focusedUrl, '_blank', 'noopener,noreferrer')}
-              >
-                <ExternalLink size={21} strokeWidth={1.75} />
+            ))}
+            {focusedUrl && tip('在新标签页打开', (
+              <button type="button" className={styles.item} aria-label="在新标签页打开" onClick={() => window.open(focusedUrl, '_blank', 'noopener,noreferrer')}>
+                <Ripple />
+                <OpenInNew />
               </button>
-            )}
-            <button type="button" className={styles.item} aria-label="关闭当前窗口" title="关闭当前窗口" onClick={onClose}>
-              <X size={21} strokeWidth={1.75} />
-            </button>
+            ))}
+            {tip('关闭当前窗口', (
+              <button type="button" className={styles.item} aria-label="关闭当前窗口" onClick={onClose}>
+                <Ripple />
+                <Close />
+              </button>
+            ))}
           </>
         )}
       </div>

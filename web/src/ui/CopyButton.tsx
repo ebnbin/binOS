@@ -1,6 +1,6 @@
-import { Check, Copy, CircleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import styles from './CopyButton.module.css'
+import { Check, ContentCopy, ErrorIcon } from './icons.tsx'
+import { IconButton } from './IconButton.tsx'
 
 export function CopyButton({ text, label = '复制' }: { text: string; label?: string }) {
   const [state, setState] = useState<'ready' | 'copied' | 'failed'>('ready')
@@ -14,11 +14,10 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
     return () => window.clearTimeout(timer)
   }, [state])
   return (
-    <button
-      type="button"
-      className={styles.button}
-      title={title}
-      aria-label={title}
+    <IconButton
+      icon={copied ? Check : state === 'failed' ? ErrorIcon : ContentCopy}
+      label={title}
+      size="xs"
       onClick={async () => {
         try {
           await navigator.clipboard.writeText(text)
@@ -27,14 +26,6 @@ export function CopyButton({ text, label = '复制' }: { text: string; label?: s
           setState('failed')
         }
       }}
-    >
-      {copied ? (
-        <Check size={13} strokeWidth={2} />
-      ) : state === 'failed' ? (
-        <CircleAlert size={13} />
-      ) : (
-        <Copy size={13} strokeWidth={1.75} />
-      )}
-    </button>
+    />
   )
 }

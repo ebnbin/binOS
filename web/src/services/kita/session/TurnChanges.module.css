@@ -1,22 +1,31 @@
+/* M3 的描边卡片：标题一行，下面每个文件一行 M3 列表项，展开的修改缩进到文件名下 */
 .card {
   overflow: hidden;
-  border-radius: var(--radius-card);
-  background: var(--color-surface);
-  box-shadow: 0 0 0 1px var(--color-separator);
-  font-size: var(--font-size-sm);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-large);
+  background: var(--md-sys-color-surface);
 }
 
 .header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-bottom: 1px solid var(--color-separator);
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.heading {
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-title-small);
+  letter-spacing: var(--md-sys-typescale-title-small-tracking);
 }
 
 .files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-0-5);
   margin: 0;
   padding: var(--space-1);
   list-style: none;
@@ -25,33 +34,37 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   width: 100%;
-  min-height: var(--size-control-sm);
-  padding: 0 var(--space-2);
-  border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: var(--color-text);
-  font: inherit;
+  min-height: 40px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--md-sys-color-on-surface);
   text-align: left;
-  cursor: pointer;
+  transition:
+    background-color var(--md-sys-motion-spring-fast-effects),
+    border-radius var(--md-sys-motion-spring-fast-spatial);
 }
 
 @media (hover: hover) {
   .row:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
+}
+
+.row:active {
+  background: var(--md-sys-state-pressed);
+  border-radius: var(--md-sys-shape-corner-large);
 }
 
 .chevron {
   flex: none;
-  color: var(--color-text-tertiary);
-  transition: transform var(--duration-normal) var(--ease-standard);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: transform var(--md-sys-motion-spring-fast-spatial);
 }
 
 [data-open] > .row .chevron {
-  transform: rotate(90deg);
+  transform: rotate(180deg);
 }
 
 .name {
@@ -60,8 +73,9 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font: var(--md-sys-typescale-code-small);
+  font-weight: var(--md-ref-typeface-weight-medium);
+  letter-spacing: 0;
 }
 
 .dir {
@@ -70,41 +84,51 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--color-text-tertiary);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
 }
 
+/* 新建、删除：小号的标签 */
 .kind {
   flex: none;
-  padding: 0 var(--space-1-5);
-  border-radius: var(--radius-full);
-  background: var(--color-hover);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-2xs);
+  padding: 0 var(--space-2);
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font: var(--md-sys-typescale-label-small);
+  letter-spacing: var(--md-sys-typescale-label-small-tracking);
+  line-height: 20px;
 }
 
 .counts {
   display: flex;
   flex: none;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
   margin-left: auto;
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  color: var(--color-success);
+  color: var(--md-sys-color-success);
 }
 
 .removed {
-  color: var(--color-danger);
+  color: var(--md-sys-color-error);
 }
 
 .body {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-1) var(--space-1) var(--space-2) 27px;
+  padding: var(--space-1) var(--space-2) var(--space-2) var(--space-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .chevron {
+    transition: none;
+  }
 }

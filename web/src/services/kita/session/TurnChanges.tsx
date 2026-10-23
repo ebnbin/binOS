@@ -1,5 +1,5 @@
-import { ChevronRight, FileDiff } from 'lucide-react'
 import { useState } from 'react'
+import { Difference, KeyboardArrowDown } from '../../../ui/icons.tsx'
 import { ToolBody } from './ToolBody.tsx'
 import type { FileChange } from './tools.ts'
 import styles from './TurnChanges.module.css'
@@ -12,15 +12,15 @@ function directory(path: string) {
 
 const opText = { add: '新建', delete: '删除' }
 
-// 一轮结束时汇总这一轮改了哪些文件，点开一个文件看它的每一处修改
+// 一轮结束时汇总这一轮改了哪些文件：M3 的描边卡片，标题一行加上每个文件一行，点开一个文件看它的每一处修改
 export function TurnChanges({ thread, files }: { thread: string; files: FileChange[] }) {
   const added = files.reduce((sum, file) => sum + file.added, 0)
   const removed = files.reduce((sum, file) => sum + file.removed, 0)
   return (
     <div className={styles.card}>
       <div className={styles.header}>
-        <FileDiff size={14} strokeWidth={1.75} />
-        <span>改动了 {files.length} 个文件</span>
+        <Difference size={20} />
+        <span className={styles.heading}>改动了 {files.length} 个文件</span>
         <Counts added={added} removed={removed} />
       </div>
       <ul className={styles.files}>
@@ -37,11 +37,11 @@ function FileRow({ thread, file }: { thread: string; file: FileChange }) {
   return (
     <li data-open={open || undefined}>
       <button type="button" className={styles.row} onClick={() => setOpen(!open)} aria-expanded={open} title={file.path}>
-        <ChevronRight size={13} strokeWidth={2} className={styles.chevron} />
         <span className={styles.name}>{file.path.split('/').at(-1)}</span>
         <span className={styles.dir}>{directory(file.path)}</span>
         {file.op && <span className={styles.kind}>{opText[file.op]}</span>}
         <Counts added={file.added} removed={file.removed} />
+        <KeyboardArrowDown size={20} className={styles.chevron} />
       </button>
       {open && (
         <div className={styles.body}>

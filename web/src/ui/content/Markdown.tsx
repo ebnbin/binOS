@@ -1,5 +1,4 @@
 import 'katex/dist/katex.min.css'
-import { ImageOff } from 'lucide-react'
 import { memo, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -7,6 +6,7 @@ import type { Components, Options } from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+import { HideImage } from '../icons.tsx'
 import { CodeBlock } from './CodeBlock.tsx'
 import styles from './Markdown.module.css'
 import { Mermaid } from './Mermaid.tsx'
@@ -32,7 +32,7 @@ function MarkdownImage({ src, alt, renderFile }: { src: unknown; alt?: string; r
   const file = typeof src === 'string' ? renderFile?.(src, true) : undefined
   if (file) return file
   if (typeof src !== 'string' || !/^https?:\/\//.test(src)) {
-    return <span className={styles.missingImage}><ImageOff size={14} strokeWidth={1.75} />{alt || '图片'}</span>
+    return <span className={styles.missingImage}><HideImage size={18} />{alt || '图片'}</span>
   }
   return <a className={styles.image} href={src} target="_blank" rel="noreferrer"><img src={src} alt={alt ?? ''} loading="lazy" /></a>
 }

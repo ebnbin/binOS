@@ -1,51 +1,49 @@
+/* 输出、命令和 diff 都是 surface-container 的代码卡片，和 CodeBlock 一致 */
 .output,
 .terminal,
 .diffLines {
   max-height: 480px;
   margin: 0;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   overflow: auto;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
-  background: var(--color-surface-sunken);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  line-height: var(--line-height-normal);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-container);
+  color: var(--md-sys-color-on-surface);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .output[data-error='true'] {
-  color: var(--color-danger);
+  background: color-mix(in srgb, var(--md-sys-color-error-container) 50%, var(--md-sys-color-surface-container));
+  color: var(--md-sys-color-on-error-container);
 }
 
 .prompt {
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-primary);
   user-select: none;
 }
 
-.terminal {
-  color: var(--color-text);
-}
-
 .terminalOutput {
-  color: var(--color-text-secondary);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .terminalOutput[data-error='true'] {
-  color: var(--color-danger);
+  color: var(--md-sys-color-error);
 }
 
 .note {
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }
 
 .diff {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1-5);
+  gap: var(--space-2);
 }
 
 .diffLines {
@@ -55,29 +53,40 @@
 
 .diffLine {
   display: block;
-  padding: 0 var(--space-3) 0 0;
+  padding: 0 var(--space-4) 0 0;
 }
 
+/* 增删的行用 success-container、error-container 的淡色铺底，符号用 success、error */
 .diffLine[data-change='added'] {
-  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-success-container) 40%, transparent);
 }
 
 .diffLine[data-change='removed'] {
-  background: color-mix(in srgb, var(--color-danger) 13%, transparent);
+  background: color-mix(in srgb, var(--md-sys-color-error-container) 40%, transparent);
 }
 
 .diffLine[data-hunk] {
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-on-surface-variant);
+  background: var(--md-sys-color-surface-container-high);
 }
 
 .diffSign {
   display: inline-block;
-  width: 26px;
+  width: 28px;
   text-align: center;
-  color: var(--color-text-tertiary);
+  color: var(--md-sys-color-outline);
   user-select: none;
 }
 
+[data-change='added'] > .diffSign {
+  color: var(--md-sys-color-success);
+}
+
+[data-change='removed'] > .diffSign {
+  color: var(--md-sys-color-error);
+}
+
+/* 搜到的网页：紧凑的两行列表项 */
 .links {
   display: flex;
   flex-direction: column;
@@ -89,19 +98,24 @@
 
 .links a {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  padding: var(--space-1-5) var(--space-2);
-  border-radius: var(--radius-item);
-  color: inherit;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  color: var(--md-sys-color-on-surface);
   text-decoration: none;
-  font-size: var(--font-size-sm);
+  transition: background-color var(--md-sys-motion-spring-fast-effects);
 }
 
 @media (hover: hover) {
   .links a:hover {
-    background: var(--color-hover);
+    background: var(--md-sys-state-hover);
   }
+}
+
+.links a:active {
+  background: var(--md-sys-state-pressed);
 }
 
 .linkTitle {
@@ -109,12 +123,18 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  color: var(--md-sys-color-primary);
+  font: var(--md-sys-typescale-body-large);
+  letter-spacing: var(--md-sys-typescale-body-large-tracking);
 }
 
 .linkHost {
-  flex: none;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--md-sys-color-on-surface-variant);
+  font: var(--md-sys-typescale-body-small);
+  letter-spacing: var(--md-sys-typescale-body-small-tracking);
 }
 
 .image {
@@ -126,6 +146,6 @@
   display: block;
   max-width: 100%;
   max-height: 280px;
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-card);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
 }

@@ -1,9 +1,11 @@
 .added {
-  color: var(--color-success);
-  font-family: var(--font-mono);
+  color: var(--md-sys-color-success);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
 }
 
 .removed {
-  color: var(--color-danger);
-  font-family: var(--font-mono);
+  color: var(--md-sys-color-error);
+  font: var(--md-sys-typescale-code-small);
+  letter-spacing: 0;
 }

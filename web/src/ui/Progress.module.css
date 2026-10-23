@@ -1,0 +1,101 @@
+.circular {
+  display: block;
+  flex: none;
+  animation: rotate 1568ms linear infinite;
+}
+
+.circular circle {
+  fill: none;
+  stroke: var(--md-sys-color-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  animation: arc 1333ms var(--md-sys-motion-easing-standard) infinite;
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes arc {
+  0% {
+    stroke-dasharray: 1 200;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 80 200;
+    stroke-dashoffset: -28;
+  }
+
+  100% {
+    stroke-dasharray: 80 200;
+    stroke-dashoffset: -112;
+  }
+}
+
+.linear {
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  height: 4px;
+  overflow: hidden;
+}
+
+.active,
+.track {
+  height: 100%;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+
+.active {
+  flex: none;
+  width: calc(var(--value, 0) * (100% - var(--space-1)));
+  background: var(--md-sys-color-primary);
+  transition: width var(--md-sys-motion-spring-default-spatial);
+}
+
+.track {
+  flex: 1;
+  background: var(--md-sys-color-secondary-container);
+}
+
+/* 轨道末端的停止点 */
+.linear:not([data-indeterminate='true'])::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
+.linear[data-indeterminate='true'] .active {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 40%;
+  z-index: 1;
+  box-shadow: 0 0 0 var(--space-1) var(--md-sys-color-surface);
+  animation: slide 1800ms var(--md-sys-motion-easing-standard) infinite;
+}
+
+@keyframes slide {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(260%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .circular,
+  .circular circle,
+  .linear[data-indeterminate='true'] .active {
+    animation-duration: 3s;
+  }
+}
