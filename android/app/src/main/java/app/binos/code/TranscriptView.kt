@@ -92,7 +92,7 @@ class TranscriptContext(
 private val prettyJson = Json { prettyPrint = true }
 
 @Composable
-fun BlockView(block: Block, context: TranscriptContext, last: Boolean) {
+fun BlockView(block: Block, context: TranscriptContext, last: Boolean, highlighted: Boolean = false) {
     when (block) {
         is Block.Turn -> Unit
         is Block.Time -> Text(
@@ -102,9 +102,15 @@ fun BlockView(block: Block, context: TranscriptContext, last: Boolean) {
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        is Block.Input -> UserMessage(block)
+        is Block.Input -> UserMessage(block, highlighted)
         is Block.Attachments -> AttachmentRow(block.attachments, context)
-        is Block.Text -> SelectionContainer { Markdown(block.text, resolve = context.resolver(block.files)) }
+        is Block.Text -> SelectionContainer {
+            Markdown(
+                block.text,
+                modifier = if (highlighted) Modifier.background(MaterialTheme.colorScheme.tertiaryContainer, RoundedCornerShape(8.dp)) else Modifier,
+                resolve = context.resolver(block.files),
+            )
+        }
         is Block.Steps -> StepsView(block.steps, context, last)
         is Block.Compact -> Divider(
             "${if (block.item.trigger == "manual") "手动" else "自动"}压缩了上下文" +
@@ -125,11 +131,11 @@ private fun Divider(text: String) {
 }
 
 @Composable
-private fun UserMessage(block: Block.Input) {
+private fun UserMessage(block: Block.Input, highlighted: Boolean) {
     val clipboard = LocalClipboardManager.current
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
         Surface(
-            color = MaterialTheme.colorScheme.secondaryContainer,
+            color = if (highlighted) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.secondaryContainer,
             shape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp),
             modifier = Modifier.widthIn(max = 560.dp).padding(start = 40.dp),
         ) {

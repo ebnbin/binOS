@@ -83,6 +83,7 @@ import app.binos.ui.Markdown
 import app.binos.ui.download
 import app.binos.ui.formatElapsed
 import app.binos.ui.rememberNow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // 待发的附件
@@ -349,14 +350,19 @@ private fun TranscriptList(model: ConversationModel, thread: String, targetItem:
         if (stick) listState.scrollToItem(0)
     }
 
-    // 从搜索结果跳过来时，滚到那一条
+    // 从搜索结果跳过来时，滚到那一条并短暂高亮。倒序列表里条目前面还有提示和回答中的临时内容
     var located by remember { mutableStateOf(targetItem == null) }
+    var highlight by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(blocks) {
         if (!located && targetItem != null) {
             val position = reversed.indexOfFirst { it is Block.Input && it.index == targetItem || it is Block.Text && it.key == targetItem.toString() }
             if (position >= 0) {
-                listState.scrollToItem(position + 3)
+                val leading = listOfNotNull(model.notice, live, live?.text?.takeIf { it.isNotBlank() }, live?.thinking?.takeIf { it.isNotEmpty() }).size
+                listState.scrollToItem(position + leading, -listState.layoutInfo.viewportSize.height / 3)
                 located = true
+                highlight = reversed[position].key
+                delay(2000)
+                highlight = null
             }
         }
     }
@@ -395,7 +401,7 @@ private fun TranscriptList(model: ConversationModel, thread: String, targetItem:
                     item(key = "live-thinking") { ThinkingView(live.thinking, null, context, live = true) }
                 }
             }
-            items(reversed, key = { it.key }) { block -> BlockView(block, context, block === blocks.lastOrNull()) }
+            items(reversed, key = { it.key }) { block -> BlockView(block, context, block === blocks.lastOrNull(), highlighted = block.key == highlight) }
         }
         if (awayFromBottom) {
             SmallFloatingActionButton(
