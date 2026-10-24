@@ -22,7 +22,7 @@
 
 .date {
   margin-top: var(--space-0-5);
-  color: var(--color-red);
+  color: var(--color-label-secondary);
   font-size: var(--font-size-subheadline);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-subheadline);

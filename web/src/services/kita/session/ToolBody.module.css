@@ -79,7 +79,7 @@
 
 .diffLine[data-hunk] {
   margin: var(--space-1) 0;
-  background: color-mix(in srgb, var(--color-blue) 8%, transparent);
+  background: color-mix(in srgb, var(--color-label) 6%, transparent);
   color: var(--color-label-secondary);
 }
 

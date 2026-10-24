@@ -188,25 +188,7 @@
 }
 
 .card h2 svg {
-  --metric: var(--color-accent);
-
-  color: var(--metric);
-}
-
-.card[data-metric='cpu'] h2 svg {
-  --metric: var(--color-blue);
-}
-
-.card[data-metric='memory'] h2 svg {
-  --metric: var(--color-green);
-}
-
-.card[data-metric='network'] h2 svg {
-  --metric: var(--color-indigo);
-}
-
-.card[data-metric='power'] h2 svg {
-  --metric: var(--color-orange);
+  color: var(--color-label-secondary);
 }
 
 .card > strong {
@@ -237,9 +219,9 @@
   margin-top: var(--space-0-5);
 }
 
-/* 胶囊进度条，绿色正常，内存压力偏高黄色、很高红色 */
+/* 胶囊进度条，正常时是强调色，内存压力偏高黄色、很高红色 */
 .meter {
-  --meter: var(--color-green);
+  --meter: var(--color-accent);
 
   display: block;
   width: 100%;
@@ -306,11 +288,11 @@
 }
 
 .down {
-  color: var(--color-blue);
+  color: var(--color-label-secondary);
 }
 
 .up {
-  color: var(--color-red);
+  color: var(--color-label-secondary);
 }
 
 .speeds small {

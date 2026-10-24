@@ -25,20 +25,21 @@
   --color-gray-5: #e5e5ea;
   --color-gray-6: #f2f2f7;
 
-  /* 强调色是中性的，对应 macOS 的石墨色（Graphite）：亮色时近黑、深色时近白，压在上面的文字反色。
-     链接仍然是蓝色，和正文区分开。系统色本身对比度不够，用作小号状态文字时取 HIG 的高对比度版本 */
+  /* 整套界面是中性色的：强调色对应 macOS 的石墨色（Graphite），亮色时近黑、深色时近白，压在上面的文字反色；
+     链接也用强调色，靠下划线和正文区分。只有表示状态的地方（成功、警告、错误）保留系统色。
+     系统色本身对比度不够，用作小号状态文字时取 HIG 的高对比度版本 */
   --color-accent: #1d1d1f;
   --color-on-accent: #fff;
   /* 压在系统色（红、绿、app 图标）上的文字和图形，不跟随深浅色 */
   --color-on-color: #fff;
-  --color-link: #0068da;
+  --color-link: var(--color-accent);
   --color-destructive: var(--color-red);
   --color-destructive-text: #e9152d;
   --color-success: var(--color-green);
   --color-success-text: #008932;
   --color-warning: var(--color-orange);
   --color-warning-text: #c55300;
-  --color-done: var(--color-purple);
+  --color-done: var(--color-label-secondary);
 
   /* 文字（label）四级 */
   --color-label: #000;
@@ -102,17 +103,17 @@
   --material-dock-edge: rgb(255 255 255 / 14%);
   --color-dock-hover: rgb(255 255 255 / 10%);
 
-  /* 桌面墙纸，图标名字压在墙纸上 */
+  /* 桌面墙纸：中性的浅灰渐变，图标名字是深色的 */
   --wallpaper:
-    radial-gradient(120% 90% at 10% 0%, #8fd3ff 0%, transparent 55%), radial-gradient(90% 80% at 100% 20%, #b9a6ff 0%, transparent 60%),
-    radial-gradient(120% 100% at 60% 110%, #2a7cf7 0%, transparent 65%), linear-gradient(160deg, #5ab8ff, #3a6ff2 55%, #6a54e8);
-  --color-on-wallpaper: #fff;
-  --shadow-on-wallpaper: 0 1px 3px rgb(0 0 0 / 35%);
+    radial-gradient(120% 90% at 15% 0%, #fff 0%, transparent 55%), radial-gradient(100% 90% at 100% 100%, #b8b8bf 0%, transparent 65%),
+    linear-gradient(160deg, #ededf0, #d6d6db 55%, #c4c4ca);
+  --color-on-wallpaper: #1d1d1f;
+  --shadow-on-wallpaper: 0 0 2px rgb(255 255 255 / 70%);
 
-  /* app 图标的底色，按 app 的语义取系统色 */
+  /* app 图标：iOS 浅色模式的单色图标，白底深色图形；深色模式下反过来 */
   --app-icon-highlight: linear-gradient(180deg, rgb(255 255 255 / 22%), transparent 60%);
-  --app-icon-graphite: linear-gradient(180deg, #4a4a4f, #1c1c1e);
-  --app-icon-light: linear-gradient(180deg, #fff, #ececf0);
+  --app-icon-tile: linear-gradient(180deg, #fff, #e8e8ed);
+  --app-icon-glyph: #1d1d1f;
 
   /* 终端始终是深色，取 macOS 终端的默认配色 */
   --color-terminal-bg: #1e1e1e;
@@ -254,7 +255,6 @@
 
     --color-accent: #f5f5f7;
     --color-on-accent: #1d1d1f;
-    --color-link: #419cff;
     --color-destructive-text: #ff6165;
     --color-success-text: #4ad968;
     --color-warning-text: #ffa056;
@@ -297,9 +297,13 @@
     --material-sidebar: rgb(44 44 46 / 72%);
 
     --wallpaper:
-      radial-gradient(120% 90% at 10% 0%, #1f4f8f 0%, transparent 55%), radial-gradient(90% 80% at 100% 20%, #3b2a7a 0%, transparent 60%),
-      radial-gradient(120% 100% at 60% 110%, #0b3a8c 0%, transparent 65%), linear-gradient(160deg, #10284f, #0b1a3a 55%, #1a1240);
-    --app-icon-light: linear-gradient(180deg, #3a3a3c, #2c2c2e);
+      radial-gradient(120% 90% at 15% 0%, #4a4a4e 0%, transparent 55%), radial-gradient(100% 90% at 100% 100%, #000 0%, transparent 65%),
+      linear-gradient(160deg, #38383c, #232326 55%, #161618);
+    --color-on-wallpaper: #fff;
+    --shadow-on-wallpaper: 0 1px 3px rgb(0 0 0 / 50%);
+    --app-icon-highlight: linear-gradient(180deg, rgb(255 255 255 / 10%), transparent 60%);
+    --app-icon-tile: linear-gradient(180deg, #4a4a4e, #262628);
+    --app-icon-glyph: #f5f5f7;
 
     --shadow-control: 0 0 0 0.5px rgb(255 255 255 / 6%), 0 0.5px 1.5px rgb(0 0 0 / 30%);
     --shadow-card: 0 0 0 0.5px rgb(255 255 255 / 8%), 0 1px 3px rgb(0 0 0 / 30%);

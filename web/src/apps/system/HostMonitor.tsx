@@ -20,7 +20,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
       </header>
       {s.unavailable.length > 0 && <p className={styles.warning}>{s.unavailable.join('、')}暂时无法读取，其他信息仍会更新。</p>}
       <div className={styles.cards}>
-        <section className={styles.card} data-metric="cpu">
+        <section className={styles.card}>
           <h2>
             <Cpu size={16} strokeWidth={1.75} />
             CPU
@@ -29,7 +29,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           <progress className={styles.meter} aria-label="CPU 使用率" max={100} value={cpu || 0} />
           <p>当前总使用率</p>
         </section>
-        <section className={styles.card} data-metric="memory">
+        <section className={styles.card}>
           <h2>
             <MemoryStick size={16} strokeWidth={1.75} />
             内存
@@ -47,7 +47,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           </p>
           <small className={styles.note}>已用量扣除文件缓存，为估算值。</small>
         </section>
-        <section className={styles.card} data-metric="network">
+        <section className={styles.card}>
           <h2>
             <Network size={16} strokeWidth={1.75} />
             网络速度
@@ -74,7 +74,7 @@ export function HostMonitor({ status }: { status: MonitorStatus }) {
           </div>
           <p>当前物理网卡合计速度</p>
         </section>
-        <section className={styles.card} data-metric="power">
+        <section className={styles.card}>
           <h2>
             <PlugZap size={16} strokeWidth={1.75} />
             供电与运行时间
