@@ -58,9 +58,9 @@
   /* 次要着色：强调色的浅底 */
   .tinted {
     composes: button;
-    background-color: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
     box-shadow: none;
-    color: var(--color-link);
+    color: var(--color-accent);
     font-weight: var(--font-weight-medium);
   }
 

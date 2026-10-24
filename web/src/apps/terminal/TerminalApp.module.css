@@ -271,14 +271,14 @@
   height: var(--size-control-lg);
   margin-top: var(--space-3);
   padding: 0 var(--space-5);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-terminal-text);
+  color: var(--color-terminal-bg);
   font-weight: var(--font-weight-medium);
 }
 
 @media (hover: hover) {
   .empty button:hover:not(:disabled) {
-    background: var(--color-accent);
+    background: var(--color-terminal-text);
     background-image: linear-gradient(var(--term-fill), var(--term-fill));
   }
 }
@@ -317,7 +317,7 @@
 
 .confirm button:last-child {
   background: var(--color-destructive);
-  color: var(--color-on-accent);
+  color: var(--color-on-color);
   font-weight: var(--font-weight-medium);
 }
 
