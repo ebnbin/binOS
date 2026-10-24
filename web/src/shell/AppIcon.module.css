@@ -42,3 +42,6 @@
   background: var(--app-icon-light);
   color: var(--color-red);
 }
+
+/* 喜多是暖色的粉 */
+.icon[data-app='kita'] { --tint: var(--color-pink); }

@@ -1,7 +1,9 @@
-/* 宽度不小于 760 时列表和内容并排，否则一次只显示一页 */
+/* 宽度不小于 760 时列表和内容并排，否则一次只显示一页。
+   侧栏和 Code 一样，是浮在窗口里的一块玻璃，圆角和窗口同心 */
 .app {
   container: kita / inline-size;
   height: 100%;
+  background: var(--color-background);
 }
 
 .layout {
@@ -11,43 +13,45 @@
 }
 
 .sidebar {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--color-bg-subtle);
-  border-right: 1px solid var(--color-separator);
+  margin: var(--space-2) 0 var(--space-2) var(--space-2);
+  overflow: hidden;
+  border-radius: calc(var(--radius-window) - var(--space-2));
+  background: var(--material-sidebar);
+  box-shadow: var(--shadow-glass);
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
 }
 
+/* 侧栏顶部是喜多自己：头像、名字和正在做的事，点开是资料页 */
 .identity {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin: var(--space-3) var(--space-2) var(--space-2);
+  composes: item from '../../ui/controls.module.css';
+  gap: var(--space-2-5);
+  margin: var(--space-2) var(--space-2) var(--space-1);
   padding: var(--space-2);
-  border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
 }
 
-.identity span {
+.identity > span:last-child {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.identity strong {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+.identity > span:last-child strong {
+  font-size: var(--font-size-title-3);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-title-3);
 }
 
-.identity small {
+.identity > span:last-child small {
   overflow: hidden;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-footnote);
+  line-height: var(--line-height-footnote);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -58,50 +62,30 @@
   padding: 0 var(--space-2);
 }
 
-.actions button,
-.conversation {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+/* 新对话、临时对话、记忆：侧栏行，图标用强调色 */
+.action {
+  composes: item from '../../ui/controls.module.css';
   width: 100%;
-  min-height: var(--size-control-md);
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: var(--radius-item);
-  background: none;
-  color: inherit;
-  font: inherit;
-  font-size: var(--font-size-md);
-  text-align: left;
-  cursor: pointer;
+}
+
+.action svg {
+  flex: none;
+  color: var(--color-accent);
 }
 
 .actions small {
   margin-left: auto;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-}
-
-.identity[aria-current],
-.actions button[aria-current],
-.conversation[aria-current] {
-  background: var(--color-fill);
-}
-
-@media (hover: hover) {
-  .identity:hover,
-  .actions button:hover,
-  .conversation:hover {
-    background: var(--color-hover);
-  }
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-footnote);
+  font-variant-numeric: tabular-nums;
 }
 
 .label {
-  padding: var(--space-4) var(--space-5) var(--space-1-5);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: var(--letter-spacing-wide);
+  padding: var(--space-4) var(--space-4) var(--space-1);
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-subheadline);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-subheadline);
 }
 
 .list {
@@ -119,10 +103,15 @@
   align-items: center;
 }
 
+.conversation {
+  composes: item from '../../ui/controls.module.css';
+  width: 100%;
+}
+
 .placeholder {
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
+  padding: var(--space-2) var(--space-2);
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-body);
 }
 
 .title {
@@ -135,14 +124,15 @@
 
 .conversation time {
   flex: none;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-xs);
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-footnote);
+  font-variant-numeric: tabular-nums;
 }
 
 .badge,
 .running {
   flex: none;
-  color: var(--color-text-tertiary);
+  color: var(--color-label-secondary);
 }
 
 .running {
@@ -156,16 +146,22 @@
 }
 
 /* 删除按钮盖在时间上，悬停时才出现 */
-.delete {
+.list .delete {
   position: absolute;
-  right: var(--space-1);
+  right: var(--space-0-5);
+  width: var(--size-control-md);
+  height: var(--size-control-md);
   visibility: hidden;
-  background: var(--color-bg-subtle);
+  color: var(--color-label-secondary);
 }
 
 @media (hover: hover) {
   .list li:hover .delete {
     visibility: visible;
+  }
+
+  .list li:hover time {
+    visibility: hidden;
   }
 }
 
@@ -181,26 +177,16 @@
 }
 
 .missing {
-  display: flex;
+  composes: empty from '../../ui/controls.module.css';
   flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  color: var(--color-text-tertiary);
 }
 
 .missing p {
   margin: 0;
 }
 
-.missing button {
-  border: 0;
-  background: none;
-  color: var(--color-text);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
+.restart {
+  composes: button from '../../ui/controls.module.css';
 }
 
 @container kita (width < 760px) {
@@ -213,21 +199,47 @@
     grid-area: 1 / 1;
   }
 
+  /* 一列时侧栏变成占满整页的列表 */
+  .sidebar {
+    margin: 0;
+    border-radius: 0;
+    background: var(--color-background);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
   .layout[data-view='list'] .main,
   .layout[data-view='page'] .sidebar {
     visibility: hidden;
   }
 
+  /* 导航栏：左边玻璃的返回按钮，标题居中 */
   .bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: var(--size-toolbar-item) minmax(0, 1fr) var(--size-toolbar-item);
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-bottom: 1px solid var(--color-separator);
+    flex: none;
+    min-height: var(--size-toolbar);
+    padding: 0 var(--space-margin);
+  }
+
+  .bar > button {
+    background: var(--material-glass);
+    box-shadow: var(--shadow-glass);
+    color: var(--color-label);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
   }
 
   .bar span {
     overflow: hidden;
+    color: var(--color-label);
+    font-size: var(--font-size-headline);
+    font-weight: var(--font-weight-headline);
+    line-height: var(--line-height-headline);
+    text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
   }

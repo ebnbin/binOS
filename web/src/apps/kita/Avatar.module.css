@@ -6,8 +6,8 @@
   width: var(--avatar-size);
   height: var(--avatar-size);
   border-radius: var(--radius-full);
-  background: var(--color-fill);
-  color: var(--color-text-secondary);
+  background: var(--color-fill-tertiary);
+  color: var(--color-label-secondary);
 }
 
 .avatar img {
@@ -17,14 +17,14 @@
   object-fit: cover;
 }
 
-/* 在回答时外面有一圈慢慢呼吸的光环 */
+/* 在回答时外面有一圈慢慢呼吸的强调色光环 */
 .avatar[data-busy]::after {
   position: absolute;
   inset: -3px;
   border: 2px solid var(--color-accent);
   border-radius: var(--radius-full);
   content: '';
-  animation: breathe 1.8s var(--ease-standard) infinite;
+  animation: breathe 1.8s var(--ease-in-out) infinite;
 }
 
 @keyframes breathe {

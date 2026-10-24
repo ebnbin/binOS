@@ -57,15 +57,15 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
             </span>
           </button>
           <div className={styles.actions}>
-            <button type="button" onClick={() => open('/')} aria-current={route.name === 'new' && !route.temporary ? 'page' : undefined}>
+            <button type="button" className={styles.action} onClick={() => open('/')} aria-current={route.name === 'new' && !route.temporary ? 'page' : undefined}>
               <MessageCirclePlus size={16} strokeWidth={1.75} />
               新对话
             </button>
-            <button type="button" onClick={() => open('/temporary')} aria-current={route.name === 'new' && route.temporary ? 'page' : undefined}>
+            <button type="button" className={styles.action} onClick={() => open('/temporary')} aria-current={route.name === 'new' && route.temporary ? 'page' : undefined}>
               <EyeOff size={16} strokeWidth={1.75} />
               临时对话
             </button>
-            <button type="button" onClick={() => open('/memories')} aria-current={route.name === 'memories' ? 'page' : undefined}>
+            <button type="button" className={styles.action} onClick={() => open('/memories')} aria-current={route.name === 'memories' ? 'page' : undefined}>
               <Brain size={16} strokeWidth={1.75} />
               记忆{memories?.length ? <small>{memories.length}</small> : null}
             </button>
@@ -108,7 +108,7 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
           ) : missing ? (
             <div className={styles.missing}>
               <p>这个对话不存在</p>
-              <button type="button" onClick={() => open('/')}>
+              <button type="button" className={styles.restart} onClick={() => open('/')}>
                 开始新对话
               </button>
             </div>
