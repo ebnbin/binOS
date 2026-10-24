@@ -268,14 +268,14 @@
     --color-separator-opaque: #38383a;
     --color-border: rgb(255 255 255 / 10%);
 
-    /* macOS 的深色窗口不是纯黑 */
-    --color-background: #1e1e1e;
-    --color-background-secondary: #262628;
-    --color-background-tertiary: #2c2c2e;
-    --color-background-grouped: #1e1e1e;
-    --color-background-grouped-secondary: #2a2a2c;
+    /* 深色的底不用纯黑，大面积的黑配白字对比太强，看久了刺眼 */
+    --color-background: #232325;
+    --color-background-secondary: #2a2a2c;
+    --color-background-tertiary: #323234;
+    --color-background-grouped: #232325;
+    --color-background-grouped-secondary: #2e2e30;
     --color-background-grouped-tertiary: #3a3a3c;
-    --color-background-elevated: #2c2c2e;
+    --color-background-elevated: #323234;
     --color-control: rgb(255 255 255 / 14%);
     --color-text-background: rgb(255 255 255 / 6%);
 
@@ -359,13 +359,13 @@
 
 @media (pointer: coarse) and (prefers-color-scheme: dark) {
   :root {
-    --color-background: #000;
-    --color-background-secondary: #1c1c1e;
-    --color-background-tertiary: #2c2c2e;
-    --color-background-grouped: #000;
-    --color-background-grouped-secondary: #1c1c1e;
-    --color-background-grouped-tertiary: #2c2c2e;
-    --color-background-elevated: #1c1c1e;
+    --color-background: #1c1c1e;
+    --color-background-secondary: #2c2c2e;
+    --color-background-tertiary: #3a3a3c;
+    --color-background-grouped: #1c1c1e;
+    --color-background-grouped-secondary: #2c2c2e;
+    --color-background-grouped-tertiary: #3a3a3c;
+    --color-background-elevated: #2c2c2e;
   }
 }
 
