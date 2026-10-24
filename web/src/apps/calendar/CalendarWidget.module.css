@@ -94,6 +94,6 @@
 
 .month td span[aria-current='date'] {
   background: var(--color-red);
-  color: var(--color-on-color);
+  color: var(--color-on-accent);
   font-weight: var(--font-weight-bold);
 }

@@ -25,12 +25,9 @@
   --color-gray-5: #e5e5ea;
   --color-gray-6: #f2f2f7;
 
-  /* 强调色是中性的，对应 macOS 的石墨色（Graphite）：亮色时近黑、深色时近白，压在上面的文字反色。
-     链接仍然是蓝色，和正文区分开。系统色本身对比度不够，用作小号状态文字时取 HIG 的高对比度版本 */
-  --color-accent: #1d1d1f;
+  /* 强调色和状态色。系统色本身对比度不够，用作小号文字时取 HIG 的高对比度版本 */
+  --color-accent: var(--color-blue);
   --color-on-accent: #fff;
-  /* 压在系统色（红、绿、app 图标）上的文字和图形，不跟随深浅色 */
-  --color-on-color: #fff;
   --color-link: #0068da;
   --color-destructive: var(--color-red);
   --color-destructive-text: #e9152d;
@@ -73,10 +70,10 @@
 
   /* 选中：列表行和菜单项高亮用强调色，窗口不在前台或次要的选中用灰色 */
   --color-selection: var(--color-accent);
-  --color-on-selection: var(--color-on-accent);
+  --color-on-selection: #fff;
   --color-selection-unemphasized: rgb(0 0 0 / 8%);
-  --color-text-selection: #d1d1d6;
-  --color-focus-ring: color-mix(in srgb, var(--color-gray) 55%, transparent);
+  --color-text-selection: #b3d7ff;
+  --color-focus-ring: color-mix(in srgb, var(--color-accent) 50%, transparent);
   --color-hover: rgb(0 0 0 / 5%);
   --color-pressed: rgb(0 0 0 / 10%);
   --color-scrim: rgb(0 0 0 / 20%);
@@ -252,8 +249,6 @@
     --color-gray-5: #2c2c2e;
     --color-gray-6: #1c1c1e;
 
-    --color-accent: #f5f5f7;
-    --color-on-accent: #1d1d1f;
     --color-link: #419cff;
     --color-destructive-text: #ff6165;
     --color-success-text: #4ad968;
@@ -285,7 +280,7 @@
     --color-text-background: rgb(255 255 255 / 6%);
 
     --color-selection-unemphasized: rgb(255 255 255 / 10%);
-    --color-text-selection: #48484a;
+    --color-text-selection: #3f638b;
     --color-hover: rgb(255 255 255 / 7%);
     --color-pressed: rgb(255 255 255 / 14%);
     --color-scrim: rgb(0 0 0 / 45%);

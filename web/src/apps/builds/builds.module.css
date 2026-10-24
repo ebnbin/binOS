@@ -157,7 +157,7 @@
   width: calc(var(--switch-height) - 4px);
   height: calc(var(--switch-height) - 4px);
   border-radius: var(--radius-full);
-  background: var(--color-on-color);
+  background: var(--color-on-accent);
   box-shadow: var(--shadow-control);
   transition: transform var(--duration-normal) var(--ease-spring);
 }
