@@ -1,4 +1,4 @@
-import type { Event } from './journal.js'
+import type { PageEvent } from './journal.js'
 
 export type Context = { tokens: number; window: number }
 // 用掉的 token：输入、输出、读缓存、写缓存
@@ -54,6 +54,9 @@ export type FileChange =
 // parent 是子 agent 的条目所属的那次工具调用
 type Produced = { offset?: number; parent?: string }
 
+// 发给页面时过长的命令只留开头、输出只留末尾，clipped 表示省略过，完整的按调用的位置另外读。只在发给页面的条目上
+type Clippable = { clipped?: true }
+
 // 事件携带的语义记录。持久化、对象身份和批次边界由 journal/store 管理。
 // 一轮从 mode 为 start 的 input 开始，到 turn_end 结束；中间的 input 是回答中途插的话（interrupt：先打断了正在做的事）
 export type Entry =
@@ -76,7 +79,7 @@ export type Entry =
   // files：文字里引用的本机文件（原样的路径）对应的快照，在 files/ 里
   | ({ type: 'text'; time: string; text: string; files?: Record<string, string> } & Produced)
   // name 是 agent 自己的工具名；tool 不足以显示全部参数时（mcp、browser、other，没有 change 的 edit）带着原始的 input
-  | ({ type: 'tool_call'; time: string; id: string; name: string; tool: ToolDetail; input?: unknown; background?: true } & Produced)
+  | ({ type: 'tool_call'; time: string; id: string; name: string; tool: ToolDetail; input?: unknown; background?: true } & Clippable & Produced)
   // output 是结果文字的末尾一段，truncated 表示前面还有被省略的；images 是结果里的图片，在 files/ 里
   | ({
       type: 'tool_result'
@@ -86,7 +89,7 @@ export type Entry =
       output?: string
       truncated?: true
       images?: string[]
-    } & Produced)
+    } & Clippable & Produced)
   // 上下文被压缩了：手动还是自动，压缩前后各多少 token
   | ({ type: 'compact'; time: string; trigger: string; preTokens?: number; postTokens?: number } & Produced)
   // outputTokens 含子 agent 的；context 是结束时的上下文大小；usage 是 agent 会话到这时为止按模型累计的用量。
@@ -137,9 +140,10 @@ export type LiveEvent =
 
 // 订阅 session 收到的：持久化事件带着序号与对象身份；live 是订阅时（以及一轮开始和结束时）的临时内容，null 表示没在回答；
 // 其余是临时内容的变化。记成条目的思考和文字取代对应的临时内容。
-// window：只订阅最后几轮时最先收到，from 是补发的第一条的位置，session 是第一条条目
+// window：只订阅最后几轮时最先收到，from 是补发的第一条的位置，session 是第一条条目；events：订阅时补发的条目，一次发完
 export type KitaSessionEvent =
-  | { type: 'event'; event: Event }
+  | { type: 'event'; event: PageEvent }
+  | { type: 'events'; events: PageEvent[] }
   | { type: 'live'; live: Live | null }
   | { type: 'window'; from: number; session: Extract<Entry, { type: 'session' }> }
   | LiveEvent

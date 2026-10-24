@@ -159,6 +159,16 @@ export function windowStart(id: string, size: number, before?: number): number {
 
 const journals = new Map<string, { size: number; events: Event[] }>()
 
+// index 处的工具调用和它的结果（在同一轮里按调用 id 对应），不是工具调用时返回 undefined
+export function readCall(id: string, index: number): { call: Entry; result?: Entry } | undefined {
+  const events = readJournal(id)
+  const call = events[index]
+  if (call?.data.type !== 'tool_call') return undefined
+  const callId = call.data.id
+  const result = events.slice(index + 1).find(({ turnId, data }) => turnId === call.turnId && data.type === 'tool_result' && data.callId === callId)
+  return structuredClone({ call: call.data, ...(result && { result: result.data }) })
+}
+
 export function readEntries(id: string, from = 0): Entry[] {
   return readEvents(id, from).map((event) => event.data)
 }
