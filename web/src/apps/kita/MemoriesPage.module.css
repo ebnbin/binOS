@@ -1,0 +1,143 @@
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-6) var(--space-10);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.add {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.add input,
+.edit textarea {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+.add button,
+.edit button {
+  padding: 0 var(--space-4);
+  height: var(--size-control-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.add button[type='submit'],
+.edit button[type='submit'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.add button:disabled,
+.edit button:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: default;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+}
+
+.item + .item {
+  border-top: 1px solid var(--color-separator);
+}
+
+.text {
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+  white-space: pre-wrap;
+}
+
+.edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.edit textarea {
+  resize: vertical;
+}
+
+.edit div {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+}
+
+.source {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
