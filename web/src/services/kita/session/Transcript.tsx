@@ -1,6 +1,6 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
 import { ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
@@ -14,8 +14,8 @@ import { Thinking } from './Thinking.tsx'
 import { ToolCall } from './ToolCall.tsx'
 import { callStatus, fileChanges, isFileEdit, toolLabel } from './tools.ts'
 import type { CallState, ToolCall as ToolCallEntry, ToolCategory, ToolResult } from './tools.ts'
-import { indexTranscript } from './transcript-index.ts'
-import type { IndexedEntry } from './transcript-index.ts'
+import { splitTurns } from './transcript-index.ts'
+import type { IndexedEntry, Turn } from './transcript-index.ts'
 import styles from './Transcript.module.css'
 import { TurnChanges } from './TurnChanges.tsx'
 
@@ -55,7 +55,8 @@ type Context = {
 // 一轮开始时离上一条超过这么久，先显示一条时间
 const dividerGap = 30 * 60 * 1000
 
-function buildBlocks(entries: IndexedEntry[], context: Context): Block[] {
+// lastTime：上一条的时间，一轮开始时离它太久或者跨了天，就先显示一条时间
+function buildBlocks(entries: IndexedEntry[], context: Context, lastTime?: string): Block[] {
   const blocks: Block[] = []
   const addStep = (step: Step) => {
     const last = blocks.at(-1)
@@ -68,12 +69,11 @@ function buildBlocks(entries: IndexedEntry[], context: Context): Block[] {
   // 这一轮到目前为止回复的文字和改文件的调用
   let replies: string[] = []
   let edits: CallState[] = []
-  // 上一条的时间：一轮开始时离它太久或者跨了天，就先显示一条时间
-  let lastTime: Date | undefined
+  let current = lastTime === undefined ? undefined : new Date(lastTime)
   for (const { item, index } of entries) {
     const key = String(index)
-    const previous = lastTime
-    lastTime = new Date(item.time)
+    const previous = current
+    current = new Date(item.time)
     switch (item.type) {
       case 'input':
         if (item.mode === 'start') {
@@ -131,23 +131,37 @@ function editCalls(state: CallState, context: Context): CallState[] {
   )
 }
 
-// 主对话按轮分节，tail 放在最后一节的末尾（回答进行中的临时内容）；子 agent 的过程不分节
-function Turns({ entries, context, tail }: { entries: IndexedEntry[]; context: Context; tail: ReactNode }) {
-  const blocks = buildBlocks(entries, context)
-  const turns: Block[][] = []
-  for (const block of blocks) {
-    if (block.kind === 'turn' || turns.length === 0) {
-      turns.push([])
-    }
-    turns.at(-1)!.push(block)
+// 主对话的一轮。没变的轮跳过重新渲染：只有最后一轮带 live、now 和 tail（回答进行中的临时内容），推送和计时只让它跟着动。
+// previousTime：上一轮最后一条的时间
+const TurnSection = memo(function TurnSection({
+  thread,
+  agent,
+  turn,
+  previousTime,
+  live,
+  now,
+  tail,
+}: {
+  thread: string
+  agent: AgentId | undefined
+  turn: Turn
+  previousTime: string | undefined
+  live: Live | null
+  now: number
+  tail?: ReactNode
+}) {
+  const context: Context = { thread, agent, results: turn.results, children: turn.children, live, now }
+  const blocks = buildBlocks(turn.main, context, previousTime)
+  if (!blocks.length && !tail) {
+    return null
   }
-  return turns.map((turn, index) => (
-    <section key={turn[0].key} className={styles.turn}>
-      {renderBlocks(turn, context, index === turns.length - 1 ? blocks.at(-1) : undefined)}
-      {index === turns.length - 1 && tail}
+  return (
+    <section className={styles.turn}>
+      {renderBlocks(blocks, context, tail === undefined ? undefined : blocks.at(-1))}
+      {tail}
     </section>
-  ))
-}
+  )
+})
 
 function Timeline({ entries, context }: { entries: IndexedEntry[]; context: Context }) {
   const blocks = buildBlocks(entries, context)
@@ -364,28 +378,42 @@ function formatElapsed(ms: number) {
 // thread 的内容：按轮分节，回答进行中的临时内容接在最后
 export function Transcript({ thread, items, live }: { thread: string; items: Entry[]; live: Live | null }) {
   const now = useNow(live !== null)
-  const { results, children, main } = indexTranscript(items)
+  const [split] = useState(() => {
+    let previous: Turn[] = []
+    return (items: Entry[]) => (previous = splitTurns(items, previous))
+  })
+  const turns = useMemo(() => split(items), [split, items])
   const agent = items[0]?.type === 'session' ? items[0].agent : undefined
-  const context: Context = { thread, agent, results, children, live, now }
-  const runningTool = main.findLast(({ item }) => item.type === 'tool_call' && !results.has(item))?.item
-  // 这一轮从最后一个 mode 为 start 的 input 开始
-  const turnStart = items.findLast((item) => item.type === 'input' && item.mode === 'start')?.time
-  return (
-    <Turns
-      entries={main}
-      context={context}
-      tail={
-        <>
-          {live?.thinking && <Thinking thread={thread} text={live.thinking} live />}
-          {live?.text.trim() && <Markdown thread={thread} text={live.text} files={live.files} />}
-          {live && (
-            <div className={styles.status}>
-              {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
-              {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
-            </div>
-          )}
-        </>
-      }
-    />
+  const current = turns.at(-1)
+  const runningTool = current?.main.findLast(({ item }) => item.type === 'tool_call' && !current.results.has(item))?.item
+  // 这一轮从 mode 为 start 的 input 开始
+  const first = current?.first
+  const turnStart = first?.type === 'input' && first.mode === 'start' ? first.time : undefined
+  const tail = (
+    <>
+      {live?.thinking && <Thinking thread={thread} text={live.thinking} live />}
+      {live?.text.trim() && <Markdown thread={thread} text={live.text} files={live.files} />}
+      {live && (
+        <div className={styles.status}>
+          {statusText(live.status, live, runningTool?.type === 'tool_call' ? runningTool.name : undefined)}
+          {turnStart && ` · ${formatElapsed(now - Date.parse(turnStart))}`}
+        </div>
+      )}
+    </>
   )
+  return turns.map((turn, index) => {
+    const last = index === turns.length - 1
+    return (
+      <TurnSection
+        key={turn.start}
+        thread={thread}
+        agent={agent}
+        turn={turn}
+        previousTime={turns[index - 1]?.main.at(-1)?.item.time}
+        live={last ? live : null}
+        now={last ? now : 0}
+        tail={last ? tail : undefined}
+      />
+    )
+  })
 }
