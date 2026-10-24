@@ -136,8 +136,13 @@ export type LiveEvent =
   | { type: 'file'; path: string; name: string }
 
 // 订阅 session 收到的：持久化事件带着序号与对象身份；live 是订阅时（以及一轮开始和结束时）的临时内容，null 表示没在回答；
-// 其余是临时内容的变化。记成条目的思考和文字取代对应的临时内容
-export type KitaSessionEvent = { type: 'event'; event: Event } | { type: 'live'; live: Live | null } | LiveEvent
+// 其余是临时内容的变化。记成条目的思考和文字取代对应的临时内容。
+// window：只订阅最后几轮时最先收到，from 是补发的第一条的位置，session 是第一条条目
+export type KitaSessionEvent =
+  | { type: 'event'; event: Event }
+  | { type: 'live'; live: Live | null }
+  | { type: 'window'; from: number; session: Extract<Entry, { type: 'session' }> }
+  | LiveEvent
 
 // idle：没在回答；running：正在回答；waiting：答完了，在等后台任务
 export type KitaSessionState = 'idle' | 'running' | 'waiting'

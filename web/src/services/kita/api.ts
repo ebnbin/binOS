@@ -1,5 +1,8 @@
 import type { KitaApi } from '@binos/server/services/kita/api'
+import type { KitaSessionEvent } from '@binos/server/services/kita/types'
 import { hc } from 'hono/client'
+
+export type SessionEvent = Extract<KitaSessionEvent, { type: 'event' }>['event']
 
 const client = hc<KitaApi>(`${window.location.origin}/api/kita`)
 
@@ -21,11 +24,20 @@ export async function agentCatalogs() {
   return res?.ok ? (await res.json()).agents : []
 }
 
-// thread 的内容：from 之后的条目，以及临时内容的变化
-export function sessionStreamUrl(thread: string, from: number) {
+// thread 的内容：from 之后的条目，以及临时内容的变化；from 为 undefined 时只要最后至少 tail 条，从一轮的开头补发
+export function sessionStreamUrl(thread: string, from: number | undefined, tail: number) {
   const url = client.sessions[':id'].stream.$url({ param: { id: thread } })
-  url.searchParams.set('from', String(from))
+  url.searchParams.set(from === undefined ? 'tail' : 'from', String(from ?? tail))
   return url.href
+}
+
+// before 之前至少 limit 条事件，从一轮的开头读起；读不到时返回 undefined
+export async function readOlderEvents(thread: string, before: number, limit: number): Promise<SessionEvent[] | undefined> {
+  const url = client.sessions[':id'].events.$url({ param: { id: thread } })
+  url.searchParams.set('before', String(before))
+  url.searchParams.set('limit', String(limit))
+  const res = await fetch(url).catch(() => undefined)
+  return res?.ok ? ((await res.json()) as { events: SessionEvent[] }).events : undefined
 }
 
 // name：下载时用的文件名

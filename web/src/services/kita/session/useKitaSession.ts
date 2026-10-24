@@ -1,15 +1,21 @@
 import type { Entry, Live, KitaSessionEvent } from '@binos/server/services/kita/types'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { connectEventSource } from '../../../eventSource.ts'
-import { sessionStreamUrl } from '../api.ts'
+import { readOlderEvents, sessionStreamUrl } from '../api.ts'
 
+// items 是从 offset 开始的连续条目，offset 大于 0 时前面还有更早的；session 是第一条条目，连上之前是 undefined；
 // live 是回答进行中的临时内容，null 表示没在回答
 export type KitaSessionContent = {
   items: Entry[]
+  offset: number
+  session: Extract<Entry, { type: 'session' }> | undefined
   live: Live | null
 }
 
-const initialContent: KitaSessionContent = { items: [], live: null }
+const initialContent: KitaSessionContent = { items: [], offset: 0, session: undefined, live: null }
+
+// 打开时先读最后至少这么多条，往上翻时每次再读这么多
+const pageSize = 300
 
 // 记成条目的思考和文字取代对应的临时内容，和后端一致
 function applyItem(live: Live | null, item: Entry): Live | null {
@@ -25,7 +31,7 @@ function applyItem(live: Live | null, item: Entry): Live | null {
   return live
 }
 
-function applyEvent(live: Live | null, event: Exclude<KitaSessionEvent, { type: 'event' }>): Live | null {
+function applyEvent(live: Live | null, event: Exclude<KitaSessionEvent, { type: 'event' | 'window' }>): Live | null {
   if (event.type === 'live') {
     return event.live
   }
@@ -49,22 +55,35 @@ function applyEvent(live: Live | null, event: Exclude<KitaSessionEvent, { type: 
 }
 
 function applyEvents(content: KitaSessionContent, events: KitaSessionEvent[]): KitaSessionContent {
-  const added: Entry[] = []
-  let { live } = content
+  let { items, offset, session, live } = content
+  let added: Entry[] = []
   for (const event of events) {
-    if (event.type === 'event') {
+    if (event.type === 'window') {
+      // 从头补发，之前收到的都不要了
+      items = []
+      added = []
+      offset = event.from
+      session = event.session
+      live = null
+    } else if (event.type === 'event') {
       added.push(event.event.data)
       live = applyItem(live, event.event.data)
     } else {
       live = applyEvent(live, event)
     }
   }
-  return { items: added.length ? [...content.items, ...added] : content.items, live }
+  return { items: added.length ? [...items, ...added] : items, offset, session, live }
 }
 
-// thread 的内容，随推送更新；thread 为 undefined 时是空的
-export function useKitaSession(thread: string | undefined): KitaSessionContent {
-  const [content, setContent] = useState(initialContent)
+// thread 的内容，随推送更新；thread 为 undefined 时是空的。先读最后几轮，loadOlder 往前补读更早的轮，给出 until 时一直读到包含它
+export function useKitaSession(thread: string | undefined): KitaSessionContent & { loadOlder: (until?: number) => void } {
+  const [state, setState] = useState<{ thread?: string; content: KitaSessionContent }>({ content: initialContent })
+  const content = state.thread === thread ? state.content : initialContent
+  const update = useCallback(
+    (target: string, change: (content: KitaSessionContent) => KitaSessionContent) =>
+      setState((prev) => ({ thread: target, content: change(prev.thread === target ? prev.content : initialContent) })),
+    [],
+  )
 
   useEffect(() => {
     if (thread === undefined) {
@@ -77,15 +96,17 @@ export function useKitaSession(thread: string | undefined): KitaSessionContent {
       frame = 0
       const events = queue
       queue = []
-      setContent((prev) => applyEvents(prev, events))
+      update(thread, (prev) => applyEvents(prev, events))
     }
-    // 浏览器自己重连时用 Last-Event-ID 接着补发；由 connectEventSource 重连时从已收到的条数接着补发
-    let count = 0
-    const close = connectEventSource(() => sessionStreamUrl(thread, count), {
+    // 浏览器自己重连时用 Last-Event-ID 接着补发；由 connectEventSource 重连时从已收到的位置接着补发，还没收到过时重新读最后几轮
+    let count: number | undefined
+    const close = connectEventSource(() => sessionStreamUrl(thread, count, pageSize), {
       onMessage: (data) => {
         const event: KitaSessionEvent = JSON.parse(data)
-        if (event.type === 'event') {
-          if (event.event.seq !== count + 1) {
+        if (event.type === 'window') {
+          count = event.from
+        } else if (event.type === 'event') {
+          if (count === undefined || event.event.seq !== count + 1) {
             return
           }
           count += 1
@@ -98,7 +119,32 @@ export function useKitaSession(thread: string | undefined): KitaSessionContent {
       cancelAnimationFrame(frame)
       close()
     }
-  }, [thread])
+  }, [thread, update])
 
-  return content
+  // 正在读更早的条目的 thread，同时只读一段
+  const loading = useRef<string>(undefined)
+  const { offset } = content
+  const loadOlder = useCallback(
+    (until?: number) => {
+      if (thread === undefined || offset === 0 || loading.current === thread) {
+        return
+      }
+      loading.current = thread
+      void readOlderEvents(thread, offset, Math.max(pageSize, offset - (until ?? offset))).then((events) => {
+        if (loading.current === thread) {
+          loading.current = undefined
+        }
+        if (!events?.length || events.at(-1)!.seq !== offset) {
+          return
+        }
+        // 这期间重新补发过时位置对不上，不接
+        update(thread, (prev) =>
+          prev.offset === offset ? { ...prev, offset: events[0].seq - 1, items: [...events.map((event) => event.data), ...prev.items] } : prev,
+        )
+      })
+    },
+    [thread, offset, update],
+  )
+
+  return { ...content, loadOlder }
 }

@@ -11,6 +11,8 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  /* 往前补读更早的轮时由 Transcript 自己保持滚动位置，浏览器的滚动锚定会重复调整 */
+  overflow-anchor: none;
 }
 
 .toBottom {
