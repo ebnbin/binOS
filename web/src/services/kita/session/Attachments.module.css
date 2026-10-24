@@ -87,7 +87,7 @@
   border-radius: var(--radius-full);
   background: var(--color-gray);
   box-shadow: 0 0 0 2px var(--color-background-elevated);
-  color: var(--color-on-accent);
+  color: var(--color-on-color);
   cursor: pointer;
 }
 

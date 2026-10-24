@@ -9,9 +9,9 @@
   border-radius: var(--radius-app-icon);
   background:
     var(--app-icon-highlight),
-    linear-gradient(180deg, color-mix(in srgb, var(--tint) 72%, var(--color-on-accent)), var(--tint));
-  box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--color-on-accent) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--color-chrome) 18%, transparent);
-  color: var(--color-on-accent);
+    linear-gradient(180deg, color-mix(in srgb, var(--tint) 72%, var(--color-on-color)), var(--tint));
+  box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--color-on-color) 18%, transparent), 0 1px 2px color-mix(in srgb, var(--color-chrome) 18%, transparent);
+  color: var(--color-on-color);
 }
 
 .icon svg {
