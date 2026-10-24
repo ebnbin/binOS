@@ -57,8 +57,8 @@ type Produced = { offset?: number; parent?: string }
 // 事件携带的语义记录。持久化、对象身份和批次边界由 journal/store 管理。
 // 一轮从 mode 为 start 的 input 开始，到 turn_end 结束；中间的 input 是回答中途插的话（interrupt：先打断了正在做的事）
 export type Entry =
-  // 第一条：session 用哪个 agent、属于哪个 app、在哪个目录里干活、追加的系统提示
-  | { type: 'session'; time: string; agent: AgentId; owner: string; cwd: string; instructions?: string }
+  // 第一条：session 用哪个 agent、属于哪个 app、在哪个目录里干活、追加的系统提示、以喜多的身份时读写哪些记忆
+  | { type: 'session'; time: string; agent: AgentId; owner: string; cwd: string; instructions?: string; identity?: IdentityScope }
   // model、effort：开始这一轮时选的，没有是 agent 的默认
   | {
       type: 'input'
@@ -203,3 +203,34 @@ export type AgentAccount = {
   // 正在回答的 session 数，不分是哪个 app 的
   running: number
 }
+
+// session 以喜多的身份对话：带上用户写的喜多的描述和照片，读 read 里这些范围的记忆，新的记忆记到 write 范围。
+// 没有它的 session（Code、临时对话）不带身份，也读写不了记忆。范围是 personal（个人）或某个 app 的 id
+export type IdentityScope = { read: string[]; write: string }
+
+// stated：用户说过或确认过的；inferred：agent 从交流中推测的，用户确认前不能当作事实
+export type MemoryKind = 'stated' | 'inferred'
+
+// 谁写的：用户在页面上，或者某个 app 的 session 里的 agent
+export type MemorySource = { type: 'user' } | { type: 'session'; owner: string; session: string }
+
+// 一条长期记忆；history 是改动前的各个版本，从旧到新，可以恢复
+export type Memory = {
+  id: string
+  text: string
+  kind: MemoryKind
+  scope: string
+  source: MemorySource
+  createdAt: string
+  updatedAt: string
+  history: { text: string; kind: MemoryKind; time: string; source: MemorySource }[]
+}
+
+// 喜多的照片：file 是 identity/photos/ 里的文件名
+export type Photo = { file: string; addedAt: string }
+
+// 用户写的喜多：description 是喜多的样子、性格和相处方式，空表示还没写；avatar 是用作头像的照片
+export type Profile = { description: string; photos: Photo[]; avatar?: string }
+
+// 不在回答中的 session 不在里面
+export type Activity = { session: string; owner: string; state: Exclude<KitaSessionState, 'idle'>; since: string }

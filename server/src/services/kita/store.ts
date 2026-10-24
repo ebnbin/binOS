@@ -109,6 +109,12 @@ export function createKitaSession(first: Extract<Entry, { type: 'session' }>): s
   return id
 }
 
+export function removeKitaSession(id: string) {
+  rmSync(sessionDir(id), { recursive: true, force: true })
+  journals.delete(id)
+  infos.delete(id)
+}
+
 // 只容忍最后未提交的半行；中间的损坏必须报错，不能把损坏的历史当成有效会话。
 function readJournal(id: string): Event[] {
   metadata(id)

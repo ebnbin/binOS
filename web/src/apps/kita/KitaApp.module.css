@@ -1,0 +1,226 @@
+/* 宽度不小于 760 时列表和内容并排，否则一次只显示一页 */
+.app {
+  container: kita / inline-size;
+  height: 100%;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  height: 100%;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--color-bg-subtle);
+  border-right: 1px solid var(--color-separator);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-2) var(--space-2);
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.identity span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.identity strong {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.identity small {
+  overflow: hidden;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-2);
+}
+
+.actions button,
+.conversation {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--size-control-md);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-item);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--font-size-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.actions small {
+  margin-left: auto;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.identity[aria-current],
+.actions button[aria-current],
+.conversation[aria-current] {
+  background: var(--color-fill);
+}
+
+@media (hover: hover) {
+  .identity:hover,
+  .actions button:hover,
+  .conversation:hover {
+    background: var(--color-hover);
+  }
+}
+
+.label {
+  padding: var(--space-4) var(--space-5) var(--space-1-5);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-3);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.list li {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.placeholder {
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation time {
+  flex: none;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.badge,
+.running {
+  flex: none;
+  color: var(--color-text-tertiary);
+}
+
+.running {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 删除按钮盖在时间上，悬停时才出现 */
+.delete {
+  position: absolute;
+  right: var(--space-1);
+  visibility: hidden;
+  background: var(--color-bg-subtle);
+}
+
+@media (hover: hover) {
+  .list li:hover .delete {
+    visibility: visible;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.bar {
+  display: none;
+}
+
+@container kita (width < 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar,
+  .main {
+    grid-area: 1 / 1;
+  }
+
+  .layout[data-view='list'] .main,
+  .layout[data-view='page'] .sidebar {
+    visibility: hidden;
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-separator);
+  }
+
+  .bar span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 触屏上没有悬停，列表上的删除按钮一直在，占掉时间的位置 */
+  .layout[data-view='list'] .delete {
+    visibility: visible;
+  }
+
+  .conversation time {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .running {
+    animation: none;
+  }
+}

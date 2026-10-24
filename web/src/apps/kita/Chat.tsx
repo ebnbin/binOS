@@ -1,0 +1,148 @@
+import type { Conversation } from '@binos/server/apps/kita/types'
+import type { Profile } from '@binos/server/services/kita/types'
+import { ArrowUp, EyeOff } from 'lucide-react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import type { KeyboardEvent } from 'react'
+import { Transcript } from '../../services/kita/session/Transcript.tsx'
+import { useKitaSession } from '../../services/kita/session/useKitaSession.ts'
+import { Alert } from '../../ui/Alert.tsx'
+import { Spinner } from '../../ui/Spinner.tsx'
+import { sendMessage, startConversation, stopConversation } from './api.ts'
+import { Avatar } from './Avatar.tsx'
+import styles from './Chat.module.css'
+
+// 触屏设备上回车换行，用按钮发送；有键盘的设备上回车发送，Shift+回车换行
+const enterSends = !window.matchMedia('(pointer: coarse)').matches
+
+// 离底部不超过这个距离时，新内容到来会自动滚到底
+const stickThreshold = 80
+
+// id 为 undefined 是新对话，第一句发出后由 onCreated 换成它的 id；temporary 只对新对话有意义
+export function Chat({
+  id,
+  temporary,
+  conversation,
+  profile,
+  onCreated,
+}: {
+  id: string | undefined
+  temporary: boolean
+  conversation: Conversation | undefined
+  profile: Profile | undefined
+  onCreated(id: string): void
+}) {
+  const { items, live } = useKitaSession(id)
+  const running = live !== null
+  const [input, setInput] = useState('')
+  const [sending, setSending] = useState(false)
+  const [notice, setNotice] = useState('')
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const stick = useRef(true)
+  const isTemporary = conversation?.temporary ?? temporary
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (el && stick.current) el.scrollTop = el.scrollHeight
+  }, [items, live, notice])
+
+  async function send() {
+    const text = input.trim()
+    if (!text || sending) return
+    setSending(true)
+    setNotice('')
+    stick.current = true
+    try {
+      if (id === undefined) {
+        const result = await startConversation(text, temporary)
+        if ('error' in result) setNotice(result.error)
+        else {
+          setInput('')
+          onCreated(result.id)
+        }
+      } else {
+        const error = await sendMessage(id, text)
+        if (error) setNotice(error)
+        else setInput('')
+      }
+    } finally {
+      setSending(false)
+    }
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return
+    if (enterSends && event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault()
+      void send()
+    }
+  }
+
+  return (
+    <div className={styles.chat}>
+      <div
+        className={styles.scroll}
+        ref={scrollRef}
+        onScroll={(event) => {
+          const el = event.currentTarget
+          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < stickThreshold
+        }}
+      >
+        <div className={styles.column}>
+          {id === undefined ? (
+            <div className={styles.empty}>
+              {isTemporary ? (
+                <>
+                  <span className={styles.temporaryMark}>
+                    <EyeOff size={28} strokeWidth={1.5} />
+                  </span>
+                  <h1>临时对话</h1>
+                  <p>不带喜多的身份和记忆，也不会留下新的记忆。对话记录会保留，不需要时可以删除。</p>
+                </>
+              ) : (
+                <>
+                  <Avatar profile={profile} size={88} />
+                  <h1>喜多</h1>
+                </>
+              )}
+            </div>
+          ) : (
+            <Transcript thread={id} items={items} live={live} />
+          )}
+          {notice && <Alert>{notice}</Alert>}
+        </div>
+      </div>
+      <form
+        className={styles.composer}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void send()
+        }}
+      >
+        <textarea
+          className={styles.input}
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={onKeyDown}
+          placeholder={running ? '补充或纠正，喜多会在下一步看到' : isTemporary ? '临时对话' : '和喜多说话'}
+          rows={1}
+          readOnly={sending}
+          aria-label="消息"
+          autoFocus={enterSends}
+        />
+        {sending ? (
+          <span className={styles.action}>
+            <Spinner />
+          </span>
+        ) : running && !input.trim() ? (
+          <button type="button" className={styles.action} onClick={() => id && void stopConversation(id)} aria-label="停止" title="停止">
+            <span className={styles.stopIcon} />
+          </button>
+        ) : (
+          <button type="submit" className={styles.action} disabled={!input.trim()} aria-label="发送" title="发送">
+            <ArrowUp size={17} strokeWidth={2.2} />
+          </button>
+        )}
+      </form>
+    </div>
+  )
+}
