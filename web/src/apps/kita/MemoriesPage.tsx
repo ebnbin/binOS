@@ -28,14 +28,14 @@ export function MemoriesPage({ memories, conversations, onOpen }: { memories: Me
             void add()
           }}
         >
-          <input value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="添加记忆" aria-label="添加记忆" />
-          <button type="submit" disabled={!draft.trim()}>
+          <input className={styles.field} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="添加记忆" aria-label="添加记忆" />
+          <button type="submit" className={styles.prominent} disabled={!draft.trim()}>
             添加
           </button>
         </form>
         {inferred.length > 0 && (
           <section>
-            <h2>待确认</h2>
+            <h2 className={styles.heading}>待确认</h2>
             <ul className={styles.list}>
               {inferred.map((memory) => (
                 <MemoryItem key={memory.id} memory={memory} conversations={conversations} onOpen={onOpen} />
@@ -44,7 +44,7 @@ export function MemoriesPage({ memories, conversations, onOpen }: { memories: Me
           </section>
         )}
         <section>
-          <h2>已确认</h2>
+          <h2 className={styles.heading}>已确认</h2>
           {memories && stated.length === 0 ? (
             <p className={styles.hint}>无</p>
           ) : (
@@ -80,12 +80,12 @@ function MemoryItem({ memory, conversations, onOpen }: { memory: Memory; convers
             void save()
           }}
         >
-          <textarea value={editing} onChange={(event) => setEditing(event.target.value)} aria-label="记忆的内容" autoFocus rows={2} />
+          <textarea className={styles.textarea} value={editing} onChange={(event) => setEditing(event.target.value)} aria-label="记忆的内容" autoFocus rows={2} />
           <div>
-            <button type="button" onClick={() => setEditing(undefined)}>
+            <button type="button" className={styles.button} onClick={() => setEditing(undefined)}>
               取消
             </button>
-            <button type="submit" disabled={!editing.trim()}>
+            <button type="submit" className={styles.prominent} disabled={!editing.trim()}>
               保存
             </button>
           </div>

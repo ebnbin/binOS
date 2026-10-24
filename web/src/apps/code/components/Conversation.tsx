@@ -150,10 +150,10 @@ export function Conversation({
           <div className={styles.column}>
             {sessionId === null ? (
               <div className={styles.empty}>
-                <BrandMark size={36} />
+                <BrandMark size={48} />
                 <h1>开始新对话</h1>
                 <div className={styles.projectChoice}>
-                  <Folder size={16} aria-hidden="true" />
+                  <Folder size={16} strokeWidth={1.75} aria-hidden="true" />
                   <Select
                     label="对话所属项目"
                     value={project}
@@ -172,7 +172,7 @@ export function Conversation({
         </div>
         {awayFromBottom && (
           <button type="button" className={styles.toBottom} onClick={scrollToBottom} aria-label="回到底部" title="回到底部">
-            <ArrowDown size={16} strokeWidth={2} />
+            <ArrowDown size={18} strokeWidth={1.75} />
           </button>
         )}
       </div>

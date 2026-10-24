@@ -40,7 +40,7 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
         </header>
         {notice && <Alert>{notice}</Alert>}
         <section>
-          <h2>照片</h2>
+          <h2 className={styles.heading}>照片</h2>
           <div className={styles.photos}>
             {profile?.photos.map((photo) => (
               <figure key={photo.file} className={styles.photo} data-avatar={photo.file === profile.avatar || undefined}>
@@ -68,7 +68,7 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
           </div>
         </section>
         <section>
-          <h2>描述</h2>
+          <h2 className={styles.heading}>描述</h2>
           <textarea
             className={styles.description}
             value={text}
@@ -78,7 +78,7 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
           />
           <div className={styles.save}>
             {changed && (
-              <button type="button" onClick={() => setDescription(undefined)}>
+              <button type="button" className={styles.button} onClick={() => setDescription(undefined)}>
                 还原
               </button>
             )}

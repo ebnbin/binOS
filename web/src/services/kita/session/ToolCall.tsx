@@ -35,6 +35,7 @@ export function ToolCall({ thread, state, now }: { thread: string; state: CallSt
   const label = toolLabel(call)
   return (
     <Activity
+      icon={label.icon}
       label={label.verb}
       detail={label.detail ? shorten(label.detail) : ''}
       meta={
