@@ -1,11 +1,14 @@
 import type { Conversation } from '@binos/server/apps/kita/types'
-import type { Profile } from '@binos/server/services/kita/types'
+import { agents, defaultAgent } from '@binos/server/services/kita/types'
+import type { AgentId, Profile } from '@binos/server/services/kita/types'
 import { ArrowUp, EyeOff } from 'lucide-react'
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
+import { useAgentCatalogs } from '../../services/kita/models.ts'
 import { Transcript } from '../../services/kita/session/Transcript.tsx'
 import { useKitaSession } from '../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../ui/Alert.tsx'
+import { Select } from '../../ui/Select.tsx'
 import { Spinner } from '../../ui/Spinner.tsx'
 import { sendMessage, startConversation, stopConversation } from './api.ts'
 import { Avatar } from './Avatar.tsx'
@@ -17,18 +20,21 @@ const enterSends = !window.matchMedia('(pointer: coarse)').matches
 // 离底部不超过这个距离时，新内容到来会自动滚到底
 const stickThreshold = 80
 
-// id 为 undefined 是新对话，第一句发出后由 onCreated 换成它的 id；temporary 只对新对话有意义
+// id 为 undefined 是新对话，第一句发出后由 onCreated 换成它的 id；temporary 只对新对话有意义。
+// memoryCount：带身份的对话会想起的记忆条数
 export function Chat({
   id,
   temporary,
   conversation,
   profile,
+  memoryCount,
   onCreated,
 }: {
   id: string | undefined
   temporary: boolean
   conversation: Conversation | undefined
   profile: Profile | undefined
+  memoryCount: number
   onCreated(id: string): void
 }) {
   const { items, live } = useKitaSession(id)
@@ -39,6 +45,10 @@ export function Chat({
   const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
   const isTemporary = conversation?.temporary ?? temporary
+  // 新对话能选能用的 agent，已有的对话沿用它的
+  const catalogs = useAgentCatalogs()
+  const [agent, setAgent] = useState<AgentId>(defaultAgent)
+  const choosable = catalogs.filter((catalog) => catalog.available || catalog.agent === agent)
 
   useLayoutEffect(() => {
     const el = scrollRef.current
@@ -53,7 +63,7 @@ export function Chat({
     stick.current = true
     try {
       if (id === undefined) {
-        const result = await startConversation(text, temporary)
+        const result = await startConversation(text, temporary, agent)
         if ('error' in result) setNotice(result.error)
         else {
           setInput('')
@@ -111,38 +121,54 @@ export function Chat({
           {notice && <Alert>{notice}</Alert>}
         </div>
       </div>
-      <form
-        className={styles.composer}
-        onSubmit={(event) => {
-          event.preventDefault()
-          void send()
-        }}
-      >
-        <textarea
-          className={styles.input}
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder={running ? '补充或纠正，喜多会在下一步看到' : isTemporary ? '临时对话' : '和喜多说话'}
-          rows={1}
-          readOnly={sending}
-          aria-label="消息"
-          autoFocus={enterSends}
-        />
-        {sending ? (
-          <span className={styles.action}>
-            <Spinner />
-          </span>
-        ) : running && !input.trim() ? (
-          <button type="button" className={styles.action} onClick={() => id && void stopConversation(id)} aria-label="停止" title="停止">
-            <span className={styles.stopIcon} />
-          </button>
-        ) : (
-          <button type="submit" className={styles.action} disabled={!input.trim()} aria-label="发送" title="发送">
-            <ArrowUp size={17} strokeWidth={2.2} />
-          </button>
-        )}
-      </form>
+      <div className={styles.dock}>
+        <form
+          className={styles.composer}
+          onSubmit={(event) => {
+            event.preventDefault()
+            void send()
+          }}
+        >
+          <textarea
+            className={styles.input}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder={running ? '补充或纠正，喜多会在下一步看到' : isTemporary ? '临时对话' : '和喜多说话'}
+            rows={1}
+            readOnly={sending}
+            aria-label="消息"
+            autoFocus={enterSends}
+          />
+          {sending ? (
+            <span className={styles.action}>
+              <Spinner />
+            </span>
+          ) : running && !input.trim() ? (
+            <button type="button" className={styles.action} onClick={() => id && void stopConversation(id)} aria-label="停止" title="停止">
+              <span className={styles.stopIcon} />
+            </button>
+          ) : (
+            <button type="submit" className={styles.action} disabled={!input.trim()} aria-label="发送" title="发送">
+              <ArrowUp size={17} strokeWidth={2.2} />
+            </button>
+          )}
+        </form>
+        <div className={styles.context}>
+          {id === undefined ? (
+            <Select
+              label="用哪个 agent"
+              value={agent}
+              onValueChange={(value) => setAgent(value as AgentId)}
+              options={(choosable.length > 0 ? choosable.map((catalog) => catalog.agent) : [agent]).map((value) => ({ value, label: agents[value].name }))}
+              className={styles.agent}
+            />
+          ) : (
+            conversation && <span>{agents[conversation.agent].name}</span>
+          )}
+          <span>{isTemporary ? '不带喜多的身份和记忆' : `带着 ${memoryCount} 条记忆`}</span>
+        </div>
+      </div>
     </div>
   )
 }

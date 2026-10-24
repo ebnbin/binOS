@@ -1,4 +1,5 @@
 import type { KitaAppApi } from '@binos/server/apps/kita/api'
+import type { AgentId } from '@binos/server/services/kita/types'
 import { hc } from 'hono/client'
 
 const client = hc<KitaAppApi>(`${window.location.origin}/api/apps/kita`)
@@ -13,8 +14,8 @@ export async function listConversations() {
 }
 
 // 新对话返回它的 id；出错时返回给用户看的原因
-export async function startConversation(text: string, temporary: boolean): Promise<{ id: string } | { error: string }> {
-  const res = await conversations.$post({ json: { text, temporary } }).catch(() => undefined)
+export async function startConversation(text: string, temporary: boolean, agent: AgentId): Promise<{ id: string } | { error: string }> {
+  const res = await conversations.$post({ json: { text, temporary, agent } }).catch(() => undefined)
   if (res?.status === 200) return await res.json()
   return { error: res?.status === 503 ? '消息没能交给喜多，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }

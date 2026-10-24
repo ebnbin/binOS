@@ -1,17 +1,17 @@
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import path from 'node:path'
 import { notifyChange } from '../../events.js'
 import { appDir } from '../../paths.js'
 import { forApp } from '../../services/kita/index.js'
 import type { KitaSession } from '../../services/kita/index.js'
 import { transcriptPrompt } from '../../services/kita/transcript-prompt.js'
-import { defaultAgent } from '../../services/kita/types.js'
+import type { AgentId } from '../../services/kita/types.js'
 import type { Conversation } from './types.js'
 
 export const kita = forApp('kita')
 
-// agent 在这里干活，和 binOS 的代码分开
-const workspace = path.join(appDir('kita'), 'workspace')
+// 每个对话一个工作目录，和 binOS 的代码分开，对话之间也互相看不到对方留下的文件
+const workspacesDir = path.join(appDir('kita'), 'workspaces')
 
 // 喜多 app 的对话读写个人范围的记忆
 const identity = { read: ['personal'], write: 'personal' }
@@ -30,6 +30,7 @@ function conversation(session: KitaSession): Conversation {
     id: session.id,
     title: (first?.type === 'input' ? first.text.trim() : '').slice(0, 100),
     temporary: !session.metadata().identity,
+    agent: summary.agent,
     state: summary.state,
     createdAt: summary.createdAt,
     updatedAt: summary.updatedAt,
@@ -40,9 +41,10 @@ function conversation(session: KitaSession): Conversation {
 export const listConversations = () => kita.listSessions().map(conversation).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 
 // 返回对话的 id；交不过去时返回 undefined
-export async function startConversation(text: string, temporary: boolean): Promise<string | undefined> {
-  mkdirSync(workspace, { recursive: true })
-  const session = kita.createSession({ agent: defaultAgent, cwd: workspace, instructions: transcriptPrompt, ...(!temporary && { identity }) })
+export async function startConversation(text: string, temporary: boolean, agent: AgentId): Promise<string | undefined> {
+  mkdirSync(workspacesDir, { recursive: true })
+  const cwd = mkdtempSync(path.join(workspacesDir, 'conversation-'))
+  const session = kita.createSession({ agent, cwd, instructions: transcriptPrompt, ...(!temporary && { identity }) })
   notifyChange({ type: 'kita' })
   return (await session.send({ text })) ? session.id : undefined
 }
@@ -54,8 +56,12 @@ export async function sendMessage(id: string, text: string): Promise<boolean> {
 
 export const stopConversation = (id: string) => kita.getSession(id)?.stop() ?? false
 
+// 对话的工作目录一起删掉
 export async function deleteConversation(id: string): Promise<boolean> {
+  const cwd = kita.getSession(id)?.metadata().cwd
   const deleted = await kita.deleteSession(id)
-  if (deleted) notifyChange({ type: 'kita' })
-  return deleted
+  if (!deleted) return false
+  if (cwd && path.dirname(cwd) === workspacesDir) rmSync(cwd, { recursive: true, force: true })
+  notifyChange({ type: 'kita' })
+  return true
 }

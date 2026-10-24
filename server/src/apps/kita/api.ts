@@ -1,5 +1,7 @@
 import { Hono } from 'hono'
 import { validator } from 'hono/validator'
+import { agentIds, defaultAgent } from '../../services/kita/types.js'
+import type { AgentId } from '../../services/kita/types.js'
 import { deleteConversation, kita, listConversations, sendMessage, startConversation, stopConversation } from './conversations.js'
 
 const maxText = 100_000
@@ -9,20 +11,28 @@ const conversationParam = validator('param', (value: Record<string, string>, c) 
   return kita.getSession(id) ? { id } : c.text('Not Found', 404)
 })
 
-// temporary：新对话是临时的
+const isAgent = (value: unknown): value is AgentId => agentIds.includes(value as AgentId)
+
+// temporary：新对话是临时的；agent：新对话用哪个，不给是默认的。已有的对话不看这两项
 const messageBody = validator('json', (value, c) => {
-  const body = value as { text?: unknown; temporary?: unknown } | null
+  const body = value as { text?: unknown; temporary?: unknown; agent?: unknown } | null
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
-  if (!text || text.length > maxText || (body?.temporary !== undefined && typeof body.temporary !== 'boolean')) return c.text('Bad Request', 400)
-  const message: { text: string; temporary?: boolean } = { text, ...(body?.temporary === true && { temporary: true }) }
+  if (!text || text.length > maxText || (body?.temporary !== undefined && typeof body.temporary !== 'boolean') || (body?.agent !== undefined && !isAgent(body.agent))) {
+    return c.text('Bad Request', 400)
+  }
+  const message: { text: string; temporary?: boolean; agent?: AgentId } = {
+    text,
+    ...(body?.temporary === true && { temporary: true }),
+    ...(isAgent(body?.agent) && { agent: body.agent }),
+  }
   return message
 })
 
 export const kitaAppApi = new Hono()
   .get('/conversations', (c) => c.json({ conversations: listConversations() }))
   .post('/conversations', messageBody, async (c) => {
-    const { text, temporary = false } = c.req.valid('json')
-    const id = await startConversation(text, temporary)
+    const { text, temporary = false, agent = defaultAgent } = c.req.valid('json')
+    const id = await startConversation(text, temporary, agent)
     return id ? c.json({ id }, 200) : c.json({ error: 'unavailable' } as const, 503)
   })
   .post('/conversations/:id/messages', conversationParam, messageBody, async (c) => {

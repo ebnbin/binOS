@@ -29,10 +29,13 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
   const status = kitaStatus(activity, useApplications())
   const id = route.name === 'conversation' ? route.id : undefined
   const conversation = conversations?.find((item) => item.id === id)
+  // 刚建好的对话可能还没出现在列表里，不能当成不存在
+  const [created, setCreated] = useState<string>()
+  const missing = id !== undefined && conversations !== undefined && !conversation && id !== created
   // 窄的时候一次只显示一页：从首页打开时先显示列表
   const [showList, setShowList] = useState(route.name === 'new' && !route.temporary)
   const title =
-    route.name === 'memories' ? '记忆' : route.name === 'profile' ? '喜多' : route.name === 'new' ? (route.temporary ? '临时对话' : '新对话') : (conversation?.title ?? '')
+    route.name === 'memories' ? '记忆' : route.name === 'profile' ? '喜多' : route.name === 'new' ? (route.temporary ? '临时对话' : '新对话') : missing ? '对话不存在' : (conversation?.title ?? '')
 
   const { setTitle } = ctx
   useEffect(() => setTitle(title), [setTitle, title])
@@ -69,7 +72,7 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
           </div>
           <div className={styles.label}>对话</div>
           <ul className={styles.list}>
-            {failed && !conversations && <li className={styles.placeholder}>读取失败</li>}
+            {failed && !conversations && <li className={styles.placeholder}>读取失败，恢复连接后会自动重试</li>}
             {conversations?.length === 0 && <li className={styles.placeholder}>还没有对话</li>}
             {conversations?.map((item) => (
               <li key={item.id}>
@@ -102,6 +105,13 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
             <MemoriesPage memories={memories} conversations={conversations} onOpen={(conversationId) => open(`/c/${conversationId}`)} />
           ) : route.name === 'profile' ? (
             <ProfilePage profile={profile} />
+          ) : missing ? (
+            <div className={styles.missing}>
+              <p>这个对话不存在</p>
+              <button type="button" onClick={() => open('/')}>
+                开始新对话
+              </button>
+            </div>
           ) : (
             <Chat
               key={id ?? (route.name === 'new' && route.temporary ? 'temporary' : 'new')}
@@ -109,7 +119,11 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
               temporary={route.name === 'new' && route.temporary}
               conversation={conversation}
               profile={profile}
-              onCreated={(created) => ctx.navigate(`/c/${created}`, { replace: true })}
+              memoryCount={memories?.filter((memory) => memory.scope === 'personal').length ?? 0}
+              onCreated={(newId) => {
+                setCreated(newId)
+                ctx.navigate(`/c/${newId}`, { replace: true })
+              }}
             />
           )}
         </main>

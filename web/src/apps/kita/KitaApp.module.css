@@ -180,6 +180,29 @@
   display: none;
 }
 
+.missing {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-text-tertiary);
+}
+
+.missing p {
+  margin: 0;
+}
+
+.missing button {
+  border: 0;
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 @container kita (width < 760px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
