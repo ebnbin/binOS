@@ -111,9 +111,9 @@
   --color-on-wallpaper: #fff;
   --shadow-on-wallpaper: 0 1px 3px rgb(0 0 0 / 35%);
 
-  /* app 图标：纯色的底，图形是正文色 */
-  --app-icon-tile: var(--color-background-elevated);
-  --app-icon-glyph: var(--color-label);
+  /* 石墨色和白色的 app 图标底色；其余 app 图标用系统色 */
+  --app-icon-graphite: #2c2c2e;
+  --app-icon-light: #fff;
 
   /* 终端始终是深色，取 macOS 终端的默认配色 */
   --color-terminal-bg: #1e1e1e;
@@ -290,6 +290,7 @@
     --color-hover: rgb(255 255 255 / 7%);
     --color-pressed: rgb(255 255 255 / 14%);
     --color-scrim: rgb(0 0 0 / 45%);
+    --app-icon-light: #3a3a3c;
 
     --material-glass: rgb(40 40 42 / 58%);
     --material-glass-thick: rgb(40 40 42 / 86%);
