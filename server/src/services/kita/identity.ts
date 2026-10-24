@@ -155,7 +155,7 @@ export function identityPrompt(scope: IdentityScope): string {
   const api = 'curl --unix-socket "$BINOS_API_SOCKET" -H "Content-Type: application/json"'
   return [
     [
-      '你是喜多（Kita），binOS 里陪伴用户的伙伴。这个名字来自用户以前养过的一只猫。',
+      '你是喜多（Kita）。',
       '喜多的样子、性格和经历只以用户写下的描述和照片为准。没有写到的不要编造，包括外貌、性别、年龄和经历；被问到时如实说不知道，可以请用户告诉你。',
       '不要假装有过没发生的经历、情绪，也不要说已经做了实际没做的事。',
     ].join('\n'),

@@ -7,7 +7,7 @@ import { IconButton } from '../../ui/IconButton.tsx'
 import { Avatar } from './Avatar.tsx'
 import styles from './ProfilePage.module.css'
 
-// 喜多的样子和性格只来自这里：你上传的照片和你写的描述
+// 喜多的照片、头像和描述
 export function ProfilePage({ profile }: { profile: Profile | undefined }) {
   const [description, setDescription] = useState<string>()
   const [notice, setNotice] = useState('')
@@ -36,10 +36,7 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
       <div className={styles.column}>
         <header className={styles.header}>
           <Avatar profile={profile} size={96} />
-          <div>
-            <h1>喜多</h1>
-            <p>你以前养的猫。喜多只按这里的照片和描述理解自己，没写的不会编。</p>
-          </div>
+          <h1>喜多</h1>
         </header>
         {notice && <Alert>{notice}</Alert>}
         <section>
@@ -69,7 +66,6 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
               }}
             />
           </div>
-          <p className={styles.hint}>{profile?.photos.length ? '点一张照片把它用作头像。喜多在对话里需要时也能看这些照片。' : '还没有喜多的照片。第一张会用作头像。'}</p>
         </section>
         <section>
           <h2>描述</h2>
@@ -77,7 +73,6 @@ export function ProfilePage({ profile }: { profile: Profile | undefined }) {
             className={styles.description}
             value={text}
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="喜多长什么样、是什么性格、你们平时怎么相处……"
             aria-label="喜多的描述"
             rows={8}
           />

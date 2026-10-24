@@ -72,7 +72,7 @@ export function KitaApp({ ctx }: { ctx: WindowContext }) {
           </div>
           <div className={styles.label}>对话</div>
           <ul className={styles.list}>
-            {failed && !conversations && <li className={styles.placeholder}>读取失败，恢复连接后会自动重试</li>}
+            {failed && !conversations && <li className={styles.placeholder}>读取失败</li>}
             {conversations?.length === 0 && <li className={styles.placeholder}>还没有对话</li>}
             {conversations?.map((item) => (
               <li key={item.id}>

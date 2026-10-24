@@ -7,8 +7,8 @@ export function kitaStatus(activity: Activity[], applications: ApplicationDefini
   const counts = new Map<string, number>()
   for (const item of activity) counts.set(item.owner, (counts.get(item.owner) ?? 0) + 1)
   const parts = [...counts].map(([owner, count]) => {
-    const name = owner === 'kita' ? '这里' : (applications.find((app) => app.id === owner)?.name ?? owner)
+    const name = applications.find((app) => app.id === owner)?.name ?? owner
     return count > 1 ? `${name}（${count}）` : name
   })
-  return { busy: true, label: `正在忙：${parts.join('、')}` }
+  return { busy: true, label: `回答中：${parts.join('、')}` }
 }

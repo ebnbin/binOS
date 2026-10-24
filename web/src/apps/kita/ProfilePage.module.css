@@ -26,14 +26,6 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
-.header p,
-.hint {
-  margin: var(--space-1) 0 0;
-  color: var(--color-text-tertiary);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-relaxed);
-}
-
 section {
   display: flex;
   flex-direction: column;

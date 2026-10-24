@@ -13,7 +13,6 @@
   padding: var(--space-5) var(--space-6) var(--space-10);
 }
 
-.intro,
 .hint {
   margin: 0;
   color: var(--color-text-tertiary);

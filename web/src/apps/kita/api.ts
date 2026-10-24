@@ -17,14 +17,14 @@ export async function listConversations() {
 export async function startConversation(text: string, temporary: boolean, agent: AgentId): Promise<{ id: string } | { error: string }> {
   const res = await conversations.$post({ json: { text, temporary, agent } }).catch(() => undefined)
   if (res?.status === 200) return await res.json()
-  return { error: res?.status === 503 ? '消息没能交给喜多，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
+  return { error: res?.status === 503 ? '消息没能发出，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）` }
 }
 
 // 正在回答时交给 agent，它在下一步看到
 export async function sendMessage(id: string, text: string): Promise<string | undefined> {
   const res = await conversations[':id'].messages.$post({ param: { id }, json: { text } }).catch(() => undefined)
   if (res?.status === 200) return undefined
-  return res?.status === 503 ? '消息没能交给喜多，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）`
+  return res?.status === 503 ? '消息没能发出，稍后再试' : `发送失败（${res?.status ?? '网络错误'}）`
 }
 
 export async function stopConversation(id: string) {

@@ -106,7 +106,6 @@ export function Chat({
                     <EyeOff size={28} strokeWidth={1.5} />
                   </span>
                   <h1>临时对话</h1>
-                  <p>不带喜多的身份和记忆，也不会留下新的记忆。对话记录会保留，不需要时可以删除。</p>
                 </>
               ) : (
                 <>
@@ -134,7 +133,7 @@ export function Chat({
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder={running ? '补充或纠正，喜多会在下一步看到' : isTemporary ? '临时对话' : '和喜多说话'}
+            placeholder={running ? '补充或纠正' : '输入消息'}
             rows={1}
             readOnly={sending}
             aria-label="消息"
@@ -157,7 +156,7 @@ export function Chat({
         <div className={styles.context}>
           {id === undefined ? (
             <Select
-              label="用哪个 agent"
+              label="agent"
               value={agent}
               onValueChange={(value) => setAgent(value as AgentId)}
               options={(choosable.length > 0 ? choosable.map((catalog) => catalog.agent) : [agent]).map((value) => ({ value, label: agents[value].name }))}
@@ -166,7 +165,7 @@ export function Chat({
           ) : (
             conversation && <span>{agents[conversation.agent].name}</span>
           )}
-          <span>{isTemporary ? '不带喜多的身份和记忆' : `带着 ${memoryCount} 条记忆`}</span>
+          <span>{isTemporary ? '不带记忆' : `${memoryCount} 条记忆`}</span>
         </div>
       </div>
     </div>
