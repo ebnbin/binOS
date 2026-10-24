@@ -6,13 +6,23 @@ import { describe, expect, it } from 'vitest'
 const root = mkdtempSync(path.join(os.tmpdir(), 'binos-test-'))
 process.env.BINOS_ROOT = root
 const { encodeEntries } = await import('./journal.js')
-const { readEvents, appendEntries, createKitaSession, readEntries, sessionDir, sessionInfo } = await import('./store.js')
+const { readEvents, appendEntries, createKitaSession, readEntries, sessionDir, sessionInfo, windowStart } = await import('./store.js')
 const time = () => new Date().toISOString()
 const input = (text: string, mode: 'start' | 'steer' = 'start') => ({ type: 'input' as const, time: time(), mode, text })
 const turnEnd = () => ({ type: 'turn_end' as const, time: time(), durationMs: 0 })
 const newThread = () => createKitaSession({ type: 'session', time: time(), agent: 'claude', owner: 'test', cwd: root })
 
 describe('store', () => {
+  it('分段读取从一轮的开头读起，插话不算一轮的开头', () => {
+    const id = newThread()
+    appendEntries(id, [input('一'), turnEnd(), input('二'), input('插话', 'steer'), turnEnd(), input('三'), turnEnd()])
+    expect(windowStart(id, 1)).toBe(6)
+    expect(windowStart(id, 3)).toBe(3)
+    expect(windowStart(id, 2, 6)).toBe(3)
+    expect(windowStart(id, 3, 3)).toBe(0)
+    expect(windowStart(id, 100)).toBe(0)
+  })
+
   it('summary.json 和 events.jsonl 对不上时从头重算；一轮进行中的 input 是插话，不算新的一轮', () => {
     const id = newThread()
     expect(appendEntries(id, [input('一'), input('插话', 'steer'), turnEnd(), input('二')])).toBe(1)

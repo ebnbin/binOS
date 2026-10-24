@@ -98,20 +98,32 @@ export const kitaApi = new Hono()
     const session = getKitaSession(c.req.valid('param').id)!
     return c.json({ metadata: session.metadata(), summary: session.summary(), turns: session.turns(), items: session.items() })
   })
+  // from 之后的事件；给出 before 时是它之前至少 limit 条，从一轮的开头读起
   .get('/sessions/:id/events', threadParam, (c) => {
+    const session = getKitaSession(c.req.valid('param').id)!
+    const before = c.req.query('before')
+    if (before !== undefined) {
+      const end = Number(before), limit = Number(c.req.query('limit') ?? 0)
+      if (!Number.isSafeInteger(end) || end < 0 || !Number.isSafeInteger(limit) || limit < 0) return c.text('Bad Request', 400)
+      return c.json({ events: session.events(session.windowStart(limit, end), end) })
+    }
     const from = Number(c.req.query('from') ?? 0)
     if (!Number.isSafeInteger(from) || from < 0) return c.text('Bad Request', 400)
-    return c.json({ events: getKitaSession(c.req.valid('param').id)!.events(from) })
+    return c.json({ events: session.events(from) })
   })
-  // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发
+  // 条目的事件 id 是到它为止的条数，浏览器断线重连时带上 Last-Event-ID，从那之后接着补发。
+  // 第一次连接可以用 tail 只要最后至少这么多条，从一轮的开头补发，更早的由页面按需用 /events 读
   .get('/sessions/:id/stream', threadParam, (c) => {
     const session = getKitaSession(c.req.valid('param').id)!
-    const from = Number(c.req.header('Last-Event-ID') ?? c.req.query('from') ?? 0) || 0
+    const resume = c.req.header('Last-Event-ID') ?? c.req.query('from')
+    const tail = resume === undefined ? Number(c.req.query('tail')) : NaN
+    const from = Number.isSafeInteger(tail) && tail > 0 ? session.windowStart(tail) : Number(resume ?? 0) || 0
     return streamSSE(c, async (stream) => {
       const send = (event: KitaSessionEvent) =>
         void stream.writeSSE({ data: JSON.stringify(event), id: event.type === 'event' ? String(event.event.seq) : undefined })
       // 读取条目、补发、开始监听之间没有等待，不会漏掉或重复
       await stream.write(connectedPreamble)
+      if (resume === undefined) send({ type: 'window', from, session: session.metadata() })
       session.events(from).forEach((event) => send({ type: 'event', event }))
       send({ type: 'live', live: session.live() })
       stream.onAbort(session.subscribe(send))

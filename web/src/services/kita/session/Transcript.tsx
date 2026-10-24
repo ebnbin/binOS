@@ -1,7 +1,7 @@
 import type { AgentId, Attachment, Entry, Live, Status } from '@binos/server/services/kita/types'
 import { ChevronRight } from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { Alert } from '../../../ui/Alert.tsx'
 import { CopyButton } from '../../../ui/CopyButton.tsx'
 import { formatDuration, formatTokens, useNow } from '../../../ui/format.ts'
@@ -156,7 +156,7 @@ const TurnSection = memo(function TurnSection({
     return null
   }
   return (
-    <section className={styles.turn}>
+    <section className={styles.turn} data-turn={turn.start}>
       {renderBlocks(blocks, context, tail === undefined ? undefined : blocks.at(-1))}
       {tail}
     </section>
@@ -375,20 +375,79 @@ function formatElapsed(ms: number) {
   return seconds < 60 ? `${seconds} 秒` : `${Math.floor(seconds / 60)} 分 ${seconds % 60} 秒`
 }
 
-// thread 的内容：按轮分节，回答进行中的临时内容接在最后
-export function Transcript({ thread, items, live }: { thread: string; items: Entry[]; live: Live | null }) {
+// 补读更早的轮时，离顶部还有这么远就开始读
+const olderMargin = 1500
+
+// 一轮在滚动内容里的位置，用它的第一条（时间分隔线下面）定位，补读后分隔线的有无不影响
+function turnTop(scroller: HTMLElement, turn: number) {
+  const section = scroller.querySelector(`[data-turn="${turn}"]`)
+  const target = section?.querySelector('[data-thread-item]') ?? section
+  return target && target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop
+}
+
+// thread 的内容：按轮分节，回答进行中的临时内容接在最后。items 是从 offset 开始的条目，
+// offset 大于 0 时滚到离顶部不远处由 loadOlder 补读更早的轮；scrollRef 是对话滚动的那一层
+export function Transcript({
+  thread,
+  agent,
+  items,
+  offset,
+  live,
+  scrollRef,
+  loadOlder,
+}: {
+  thread: string
+  agent: AgentId | undefined
+  items: Entry[]
+  offset: number
+  live: Live | null
+  scrollRef: RefObject<HTMLElement | null>
+  loadOlder: () => void
+}) {
   const now = useNow(live !== null)
   const [split] = useState(() => {
     let previous: Turn[] = []
-    return (items: Entry[]) => (previous = splitTurns(items, previous))
+    return (items: Entry[], offset: number) => (previous = splitTurns(items, previous, offset))
   })
-  const turns = useMemo(() => split(items), [split, items])
-  const agent = items[0]?.type === 'session' ? items[0].agent : undefined
+  const turns = useMemo(() => split(items, offset), [split, items, offset])
   const current = turns.at(-1)
   const runningTool = current?.main.findLast(({ item }) => item.type === 'tool_call' && !current.results.has(item))?.item
   // 这一轮从 mode 为 start 的 input 开始
   const first = current?.first
   const turnStart = first?.type === 'input' && first.mode === 'start' ? first.time : undefined
+
+  const sentinel = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const root = scrollRef.current
+    if (!root || !sentinel.current) {
+      return
+    }
+    // loadOlder 随读到的位置变化，每读完一段重新观察：还在顶部附近就接着读
+    const observer = new IntersectionObserver((entries) => entries.some((entry) => entry.isIntersecting) && loadOlder(), {
+      root,
+      rootMargin: `${olderMargin}px 0px 0px 0px`,
+    })
+    observer.observe(sentinel.current)
+    return () => observer.disconnect()
+  }, [scrollRef, loadOlder, offset])
+
+  // 前面补上更早的轮后，原来第一轮在内容里的位置往下移了，滚动跟着移同样的距离，正在看的内容不动
+  const anchor = useRef<{ turn: number; top: number }>(undefined)
+  const firstTurn = turns[0]?.start
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current
+    if (!scroller || firstTurn === undefined) {
+      return
+    }
+    const previous = anchor.current
+    const moved = previous && previous.turn !== firstTurn ? turnTop(scroller, previous.turn) : null
+    if (previous && moved != null) {
+      scroller.scrollTop += moved - previous.top
+    }
+    const top = turnTop(scroller, firstTurn)
+    anchor.current = top == null ? undefined : { turn: firstTurn, top }
+  }, [scrollRef, firstTurn])
+
   const tail = (
     <>
       {live?.thinking && <Thinking thread={thread} text={live.thinking} live />}
@@ -401,19 +460,28 @@ export function Transcript({ thread, items, live }: { thread: string; items: Ent
       )}
     </>
   )
-  return turns.map((turn, index) => {
-    const last = index === turns.length - 1
-    return (
-      <TurnSection
-        key={turn.start}
-        thread={thread}
-        agent={agent}
-        turn={turn}
-        previousTime={turns[index - 1]?.main.at(-1)?.item.time}
-        live={last ? live : null}
-        now={last ? now : 0}
-        tail={last ? tail : undefined}
-      />
-    )
-  })
+  return (
+    <>
+      {offset > 0 && (
+        <div ref={sentinel} className={styles.older}>
+          正在读取更早的消息
+        </div>
+      )}
+      {turns.map((turn, index) => {
+        const last = index === turns.length - 1
+        return (
+          <TurnSection
+            key={turn.start}
+            thread={thread}
+            agent={agent}
+            turn={turn}
+            previousTime={turns[index - 1]?.main.at(-1)?.item.time}
+            live={last ? live : null}
+            now={last ? now : 0}
+            tail={last ? tail : undefined}
+          />
+        )
+      })}
+    </>
+  )
 }

@@ -10,7 +10,7 @@ import { copyAttachments, promptWithAttachments, snapshotFiles } from './files.j
 import { attachHost, startHost } from './host/client.js'
 import type { Host } from './host/client.js'
 import { saveLimits } from './limits.js'
-import { addUsage, appendEntries, createKitaSession as createKitaSessionDir, filesDir, hostDir, listKitaSessions, readEntries, kitaSessionExists, sessionInfo, metadata, readEvents, removeKitaSession, workerDir, unbindWorker } from './store.js'
+import { addUsage, appendEntries, createKitaSession as createKitaSessionDir, filesDir, hostDir, listKitaSessions, readEntries, kitaSessionExists, sessionInfo, metadata, readEvents, removeKitaSession, windowStart, workerDir, unbindWorker } from './store.js'
 import type { Activity, AgentId, Entry, IdentityScope, Live, KitaSessionEvent, KitaSessionState, KitaSessionSummary } from './types.js'
 import { identityPrompt } from './identity.js'
 import { projectItems, projectTurns } from './journal.js'
@@ -68,7 +68,8 @@ export class KitaSession {
   }
 
   metadata() { return metadata(this.id) }
-  events(from = 0) { return readEvents(this.id, from) }
+  events(from = 0, to?: number) { return readEvents(this.id, from, to) }
+  windowStart(size: number, before?: number) { return windowStart(this.id, size, before) }
   items() { return projectItems(this.events()) }
   turns() { return projectTurns(this.events()) }
 
