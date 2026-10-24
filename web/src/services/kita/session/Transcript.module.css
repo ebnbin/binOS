@@ -174,8 +174,9 @@
 
 .older {
   align-self: center;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: var(--color-label-secondary);
+  font-size: var(--font-size-footnote);
+  line-height: var(--line-height-footnote);
 }
 
 .stats {
