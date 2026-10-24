@@ -6,6 +6,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { useAgentCatalogs } from '../../services/kita/models.ts'
 import { Transcript } from '../../services/kita/session/Transcript.tsx'
+import { useFollowBottom } from '../../services/kita/session/useFollowBottom.ts'
 import { useKitaSession } from '../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../ui/Alert.tsx'
 import { Select } from '../../ui/Select.tsx'
@@ -37,13 +38,14 @@ export function Chat({
   memoryCount: number
   onCreated(id: string): void
 }) {
-  const { items, live } = useKitaSession(id)
+  const { items, offset, session, live, loadOlder } = useKitaSession(id)
   const running = live !== null
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [notice, setNotice] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const stick = useRef(true)
+  useFollowBottom(scrollRef, stick)
   const isTemporary = conversation?.temporary ?? temporary
   // 新对话能选能用的 agent，已有的对话沿用它的
   const catalogs = useAgentCatalogs()
@@ -115,7 +117,7 @@ export function Chat({
               )}
             </div>
           ) : (
-            <Transcript thread={id} items={items} live={live} />
+            <Transcript thread={id} agent={session?.agent} items={items} offset={offset} live={live} scrollRef={scrollRef} loadOlder={loadOlder} />
           )}
           {notice && <Alert>{notice}</Alert>}
         </div>

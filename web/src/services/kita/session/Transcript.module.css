@@ -172,6 +172,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.older {
+  align-self: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
 .stats {
   display: flex;
   align-items: center;

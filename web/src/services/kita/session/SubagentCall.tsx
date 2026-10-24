@@ -6,6 +6,7 @@ import { Activity } from './Activity.tsx'
 import { Markdown } from './Markdown.tsx'
 import styles from './SubagentCall.module.css'
 import { callDuration, callStatus } from './tools.ts'
+import { useFullCall } from './useFullCall.ts'
 import type { CallState } from './tools.ts'
 
 // 子 agent：一行是任务描述，运行中带上正在做的一步；展开是任务说明和它自己的过程（timeline）。
@@ -48,9 +49,15 @@ export function SubagentCall({
         <>
           {prompt && <Activity icon={ScrollText} label="任务说明" body={() => <pre className={styles.prompt}>{prompt}</pre>} />}
           {timeline}
-          {!timeline && result?.output && <Markdown thread={thread} text={result.output} />}
+          {!timeline && result?.output && <SubagentResult thread={thread} state={state} />}
         </>
       )}
     />
   )
+}
+
+// 没有过程的记录时交回的结果，发给页面时省略过就读完整的
+function SubagentResult({ thread, state }: { thread: string; state: CallState }) {
+  const { result } = useFullCall(thread, state.index, state.call, state.result)
+  return result?.output ? <Markdown thread={thread} text={result.output} /> : null
 }

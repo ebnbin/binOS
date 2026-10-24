@@ -14,8 +14,8 @@ export type Turn = {
   children: Map<ToolCall, IndexedEntry[]>
 }
 
-function indexTurn(items: Entry[], start: number, end: number): Turn {
-  const entries = items.slice(start, end).map((item, offset) => ({ item, index: start + offset }))
+function indexTurn(items: Entry[], offset: number, start: number, end: number): Turn {
+  const entries = items.slice(start, end).map((item, i) => ({ item, index: offset + start + i }))
   const calls = new Map(entries.flatMap(({ item }) => item.type === 'tool_call' ? [[item.id, item] as const] : []))
   const results = new Map<ToolCall, ToolResult>()
   const children = new Map<ToolCall, IndexedEntry[]>()
@@ -35,15 +35,17 @@ function indexTurn(items: Entry[], start: number, end: number): Turn {
       main.push(entry)
     }
   }
-  return { first: items[start], start, size: end - start, main, results, children }
+  return { first: items[start], start: offset + start, size: end - start, main, results, children }
 }
 
-// 条目只会追加：和 previous 里同一段条目的轮沿用原来的对象，页面上这些轮可以跳过重新渲染
-export function splitTurns(items: Entry[], previous: Turn[] = []): Turn[] {
+// items 是从 offset 开始的条目，轮的 start 和条目的 index 都是在整个 thread 里的位置。
+// 条目只会在两头增加：和 previous 里同一段条目的轮沿用原来的对象，页面上这些轮可以跳过重新渲染
+export function splitTurns(items: Entry[], previous: Turn[] = [], offset = 0): Turn[] {
+  const reusable = new Map(previous.map((turn) => [turn.start, turn]))
   const starts = items.flatMap((item, index) => (index === 0 || (item.type === 'input' && item.mode === 'start') ? [index] : []))
   return starts.map((start, i) => {
     const end = starts[i + 1] ?? items.length
-    const old = previous[i]
-    return old?.first === items[start] && old.start === start && old.size === end - start ? old : indexTurn(items, start, end)
+    const old = reusable.get(offset + start)
+    return old?.first === items[start] && old.size === end - start ? old : indexTurn(items, offset, start, end)
   })
 }

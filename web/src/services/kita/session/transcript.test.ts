@@ -34,3 +34,12 @@ it('追加条目时沿用没变的轮，换了条目的不沿用', () => {
   expect(after[1]).not.toBe(before[1])
   expect(splitTurns(makeTurn('first'), after)[0]).not.toBe(after[0])
 })
+
+it('往前补上更早的轮后，原来的轮位置不变、沿用原来的对象', () => {
+  const first = makeTurn('first'), second = makeTurn('second')
+  const before = splitTurns(second, [], first.length)
+  const after = splitTurns([...first, ...second], before, 0)
+  expect(after.map((turn) => turn.start)).toEqual([0, first.length])
+  expect(after[1]).toBe(before[0])
+  expect(after[1].main[0].index).toBe(first.length)
+})
