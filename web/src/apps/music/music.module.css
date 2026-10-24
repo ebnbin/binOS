@@ -770,7 +770,7 @@
 .muted {
   flex: none;
   align-self: flex-start;
-  color: var(--color-pink);
+  color: var(--color-label-secondary);
 }
 
 .spinner {

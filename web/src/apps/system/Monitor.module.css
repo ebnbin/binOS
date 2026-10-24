@@ -188,25 +188,7 @@
 }
 
 .card h2 svg {
-  --metric: var(--color-accent);
-
-  color: var(--metric);
-}
-
-.card[data-metric='cpu'] h2 svg {
-  --metric: var(--color-blue);
-}
-
-.card[data-metric='memory'] h2 svg {
-  --metric: var(--color-green);
-}
-
-.card[data-metric='network'] h2 svg {
-  --metric: var(--color-indigo);
-}
-
-.card[data-metric='power'] h2 svg {
-  --metric: var(--color-orange);
+  color: var(--color-label-secondary);
 }
 
 .card > strong {
@@ -305,12 +287,9 @@
   font-style: normal;
 }
 
-.down {
-  color: var(--color-blue);
-}
-
+.down,
 .up {
-  color: var(--color-red);
+  color: var(--color-label-secondary);
 }
 
 .speeds small {

@@ -26,7 +26,8 @@
   --color-gray-6: #f2f2f7;
 
   /* 强调色是中性的，对应 macOS 的石墨色（Graphite）：亮色时近黑、深色时近白，压在上面的文字反色。
-     链接仍然是蓝色，和正文区分开。系统色本身对比度不够，用作小号状态文字时取 HIG 的高对比度版本 */
+     有语义的地方才用彩色：链接是蓝色，成功、警告、错误是绿、橙、红，其余一律用黑白。
+     系统色本身对比度不够，用作小号状态文字时取 HIG 的高对比度版本 */
   --color-accent: #1d1d1f;
   --color-on-accent: #fff;
   /* 压在系统色（红、绿、app 图标）上的文字和图形，不跟随深浅色 */
@@ -103,16 +104,16 @@
   --color-dock-hover: rgb(255 255 255 / 10%);
 
   /* 桌面墙纸，图标名字压在墙纸上 */
+  /* 墙纸是傍晚的暖色：上面橙粉，下面渐入紫 */
   --wallpaper:
-    radial-gradient(120% 90% at 10% 0%, #8fd3ff 0%, transparent 55%), radial-gradient(90% 80% at 100% 20%, #b9a6ff 0%, transparent 60%),
-    radial-gradient(120% 100% at 60% 110%, #2a7cf7 0%, transparent 65%), linear-gradient(160deg, #5ab8ff, #3a6ff2 55%, #6a54e8);
+    radial-gradient(110% 80% at 15% 0%, #ffb37a 0%, transparent 60%), radial-gradient(90% 80% at 100% 30%, #f06a8c 0%, transparent 60%),
+    radial-gradient(120% 90% at 40% 110%, #6b4fd8 0%, transparent 65%), linear-gradient(165deg, #f59a6b, #d9577d 50%, #7d4fc9);
   --color-on-wallpaper: #fff;
   --shadow-on-wallpaper: 0 1px 3px rgb(0 0 0 / 35%);
 
-  /* app 图标的底色，按 app 的语义取系统色 */
-  --app-icon-highlight: linear-gradient(180deg, rgb(255 255 255 / 22%), transparent 60%);
-  --app-icon-graphite: linear-gradient(180deg, #4a4a4f, #1c1c1e);
-  --app-icon-light: linear-gradient(180deg, #fff, #ececf0);
+  /* app 图标：纯色的底，图形是正文色 */
+  --app-icon-tile: var(--color-background-elevated);
+  --app-icon-glyph: var(--color-label);
 
   /* 终端始终是深色，取 macOS 终端的默认配色 */
   --color-terminal-bg: #1e1e1e;
@@ -297,9 +298,8 @@
     --material-sidebar: rgb(44 44 46 / 72%);
 
     --wallpaper:
-      radial-gradient(120% 90% at 10% 0%, #1f4f8f 0%, transparent 55%), radial-gradient(90% 80% at 100% 20%, #3b2a7a 0%, transparent 60%),
-      radial-gradient(120% 100% at 60% 110%, #0b3a8c 0%, transparent 65%), linear-gradient(160deg, #10284f, #0b1a3a 55%, #1a1240);
-    --app-icon-light: linear-gradient(180deg, #3a3a3c, #2c2c2e);
+      radial-gradient(110% 80% at 15% 0%, #7a3a2a 0%, transparent 60%), radial-gradient(90% 80% at 100% 30%, #6e2342 0%, transparent 60%),
+      radial-gradient(120% 90% at 40% 110%, #2a1d63 0%, transparent 65%), linear-gradient(165deg, #4a2530, #3a1a3c 50%, #1c1640);
 
     --shadow-control: 0 0 0 0.5px rgb(255 255 255 / 6%), 0 0.5px 1.5px rgb(0 0 0 / 30%);
     --shadow-card: 0 0 0 0.5px rgb(255 255 255 / 8%), 0 1px 3px rgb(0 0 0 / 30%);
