@@ -9,13 +9,78 @@ import { agentAccounts, agentCatalogs } from './accounts.js'
 import { drivers } from './drivers/index.js'
 import { allLimits } from './limits.js'
 import { filesDir } from './store.js'
-import { getKitaSession } from './sessions.js'
+import { activity, getKitaSession } from './sessions.js'
+import { addMemory, addPhoto, listMemories, maxDescriptionLength, maxMemoryLength, photoPattern, photosDir, PhotoRejected, readProfile, removeMemory, removePhoto, revertMemory, setAvatar, setDescription, updateMemory } from './identity.js'
+import { metadata } from './store.js'
 import { agentIds } from './types.js'
-import type { AgentStatus, KitaSessionEvent } from './types.js'
+import type { AgentStatus, IdentityScope, KitaSessionEvent, Memory, MemoryKind, MemorySource } from './types.js'
 
 const threadParam = validator('param', (value: Record<string, string>, c) => {
   const id = value.id ?? ''
   return getKitaSession(id) ? { id } : c.text('Not Found', 404)
+})
+
+const isKind = (value: unknown): value is MemoryKind => value === 'stated' || value === 'inferred'
+const scopePattern = /^[a-z0-9-]{1,40}$/
+
+// 谁在改记忆：带着 session 的是那个 session 里的 agent，只能动它的身份能读的记忆；没带的是页面上的用户
+function memoryWriter(session: unknown): { source: MemorySource; scope?: IdentityScope } | undefined {
+  if (session === undefined) return { source: { type: 'user' } }
+  if (typeof session !== 'string' || !getKitaSession(session)) return undefined
+  const { identity, owner } = metadata(session)
+  return identity ? { source: { type: 'session', owner, session }, scope: identity } : undefined
+}
+
+const memoryText = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
+
+// 请求体的形状就是页面要传的；谁在写、写到哪个范围在路由里定。
+// session：agent 在哪个 session 里记的，页面上的用户不带；scope 只有用户能指定，默认是个人
+const newMemoryBody = validator('json', (value, c) => {
+  const body = (value ?? {}) as { session?: unknown; text?: unknown; kind?: unknown; scope?: unknown }
+  const text = memoryText(body.text)
+  if (
+    !text ||
+    text.length > maxMemoryLength ||
+    (body.session !== undefined && typeof body.session !== 'string') ||
+    (body.kind !== undefined && !isKind(body.kind)) ||
+    (body.scope !== undefined && (typeof body.scope !== 'string' || !scopePattern.test(body.scope)))
+  ) {
+    return c.text('Bad Request', 400)
+  }
+  const memory: { session?: string; text: string; kind?: MemoryKind; scope?: string } = {
+    text,
+    ...(typeof body.session === 'string' && { session: body.session }),
+    ...(isKind(body.kind) && { kind: body.kind }),
+    ...(typeof body.scope === 'string' && { scope: body.scope }),
+  }
+  return memory
+})
+
+const memoryChangeBody = validator('json', (value, c) => {
+  const body = (value ?? {}) as { session?: unknown; text?: unknown; kind?: unknown }
+  const text = body.text === undefined ? undefined : memoryText(body.text)
+  if (text === '' || (text && text.length > maxMemoryLength) || (body.session !== undefined && typeof body.session !== 'string') || (body.kind !== undefined && !isKind(body.kind))) {
+    return c.text('Bad Request', 400)
+  }
+  const change: { session?: string; text?: string; kind?: MemoryKind } = {
+    ...(typeof body.session === 'string' && { session: body.session }),
+    ...(text && { text }),
+    ...(isKind(body.kind) && { kind: body.kind }),
+  }
+  return change
+})
+
+// 要改的记忆和改它的是谁；没有这条时是 404，没有权限时是 403
+function memoryChange(id: string, session: string | undefined): { memory: Memory; source: MemorySource } | 403 | 404 {
+  const memory = listMemories().find((item) => item.id === id)
+  if (!memory) return 404
+  const writer = memoryWriter(session)
+  return writer && (!writer.scope || writer.scope.read.includes(memory.scope)) ? { memory, source: writer.source } : 403
+}
+
+const photoParam = validator('param', (value: Record<string, string>, c) => {
+  const file = value.file ?? ''
+  return photoPattern.test(file) && readProfile().photos.some((photo) => photo.file === file) ? { file } : c.text('Not Found', 404)
 })
 
 // 页面用到的 agent 服务：系统 app 显示账号，app 里选 agent 和模型、显示 session 的内容。
@@ -62,6 +127,66 @@ export const kitaApi = new Hono()
       return c.text('Not Found', 404)
     }
     return serveFile(c, filePath, true)
+  })
+
+  // 各个 app 正在回答的 session
+  .get('/activity', (c) => c.json({ activity: activity() }))
+  // 喜多：用户写的描述和照片
+  .get('/profile', (c) => c.json({ profile: readProfile() }))
+  .post('/profile/description', validator('json', (value, c) => {
+    const description = (value as { description?: unknown } | null)?.description
+    return typeof description === 'string' && description.length <= maxDescriptionLength ? { description } : c.text('Bad Request', 400)
+  }), (c) => {
+    setDescription(c.req.valid('json').description)
+    return c.json({ ok: true }, 200)
+  })
+  // 请求体就是照片本身，原来的文件名 URL 编码后放在 X-File-Name 里
+  .post('/profile/photos', async (c) => {
+    const body = c.req.raw.body
+    if (!body || c.req.header('Content-Type') !== 'application/octet-stream') return c.text('Bad Request', 400)
+    let name = ''
+    try {
+      name = decodeURIComponent(c.req.header('X-File-Name') ?? '')
+    } catch {
+      // 文件名解不开就当没有，按格式不支持拒绝
+    }
+    try {
+      return c.json({ file: await addPhoto(body, name) }, 200)
+    } catch (error) {
+      if (error instanceof PhotoRejected) return c.json({ error: error.message }, 400)
+      throw error
+    }
+  })
+  .get('/profile/photos/:file', photoParam, (c) => serveFile(c, path.join(photosDir, c.req.valid('param').file), true))
+  .post('/profile/photos/:file/delete', photoParam, (c) => c.json({ ok: removePhoto(c.req.valid('param').file) }, 200))
+  .post('/profile/photos/:file/avatar', photoParam, (c) => c.json({ ok: setAvatar(c.req.valid('param').file) }, 200))
+  // 长期记忆
+  .get('/memories', (c) => c.json({ memories: listMemories() }))
+  // agent 记的写到它的身份的 write 范围
+  .post('/memories', newMemoryBody, (c) => {
+    const { session, text, kind = 'stated', scope } = c.req.valid('json')
+    const writer = memoryWriter(session)
+    if (!writer || (writer.scope && scope !== undefined)) return c.text('Forbidden', 403)
+    return c.json({ memory: addMemory(text, kind, writer.scope?.write ?? scope ?? 'personal', writer.source) }, 200)
+  })
+  .post('/memories/:id', memoryChangeBody, (c) => {
+    const { session, ...change } = c.req.valid('json')
+    const target = memoryChange(c.req.param('id'), session)
+    if (typeof target === 'number') return c.text(target === 404 ? 'Not Found' : 'Forbidden', target)
+    return c.json({ memory: updateMemory(target.memory.id, change, target.source)! }, 200)
+  })
+  .post('/memories/:id/delete', memoryChangeBody, (c) => {
+    const target = memoryChange(c.req.param('id'), c.req.valid('json').session)
+    if (typeof target === 'number') return c.text(target === 404 ? 'Not Found' : 'Forbidden', target)
+    return c.json({ ok: removeMemory(target.memory.id) }, 200)
+  })
+  // 恢复上一个版本，只在页面上
+  .post('/memories/:id/revert', memoryChangeBody, (c) => {
+    const target = memoryChange(c.req.param('id'), c.req.valid('json').session)
+    if (target === 404) return c.text('Not Found', 404)
+    if (target === 403 || target.source.type !== 'user') return c.text('Forbidden', 403)
+    const memory = revertMemory(target.memory.id)
+    return memory ? c.json({ memory }, 200) : c.text('Conflict', 409)
   })
 
 // 各个 agent 的接口，页面用 driver 各自导出的类型
