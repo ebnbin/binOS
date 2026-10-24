@@ -17,6 +17,20 @@ const initialContent: KitaSessionContent = { items: [], offset: 0, session: unde
 // 打开时先读最后至少这么多条，往上翻时每次再读这么多
 const pageSize = 300
 
+// 最近打开过的几个 thread 的内容：再打开时先显示它，再从它之后接着补发
+const cache = new Map<string, KitaSessionContent>()
+const cacheSize = 10
+
+function remember(thread: string, content: KitaSessionContent) {
+  cache.delete(thread)
+  cache.set(thread, content)
+  if (cache.size > cacheSize) {
+    cache.delete(cache.keys().next().value!)
+  }
+}
+
+const cached = (thread: string | undefined) => (thread === undefined ? undefined : cache.get(thread))
+
 // 记成条目的思考和文字取代对应的临时内容，和后端一致
 function applyItem(live: Live | null, item: Entry): Live | null {
   if (!live || ('parent' in item && item.parent)) {
@@ -31,7 +45,7 @@ function applyItem(live: Live | null, item: Entry): Live | null {
   return live
 }
 
-function applyEvent(live: Live | null, event: Exclude<KitaSessionEvent, { type: 'event' | 'window' }>): Live | null {
+function applyEvent(live: Live | null, event: Exclude<KitaSessionEvent, { type: 'event' | 'events' | 'window' }>): Live | null {
   if (event.type === 'live') {
     return event.live
   }
@@ -65,9 +79,11 @@ function applyEvents(content: KitaSessionContent, events: KitaSessionEvent[]): K
       offset = event.from
       session = event.session
       live = null
-    } else if (event.type === 'event') {
-      added.push(event.event.data)
-      live = applyItem(live, event.event.data)
+    } else if (event.type === 'event' || event.type === 'events') {
+      for (const { data } of event.type === 'event' ? [event.event] : event.events) {
+        added.push(data)
+        live = applyItem(live, data)
+      }
     } else {
       live = applyEvent(live, event)
     }
@@ -78,12 +94,17 @@ function applyEvents(content: KitaSessionContent, events: KitaSessionEvent[]): K
 // thread 的内容，随推送更新；thread 为 undefined 时是空的。先读最后几轮，loadOlder 往前补读更早的轮，给出 until 时一直读到包含它
 export function useKitaSession(thread: string | undefined): KitaSessionContent & { loadOlder: (until?: number) => void } {
   const [state, setState] = useState<{ thread?: string; content: KitaSessionContent }>({ content: initialContent })
-  const content = state.thread === thread ? state.content : initialContent
+  const content = state.thread === thread ? state.content : (cached(thread) ?? initialContent)
   const update = useCallback(
     (target: string, change: (content: KitaSessionContent) => KitaSessionContent) =>
-      setState((prev) => ({ thread: target, content: change(prev.thread === target ? prev.content : initialContent) })),
+      setState((prev) => ({ thread: target, content: change(prev.thread === target ? prev.content : (cached(target) ?? initialContent)) })),
     [],
   )
+  useEffect(() => {
+    if (state.thread !== undefined) {
+      remember(state.thread, state.content)
+    }
+  }, [state])
 
   useEffect(() => {
     if (thread === undefined) {
@@ -98,18 +119,21 @@ export function useKitaSession(thread: string | undefined): KitaSessionContent &
       queue = []
       update(thread, (prev) => applyEvents(prev, events))
     }
-    // 浏览器自己重连时用 Last-Event-ID 接着补发；由 connectEventSource 重连时从已收到的位置接着补发，还没收到过时重新读最后几轮
-    let count: number | undefined
+    // 浏览器自己重连时用 Last-Event-ID 接着补发；由 connectEventSource 重连时从已收到的位置接着补发，还没收到过时重新读最后几轮。
+    // 打开过的从缓存的之后接着补发
+    const known = cached(thread)
+    let count = known && known.offset + known.items.length
     const close = connectEventSource(() => sessionStreamUrl(thread, count, pageSize), {
       onMessage: (data) => {
         const event: KitaSessionEvent = JSON.parse(data)
         if (event.type === 'window') {
           count = event.from
-        } else if (event.type === 'event') {
-          if (count === undefined || event.event.seq !== count + 1) {
+        } else if (event.type === 'event' || event.type === 'events') {
+          const events = event.type === 'event' ? [event.event] : event.events
+          if (count === undefined || events[0]?.seq !== count + 1) {
             return
           }
-          count += 1
+          count += events.length
         }
         queue.push(event)
         frame ||= requestAnimationFrame(flush)

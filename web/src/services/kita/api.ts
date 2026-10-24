@@ -1,5 +1,5 @@
 import type { KitaApi } from '@binos/server/services/kita/api'
-import type { KitaSessionEvent } from '@binos/server/services/kita/types'
+import type { Entry, KitaSessionEvent } from '@binos/server/services/kita/types'
 import { hc } from 'hono/client'
 
 export type SessionEvent = Extract<KitaSessionEvent, { type: 'event' }>['event']
@@ -38,6 +38,13 @@ export async function readOlderEvents(thread: string, before: number, limit: num
   url.searchParams.set('limit', String(limit))
   const res = await fetch(url).catch(() => undefined)
   return res?.ok ? ((await res.json()) as { events: SessionEvent[] }).events : undefined
+}
+
+// index 处的工具调用和它的结果，完整的；读不到时返回 undefined
+export async function readCall(thread: string, index: number) {
+  const url = client.sessions[':id'].calls[':index'].$url({ param: { id: thread, index: String(index) } })
+  const res = await fetch(url).catch(() => undefined)
+  return res?.ok ? ((await res.json()) as { call: Entry; result?: Entry }) : undefined
 }
 
 // name：下载时用的文件名

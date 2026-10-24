@@ -6,6 +6,7 @@ import { ArrowDown, Folder } from 'lucide-react'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { Transcript } from '../../../services/kita/session/Transcript.tsx'
+import { useFollowBottom } from '../../../services/kita/session/useFollowBottom.ts'
 import { useKitaSession } from '../../../services/kita/session/useKitaSession.ts'
 import { Alert } from '../../../ui/Alert.tsx'
 import { BrandMark } from '../../../ui/BrandMark.tsx'
@@ -60,6 +61,7 @@ export function Conversation({
   const [notice, setNotice] = useState('')
   const stick = useRef(targetItem === undefined)
   const located = useRef(false)
+  useFollowBottom(scrollRef, stick)
   // 往上翻看时，下方出现回到底部的按钮
   const [awayFromBottom, setAwayFromBottom] = useState(false)
 

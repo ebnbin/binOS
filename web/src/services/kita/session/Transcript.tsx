@@ -105,7 +105,7 @@ function buildBlocks(entries: IndexedEntry[], context: Context, lastTime?: strin
         }
         break
       case 'tool_call': {
-        const state = { call: item, result: context.results.get(item), live: context.live !== null }
+        const state = { call: item, index, result: context.results.get(item), live: context.live !== null }
         edits.push(...editCalls(state, context))
         addStep({ kind: item.tool.kind === 'subagent' ? 'subagent' : 'tool', key, time: item.time, state })
         break
@@ -126,8 +126,8 @@ function editCalls(state: CallState, context: Context): CallState[] {
   if (isFileEdit(state.call)) {
     return [state]
   }
-  return (context.children.get(state.call) ?? []).flatMap(({ item }) =>
-    item.type === 'tool_call' ? editCalls({ call: item, result: context.results.get(item), live: state.live }, context) : [],
+  return (context.children.get(state.call) ?? []).flatMap(({ item, index }) =>
+    item.type === 'tool_call' ? editCalls({ call: item, index, result: context.results.get(item), live: state.live }, context) : [],
   )
 }
 
