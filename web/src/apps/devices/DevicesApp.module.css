@@ -237,8 +237,8 @@
 
 .badge[data-status='leased'],
 .badge[data-status='reserved'] {
-  --tone: var(--color-gray);
-  --tone-text: var(--color-label-secondary);
+  --tone: var(--color-blue);
+  --tone-text: var(--color-link);
 }
 
 .badge[data-status='creating'],

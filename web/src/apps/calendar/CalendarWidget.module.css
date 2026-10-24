@@ -16,7 +16,7 @@
 
 .header h2 {
   margin: 0;
-  color: var(--color-label);
+  color: var(--color-red);
   font-size: var(--font-size-headline);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-headline);
@@ -93,7 +93,7 @@
 }
 
 .month td span[aria-current='date'] {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+  background: var(--color-red);
+  color: var(--color-on-color);
   font-weight: var(--font-weight-bold);
 }

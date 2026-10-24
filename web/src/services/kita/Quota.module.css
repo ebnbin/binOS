@@ -1,4 +1,4 @@
-/* 额度的颜色：最长的窗口（最外圈）是强调色，其余是灰色，快满了是红色 */
+/* 额度的颜色：最长的窗口（最外圈）是蓝色，其余是绿色，快满了是红色 */
 .ring {
   flex: none;
   transform: rotate(-90deg);
@@ -6,12 +6,12 @@
 
 .ring g,
 .window {
-  --window: var(--color-label-tertiary);
+  --window: var(--color-green);
 }
 
 .ring [data-longest],
 .window[data-longest] {
-  --window: var(--color-accent);
+  --window: var(--color-blue);
 }
 
 .ring g {
